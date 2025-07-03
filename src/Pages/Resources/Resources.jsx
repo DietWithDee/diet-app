@@ -30,7 +30,7 @@ const WelcomeStep = ({ onNext }) => (
         Let's personalize your nutrition journey
       </h1>
       <p className="text-xl text-gray-600 max-w-2xl mx-auto leading-relaxed">
-        We'll calculate your BMI, estimate your daily calorie needs, and guide you to book a session with our expert nutritionists.
+        We'll calculate your BMI, estimate your daily calorie needs, and guide you to book a session with our expert Dietitians.
       </p>
     </div>
     <div className="flex justify-center space-x-4">
@@ -324,7 +324,7 @@ const ResultsStep = ({ results, formData, navigate }) => (
           </div>
           <p className="text-sm text-gray-600">
             {results.bmiCategory === 'Normal Weight' && "Great! You're in the healthy weight range."}
-            {results.bmiCategory === 'Underweight' && "Consider consulting with our nutritionist for healthy weight gain."}
+            {results.bmiCategory === 'Underweight' && "Consider consulting with our Dietitian for healthy weight gain."}
             {results.bmiCategory === 'Overweight' && "A personalized plan can help you reach your ideal weight."}
             {results.bmiCategory === 'Obese' && "Let's work together on a safe, effective weight management plan."}
           </p>
@@ -366,7 +366,7 @@ const ResultsStep = ({ results, formData, navigate }) => (
       <div className="space-y-4">
         <h3 className="text-2xl font-bold text-green-800">Ready for Your Personal Plan?</h3>
         <p className="text-lg text-gray-700 max-w-3xl mx-auto">
-          📊 <em>This is a general guide based on standard calculations.</em> For a tailored nutrition plan that considers your unique needs, health conditions, and preferences, book a consultation with our expert nutritionists.
+          📊 <em>This is a general guide based on standard calculations.</em> For a tailored nutrition plan that considers your unique needs, health conditions, and preferences, book a consultation with our expert Dietitians.
         </p>
       </div>
       <div className="space-y-4">
@@ -394,7 +394,7 @@ const ResultsStep = ({ results, formData, navigate }) => (
         <div className="flex items-center justify-center space-x-6 text-sm text-gray-600">
           <div className="flex items-center space-x-1">
             <div className="w-2 h-2 bg-green-500 rounded-full"></div>
-            <span>Expert Nutritionists</span>
+            <span>Expert Dietitians</span>
           </div>
           <div className="flex items-center space-x-1">
             <div className="w-2 h-2 bg-emerald-500 rounded-full"></div>
