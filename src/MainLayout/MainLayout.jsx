@@ -18,7 +18,7 @@ const MainLayout = () => {
 
    <NavBar />
     <Routes>
-      <Route path="/" element={<Navigate to="/home" />} />
+      <Route path="/diet-app" element={<Home />} />
       <Route path="/" element={<Home />} />
       <Route path="/about" element={<About />} />
       <Route path="/blog" element={<Blog />} />
