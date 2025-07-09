@@ -32,32 +32,32 @@ function NavBar() {
             </NavLink>
           </li>
           <li>
-            <NavLink to="/about" className={linkClass}>
+            <NavLink to="/diet-app/about" className={linkClass}>
               About
             </NavLink>
           </li>
           <li>
-            <NavLink to="/plans" className={linkClass}>
+            <NavLink to="/diet-app/plans" className={linkClass}>
               Plans
             </NavLink>
           </li>
           <li>
-            <NavLink to="/services" className={linkClass}>
+            <NavLink to="/diet-app/services" className={linkClass}>
               Services
             </NavLink>
           </li>
           <li>
-            <NavLink to="/blog" className={linkClass}>
+            <NavLink to="/diet-app/blog" className={linkClass}>
               Blog
             </NavLink>
           </li>
           <li>
-            <NavLink to="/KnowYourBody" className={linkClass}>
+            <NavLink to="/diet-app/KnowYourBody" className={linkClass}>
               KnowYourBody
             </NavLink>
           </li>
           <li>
-            <NavLink to="/contactus" className={linkClass}>
+            <NavLink to="/diet-app/contactus" className={linkClass}>
               Contact Us
             </NavLink>
           </li>
@@ -82,21 +82,29 @@ function NavBar() {
 
       {/* Mobile Nav */}
       {menuOpen && (
-        <ul className="md:hidden px-6 pb-4 space-y-3 font-medium text-sm">
-          {['/', '/about', '/plans', '/services', '/blog', '/resource', '/contactus'].map(
-            (path, i) => (
-              <li key={i}>
-                <NavLink to={path} className={linkClass} end={path === '/'}>
-                  {path === '/'
-                    ? 'Home'
-                    : path.replace('/', '').charAt(0).toUpperCase() +
-                      path.slice(2)}
-                </NavLink>
-              </li>
-            )
-          )}
-        </ul>
-      )}
+  <ul className="md:hidden px-6 pb-4 space-y-3 font-medium text-sm">
+    {[
+      { path: '/', label: 'Home' },
+      { path: '/diet-app/about', label: 'About' },
+      { path: '/diet-app/plans', label: 'Plans' },
+      { path: '/diet-app/services', label: 'Services' },
+      { path: '/diet-app/blog', label: 'Blog' },
+      { path: '/diet-app/KnowYourBody', label: 'KnowYourBody' },
+      { path: '/diet-app/contactus', label: 'Contact Us' },
+    ].map(({ path, label }) => (
+      <li key={path}>
+        <NavLink
+          to={path}
+          className={linkClass}
+          end={path === '/'}
+          onClick={() => setMenuOpen(false)} // Close menu on click
+        >
+          {label}
+        </NavLink>
+      </li>
+    ))}
+  </ul>
+)}
     </div>
   )
 }

@@ -1,6 +1,6 @@
 import React from 'react';
-import Dee from '../../assets/images/Dee.png'
-import Food from '../../assets/Food.png'
+import Dee from '../../assets/crad.png'
+import Food from '../../assets/girl.png'
 
 function ServicesContactSection() {
   return (
@@ -19,7 +19,7 @@ function ServicesContactSection() {
               {/* Main image container */}
               <div className='relative z-10 p-8'>
                 <div className='bg-white rounded-3xl shadow-2xl p-4 hover:shadow-3xl transition-all duration-500 hover:scale-105 w-90'>
-                  <img src={Food} alt="Responsive" className=' h-113 w-80'/>
+                  <img src={Food} alt="Responsive" className=' h-115 w-80'/>
                 </div>
               </div>
             </div>
@@ -127,18 +127,10 @@ function ServicesContactSection() {
               <div className='relative z-10 p-8'>
                 <div className='bg-white rounded-3xl shadow-2xl p-8 hover:shadow-3xl transition-all duration-500 hover:scale-105'>
                   {/* Professional woman mockup */}
-                  <div className='w-full h-113 bg-gradient-to-br rounded-2xl flex items-center justify-center relative overflow-hidden'>
-
-                    
-                    {/* Person silhouette */}
+                  {/* Person silhouette */}
                     <div className='relative z-10 flex flex-col items-center justify-center'>
-                      <img src={Dee} alt="Responsive" className=' h-113 w-80'/>
+                      <img src={Dee} alt="Responsive" className=' h-80 w-80'/>
                     </div>
-                  </div>
-                </div>
-                
-                <div className='absolute bottom-6 left-4 bg-gradient-to-r from-yellow-600 to-yellow-500 text-white px-4 py-2 rounded-full text-sm font-bold shadow-lg'>
-                  Nana Ama Dwamena, L.D, R.D 
                 </div>
               </div>
             </div>

@@ -13,7 +13,7 @@ function AboutUsSection() {
                 <div className='space-y-8'>
                   {/* Section Header */}
                   <div className='space-y-4'>
-                    <h2 className='text-4xl lg:text-5xl  text-transparent bg-clip-text bg-gradient-to-r from-green-700 via-emerald-600 to-green-600 leading-tight font-transcity'>
+                    <h2 className='text-4xl lg:text-5xl  text-transparent bg-clip-text bg-gradient-to-r from-green-700 via-emerald-600 to-green-600 leading-tight font-black'>
                       Our Story
                     </h2>
                     <div className='w-20 h-2 bg-gradient-to-r from-green-500 to-emerald-500 rounded-full'></div>
@@ -22,7 +22,7 @@ function AboutUsSection() {
                   {/* About Content */}
                   <div className='space-y-6'>
                     <p className='text-lg text-gray-700 leading-relaxed'>
-                      Here at <span className='font-bold text-green-700'>DietWithDee,</span> we believe that nutrition is the cornerstone of a vibrant life, and we're here to guide you every step of the way. Our mission is to provide personalized diet plans, delicious recipes, and expert advice to help you reach your wellness goals. DietWithDee is here to support you every step of the way. Let's make healthy living enjoyable and sustainable together!
+                      Here at <span className=' text-green-700 font-transcity text-3xl'>DietWithDee,</span> we believe that nutrition is the cornerstone of a vibrant life, and we're here to guide you every step of the way. Our mission is to provide personalized diet plans, delicious recipes, and expert advice to help you reach your wellness goals. DietWithDee is here to support you every step of the way. Let's make healthy living enjoyable and sustainable together!
                     </p>
     
                     <div className='bg-gradient-to-r from-green-50 to-emerald-50 p-6 rounded-2xl border-l-4 border-green-500'>
@@ -87,9 +87,6 @@ function AboutUsSection() {
                   {/* Floating elements */}
                   <div className='absolute top-4 right-4 bg-gradient-to-r from-green-500 to-emerald-500 text-white px-4 py-2 rounded-full text-sm font-bold shadow-lg'>
                     Expert Care
-                  </div>
-                  <div className='absolute bottom-8 left-4 bg-white rounded-full p-3 shadow-lg'>
-                    <div className='text-2xl'>💚</div>
                   </div>
                 </div>
               </div>

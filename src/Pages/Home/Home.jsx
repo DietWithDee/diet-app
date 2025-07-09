@@ -21,11 +21,12 @@ function Home() {
                   <br />
                   <span className='text-green-700'>Journey </span>
                   <br />
-                  <span className='text-green-700'>Starts Here</span>
+                  <span className='text-green-700'>Starts </span>
+                  <span className='text-green-500'>Here</span>
                 </h1>
                 
                 {/* Decorative accent */}
-                <div className='w-24 h-2 bg-gradient-to-r from-green-500 to-emerald-500 rounded-full'></div>
+                <div className='w-24 h-2 bg-gradient-to-r from-green-500 to-emerald-500 rounded-full '></div>
               </div>
               
               {/* Description */}
@@ -42,7 +43,7 @@ function Home() {
               {/* Call-to-Action Buttons */}
               <div className='flex flex-col sm:flex-row gap-4 pt-6'>
                 <button 
-                          onClick={() => navigate('/resource')}
+                          onClick={() => navigate('/diet-app/knowYourBody')}
                 className='px-8 py-4 bg-gradient-to-r from-[#F6841F] to-[#F6841F] text-white font-bold rounded-full shadow-lg hover:shadow-xl transform hover:-translate-y-1 transition-all duration-300 hover:from-orange-600 hover:to-orange-400'>
                   Start Your Journey
                 </button>
@@ -81,14 +82,8 @@ function Home() {
                 <div className='w-full h-80 bg-gradient-to-br from-green-100 to-emerald-100 rounded-2xl flex items-center justify-center'>
                   <div className='text-center space-y-4'>
                     <img src={Salad} alt="Responsive" />
-
                   </div>
                 </div>
-              </div>
-              
-              {/* Floating elements */}
-              <div className='absolute top-4 right-4 bg-white rounded-full p-3 shadow-lg'>
-                <div className='text-2xl'>🌱</div>
               </div>
             </div>
           </div>
@@ -148,7 +143,7 @@ function Home() {
               <div className='pt-6'>
                 <button 
                 className='px-8 py-4 bg-gradient-to-r from-orange-400 to-orange-400 text-white font-bold rounded-full shadow-lg hover:shadow-xl transform hover:-translate-y-1 transition-all duration-300 hover:from-green-700 hover:to-emerald-700'>
-                  Start Your Transformation
+                  View Plans
                 </button>
               </div>
             </div>

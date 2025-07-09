@@ -8,6 +8,8 @@ import Services from "../Pages/Services/Services";
 import Error from "../Pages/Error/Error";
 import Footer from '../Components/Footer/footer'
 import KnowYourBody from "../Pages/KnowYourBody/KnowYourBody";
+import AdminApp from "../Pages/Admin/admin";
+import Plans from "../Pages/Plans/Plans";
 
 
 const MainLayout = () => {
@@ -20,11 +22,13 @@ const MainLayout = () => {
     <Routes>
       <Route path="/diet-app" element={<Home />} />
       <Route path="/" element={<Home />} />
-      <Route path="/about" element={<About />} />
-      <Route path="/blog" element={<Blog />} />
-      <Route path="/contactUs" element={<ContactUs />} />
-      <Route path="/services" element={<Services />} />
-      <Route path="/knowYourBody" element={<KnowYourBody/>} />
+      <Route path="/diet-app/about" element={<About />} />
+      <Route path="/diet-app/blog" element={<Blog />} />
+      <Route path="/diet-app/contactUs" element={<ContactUs />} />
+      <Route path="/diet-app/services" element={<Services />} />
+      <Route path="/diet-app/knowYourBody" element={<KnowYourBody/>} />
+      <Route path="/diet-app/admin" element={<AdminApp />} />
+      <Route path="/diet-app/plans" element={<Plans />} />
 
       {/* not found Pages */}
       <Route path="*" element={<Error />} />
