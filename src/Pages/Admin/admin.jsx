@@ -218,12 +218,12 @@ const ArticlesManager = ({ articles, setArticles, showNotification }) => {
   };
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-5">
       <div className="flex justify-between items-center">
-        <h2 className="text-2xl font-bold text-green-700">Articles Management</h2>
+        <h2 className="text-xl font-bold text-green-700">Articles Management</h2>
         <button
           onClick={() => setIsEditing(true)}
-          className="flex items-center gap-2 bg-gradient-to-r from-green-600 to-emerald-600 text-white px-4 py-2 rounded-lg hover:from-green-700 hover:to-emerald-700 transition-all duration-300"
+          className="flex items-center gap-2 bg-gradient-to-r from-green-600 to-emerald-600 text-white px-4 py-2 rounded-lg hover:from-green-700 hover:to-emerald-700 transition-all duration-300 font-bold"
         >
           <Plus size={20} />
           New Article
