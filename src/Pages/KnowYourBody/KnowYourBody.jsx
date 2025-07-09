@@ -411,7 +411,7 @@ const ResultsStep = ({ results, formData, navigate }) => (
 );
 
 // Main Component
-function ResourcesFlow() {
+function KnowYourBody() {
   const [step, setStep] = useState(0);
   const navigate = useNavigate();
   const [formData, setFormData] = useState({
@@ -529,4 +529,4 @@ function ResourcesFlow() {
   );
 }
 
-export default ResourcesFlow;
+export default KnowYourBody;

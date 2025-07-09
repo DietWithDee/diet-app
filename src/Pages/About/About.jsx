@@ -13,7 +13,7 @@ function AboutUsSection() {
                 <div className='space-y-8'>
                   {/* Section Header */}
                   <div className='space-y-4'>
-                    <h2 className='text-4xl lg:text-5xl font-black text-transparent bg-clip-text bg-gradient-to-r from-green-700 via-emerald-600 to-green-600 leading-tight'>
+                    <h2 className='text-4xl lg:text-5xl  text-transparent bg-clip-text bg-gradient-to-r from-green-700 via-emerald-600 to-green-600 leading-tight font-transcity'>
                       Our Story
                     </h2>
                     <div className='w-20 h-2 bg-gradient-to-r from-green-500 to-emerald-500 rounded-full'></div>

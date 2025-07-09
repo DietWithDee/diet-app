@@ -7,7 +7,7 @@ import ContactUs from "../Pages/ContactUs/ContactUs";
 import Services from "../Pages/Services/Services";
 import Error from "../Pages/Error/Error";
 import Footer from '../Components/Footer/footer'
-import ResourcesFlow from "../Pages/Resources/Resources";
+import KnowYourBody from "../Pages/KnowYourBody/KnowYourBody";
 
 
 const MainLayout = () => {
@@ -24,7 +24,7 @@ const MainLayout = () => {
       <Route path="/blog" element={<Blog />} />
       <Route path="/contactUs" element={<ContactUs />} />
       <Route path="/services" element={<Services />} />
-      <Route path="/resource" element={<ResourcesFlow/>} />
+      <Route path="/knowYourBody" element={<KnowYourBody/>} />
 
       {/* not found Pages */}
       <Route path="*" element={<Error />} />

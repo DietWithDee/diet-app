@@ -71,8 +71,8 @@ function ServicesContactSection() {
                   <path strokeLinecap='round' strokeLinejoin='round' strokeWidth={2} d='M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4' />
                 </svg>
               </div>
-              <h3 className='text-xl font-bold text-gray-900'>Corporate Wellness</h3>
-              <p className='text-gray-600'>Elevate team well-being. Customized programs for vitality and success.</p>
+              <h3 className='text-xl font-bold text-gray-900'>Personalized Diet Consultations</h3>
+              <p className='text-gray-600'>One-on-one consultations to understand your unique dietary needs and preferences.</p>
             </div>
 
             {/* Custom Made Plans */}
@@ -82,8 +82,8 @@ function ServicesContactSection() {
                   <path strokeLinecap='round' strokeLinejoin='round' strokeWidth={2} d='M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z' />
                 </svg>
               </div>
-              <h3 className='text-xl font-bold text-gray-900'>Custom Made Plans</h3>
-              <p className='text-gray-600'>Tailored plans just for you. Achieve health goals with personalized guidance.</p>
+              <h3 className='text-xl font-bold text-gray-900'>Customized Diet Plans</h3>
+              <p className='text-gray-600'>Meal plans designed to meet your specific health goals.</p>
             </div>
 
             {/* Consultations */}
@@ -93,8 +93,8 @@ function ServicesContactSection() {
                   <path strokeLinecap='round' strokeLinejoin='round' strokeWidth={2} d='M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z' />
                 </svg>
               </div>
-              <h3 className='text-xl font-bold text-gray-900'>Consultations</h3>
-              <p className='text-gray-600'>Expert advice tailored to your needs. The perfect start to any journey.</p>
+              <h3 className='text-xl font-bold text-gray-900'>Specialized Programs</h3>
+              <p className='text-gray-600'>Weight loss programs, diabetes management, heart health management.</p>
             </div>
 
             {/* Group Program */}
@@ -104,31 +104,10 @@ function ServicesContactSection() {
                   <path strokeLinecap='round' strokeLinejoin='round' strokeWidth={2} d='M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z' />
                 </svg>
               </div>
-              <h3 className='text-xl font-bold text-gray-900'>Group Program</h3>
-              <p className='text-gray-600'>Thrive together. Join wellness challenges and programs for a healthier you.</p>
+              <h3 className='text-xl font-bold text-gray-900'>Collaborations and Engagement </h3>
+              <p className='text-gray-600'>Health talks, brand collaboration, wellness campaigns.</p>
             </div>
 
-            {/* Partnerships and Engagements */}
-            <div className='text-center space-y-4 p-8 bg-gradient-to-br from-green-50 to-emerald-50 rounded-2xl hover:shadow-lg transition-all duration-300'>
-              <div className='w-16 h-16 bg-gradient-to-br from-green-500 to-emerald-500 rounded-full flex items-center justify-center mx-auto'>
-                <svg className='w-8 h-8 text-white' fill='none' stroke='currentColor' viewBox='0 0 24 24'>
-                  <path strokeLinecap='round' strokeLinejoin='round' strokeWidth={2} d='M21 13.255A23.931 23.931 0 0112 15c-3.183 0-6.22-.62-9-1.745M16 6V4a2 2 0 00-2-2h-4a2 2 0 00-2 2v2m8 6V8a2 2 0 00-2-2H10a2 2 0 00-2 2v8a2 2 0 002 2h4a2 2 0 002-2z' />
-                </svg>
-              </div>
-              <h3 className='text-xl font-bold text-gray-900'>Partnerships and Engagements</h3>
-              <p className='text-gray-600'>Connect with Aba's expertise. Engage audiences with nutrition and wellness insights.</p>
-            </div>
-
-            {/* Classes and Events */}
-            <div className='text-center space-y-4 p-8 bg-gradient-to-br from-green-50 to-emerald-50 rounded-2xl hover:shadow-lg transition-all duration-300'>
-              <div className='w-16 h-16 bg-gradient-to-br from-green-500 to-emerald-500 rounded-full flex items-center justify-center mx-auto'>
-                <svg className='w-8 h-8 text-white' fill='none' stroke='currentColor' viewBox='0 0 24 24'>
-                  <path strokeLinecap='round' strokeLinejoin='round' strokeWidth={2} d='M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z' />
-                </svg>
-              </div>
-              <h3 className='text-xl font-bold text-gray-900'>Classes and Events</h3>
-              <p className='text-gray-600'>Enrich your well-being journey. Attend interactive sessions with wellness experts.</p>
-            </div>
           </div>
         </div>
       </div>

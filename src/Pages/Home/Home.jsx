@@ -16,12 +16,12 @@ function Home() {
             <div className='space-y-8'>
               {/* Main Headline */}
               <div className='space-y-4'>
-                <h1 className='text-5xl lg:text-7xl font-black text-transparent bg-clip-text bg-gradient-to-r from-green-700 via-green-600 to-emerald-600 leading-tight'>
+                <h1 className='text-5xl lg:text-7xl font-black text-transparent bg-clip-text bg-gradient-to-r from-green-700 to-green-700 leading-tight'>
                   Your Wellness
                   <br />
-                  <span className='text-green-800'>Journey </span>
+                  <span className='text-green-700'>Journey </span>
                   <br />
-                  <span className='text-emerald-700'>Starts Here</span>
+                  <span className='text-green-700'>Starts Here</span>
                 </h1>
                 
                 {/* Decorative accent */}
@@ -31,7 +31,7 @@ function Home() {
               {/* Description */}
               <div className='space-y-6'>
                 <p className='text-lg lg:text-xl text-gray-700 leading-relaxed font-medium'>
-                  Welcome to <span className='font-bold text-green-700'>DietwithDee</span>, your ultimate destination for personalized diet plans and consultations!
+                  Welcome to <span className=' text-green-700 font-transcity text-3xl'>DietwithDee</span>, your ultimate destination for personalized diet plans and consultations!
                 </p>
                 
                 <p className='text-lg text-gray-600 leading-relaxed'>
@@ -43,7 +43,7 @@ function Home() {
               <div className='flex flex-col sm:flex-row gap-4 pt-6'>
                 <button 
                           onClick={() => navigate('/resource')}
-                className='px-8 py-4 bg-gradient-to-r from-orange-400 to-orange-400 text-white font-bold rounded-full shadow-lg hover:shadow-xl transform hover:-translate-y-1 transition-all duration-300 hover:from-orange-600 hover:to-orange-400'>
+                className='px-8 py-4 bg-gradient-to-r from-[#F6841F] to-[#F6841F] text-white font-bold rounded-full shadow-lg hover:shadow-xl transform hover:-translate-y-1 transition-all duration-300 hover:from-orange-600 hover:to-orange-400'>
                   Start Your Journey
                 </button>
                 <button className='px-8 py-4 border-2 border-green-600 text-green-700 font-bold rounded-full hover:bg-green-50 transition-all duration-300 hover:shadow-md'>
@@ -90,9 +90,6 @@ function Home() {
               <div className='absolute top-4 right-4 bg-white rounded-full p-3 shadow-lg'>
                 <div className='text-2xl'>🌱</div>
               </div>
-              <div className='absolute bottom-8 left-4 bg-gradient-to-r from-green-500 to-emerald-500 text-white px-4 py-2 rounded-full text-sm font-bold shadow-lg'>
-                100% Natural
-              </div>
             </div>
           </div>
         </div>
@@ -108,7 +105,7 @@ function Home() {
             <div className='space-y-8'>
               {/* Section Header */}
               <div className='space-y-4'>
-                <h2 className='text-4xl lg:text-5xl font-black text-transparent bg-clip-text bg-gradient-to-r from-green-700 via-emerald-600 to-green-600 leading-tight'>
+                <h2 className='text-4xl lg:text-5xl font-black text-transparent bg-clip-text bg-gradient-to-r from-green-700 via-emerald-600 to-green-600 leading-tight '>
                   Our Story
                 </h2>
                 <div className='w-20 h-2 bg-gradient-to-r from-green-500 to-emerald-500 rounded-full'></div>
@@ -117,7 +114,7 @@ function Home() {
               {/* About Content */}
               <div className='space-y-6'>
                 <p className='text-lg text-gray-700 leading-relaxed'>
-                  Here at <span className='font-bold text-green-700'>DietWithDee,</span> we believe that nutrition is the cornerstone of a vibrant life, and we're here to guide you every step of the way. Our mission is to provide personalized diet plans, delicious recipes, and expert advice to help you reach your wellness goals. DietWithDee is here to support you every step of the way. Let's make healthy living enjoyable and sustainable together!
+                  Here at <span className=' text-green-700 font-transcity text-3xl'>DietWithDee,</span> we believe that nutrition is the cornerstone of a vibrant life, and we're here to guide you every step of the way. Our mission is to provide personalized diet plans, delicious recipes, and expert advice to help you reach your wellness goals. DietWithDee is here to support you every step of the way. Let's make healthy living enjoyable and sustainable together!
                 </p>
 
                 <div className='bg-gradient-to-r from-green-50 to-emerald-50 p-6 rounded-2xl border-l-4 border-green-500'>
@@ -172,21 +169,12 @@ function Home() {
                 <div className='flex flex-col items-center text-center space-y-6'>
                   <div className='relative'>
 
-                    {/* Decorative ring */}
-                    <div className='absolute -top-2 -left-2 w-36 h-36 border-4 border-gradient-to-r from-green-300 to-emerald-300 rounded-full opacity-30'></div>
                   </div>
                   
 
                 </div>
               </div>
               
-              {/* Floating elements */}
-              <div className='absolute top-4 right-4 bg-gradient-to-r from-green-500 to-emerald-500 text-white px-4 py-2 rounded-full text-sm font-bold shadow-lg'>
-                Expert Care
-              </div>
-              <div className='absolute bottom-8 left-4 bg-white rounded-full p-3 shadow-lg'>
-                <div className='text-2xl'>💚</div>
-              </div>
             </div>
           </div>
           
@@ -203,19 +191,15 @@ function Home() {
               <div className='text-gray-600 font-medium'>Happy Clients</div>
             </div>
             <div className='space-y-2'>
-              <div className='text-4xl font-bold text-emerald-600'>95%</div>
-              <div className='text-gray-600 font-medium'>Success Rate</div>
+              <div className='text-4xl font-bold text-emerald-600'>10+</div>
+              <div className='text-gray-600 font-medium'>Years Experience</div>
             </div>
             <div className='space-y-2'>
-              <div className='text-4xl font-bold text-green-700'>24/7</div>
-              <div className='text-gray-600 font-medium'>Support Available</div>
+              <div className='text-4xl font-bold text-green-700'>95%</div>
+              <div className='text-gray-600 font-medium'>Client Approval</div>
             </div>
           </div>
         </div>
-
-
-
-
       </div>
     </div>
   );

@@ -18,7 +18,7 @@ function NavBar() {
       <div className="flex items-center justify-between px-6 py-4">
         {/* Logo */}
         <div className="flex items-center space-x-2">
-          <img src={logo} alt="Logo" className="h-10 w-auto" />
+          <img src={logo} alt="Logo" className="h-15 w-auto" />
           <span className="text-3xl text-green-800 font-bold leading-tight font-transcity">
             DietWithDee
           </span>
@@ -52,8 +52,8 @@ function NavBar() {
             </NavLink>
           </li>
           <li>
-            <NavLink to="/resource" className={linkClass}>
-              Resources
+            <NavLink to="/KnowYourBody" className={linkClass}>
+              KnowYourBody
             </NavLink>
           </li>
           <li>
