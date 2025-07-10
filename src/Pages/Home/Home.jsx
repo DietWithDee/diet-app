@@ -43,7 +43,7 @@ function Home() {
               {/* Call-to-Action Buttons */}
               <div className='flex flex-col sm:flex-row gap-4 pt-6'>
                 <button 
-                          onClick={() => navigate('/diet-app/admin')}
+                          onClick={() => navigate('/diet-app/knowyourbody')}
                 className='px-8 py-4 bg-gradient-to-r from-[#F6841F] to-[#F6841F] text-white font-bold rounded-full shadow-lg hover:shadow-xl transform hover:-translate-y-1 transition-all duration-300 hover:from-orange-600 hover:to-orange-400'>
                   Start Your Journey
                 </button>
