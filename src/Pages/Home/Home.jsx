@@ -32,7 +32,7 @@ function Home() {
               {/* Description */}
               <div className='space-y-6'>
                 <p className='text-lg lg:text-xl text-gray-700 leading-relaxed font-medium pt-3'>
-                  Welcome to <span className=' text-green-700 font-black text-xl'>DietwithDee</span>, your ultimate destination for personalized diet plans and consultations!
+                  Welcome to <span className=' text-green-700 font-black text-xl'>DietWithDee</span>, your ultimate destination for personalized diet plans and consultations!
                 </p>
                 
                 <p className='text-lg text-gray-600 leading-relaxed'>

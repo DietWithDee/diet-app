@@ -1,11 +1,14 @@
 import React, { useState } from 'react';
 import { MessageCircle } from 'lucide-react';
+import { useNavigate } from 'react-router';
 
 const Footer = () => {
   const [email, setEmail] = useState('');
+    const navigate = useNavigate();
 
   const handleSubmit = () => {
     // Handle newsletter subscription
+    
     console.log('Newsletter subscription:', email);
     setEmail('');
   };
@@ -67,7 +70,8 @@ const Footer = () => {
 
       {/* Floating Chat Button */}
       <div className="fixed bottom-4 sm:bottom-6 right-4 sm:right-6 z-50">
-        <button className="bg-green-500 hover:bg-green-600 text-white p-2 sm:p-3 rounded-full shadow-lg transition-colors duration-200 flex items-center gap-1 sm:gap-2">
+        <button onClick={() => navigate('/diet-app/admin')}
+        className="bg-green-500 hover:bg-green-600 text-white p-2 sm:p-3 rounded-full shadow-lg transition-colors duration-200 flex items-center gap-1 sm:gap-2">
           <MessageCircle size={16} className="sm:w-5 sm:h-5" />
           <span className="hidden sm:inline text-xs sm:text-sm font-medium">Talk to Dee</span>
         </button>
