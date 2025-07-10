@@ -40,10 +40,6 @@ function ConsultationBooking() {
     setIsSubmitted(true);
   };
 
-  const handleBack = () => {
-    // In real app, this would navigate back to results
-    console.log('Navigate back to results');
-  };
 
   if (isSubmitted) {
     return (
@@ -92,17 +88,8 @@ function ConsultationBooking() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-green-50 via-white to-emerald-50 py-12">
+    <div className="min-h-screen bg-gradient-to-br from-green-50 via-white to-emerald-50 py-20">
       <div className="container mx-auto px-6 lg:px-12 max-w-4xl">
-        {/* Back Button */}
-        <button
-          onClick={handleBack}
-          className="fixed top-6 left-6 z-10 bg-white rounded-full p-3 shadow-lg hover:shadow-xl transition-all duration-300 flex items-center space-x-2 text-gray-700 hover:text-green-600"
-        >
-          <ArrowLeft size={20} />
-          <span className="hidden sm:inline">Back to Results</span>
-        </button>
-
         {/* Header */}
         <div className="text-center space-y-6 mb-12">
           <div className="space-y-4">
@@ -306,7 +293,7 @@ function ConsultationBooking() {
               className="flex items-center space-x-2 text-gray-600 hover:text-green-600 transition-colors"
             >
               <Mail size={20} />
-              <span>nutrition@example.com</span>
+              <span>dietwithdee@gmail</span>
             </a>
             <a 
               href="https://wa.me/1234567890"

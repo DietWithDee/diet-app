@@ -1,11 +1,12 @@
 import React, { useState } from 'react';
-import { ChevronRight, Calculator, Target, BookOpen, User, Activity, Moon, Heart, Utensils } from 'lucide-react';
+import { ChevronRight, Calculator, Target, BookOpen, User, Activity, Moon, Heart, Utensils, Angry } from 'lucide-react';
 import { useNavigate } from 'react-router';
+import { BsQuestion } from 'react-icons/bs';
 
 // Progress Bar
 const ProgressBar = ({ step }) => {
   const progress = (step / 3) * 100;
-  return (
+  return (<div className='pt-14'>
     <div className="w-full bg-gray-200 rounded-full h-3 mb-8">
       <div
         className="bg-gradient-to-r from-green-500 to-emerald-500 h-3 rounded-full transition-all duration-500"
@@ -17,6 +18,7 @@ const ProgressBar = ({ step }) => {
         <span>Calories</span>
         <span>Results</span>
       </div>
+    </div>
     </div>
   );
 };
@@ -264,6 +266,20 @@ const CalorieStep = ({ formData, setFormData, onNext }) => (
           placeholder="e.g., Diabetes, High blood pressure..."
         />
       </div>
+      {/* Food Allergies */}
+      <div className="space-y-3">
+        <label className="text-lg font-semibold text-gray-700 flex items-center">
+          <Angry className="mr-2" size={30} /> Do you have any Food Allergies or Dislikes? (Optional)
+        </label>
+        <input
+          type="text"
+          value={formData.healthConditions}
+          onChange={e => setFormData(prev => ({ ...prev, healthConditions: e.target.value }))}
+          className="w-full py-3 px-4 border-2 border-gray-200 rounded-xl focus:border-green-500 focus:outline-none text-gray-900 placeholder-gray-500"
+          placeholder="e.g., Lactose Intolerance, Gluten Insensitivity..."
+        />
+      </div>
+
       {/* Dietary Restrictions */}
       <div className="space-y-4">
         <label className="text-lg font-semibold text-gray-700 flex items-center">

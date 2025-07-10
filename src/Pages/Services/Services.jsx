@@ -1,12 +1,15 @@
 import React from 'react';
 import Dee from '../../assets/crad.png'
-import Food from '../../assets/girl.png'
+import Food from '../../assets/Woman.png'
+import { useNavigate } from 'react-router';
+
 
 function ServicesContactSection() {
+  const navigate = useNavigate();
   return (
     <div className='min-h-screen bg-gradient-to-br from-green-50 via-white to-emerald-50'>
       {/* Services Hero Section */}
-      <div className='py-12 sm:py-16 lg:py-20'>
+      <div className='py-20 sm:py-16 lg:py-20'>
         <div className='container mx-auto px-4 sm:px-6 lg:px-12'>
           <div className='flex flex-col lg:flex-row items-center justify-between gap-8 sm:gap-12 lg:gap-20'>
             
@@ -17,12 +20,12 @@ function ServicesContactSection() {
               <div className='absolute -bottom-4 -left-4 sm:-bottom-6 sm:-left-6 lg:-bottom-8 lg:-left-8 w-40 h-40 sm:w-56 sm:h-56 lg:w-64 lg:h-64 bg-gradient-to-tr from-emerald-300 to-green-300 rounded-full opacity-15 blur-2xl'></div>
               
               {/* Main image container */}
-              <div className='relative z-10 p-4 sm:p-6 lg:p-8'>
+              <div className='relative z-10 p-3 sm:p-6 lg:p-7'>
                 <div className='bg-white rounded-2xl sm:rounded-3xl shadow-xl lg:shadow-2xl p-3 sm:p-4 hover:shadow-2xl lg:hover:shadow-3xl transition-all duration-500 hover:scale-105'>
                   <img 
                     src={Food} 
                     alt="Health and nutrition consultation" 
-                    className='h-115 w-80 max-h-64 sm:max-h-80 lg:max-h-96 object-cover rounded-xl'
+                    className='h-115 w-90 max-h-74 sm:max-h-80 lg:max-h-96 object-cover rounded-xl'
                   />
                 </div>
               </div>
@@ -52,7 +55,8 @@ function ServicesContactSection() {
                 
                 {/* CTA Button */}
                 <div className='pt-4 sm:pt-6'>
-                  <button className='px-8 py-4 bg-orange-400 text-white font-bold rounded-full hover:bg-green-800 transition-all duration-300 hover:shadow-lg'>
+                  <button onClick={() => navigate('/diet-app/contactus')}
+                  className='px-8 py-4 bg-orange-400 text-white font-bold rounded-full hover:bg-green-800 transition-all duration-300 hover:shadow-lg'>
                     Book a Consultation
                   </button>
                 </div>
@@ -135,19 +139,7 @@ function ServicesContactSection() {
               {/* Background decorative elements */}
               <div className='absolute -top-2 -right-2 sm:-top-4 sm:-right-4 w-48 h-48 sm:w-64 sm:h-64 lg:w-72 lg:h-72 bg-gradient-to-br from-green-200 to-emerald-200 rounded-full opacity-20 blur-3xl'></div>
               <div className='absolute -bottom-4 -left-4 sm:-bottom-6 sm:-left-6 lg:-bottom-8 lg:-left-8 w-40 h-40 sm:w-56 sm:h-56 lg:w-64 lg:h-64 bg-gradient-to-tr from-emerald-300 to-green-300 rounded-full opacity-15 blur-2xl'></div>
-              
-              {/* Main image container */}
-              <div className='relative z-10 p-4 sm:p-6 lg:p-8'>
-                <div className='bg-white rounded-2xl sm:rounded-3xl shadow-xl lg:shadow-2xl p-4 sm:p-6 lg:p-8 hover:shadow-2xl lg:hover:shadow-3xl transition-all duration-500 hover:scale-105'>
-                  <div className='relative z-10 flex flex-col items-center justify-center'>
-                    <img 
-                      src={Dee} 
-                      alt="Professional nutrition consultant" 
-                      className='w-full h-auto max-h-64 sm:max-h-80 lg:max-h-96 object-cover rounded-xl'
-                    />
-                  </div>
-                </div>
-              </div>
+
             </div>
             
             {/* Right Side: Contact Content */}
@@ -178,7 +170,6 @@ function ServicesContactSection() {
                           <path d='M2.003 5.884L10 9.882l7.997-3.998A2 2 0 0016 4H4a2 2 0 00-1.997 1.884z' />
                           <path d='M18 8.118l-8 4-8-4V14a2 2 0 002 2h12a2 2 0 002-2V8.118z' />
                         </svg>
-                        <span className='text-sm sm:text-base text-gray-700 break-all'>support@dietwithdee.com</span>
                       </div>
                       <div className='flex items-center justify-center lg:justify-start gap-3'>
                         <svg className='w-4 h-4 sm:w-5 sm:h-5 text-green-600 flex-shrink-0' fill='currentColor' viewBox='0 0 20 20'>
@@ -196,7 +187,7 @@ function ServicesContactSection() {
                       <svg className='w-4 h-4 sm:w-5 sm:h-5 text-green-600 flex-shrink-0' fill='currentColor' viewBox='0 0 20 20'>
                         <path d='M2 3a1 1 0 011-1h2.153a1 1 0 01.986.836l.74 4.435a1 1 0 01-.54 1.06l-1.548.773a11.037 11.037 0 006.105 6.105l.774-1.548a1 1 0 011.059-.54l4.435.74a1 1 0 01.836.986V17a1 1 0 01-1 1h-2C7.82 18 2 12.18 2 5V3z' />
                       </svg>
-                      <span className='text-sm sm:text-base text-gray-700'>(+233) 99 917 1997</span>
+                      <span className='text-sm sm:text-base text-gray-700'>(+233) 59 233 0870</span>
                     </div>
                   </div>
                 </div>

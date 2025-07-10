@@ -36,7 +36,7 @@ export default function NavBar() {
         </div>
 
         {/* Desktop Links */}
-        <ul className="hidden md:flex space-x-6 text-xl font-inter">
+        <ul className="hidden md:flex space-x-6 text-sm font-inter">
           {links.map(({ path, label }) => (
             <li key={path}>
               <NavLink
@@ -68,7 +68,7 @@ export default function NavBar() {
       {/* Mobile Slide-Down Menu (50% height, solid green) */}
       <div
         className={`
-          fixed inset-x-0 top-0 h-1/2 bg-orange-400 z-40
+          fixed inset-x-0 top-0 h-100 bg-orange-400 z-40
           transform transition-transform duration-300 ease-in-out
           ${menuOpen ? 'translate-y-0' : '-translate-y-full'}
         `}

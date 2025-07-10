@@ -1,48 +1,83 @@
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
 import PlanImg from '../../assets/Salad.png'; // you can replace this with actual plan images
+import B2B from '../../assets/images/B2B.png'; // example image for Back to Basics plan
+import Gain from '../../assets/images/Gain.png'; // example image for Weight Gain plan
+import Weightloss from '../../assets/images/WeightLoss.png'; // example image for Weight Loss plan
+import Diabetes from '../../assets/images/Diabetes.png'; // example image for Diabetes plan
+import Pressure from '../../assets/images/Pressure.png'; // example image for Hypertension plan
 
 function Plans() {
   const navigate = useNavigate();
 
   const plans = [
     {
-      title: 'Weight Loss Plan',
-      price: '₵99/mo',
+      title: 'Back to Basics',
+      Subtitle: '7-Day Healthy Eating Reset',
+      price: '₵499',
+      img: B2B,
       features: [
         'Custom Meal Plans',
-        'Weekly Progress Check-ins',
         'Healthy Recipes',
-        'Email Support'
+        'Perfect for beginners, postpartum moms, busy women'
       ],
       gradient: 'from-orange-400 to-orange-500',
     },
     {
-      title: 'Fitness & Muscle Gain',
-      price: '₵120/mo',
+      title: 'Snatched & Nourised',
+      Subtitle: 'Gentle Weight Loss Guide',
+      price: '₵549',
+      img: Weightloss, 
       features: [
-        'High Protein Meals',
+        'Easy To Cook Meals ',
         'Workout-Food Sync',
-        'Progressive Nutrition Plan',
         '1-on-1 Support'
       ],
-      gradient: 'from-[#206935] to-[#206935]',
+      gradient: 'from-orange-400 to-orange-500',
     },
     {
-      title: 'Medical Nutrition Therapy',
-      price: '₵150/mo',
+      title: 'Blood Sugar Balance',
+      Subtitle: 'A Type 2 Diabetes-Friendly Guide',
+      price: '₵150',
+      img: Diabetes, 
       features: [
         'Condition-Specific Diets',
         'Consultations with Dietitian',
         'Lifestyle Adjustments',
         'Progress Monitoring'
       ],
-      gradient: 'from-[#ABB988] to-[#ABB988]',
+      gradient: 'from-orange-400 to-orange-500',
+    },
+    {
+      title: 'Pressure No Dey Catch Me',
+      Subtitle: 'A Hypertension-Friendly Plan',
+      price: '₵150',
+      img: Pressure, 
+      features: [
+        'Heart-healthy meals, low in salt & oil',
+        'Consultations with Dietitian',
+        'Lifestyle Adjustments',
+        'Progress Monitoring'
+      ],
+      gradient: 'from-orange-400 to-orange-500',
+    },
+    {
+      title: 'The Weight Gain',
+      Subtitle: 'Wahala-Free Plan',
+      price: 'Free',
+      img: Gain, 
+      features: [
+        'High-calorie, balanced meals using local staples',
+        'Consultations with Dietitian',
+        'Lifestyle Adjustments',
+        'Progress Monitoring'
+      ],
+      gradient: 'from-orange-400 to-orange-500',
     }
   ];
 
   return (
-    <div className='min-h-screen bg-gradient-to-br from-green-50 via-white to-emerald-50 py-12 px-6 lg:px-12'>
+    <div className='min-h-screen bg-gradient-to-br from-green-50 via-white to-emerald-50 py-20 px-6 lg:px-12'>
       <div className='text-center space-y-4 max-w-3xl mx-auto mb-12'>
         <h1 className='text-5xl font-black text-transparent bg-clip-text bg-gradient-to-r from-green-700 via-emerald-600 to-green-600'>
           Choose Your Plan
@@ -62,10 +97,11 @@ function Plans() {
             <div
               className={`w-full h-44 bg-gradient-to-br ${plan.gradient} rounded-2xl flex items-center justify-center mb-6`}
             >
-              <img src={PlanImg} alt={plan.title} className='h-28 object-contain' />
+              <img src={plan.img} alt={plan.title} className='h-auto object-contain rounded-2xl' />
             </div>
 
             <h3 className='text-2xl font-bold text-green-700 mb-2'>{plan.title}</h3>
+            <h2 className='text-sm font-bold text-black mb-3'>{plan.Subtitle}</h2>
             <p className='text-xl font-semibold text-gray-600 mb-4'>{plan.price}</p>
 
             <ul className='space-y-2 text-gray-700 text-sm mb-6'>
@@ -81,7 +117,7 @@ function Plans() {
               onClick={() => navigate('/diet-app/knowYourBody')}
               className={`w-full px-6 py-3 bg-gradient-to-r ${plan.gradient} text-white font-bold rounded-full transition-all hover:shadow-lg`}
             >
-              Get Started
+              Buy Now
             </button>
           </div>
         ))}
