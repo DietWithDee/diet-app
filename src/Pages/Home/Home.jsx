@@ -8,7 +8,7 @@ function Home() {
   const navigate = useNavigate();
   return (
     <div className='min-h-screen bg-gradient-to-br from-green-50 via-white to-emerald-50'>
-      <div className='container mx-auto px-6 lg:px-12 pt-12 lg:pt-20'>
+      <div className='container mx-auto px-6 lg:px-12 pt-20 lg:pt-20'>
         <div className='flex flex-col lg:flex-row items-center justify-between gap-12 lg:gap-20'>
           
           {/* Left Side: Text Content */}
@@ -16,23 +16,23 @@ function Home() {
             <div className='space-y-8'>
               {/* Main Headline */}
               <div className='space-y-4'>
-                <h1 className='text-5xl lg:text-7xl font-black text-transparent bg-clip-text bg-gradient-to-r from-green-700 to-green-700 leading-tight'>
+                <h1 className='text-4xl lg:text-7xl font-black text-transparent bg-clip-text bg-gradient-to-r from-green-700 to-green-700 leading-tight'>
                   Your Wellness
                   <br />
                   <span className='text-green-700'>Journey </span>
                   <br />
                   <span className='text-green-700'>Starts </span>
-                  <span className='text-green-500'>Here</span>
+                  <span className='text-green-700'>Here</span>
                 </h1>
                 
                 {/* Decorative accent */}
-                <div className='w-24 h-2 bg-gradient-to-r from-green-500 to-emerald-500 rounded-full '></div>
+                <div className='w-18 h-2 bg-gradient-to-r from-green-500 to-emerald-500 rounded-full '></div>
               </div>
               
               {/* Description */}
               <div className='space-y-6'>
-                <p className='text-lg lg:text-xl text-gray-700 leading-relaxed font-medium'>
-                  Welcome to <span className=' text-green-700 font-transcity text-3xl'>DietwithDee</span>, your ultimate destination for personalized diet plans and consultations!
+                <p className='text-lg lg:text-xl text-gray-700 leading-relaxed font-medium pt-3'>
+                  Welcome to <span className=' text-green-700 font-black text-xl'>DietwithDee</span>, your ultimate destination for personalized diet plans and consultations!
                 </p>
                 
                 <p className='text-lg text-gray-600 leading-relaxed'>
@@ -43,7 +43,7 @@ function Home() {
               {/* Call-to-Action Buttons */}
               <div className='flex flex-col sm:flex-row gap-4 pt-6'>
                 <button 
-                          onClick={() => navigate('/diet-app/knowYourBody')}
+                          onClick={() => navigate('/diet-app/admin')}
                 className='px-8 py-4 bg-gradient-to-r from-[#F6841F] to-[#F6841F] text-white font-bold rounded-full shadow-lg hover:shadow-xl transform hover:-translate-y-1 transition-all duration-300 hover:from-orange-600 hover:to-orange-400'>
                   Start Your Journey
                 </button>
@@ -109,7 +109,7 @@ function Home() {
               {/* About Content */}
               <div className='space-y-6'>
                 <p className='text-lg text-gray-700 leading-relaxed'>
-                  Here at <span className=' text-green-700 font-transcity text-3xl'>DietWithDee,</span> we believe that nutrition is the cornerstone of a vibrant life, and we're here to guide you every step of the way. Our mission is to provide personalized diet plans, delicious recipes, and expert advice to help you reach your wellness goals. DietWithDee is here to support you every step of the way. Let's make healthy living enjoyable and sustainable together!
+                  Here at <span className=' text-green-700 font-black text-xl'>DietWithDee,</span> we believe that nutrition is the cornerstone of a vibrant life, and we're here to guide you every step of the way. Our mission is to provide personalized diet plans, delicious recipes, and expert advice to help you reach your wellness goals. DietWithDee is here to support you every step of the way. Let's make healthy living enjoyable and sustainable together!
                 </p>
 
                 <div className='bg-gradient-to-r from-green-50 to-emerald-50 p-6 rounded-2xl border-l-4 border-green-500'>

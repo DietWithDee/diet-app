@@ -94,7 +94,7 @@ const AdminLogin = ({ onLogin }) => {
                   type="email"
                   value={formData.email}
                   onChange={(e) => setFormData({...formData, email: e.target.value})}
-                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
+                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent text-gray-800"
                   placeholder="admin@dietwithdee.com"
                   required
                 />
@@ -109,7 +109,7 @@ const AdminLogin = ({ onLogin }) => {
                     type={showPassword ? 'text' : 'password'}
                     value={formData.password}
                     onChange={(e) => setFormData({...formData, password: e.target.value})}
-                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent pr-12"
+                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent pr-12 text-gray-800"
                     placeholder="Enter password"
                     required
                   />
@@ -258,7 +258,7 @@ const ArticlesManager = ({ articles, setArticles, showNotification }) => {
                 type="text"
                 value={formData.title}
                 onChange={(e) => setFormData({...formData, title: e.target.value})}
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent text-gray-800"
                 placeholder="Article title"
                 required
               />
@@ -272,7 +272,7 @@ const ArticlesManager = ({ articles, setArticles, showNotification }) => {
                 value={formData.content}
                 onChange={(e) => setFormData({...formData, content: e.target.value})}
                 rows="6"
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent text-gray-800"
                 placeholder="Write your article content here..."
                 required
               />
@@ -282,7 +282,7 @@ const ArticlesManager = ({ articles, setArticles, showNotification }) => {
               <label className="block text-sm font-medium text-gray-700 mb-2">
                 Featured Image
               </label>
-              <div className="border-2 border-dashed border-gray-300 rounded-lg p-4 text-center hover:border-green-400 transition-colors">
+              <div className="border-2 border-dashed border-gray-300 rounded-lg p-4 text-center hover:border-green-400 transition-colors text-gray-800">
                 <input
                   type="file"
                   accept="image/*"
@@ -539,7 +539,7 @@ const PlanManager = ({ plans, setPlans, showNotification }) => {
                   type="text"
                   value={formData.title}
                   onChange={(e) => setFormData({...formData, title: e.target.value})}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent text-gray-800"
                   placeholder="e.g., Weight Loss Starter Plan"
                   required
                 />
@@ -570,7 +570,7 @@ const PlanManager = ({ plans, setPlans, showNotification }) => {
                 value={formData.description}
                 onChange={(e) => setFormData({...formData, description: e.target.value})}
                 rows="4"
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent text-gray-800"
                 placeholder="Describe what this plan includes..."
                 required
               />
@@ -580,7 +580,7 @@ const PlanManager = ({ plans, setPlans, showNotification }) => {
               <label className="block text-sm font-medium text-gray-700 mb-2">
                 Plan PDF
               </label>
-              <div className="border-2 border-dashed border-gray-300 rounded-lg p-4 text-center hover:border-green-400 transition-colors">
+              <div className="border-2 border-dashed border-gray-300 rounded-lg p-4 text-center hover:border-green-400 transition-colors text-gray-800">
                 <input
                   type="file"
                   accept=".pdf"

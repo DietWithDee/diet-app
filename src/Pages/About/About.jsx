@@ -3,14 +3,14 @@ import  LOGO from '../../assets/LOGO.png'
 
 function AboutUsSection() {
   return (
-    <div className='py-20 bg-gradient-to-b from-white to-green-50'>
+    <div className='py-18 bg-gradient-to-b from-white to-green-50'>
           <div className='container mx-auto px-6 lg:px-12'>
             <div className='flex flex-col lg:flex-row items-center justify-between gap-12 lg:gap-20'>
     
     
               {/* Left Side: About Content */}
               <div className='flex-1 max-w-2xl'>
-                <div className='space-y-8'>
+                <div className='space-y-5'>
                   {/* Section Header */}
                   <div className='space-y-4'>
                     <h2 className='text-4xl lg:text-5xl  text-transparent bg-clip-text bg-gradient-to-r from-green-700 via-emerald-600 to-green-600 leading-tight font-black'>
@@ -18,13 +18,26 @@ function AboutUsSection() {
                     </h2>
                     <div className='w-20 h-2 bg-gradient-to-r from-green-500 to-emerald-500 rounded-full'></div>
                   </div>
+
+
                   
                   {/* About Content */}
                   <div className='space-y-6'>
                     <p className='text-lg text-gray-700 leading-relaxed'>
-                      Here at <span className=' text-green-700 font-transcity text-3xl'>DietWithDee,</span> we believe that nutrition is the cornerstone of a vibrant life, and we're here to guide you every step of the way. Our mission is to provide personalized diet plans, delicious recipes, and expert advice to help you reach your wellness goals. DietWithDee is here to support you every step of the way. Let's make healthy living enjoyable and sustainable together!
+                      Here at <span className=' text-green-700 font-black text-xl'>DietWithDee,</span> we believe that nutrition is the cornerstone of a vibrant life, and we're here to guide you every step of the way. Our mission is to provide personalized diet plans, delicious recipes, and expert advice to help you reach your wellness goals. DietWithDee is here to support you every step of the way. Let's make healthy living enjoyable and sustainable together!
                     </p>
     
+                                {/* why we are here */}
+                  <div className='text-lg text-gray-600 leading-relaxed'>
+                                  Our vision is to be a top online platform 
+              that transforms how people view nutrition 
+              and wellness
+                  </div>
+
+
+
+
+
                     <div className='bg-gradient-to-r from-green-50 to-emerald-50 p-6 rounded-2xl border-l-4 border-green-500'>
                       <p className='text-lg font-semibold text-green-800 italic'>
                         "We strive continually to help you take control of your health in all aspects."

@@ -59,7 +59,7 @@ const Footer = () => {
               <a href="#" className="text-green-100 hover:text-white transition-colors text-xs sm:text-sm">LinkedIn</a>
               <span className="text-green-300 text-xs sm:text-sm">•</span>
               <a href="#" className="text-green-100 hover:text-white transition-colors text-xs sm:text-sm">TikTok</a>
-                            <a href="#" className="text-green-100 hover:text-white transition-colors text-xs sm:text-sm pl-10"> Powered by FlyWheelTechnologies</a>
+              <a href="#" className="text-green-100 hover:text-white transition-colors text-xs sm:text-sm "> Powered by FlyWheelTechnologies</a>
             </div>
           </div>
         </div>
