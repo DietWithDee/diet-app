@@ -273,8 +273,8 @@ const CalorieStep = ({ formData, setFormData, onNext }) => (
         </label>
         <input
           type="text"
-          value={formData.healthConditions}
-          onChange={e => setFormData(prev => ({ ...prev, healthConditions: e.target.value }))}
+          value={formData.dislikes}
+          onChange={e => setFormData(prev => ({ ...prev, dislikes: e.target.value }))}
           className="w-full py-3 px-4 border-2 border-gray-200 rounded-xl focus:border-green-500 focus:outline-none text-gray-900 placeholder-gray-500"
           placeholder="e.g., Lactose Intolerance, Gluten Insensitivity..."
         />
@@ -387,7 +387,7 @@ const ResultsStep = ({ results, formData, navigate }) => (
       </div>
       <div className="space-y-4">
         <button
-          onClick={() => navigate('/contactUs', {
+          onClick={() => navigate('/diet-app/contactUs', {
             state: {
               userResults: {
                 bmi: results.bmi,
@@ -398,7 +398,8 @@ const ResultsStep = ({ results, formData, navigate }) => (
                 macros: results.macros,
                 activityLevel: formData.activityLevel,
                 sleepHours: formData.sleepHours,
-                healthConditions: formData.healthConditions
+                healthConditions: formData.healthConditions,
+                dislikes: formData.dislikes
               }
             }
           })}
@@ -502,15 +503,22 @@ function KnowYourBody() {
 
   // Next Step Logic
   const handleNext = () => {
-    if (step === 1) {
-      const bmiResults = calculateBMI();
-      setResults(prev => ({ ...prev, ...bmiResults }));
-    } else if (step === 2) {
-      const calorieResults = calculateCalories();
-      setResults(prev => ({ ...prev, ...calorieResults }));
-    }
-    setStep(prev => prev + 1);
-  };
+  if (step === 1) {
+    const bmiResults = calculateBMI();
+    setResults(prev => ({ ...prev, ...bmiResults }));
+  } else if (step === 2) {
+    const calorieResults = calculateCalories();
+    setResults(prev => ({ ...prev, ...calorieResults }));
+  }
+
+  setStep(prev => prev + 1);
+
+  // ✅ Scroll to top on step change
+  setTimeout(() => {
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  }, 100); // Delay slightly to ensure DOM has updated
+};
+
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-green-50 via-white to-emerald-50 py-12">

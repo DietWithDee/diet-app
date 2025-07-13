@@ -166,6 +166,10 @@ function ConsultationBooking() {
                   <Utensils className="text-green-500" size={20} />
                   <span className="text-gray-700"><strong>Diet:</strong> {userResults.dietaryRestrictions}</span>
                 </div>
+                <div className="flex items-center space-x-3">
+                  <Utensils className="text-green-500" size={20} />
+                  <span className="text-gray-700"><strong>Dislikes</strong> {userResults.dietaryRestrictions}</span>
+                </div>
               </div>
             </div>
           </div>
