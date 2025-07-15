@@ -30,7 +30,7 @@ export default function NavBar() {
         {/* Logo */}
         <div className="flex items-center space-x-2">
           <img src={logo} alt="Logo" className="h-14 w-auto" />
-          <span className="text-3xl text-green-800 font-transcity">
+          <span className="text-3xl text-green-800 font-transcity pt-4">
             DietWithDee
           </span>
         </div>

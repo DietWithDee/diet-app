@@ -4,11 +4,10 @@ import { useNavigate } from 'react-router';
 
 const Footer = () => {
   const [email, setEmail] = useState('');
-    const navigate = useNavigate();
+  const Url = "https://wa.me/233592330870?text=Hello%2C%20I%E2%80%99d%20like%20to%20book%20a%20session%20with%20Diet%20with%20Dee"
 
   const handleSubmit = () => {
     // Handle newsletter subscription
-    
     console.log('Newsletter subscription:', email);
     setEmail('');
   };
@@ -68,13 +67,17 @@ const Footer = () => {
         </div>
       </div>
 
-      {/* Floating Chat Button */}
+      {/* Floating Chat Button - FIXED */}
       <div className="fixed bottom-4 sm:bottom-6 right-4 sm:right-6 z-50">
-        <button 
-        className="bg-green-500 hover:bg-green-600 text-white p-2 sm:p-3 rounded-full shadow-lg transition-colors duration-200 flex items-center gap-1 sm:gap-2">
-          <MessageCircle size={16} className="sm:w-5 sm:h-5" />
-          <span className="hidden sm:inline text-xs sm:text-sm font-medium">Talk to Dee</span>
-        </button>
+        <a 
+          href={Url}
+          target="_blank"
+          rel="noopener noreferrer"
+          className="bg-green-500 hover:bg-green-600 text-white p-2 sm:p-3 rounded-full shadow-lg transition-colors duration-200 flex items-center gap-1 sm:gap-2"
+        >
+          <MessageCircle size={25} className="sm:w-5 sm:h-5" />
+          <span className=" sm:inline text-xs sm:text-sm font-medium">Talk to Dee</span>
+        </a>
       </div>
     </footer>
   );

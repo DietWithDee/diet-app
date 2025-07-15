@@ -49,7 +49,7 @@ function ServicesContactSection() {
                 {/* Description */}
                 <div className='space-y-4 sm:space-y-6'>
                   <p className='text-base sm:text-lg text-gray-700 leading-relaxed px-2 sm:px-0'>
-                    Experience transformative services tailored to your health goals. With personalized attention, expert guidance, and a supportive community, we're your trusted partner on the path to a vibrant, healthy life.
+                   With personalized attention, expert guidance, and a supportive community, we're your trusted partner on the path to a vibrant, healthy life.
                   </p>
                 </div>
                 

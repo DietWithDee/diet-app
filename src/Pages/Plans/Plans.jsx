@@ -26,7 +26,7 @@ function Plans() {
     {
       title: 'Snatched & Nourised',
       Subtitle: 'Gentle Weight Loss Guide',
-      price: '₵549',
+      price: '₵299',
       img: Weightloss, 
       features: [
         'Easy To Cook Meals ',
@@ -38,7 +38,7 @@ function Plans() {
     {
       title: 'Blood Sugar Balance',
       Subtitle: 'A Type 2 Diabetes-Friendly Guide',
-      price: '₵150',
+      price: '₵399',
       img: Diabetes, 
       features: [
         'Condition-Specific Diets',
@@ -51,7 +51,7 @@ function Plans() {
     {
       title: 'Pressure No Dey Catch Me',
       Subtitle: 'A Hypertension-Friendly Plan',
-      price: '₵150',
+      price: '₵399',
       img: Pressure, 
       features: [
         'Heart-healthy meals, low in salt & oil',
@@ -64,7 +64,7 @@ function Plans() {
     {
       title: 'The Weight Gain',
       Subtitle: 'Wahala-Free Plan',
-      price: 'Free',
+      price: '₵399',
       img: Gain, 
       features: [
         'High-calorie, balanced meals using local staples',
