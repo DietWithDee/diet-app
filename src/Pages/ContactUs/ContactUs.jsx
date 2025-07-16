@@ -114,7 +114,7 @@ Date: ${new Date().toLocaleDateString('en-US', {
     const { subject, body } = generateEmailContent();
     
     // Create mailto link
-    const mailtoLink = `mailto:dietwithdee@gmail.com?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
+    const mailtoLink = `mailto:dietwdee@gmail.com?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
     
     try {
       // Try to open email client
@@ -129,7 +129,7 @@ Date: ${new Date().toLocaleDateString('en-US', {
 
   const handleCopyEmail = async () => {
     const { subject, body } = generateEmailContent();
-    const emailText = `To: dietwithdee@gmail.com\nSubject: ${subject}\n\n${body}`;
+    const emailText = `To: dietwdee@gmail.com\nSubject: ${subject}\n\n${body}`;
     
     try {
       await navigator.clipboard.writeText(emailText);
@@ -151,7 +151,7 @@ Date: ${new Date().toLocaleDateString('en-US', {
 
   const handleWebMailLinks = (provider) => {
     const { subject, body } = generateEmailContent();
-    const to = 'dietwithdee@gmail.com';
+    const to = 'dietwdee@gmail.com';
     
     const encodedSubject = encodeURIComponent(subject);
     const encodedBody = encodeURIComponent(body);
