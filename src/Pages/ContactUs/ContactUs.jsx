@@ -42,17 +42,17 @@ const generateEmailContent = () => {
 
 I hope this email finds you well. I am writing to request a professional nutrition consultation based on my recent comprehensive health assessment.
 
-═══════════════════════════════════════════════════════════════════════════════════════
+
 📋 CLIENT INFORMATION
-═══════════════════════════════════════════════════════════════════════════════════════
+══════════════════════
 
 👤 Full Name: ${formData.name}
 📧 Email Address: ${formData.email}
 📞 Phone Number: ${formData.phone || 'Not provided'}
 
-═══════════════════════════════════════════════════════════════════════════════════════
+
 📊 HEALTH ASSESSMENT RESULTS
-═══════════════════════════════════════════════════════════════════════════════════════
+
 
 🏥 Body Mass Index (BMI): ${userResults.bmi} - ${userResults.bmiCategory}
 🔥 Daily Caloric Requirement: ${userResults.dailyCalories} calories per day
@@ -62,20 +62,19 @@ I hope this email finds you well. I am writing to request a professional nutriti
     • Carbohydrates: ${userResults.macros.carbs}g daily (${Math.round((userResults.macros.carbs * 4 / userResults.dailyCalories) * 100)}% of total calories)
     • Fats: ${userResults.macros.fats}g daily (${Math.round((userResults.macros.fats * 9 / userResults.dailyCalories) * 100)}% of total calories)
 
-═══════════════════════════════════════════════════════════════════════════════════════
+
 🎯 PERSONAL GOALS & PREFERENCES
-═══════════════════════════════════════════════════════════════════════════════════════
+
 
 🎯 Primary Health Goal: ${userResults.goal}
 🍽️ Dietary Restrictions/Preferences: ${userResults.dietaryRestrictions}
 
-═══════════════════════════════════════════════════════════════════════════════════════
+
 💬 ADDITIONAL INFORMATION
-═══════════════════════════════════════════════════════════════════════════════════════
+
 
 ${formData.message ? `"${formData.message}"` : 'No additional information provided at this time.'}
 
-═══════════════════════════════════════════════════════════════════════════════════════
 
 I am eager to begin my nutrition journey with your professional guidance and would appreciate the opportunity to discuss these results in detail during a consultation. Please let me know your availability for the upcoming weeks.
 
