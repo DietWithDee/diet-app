@@ -52,6 +52,7 @@ I hope this email finds you well. I am writing to request a professional nutriti
 
 
 📊 HEALTH ASSESSMENT RESULTS
+═══════════════════════════════
 
 
 🏥 Body Mass Index (BMI): ${userResults.bmi} - ${userResults.bmiCategory}
@@ -64,6 +65,7 @@ I hope this email finds you well. I am writing to request a professional nutriti
 
 
 🎯 PERSONAL GOALS & PREFERENCES
+═══════════════════════════════
 
 
 🎯 Primary Health Goal: ${userResults.goal}
@@ -71,6 +73,7 @@ I hope this email finds you well. I am writing to request a professional nutriti
 
 
 💬 ADDITIONAL INFORMATION
+════════════════════════════
 
 
 ${formData.message ? `"${formData.message}"` : 'No additional information provided at this time.'}
