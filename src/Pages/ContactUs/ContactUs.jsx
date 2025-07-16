@@ -35,37 +35,68 @@ function ConsultationBooking() {
     }));
   };
 
-  const generateEmailContent = () => {
-    const subject = `Nutrition Consultation Request - ${formData.name}`;
+const generateEmailContent = () => {
+    const subject = `Professional Nutrition Consultation Request - ${formData.name}`;
     
-    const body = `Hello Diet with Dee,
+    const body = `Dear Diet with Dee Team,
 
-I would like to book a nutrition consultation based on my recent assessment results.
+I hope this email finds you well. I am writing to request a professional nutrition consultation based on my recent comprehensive health assessment.
 
-CONTACT INFORMATION:
-Name: ${formData.name}
-Email: ${formData.email}
-Phone: ${formData.phone || 'Not provided'}
+═══════════════════════════════════════════════════════════════════════════════════════
+📋 CLIENT INFORMATION
+═══════════════════════════════════════════════════════════════════════════════════════
 
-ASSESSMENT RESULTS:
-BMI: ${userResults.bmi} (${userResults.bmiCategory})
-Daily Calorie Estimate: ${userResults.dailyCalories} calories
-Recommended Macros:
-- Protein: ${userResults.macros.protein}g
-- Carbs: ${userResults.macros.carbs}g
-- Fats: ${userResults.macros.fats}g
+👤 Full Name: ${formData.name}
+📧 Email Address: ${formData.email}
+📞 Phone Number: ${formData.phone || 'Not provided'}
 
-GOALS & PREFERENCES:
-Goal: ${userResults.goal}
-Dietary Restrictions: ${userResults.dietaryRestrictions}
+═══════════════════════════════════════════════════════════════════════════════════════
+📊 HEALTH ASSESSMENT RESULTS
+═══════════════════════════════════════════════════════════════════════════════════════
 
-ADDITIONAL MESSAGE:
-${formData.message || 'No additional message provided'}
+🏥 Body Mass Index (BMI): ${userResults.bmi} - ${userResults.bmiCategory}
+🔥 Daily Caloric Requirement: ${userResults.dailyCalories} calories per day
 
-Please contact me to schedule a consultation at your earliest convenience.
+📈 MACRONUTRIENT BREAKDOWN:
+    • Protein: ${userResults.macros.protein}g daily (${Math.round((userResults.macros.protein * 4 / userResults.dailyCalories) * 100)}% of total calories)
+    • Carbohydrates: ${userResults.macros.carbs}g daily (${Math.round((userResults.macros.carbs * 4 / userResults.dailyCalories) * 100)}% of total calories)
+    • Fats: ${userResults.macros.fats}g daily (${Math.round((userResults.macros.fats * 9 / userResults.dailyCalories) * 100)}% of total calories)
 
-Best regards,
-${formData.name}`;
+═══════════════════════════════════════════════════════════════════════════════════════
+🎯 PERSONAL GOALS & PREFERENCES
+═══════════════════════════════════════════════════════════════════════════════════════
+
+🎯 Primary Health Goal: ${userResults.goal}
+🍽️ Dietary Restrictions/Preferences: ${userResults.dietaryRestrictions}
+
+═══════════════════════════════════════════════════════════════════════════════════════
+💬 ADDITIONAL INFORMATION
+═══════════════════════════════════════════════════════════════════════════════════════
+
+${formData.message ? `"${formData.message}"` : 'No additional information provided at this time.'}
+
+═══════════════════════════════════════════════════════════════════════════════════════
+
+I am eager to begin my nutrition journey with your professional guidance and would appreciate the opportunity to discuss these results in detail during a consultation. Please let me know your availability for the upcoming weeks.
+
+I look forward to hearing from you soon and am excited about the possibility of working together to achieve my health and wellness goals.
+
+Thank you for your time and consideration.
+
+Warm regards,
+
+${formData.name}
+📧 ${formData.email}
+${formData.phone ? `📞 ${formData.phone}` : ''}
+
+---
+This email was generated through the Diet with Dee Assessment Portal
+Date: ${new Date().toLocaleDateString('en-US', { 
+  weekday: 'long', 
+  year: 'numeric', 
+  month: 'long', 
+  day: 'numeric' 
+})}`;
 
     return { subject, body };
   };
@@ -74,13 +105,14 @@ ${formData.name}`;
     // Validate required fields
     if (!formData.name || !formData.email) {
       alert('Please fill in all required fields (Name and Email)');
+
       return;
     }
     
     const { subject, body } = generateEmailContent();
     
     // Create mailto link
-    const mailtoLink = `mailto:princetetteh963@gmail.com?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
+    const mailtoLink = `mailto:dietwithdee@gmail.com?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
     
     try {
       // Try to open email client
@@ -95,7 +127,7 @@ ${formData.name}`;
 
   const handleCopyEmail = async () => {
     const { subject, body } = generateEmailContent();
-    const emailText = `To: princetetteh963@gmail.com\nSubject: ${subject}\n\n${body}`;
+    const emailText = `To: dietwithdee@gmail.com\nSubject: ${subject}\n\n${body}`;
     
     try {
       await navigator.clipboard.writeText(emailText);
@@ -117,7 +149,7 @@ ${formData.name}`;
 
   const handleWebMailLinks = (provider) => {
     const { subject, body } = generateEmailContent();
-    const to = 'princetetteh963@gmail.com';
+    const to = 'dietwithdee@gmail.com';
     
     const encodedSubject = encodeURIComponent(subject);
     const encodedBody = encodeURIComponent(body);
@@ -187,36 +219,20 @@ ${formData.name}`;
                 >
                   <ExternalLink size={20} />
                   <span>Open in Gmail</span>
-                </button>
-                
-                <button
-                  onClick={() => handleWebMailLinks('outlook')}
-                  className="flex items-center justify-center space-x-2 p-4 bg-blue-100 text-blue-700 rounded-lg hover:bg-blue-200 transition-colors"
-                >
-                  <ExternalLink size={20} />
-                  <span>Open in Outlook</span>
-                </button>
-                
-                <button
-                  onClick={() => handleWebMailLinks('yahoo')}
-                  className="flex items-center justify-center space-x-2 p-4 bg-purple-100 text-purple-700 rounded-lg hover:bg-purple-200 transition-colors"
-                >
-                  <ExternalLink size={20} />
-                  <span>Open in Yahoo Mail</span>
-                </button>
+                </button>              
               </div>
               
               <div className="flex space-x-4">
                 <button
                   onClick={handleMailtoSubmit}
-                  className="flex-1 py-3 bg-green-600 text-white font-semibold rounded-xl hover:bg-green-700 transition-colors"
+                  className="flex-1 py-3 bg-orange-500 text-white font-semibold rounded-xl hover:bg-orange-700 transition-colors"
                 >
                   Try Email Client Again
                 </button>
                 
                 <button
                   onClick={() => setShowEmailPreview(false)}
-                  className="flex-1 py-3 bg-gray-200 text-gray-700 font-semibold rounded-xl hover:bg-gray-300 transition-colors"
+                  className="flex-1 py-3 bg-green-500 text-white font-semibold rounded-xl hover:bg-gray-300 transition-colors"
                 >
                   Back to Form
                 </button>
@@ -272,7 +288,7 @@ ${formData.name}`;
             <div className="flex space-x-4">
               <button
                 onClick={() => setIsSubmitted(false)}
-                className="flex-1 px-6 py-3 bg-green-600 text-white font-semibold rounded-xl hover:bg-green-700 transition-colors"
+                className="flex-1 px-6 py-3 bg-orange-500 text-white font-semibold rounded-xl hover:bg-green-700 transition-colors"
               >
                 Back to Form
               </button>
@@ -455,13 +471,18 @@ ${formData.name}`;
               {/* Submit Buttons */}
               <div className="space-y-3">
                 <button
-                  onClick={handleMailtoSubmit}
-                  className="w-full py-4 bg-gradient-to-r from-green-500 to-emerald-600 text-white font-bold rounded-xl shadow-lg hover:shadow-xl transform hover:-translate-y-1 transition-all duration-300 flex items-center justify-center space-x-2"
+                  onClick={() => {
+                    handleMailtoSubmit();
+                    // ✅ Scroll to top on step change
+                    setTimeout(() => {
+                      window.scrollTo({ top: 0, behavior: 'smooth' });
+                    }, 100); // Delay slightly to ensure DOM has updated
+                  }}
+                  className="w-full py-4 bg-gradient-to-r from-orange-500 to-orange-400 text-white font-bold rounded-xl shadow-lg hover:shadow-xl transform hover:-translate-y-1 transition-all duration-300 flex items-center justify-center space-x-2"
                 >
                   <Send size={20} />
                   <span>Send Email</span>
                 </button>
-                
                 <button
                   onClick={() => setShowEmailPreview(true)}
                   className="w-full py-3 bg-gray-200 text-gray-700 font-semibold rounded-xl hover:bg-gray-300 transition-colors"
