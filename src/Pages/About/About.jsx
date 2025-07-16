@@ -57,7 +57,7 @@ function AboutUsSection() {
                     </div>
                     <div className='flex items-center gap-3 p-4 bg-white rounded-xl '>
                       <div className='w-3 h-3 bg-green-400 rounded-full'></div>
-                      <span className='text-gray-700 font-medium'>Holistic Wellness</span>
+                      <span className='text-gray-700 font-medium'>Evidence-based care</span>
                     </div>
                     <div className='flex items-center gap-3 p-4 bg-white rounded-xl '>
                       <div className='w-3 h-3 bg-emerald-400 rounded-full'></div>

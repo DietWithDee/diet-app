@@ -1,11 +1,13 @@
-{/* Main image container */}
-            <div className='relative z-10 p-8'>
-              <div className='bg-white rounded-3xl shadow-2xl p-8 hover:shadow-3xl transition-all duration-500 hover:scale-105'>
-                {/* Using a placeholder div since we can't import the actual image */}
-                <div className='w-full h-80 bg-gradient-to-br from-green-100 to-emerald-100 rounded-2xl flex items-center justify-center'>
-                  <div className='text-center space-y-4'>
-                    <img src={Salad} alt="Responsive" />
-                  </div>
-                </div>
-              </div>
-            </div>
+ // Mock data from previous steps - in real app, this would come from props or context
+  const location = useLocation();
+  const userResults = location.state?.userResults || {
+    // Default values as fallback
+    bmi: 0,
+    bmiCategory: 'Unknown',
+    dailyCalories: 0,
+    goal: 'Not specified',
+    dietaryRestrictions: 'None',
+    macros: { protein: 0, carbs: 0, fats: 0 }
+  }
+
+  import { useLocation } from 'react-router-dom';

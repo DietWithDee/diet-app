@@ -6,6 +6,7 @@ import { useNavigate } from 'react-router';
 
 function ServicesContactSection() {
   const navigate = useNavigate();
+  const Url = "https://wa.me/233592330870?text=Hello%2C%20I%E2%80%99d%20like%20to%20book%20a%20session%20with%20Diet%20with%20Dee"
   return (
     <div className='min-h-screen bg-gradient-to-br from-green-50 via-white to-emerald-50'>
       {/* Services Hero Section */}
@@ -163,14 +164,8 @@ function ServicesContactSection() {
                 {/* Contact Information */}
                 <div className='space-y-4 sm:space-y-6'>
                   <div className='space-y-3 sm:space-y-4'>
-                    <h3 className='text-lg sm:text-xl font-bold text-gray-900'>EMAILS</h3>
+                    <h3 className='text-lg sm:text-xl font-bold text-gray-900'>EMAIL</h3>
                     <div className='space-y-2'>
-                      <div className='flex items-center justify-center lg:justify-start gap-3'>
-                        <svg className='w-4 h-4 sm:w-5 sm:h-5 text-green-600 flex-shrink-0' fill='currentColor' viewBox='0 0 20 20'>
-                          <path d='M2.003 5.884L10 9.882l7.997-3.998A2 2 0 0016 4H4a2 2 0 00-1.997 1.884z' />
-                          <path d='M18 8.118l-8 4-8-4V14a2 2 0 002 2h12a2 2 0 002-2V8.118z' />
-                        </svg>
-                      </div>
                       <div className='flex items-center justify-center lg:justify-start gap-3'>
                         <svg className='w-4 h-4 sm:w-5 sm:h-5 text-green-600 flex-shrink-0' fill='currentColor' viewBox='0 0 20 20'>
                           <path d='M2.003 5.884L10 9.882l7.997-3.998A2 2 0 0016 4H4a2 2 0 00-1.997 1.884z' />
@@ -194,9 +189,13 @@ function ServicesContactSection() {
                 
                 {/* CTA Button */}
                 <div className='pt-4 sm:pt-6'>
-                  <button className='w-full sm:w-auto px-6 sm:px-8 py-3 sm:py-4 bg-gradient-to-r from-orange-400 to-orange-400 text-white font-bold rounded-full shadow-lg hover:shadow-xl transform hover:-translate-y-1 transition-all duration-300 hover:from-green-700 hover:to-emerald-700 text-sm sm:text-base'>
+                  <a 
+                  href={Url}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className='w-full sm:w-auto px-6 sm:px-8 py-3 sm:py-4 bg-gradient-to-r from-orange-400 to-orange-400 text-white font-bold rounded-full shadow-lg hover:shadow-xl transform hover:-translate-y-1 transition-all duration-300 hover:from-green-700 hover:to-emerald-700 text-sm sm:text-base'>
                     Get In Touch
-                  </button>
+                  </a>
                 </div>
               </div>
             </div>

@@ -32,8 +32,7 @@ const WelcomeStep = ({ onNext }) => (
         Let's personalize your nutrition journey
       </h1>
       <p className="text-xl text-gray-600 max-w-2xl mx-auto leading-relaxed">
- Keep an eye on your daily calorie intake with our intuitive calorie counter.This tool will help you stay on track and guide you to book a session with our expert dietitians.
-
+Track your daily calories with our easy-to-use tool and stay on top of your health goals. Get expert guidance and book a session with our dietitians when you're ready.
       </p>
     </div>
     <div className="flex justify-center space-x-4">

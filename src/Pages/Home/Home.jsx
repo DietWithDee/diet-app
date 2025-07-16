@@ -151,7 +151,7 @@ function Home() {
         </div>
         
         {/* About Section */}
-        <div className='py-20 bg-gradient-to-b from-white to-green-50'>
+        <div className='py-9 bg-gradient-to-b from-white to-green-50'>
           <div className='container mx-auto px-6 lg:px-12'>
             <div className='flex flex-col lg:flex-row items-center justify-between gap-12 lg:gap-20'>
               
@@ -162,7 +162,7 @@ function Home() {
                 <div className='absolute -bottom-4 -right-4 w-64 h-64 bg-gradient-to-tr from-green-300 to-emerald-300 rounded-full opacity-15 blur-2xl'></div>
                 
                 {/* Main image container */}
-                <div className='relative z-10 p-4 lg:p-7'>
+                <div className='relative z-10 p-1 lg:p-3'>
                   <div className='bg-white rounded-3xl shadow-2xl overflow-hidden hover:shadow-3xl transition-all duration-500 hover:scale-105'>
                     {/* Professional image container */}
                     <div className='relative'>
@@ -186,7 +186,6 @@ function Home() {
                              Nana Ama Dwamena, RD.
                           </p>
                           <div className='flex items-center justify-center gap-3 pt-2'>
-                            <div className='w-3 h-3 bg-green-500 rounded-full'></div>
                             <span className='text-sm text-gray-600'>
                                 Founder, DietWithDee
                             </span>
@@ -235,7 +234,7 @@ function Home() {
                     </div>
                     <div className='flex items-center gap-3 p-4 bg-white rounded-xl '>
                       <div className='w-3 h-3 bg-green-400 rounded-full'></div>
-                      <span className='text-gray-700 font-medium'>Holistic Wellness</span>
+                      <span className='text-gray-700 font-medium'>Evidence-based care</span>
                     </div>
                     <div className='flex items-center gap-3 p-4 bg-white rounded-xl'>
                       <div className='w-3 h-3 bg-emerald-400 rounded-full'></div>
@@ -257,7 +256,7 @@ function Home() {
         </div>
 
         {/* Bottom stats section with animated counters */}
-        <div className='mt-20 pb-12'>
+        <div className='mt-10 pb-12'>
           <div className='grid grid-cols-1 md:grid-cols-3 gap-8 text-center'>
             <div className='space-y-2'>
               <div className='text-green-600'>

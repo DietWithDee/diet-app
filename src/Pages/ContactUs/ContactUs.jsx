@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { ArrowLeft, User, Mail, Calculator, Target, Heart, Utensils, MessageCircle, Phone, Send, CheckCircle } from 'lucide-react';
+import { ArrowLeft, User, Mail, Calculator, Target, Heart, Utensils, MessageCircle, Phone, Send, CheckCircle, Copy, ExternalLink } from 'lucide-react';
 import { useLocation } from 'react-router-dom';
 
 
@@ -12,8 +12,10 @@ function ConsultationBooking() {
   });
   
   const [isSubmitted, setIsSubmitted] = useState(false);
+  const [showEmailPreview, setShowEmailPreview] = useState(false);
+  const [copied, setCopied] = useState(false);
   
-  // Mock data from previous steps - in real app, this would come from props or context
+ // Mock data from previous steps - in real app, this would come from props or context
   const location = useLocation();
   const userResults = location.state?.userResults || {
     // Default values as fallback
@@ -23,7 +25,7 @@ function ConsultationBooking() {
     goal: 'Not specified',
     dietaryRestrictions: 'None',
     macros: { protein: 0, carbs: 0, fats: 0 }
-  };
+  }
 
   const handleInputChange = (e) => {
     const { name, value } = e.target;
@@ -33,13 +35,198 @@ function ConsultationBooking() {
     }));
   };
 
-  const handleSubmit = (e) => {
-    e.preventDefault();
-    // Here you would typically send the data to your backend
-    console.log('Consultation booking submitted:', { ...formData, userResults });
+  const generateEmailContent = () => {
+    const subject = `Nutrition Consultation Request - ${formData.name}`;
+    
+    const body = `Hello Diet with Dee,
+
+I would like to book a nutrition consultation based on my recent assessment results.
+
+CONTACT INFORMATION:
+Name: ${formData.name}
+Email: ${formData.email}
+Phone: ${formData.phone || 'Not provided'}
+
+ASSESSMENT RESULTS:
+BMI: ${userResults.bmi} (${userResults.bmiCategory})
+Daily Calorie Estimate: ${userResults.dailyCalories} calories
+Recommended Macros:
+- Protein: ${userResults.macros.protein}g
+- Carbs: ${userResults.macros.carbs}g
+- Fats: ${userResults.macros.fats}g
+
+GOALS & PREFERENCES:
+Goal: ${userResults.goal}
+Dietary Restrictions: ${userResults.dietaryRestrictions}
+
+ADDITIONAL MESSAGE:
+${formData.message || 'No additional message provided'}
+
+Please contact me to schedule a consultation at your earliest convenience.
+
+Best regards,
+${formData.name}`;
+
+    return { subject, body };
+  };
+
+  const handleMailtoSubmit = () => {
+    // Validate required fields
+    if (!formData.name || !formData.email) {
+      alert('Please fill in all required fields (Name and Email)');
+      return;
+    }
+    
+    const { subject, body } = generateEmailContent();
+    
+    // Create mailto link
+    const mailtoLink = `mailto:princetetteh963@gmail.com?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
+    
+    try {
+      // Try to open email client
+      window.location.href = mailtoLink;
+      setIsSubmitted(true);
+    } catch (error) {
+      console.error('Error opening email client:', error);
+      // Fallback to showing email preview
+      setShowEmailPreview(true);
+    }
+  };
+
+  const handleCopyEmail = async () => {
+    const { subject, body } = generateEmailContent();
+    const emailText = `To: princetetteh963@gmail.com\nSubject: ${subject}\n\n${body}`;
+    
+    try {
+      await navigator.clipboard.writeText(emailText);
+      setCopied(true);
+      setTimeout(() => setCopied(false), 2000);
+    } catch (err) {
+      console.error('Failed to copy email:', err);
+      // Fallback for browsers that don't support clipboard API
+      const textArea = document.createElement('textarea');
+      textArea.value = emailText;
+      document.body.appendChild(textArea);
+      textArea.select();
+      document.execCommand('copy');
+      document.body.removeChild(textArea);
+      setCopied(true);
+      setTimeout(() => setCopied(false), 2000);
+    }
+  };
+
+  const handleWebMailLinks = (provider) => {
+    const { subject, body } = generateEmailContent();
+    const to = 'princetetteh963@gmail.com';
+    
+    const encodedSubject = encodeURIComponent(subject);
+    const encodedBody = encodeURIComponent(body);
+    const encodedTo = encodeURIComponent(to);
+    
+    let webmailUrl = '';
+    
+    switch (provider) {
+      case 'gmail':
+        webmailUrl = `https://mail.google.com/mail/?view=cm&fs=1&to=${encodedTo}&su=${encodedSubject}&body=${encodedBody}`;
+        break;
+      case 'outlook':
+        webmailUrl = `https://outlook.live.com/mail/0/deeplink/compose?to=${encodedTo}&subject=${encodedSubject}&body=${encodedBody}`;
+        break;
+      case 'yahoo':
+        webmailUrl = `https://compose.mail.yahoo.com/?to=${encodedTo}&subject=${encodedSubject}&body=${encodedBody}`;
+        break;
+      default:
+        return;
+    }
+    
+    window.open(webmailUrl, '_blank');
     setIsSubmitted(true);
   };
 
+  if (showEmailPreview) {
+    const { subject, body } = generateEmailContent();
+    
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-green-50 via-white to-emerald-50 py-12">
+        <div className="container mx-auto px-6 lg:px-12 max-w-4xl">
+          <div className="bg-white rounded-2xl shadow-xl p-8">
+            <h2 className="text-2xl font-bold text-green-800 mb-6">Email Preview</h2>
+            
+            <div className="space-y-4 mb-8">
+              <div className="flex items-center space-x-4 p-4 bg-gray-50 rounded-lg">
+                <strong className="text-gray-700">To:</strong>
+                <span className="text-gray-900">princetetteh963@gmail.com</span>
+              </div>
+              
+              <div className="flex items-center space-x-4 p-4 bg-gray-50 rounded-lg">
+                <strong className="text-gray-700">Subject:</strong>
+                <span className="text-gray-900">{subject}</span>
+              </div>
+              
+              <div className="p-4 bg-gray-50 rounded-lg">
+                <strong className="text-gray-700 block mb-2">Message:</strong>
+                <pre className="text-gray-900 whitespace-pre-wrap font-sans text-sm">{body}</pre>
+              </div>
+            </div>
+            
+            <div className="space-y-4">
+              <h3 className="text-lg font-semibold text-gray-800">Send this email using:</h3>
+              
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <button
+                  onClick={handleCopyEmail}
+                  className="flex items-center justify-center space-x-2 p-4 bg-blue-100 text-blue-700 rounded-lg hover:bg-blue-200 transition-colors"
+                >
+                  <Copy size={20} />
+                  <span>{copied ? 'Copied!' : 'Copy Email Text'}</span>
+                </button>
+                
+                <button
+                  onClick={() => handleWebMailLinks('gmail')}
+                  className="flex items-center justify-center space-x-2 p-4 bg-red-100 text-red-700 rounded-lg hover:bg-red-200 transition-colors"
+                >
+                  <ExternalLink size={20} />
+                  <span>Open in Gmail</span>
+                </button>
+                
+                <button
+                  onClick={() => handleWebMailLinks('outlook')}
+                  className="flex items-center justify-center space-x-2 p-4 bg-blue-100 text-blue-700 rounded-lg hover:bg-blue-200 transition-colors"
+                >
+                  <ExternalLink size={20} />
+                  <span>Open in Outlook</span>
+                </button>
+                
+                <button
+                  onClick={() => handleWebMailLinks('yahoo')}
+                  className="flex items-center justify-center space-x-2 p-4 bg-purple-100 text-purple-700 rounded-lg hover:bg-purple-200 transition-colors"
+                >
+                  <ExternalLink size={20} />
+                  <span>Open in Yahoo Mail</span>
+                </button>
+              </div>
+              
+              <div className="flex space-x-4">
+                <button
+                  onClick={handleMailtoSubmit}
+                  className="flex-1 py-3 bg-green-600 text-white font-semibold rounded-xl hover:bg-green-700 transition-colors"
+                >
+                  Try Email Client Again
+                </button>
+                
+                <button
+                  onClick={() => setShowEmailPreview(false)}
+                  className="flex-1 py-3 bg-gray-200 text-gray-700 font-semibold rounded-xl hover:bg-gray-300 transition-colors"
+                >
+                  Back to Form
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   if (isSubmitted) {
     return (
@@ -51,10 +238,10 @@ function ConsultationBooking() {
                 <CheckCircle className="text-green-600" size={48} />
               </div>
               <h1 className="text-3xl font-bold text-green-800">
-                Thank You for Your Interest!
+                Email Sent Successfully!
               </h1>
               <p className="text-lg text-gray-600">
-                We've received your consultation request and will contact you within 24 hours to schedule your personalized nutrition session.
+                Your email client has opened with your consultation request. Please send the email to complete your booking.
               </p>
             </div>
             
@@ -65,21 +252,37 @@ function ConsultationBooking() {
                   <div className="w-6 h-6 bg-green-100 rounded-full flex items-center justify-center flex-shrink-0 mt-1">
                     <span className="text-green-600 text-sm font-bold">1</span>
                   </div>
-                  <p className="text-gray-700">Our nutritionist will review your results and goals</p>
+                  <p className="text-gray-700">Send the email from your email client</p>
                 </div>
                 <div className="flex items-start space-x-3">
                   <div className="w-6 h-6 bg-green-100 rounded-full flex items-center justify-center flex-shrink-0 mt-1">
                     <span className="text-green-600 text-sm font-bold">2</span>
                   </div>
-                  <p className="text-gray-700">We'll contact you to schedule a convenient time</p>
+                  <p className="text-gray-700">Diet with Dee will review your results and goals</p>
                 </div>
                 <div className="flex items-start space-x-3">
                   <div className="w-6 h-6 bg-green-100 rounded-full flex items-center justify-center flex-shrink-0 mt-1">
                     <span className="text-green-600 text-sm font-bold">3</span>
                   </div>
-                  <p className="text-gray-700">Receive your personalized nutrition plan</p>
+                  <p className="text-gray-700">You'll receive a response within 24 hours to schedule your consultation</p>
                 </div>
               </div>
+            </div>
+            
+            <div className="flex space-x-4">
+              <button
+                onClick={() => setIsSubmitted(false)}
+                className="flex-1 px-6 py-3 bg-green-600 text-white font-semibold rounded-xl hover:bg-green-700 transition-colors"
+              >
+                Back to Form
+              </button>
+              
+              <button
+                onClick={() => setShowEmailPreview(true)}
+                className="flex-1 px-6 py-3 bg-gray-200 text-gray-700 font-semibold rounded-xl hover:bg-gray-300 transition-colors"
+              >
+                Try Another Method
+              </button>
             </div>
           </div>
         </div>
@@ -166,10 +369,6 @@ function ConsultationBooking() {
                   <Utensils className="text-green-500" size={20} />
                   <span className="text-gray-700"><strong>Diet:</strong> {userResults.dietaryRestrictions}</span>
                 </div>
-                <div className="flex items-center space-x-3">
-                  <Utensils className="text-green-500" size={20} />
-                  <span className="text-gray-700"><strong>Dislikes</strong> {userResults.dietaryRestrictions}</span>
-                </div>
               </div>
             </div>
           </div>
@@ -223,7 +422,7 @@ function ConsultationBooking() {
                   Phone Number
                 </label>
                 <div className="relative">
-                  <Phone className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-700" size={20} />
+                  <Phone className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" size={20} />
                   <input
                     type="tel"
                     name="phone"
@@ -232,29 +431,6 @@ function ConsultationBooking() {
                     className="w-full pl-10 pr-4 py-3 border-2 border-gray-200 rounded-xl focus:border-green-500 focus:outline-none placeholder-gray-400 text-gray-900"
                     placeholder="Enter your phone number"
                   />
-                </div>
-              </div>
-
-              {/* Readonly Fields */}
-              <div className="bg-gray-50 rounded-xl p-4 space-y-3">
-                <h4 className="font-semibold text-gray-700">Your Assessment Results</h4>
-                <div className="grid grid-cols-2 gap-4 text-sm">
-                  <div>
-                    <span className="text-gray-600">BMI:</span>
-                    <span className="ml-2 font-semibold text-gray-500">{userResults.bmi} ({userResults.bmiCategory})</span>
-                  </div>
-                  <div>
-                    <span className="text-gray-600">Daily Calories:</span>
-                    <span className="ml-2 font-semibold text-gray-500">{userResults.dailyCalories}</span>
-                  </div>
-                  <div>
-                    <span className="text-gray-600">Goal:</span>
-                    <span className="ml-2 font-semibold text-gray-500">{userResults.goal}</span>
-                  </div>
-                  <div>
-                    <span className="text-gray-600">Diet:</span>
-                    <span className="ml-2 font-semibold text-gray-500">{userResults.dietaryRestrictions}</span>
-                  </div>
                 </div>
               </div>
 
@@ -276,14 +452,23 @@ function ConsultationBooking() {
                 </div>
               </div>
 
-              {/* Submit Button */}
-              <button
-                type="submit"
-                className="w-full py-4 bg-gradient-to-r from-orange-400 to-orange-400 text-white font-bold rounded-xl shadow-lg hover:shadow-xl transform hover:-translate-y-1 transition-all duration-300 flex items-center justify-center space-x-2"
-              >
-                <Send size={20} />
-                <span>Book Consultation</span>
-              </button>
+              {/* Submit Buttons */}
+              <div className="space-y-3">
+                <button
+                  onClick={handleMailtoSubmit}
+                  className="w-full py-4 bg-gradient-to-r from-green-500 to-emerald-600 text-white font-bold rounded-xl shadow-lg hover:shadow-xl transform hover:-translate-y-1 transition-all duration-300 flex items-center justify-center space-x-2"
+                >
+                  <Send size={20} />
+                  <span>Send Email</span>
+                </button>
+                
+                <button
+                  onClick={() => setShowEmailPreview(true)}
+                  className="w-full py-3 bg-gray-200 text-gray-700 font-semibold rounded-xl hover:bg-gray-300 transition-colors"
+                >
+                  Preview Email / Other Options
+                </button>
+              </div>
             </div>
           </div>
         </div>
@@ -293,14 +478,14 @@ function ConsultationBooking() {
           <h3 className="text-lg font-semibold text-gray-800 mb-6">Or contact us directly</h3>
           <div className="flex justify-center items-center space-x-8">
             <a 
-              href="mailto:nutrition@example.com"
+              href="mailto:dietwithdee@gmail.com"
               className="flex items-center space-x-2 text-gray-600 hover:text-green-600 transition-colors"
             >
               <Mail size={20} />
-              <span>dietwithdee@gmail</span>
+              <span>dietwithdee@gmail.com</span>
             </a>
             <a 
-              href="https://wa.me/1234567890"
+              href="https://wa.me/233592330870?text=Hello%2C%20I%E2%80%99d%20like%20to%20book%20a%20session%20with%20Diet%20with%20Dee"
               target="_blank"
               rel="noopener noreferrer"
               className="flex items-center space-x-2 text-gray-600 hover:text-green-600 transition-colors"
