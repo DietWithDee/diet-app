@@ -1,10 +1,237 @@
-import React, { useState, useEffect } from 'react';
-import { Eye, EyeOff, Plus, Edit2, Trash2, Upload, Save, X, AlertCircle, CheckCircle, Loader } from 'lucide-react';
+import React, { useState, useEffect, useRef } from 'react';
+import { Eye, EyeOff, Plus, Edit2, Trash2, Save, X, AlertCircle, CheckCircle, Loader, Bold, Italic, Underline, List, ListOrdered, Link, Quote, Type } from 'lucide-react';
+import { createArticle, getArticles , deleteArticle} from '../../firebaseUtils';
 
-// Mock environment variables - replace with actual .env values
+
+// Mock environment variables
 const ADMIN_EMAIL = 'admin@dietwithdee.com';
 const ADMIN_PASSWORD = 'admin123';
-const PAYSTACK_SECRET_KEY = 'sk_test_your_paystack_secret_key_here';
+
+// Rich Text Editor Component - FIXED VERSION
+const RichTextEditor = ({ value, onChange, disabled = false }) => {
+  const editorRef = useRef(null);
+  const [isActive, setIsActive] = useState({
+    bold: false,
+    italic: false,
+    underline: false
+  });
+
+  useEffect(() => {
+    if (editorRef.current && value !== editorRef.current.innerHTML) {
+      editorRef.current.innerHTML = value || '';
+    }
+  }, [value]);
+
+  const execCommand = (command, value = null) => {
+    if (disabled) return;
+    
+    document.execCommand(command, false, value);
+    editorRef.current.focus();
+    updateContent();
+    checkActiveStates();
+  };
+
+  const updateContent = () => {
+    if (editorRef.current && onChange) {
+      onChange(editorRef.current.innerHTML);
+    }
+  };
+
+  const checkActiveStates = () => {
+    setIsActive({
+      bold: document.queryCommandState('bold'),
+      italic: document.queryCommandState('italic'),
+      underline: document.queryCommandState('underline')
+    });
+  };
+
+  const handleKeyDown = (e) => {
+    if (disabled) return;
+    
+    // Handle common shortcuts
+    if (e.ctrlKey || e.metaKey) {
+      switch (e.key) {
+        case 'b':
+          e.preventDefault();
+          execCommand('bold');
+          break;
+        case 'i':
+          e.preventDefault();
+          execCommand('italic');
+          break;
+        case 'u':
+          e.preventDefault();
+          execCommand('underline');
+          break;
+      }
+    }
+  };
+
+  const insertLink = () => {
+    if (disabled) return;
+    
+    const url = prompt('Enter URL:');
+    if (url) {
+      execCommand('createLink', url);
+    }
+  };
+
+  const formatBlock = (tag) => {
+    if (disabled) return;
+    execCommand('formatBlock', tag);
+  };
+
+  const insertQuote = () => {
+    if (disabled) return;
+    
+    const selection = window.getSelection();
+    const selectedText = selection.toString();
+    
+    if (selectedText) {
+      // If text is selected, wrap it in a styled blockquote
+      const quoteHtml = `<blockquote style="border-left: 4px solid #10b981; padding-left: 16px; margin: 16px 0; font-style: italic; color: #059669;">${selectedText}</blockquote>`;
+      execCommand('insertHTML', quoteHtml);
+    } else {
+      // If no text selected, insert an empty blockquote
+      const quoteHtml = `<blockquote style="border-left: 4px solid #10b981; padding-left: 16px; margin: 16px 0; font-style: italic; color: #059669;">Your quote here...</blockquote><br>`;
+      execCommand('insertHTML', quoteHtml);
+    }
+  };
+
+  const insertList = (ordered = false) => {
+    if (disabled) return;
+    
+    const selection = window.getSelection();
+    const selectedText = selection.toString();
+    
+    if (selectedText) {
+      // Split selected text into lines and create list items
+      const lines = selectedText.split('\n').filter(line => line.trim() !== '');
+      const listItems = lines.map(line => `<li>${line.trim()}</li>`).join('');
+      const listHtml = ordered 
+        ? `<ol style="margin: 16px 0; padding-left: 24px;">${listItems}</ol>`
+        : `<ul style="margin: 16px 0; padding-left: 24px;">${listItems}</ul>`;
+      execCommand('insertHTML', listHtml);
+    } else {
+      // Insert empty list
+      const listHtml = ordered 
+        ? `<ol style="margin: 16px 0; padding-left: 24px;"><li>List item 1</li><li>List item 2</li></ol><br>`
+        : `<ul style="margin: 16px 0; padding-left: 24px;"><li>List item 1</li><li>List item 2</li></ul><br>`;
+      execCommand('insertHTML', listHtml);
+    }
+  };
+
+  const ToolbarButton = ({ onClick, active, children, title }) => (
+    <button
+      type="button"
+      onClick={onClick}
+      disabled={disabled}
+      title={title}
+      className={`p-2 rounded hover:bg-gray-100 transition-colors ${
+        active ? 'bg-green-100 text-green-700' : 'text-gray-600'
+      } ${disabled ? 'opacity-50 cursor-not-allowed' : ''}`}
+    >
+      {children}
+    </button>
+  );
+
+  return (
+    <div className="border border-gray-300 rounded-lg overflow-hidden">
+      {/* Toolbar */}
+      <div className="border-b border-gray-200 p-2 bg-gray-50 flex flex-wrap gap-1 text-gray-800">
+        <ToolbarButton 
+          onClick={() => execCommand('bold')} 
+          active={isActive.bold}
+          title="Bold (Ctrl+B)"
+        >
+          <Bold size={16} />
+        </ToolbarButton>
+        
+        <ToolbarButton 
+          onClick={() => execCommand('italic')} 
+          active={isActive.italic}
+          title="Italic (Ctrl+I)"
+        >
+          <Italic size={16} />
+        </ToolbarButton>
+        
+        <ToolbarButton 
+          onClick={() => execCommand('underline')} 
+          active={isActive.underline}
+          title="Underline (Ctrl+U)"
+        >
+          <Underline size={16} />
+        </ToolbarButton>
+        
+        <div className="w-px h-6 bg-gray-300 mx-1" />
+        
+        <ToolbarButton 
+          onClick={() => insertList(false)}
+          title="Bullet List"
+        >
+          <List size={16} />
+        </ToolbarButton>
+        
+        <ToolbarButton 
+          onClick={() => insertList(true)}
+          title="Numbered List"
+        >
+          <ListOrdered size={16} />
+        </ToolbarButton>
+        
+        <div className="w-px h-6 bg-gray-300 mx-1" />
+        
+        <ToolbarButton 
+          onClick={insertQuote}
+          title="Quote"
+        >
+          <Quote size={16} />
+        </ToolbarButton>
+        
+        <ToolbarButton 
+          onClick={insertLink}
+          title="Insert Link"
+        >
+          <Link size={16} />
+        </ToolbarButton>
+        
+        <div className="w-px h-6 bg-gray-300 mx-1 text-gray-800" />
+        
+        <select 
+          className="px-2 py-1 border border-gray-300 rounded text-sm text-gray-800"
+          onChange={(e) => formatBlock(e.target.value)}
+          disabled={disabled}
+          defaultValue=""
+        >
+          <option value="">Normal</option>
+          <option value="h1">Heading 1</option>
+          <option value="h2">Heading 2</option>
+          <option value="h3">Heading 3</option>
+          <option value="p">Paragraph</option>
+        </select>
+      </div>
+      
+      {/* Editor */}
+      <div
+        ref={editorRef}
+        contentEditable={!disabled}
+        onInput={updateContent}
+        onKeyUp={checkActiveStates}
+        onMouseUp={checkActiveStates}
+        onKeyDown={handleKeyDown}
+        className={`p-3 min-h-[200px] focus:outline-none ${
+          disabled ? 'bg-gray-50 cursor-not-allowed' : 'bg-white text-gray-800'
+        }`}
+        style={{
+          fontSize: '14px',
+          lineHeight: '1.5'
+        }}
+        suppressContentEditableWarning={true}
+        placeholder="Write your article content here..."
+      />
+    </div>
+  );
+};
 
 // Notification Component
 const Notification = ({ type, message, onClose }) => {
@@ -54,12 +281,9 @@ const AdminLogin = ({ onLogin }) => {
     setIsLoading(true);
     setError('');
 
-    // Simulate API call delay
     await new Promise(resolve => setTimeout(resolve, 1000));
 
     if (formData.email === ADMIN_EMAIL && formData.password === ADMIN_PASSWORD) {
-      localStorage.setItem('adminAuth', 'true');
-      localStorage.setItem('adminEmail', formData.email);
       onLogin();
     } else {
       setError('Invalid email or password');
@@ -78,7 +302,7 @@ const AdminLogin = ({ onLogin }) => {
             <p className="text-gray-600 mt-2">Admin Panel</p>
           </div>
 
-          <form onSubmit={handleSubmit} className="space-y-6">
+          <div className="space-y-6">
             {error && (
               <div className="bg-red-50 border border-red-200 rounded-lg p-3 text-red-700 text-sm">
                 {error}
@@ -125,7 +349,8 @@ const AdminLogin = ({ onLogin }) => {
             </div>
 
             <button
-              type="submit"
+              type="button"
+              onClick={handleSubmit}
               disabled={isLoading}
               className="w-full bg-gradient-to-r from-green-600 to-emerald-600 text-white py-3 rounded-lg font-medium hover:from-green-700 hover:to-emerald-700 transition-all duration-300 disabled:opacity-50"
             >
@@ -138,7 +363,7 @@ const AdminLogin = ({ onLogin }) => {
                 'Sign In'
               )}
             </button>
-          </form>
+          </div>
 
           <div className="mt-6 text-xs text-gray-500 text-center">
             Demo credentials: admin@dietwithdee.com / admin123
@@ -150,62 +375,88 @@ const AdminLogin = ({ onLogin }) => {
 };
 
 // Articles Management Component
-const ArticlesManager = ({ articles, setArticles, showNotification }) => {
+const ArticlesManager = ({ articles, setArticles, showNotification, loadArticles }) => {
   const [isEditing, setIsEditing] = useState(false);
   const [editingId, setEditingId] = useState(null);
   const [formData, setFormData] = useState({
     title: '',
     content: '',
-    image: null
+    imageUrl: ''
   });
   const [uploadProgress, setUploadProgress] = useState(0);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [imagePreview, setImagePreview] = useState('');
+
+  // Validate and preview image URL
+  const handleImageUrlChange = (url) => {
+    setFormData({...formData, imageUrl: url});
+    
+    if (url) {
+      // Simple URL validation
+      try {
+        new URL(url);
+        setImagePreview(url);
+      } catch {
+        setImagePreview('');
+      }
+    } else {
+      setImagePreview('');
+    }
+  };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    setIsSubmitting(true);
     setUploadProgress(0);
 
-    // Simulate upload progress
-    const interval = setInterval(() => {
-      setUploadProgress(prev => {
-        if (prev >= 100) {
-          clearInterval(interval);
-          return 100;
-        }
-        return prev + 10;
-      });
-    }, 100);
+    try {
+      const interval = setInterval(() => {
+        setUploadProgress(prev => {
+          if (prev >= 90) {
+            clearInterval(interval);
+            return 90;
+          }
+          return prev + 10;
+        });
+      }, 100);
 
-    await new Promise(resolve => setTimeout(resolve, 1000));
+      const result = await createArticle(formData.title, formData.content, formData.imageUrl);
+      
+      clearInterval(interval);
+      setUploadProgress(100);
 
-    const article = {
-      id: editingId || Date.now(),
-      title: formData.title,
-      content: formData.content,
-      image: formData.image?.name || null,
-      createdAt: new Date().toISOString(),
-      updatedAt: new Date().toISOString()
-    };
-
-    if (editingId) {
-      setArticles(articles.map(a => a.id === editingId ? article : a));
-      showNotification('success', 'Article updated successfully!');
-    } else {
-      setArticles([...articles, article]);
-      showNotification('success', 'Article created successfully!');
+      if (result.success) {
+        showNotification('success', 'Article created successfully!');
+        await loadArticles();
+        
+        setFormData({ title: '', content: '', imageUrl: '' });
+        setImagePreview('');
+        setIsEditing(false);
+        setEditingId(null);
+      } else {
+        showNotification('error', 'Failed to create article. Please try again.');
+      }
+    } catch (error) {
+      console.error('Error creating article:', error);
+      showNotification('error', 'Failed to create article. Please try again.');
+    } finally {
+      setIsSubmitting(false);
+      setUploadProgress(0);
     }
 
-    setFormData({ title: '', content: '', image: null });
-    setIsEditing(false);
-    setEditingId(null);
-    setUploadProgress(0);
+    // Scroll to top on step change
+    setTimeout(() => {
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }, 100);
   };
 
   const handleEdit = (article) => {
     setFormData({
       title: article.title,
       content: article.content,
-      image: null
+      imageUrl: article.coverImage || ''
     });
+    setImagePreview(article.coverImage || '');
     setEditingId(article.id);
     setIsEditing(true);
   };
@@ -213,8 +464,20 @@ const ArticlesManager = ({ articles, setArticles, showNotification }) => {
   const handleDelete = (id) => {
     if (window.confirm('Are you sure you want to delete this article?')) {
       setArticles(articles.filter(a => a.id !== id));
+      // Call delete function from firebaseUtils or backend
+      deleteArticle(id);
       showNotification('success', 'Article deleted successfully!');
     }
+  };
+
+  const formatDate = (timestamp) => {
+    if (!timestamp) return 'Unknown date';
+    
+    if (timestamp.toDate) {
+      return timestamp.toDate().toLocaleDateString();
+    }
+    
+    return new Date(timestamp).toLocaleDateString();
   };
 
   return (
@@ -240,7 +503,8 @@ const ArticlesManager = ({ articles, setArticles, showNotification }) => {
               onClick={() => {
                 setIsEditing(false);
                 setEditingId(null);
-                setFormData({ title: '', content: '', image: null });
+                setFormData({ title: '', content: '', imageUrl: '' });
+                setImagePreview('');
                 setUploadProgress(0);
               }}
               className="text-gray-500 hover:text-gray-700"
@@ -249,7 +513,7 @@ const ArticlesManager = ({ articles, setArticles, showNotification }) => {
             </button>
           </div>
 
-          <form onSubmit={handleSubmit} className="space-y-4">
+          <div className="space-y-6">
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">
                 Title
@@ -261,48 +525,60 @@ const ArticlesManager = ({ articles, setArticles, showNotification }) => {
                 className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent text-gray-800"
                 placeholder="Article title"
                 required
+                disabled={isSubmitting}
               />
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
+              <label className="block text-sm font-medium text-gray-700 mb-3">
                 Content
               </label>
-              <textarea
+              <RichTextEditor
                 value={formData.content}
-                onChange={(e) => setFormData({...formData, content: e.target.value})}
-                rows="6"
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent text-gray-800"
-                placeholder="Write your article content here..."
-                required
+                onChange={(content) => setFormData({...formData, content})}
+                disabled={isSubmitting}
               />
+              <p className="text-xs text-gray-500 mt-2">
+                Use the toolbar to format your text. Keyboard shortcuts: Ctrl+B (bold), Ctrl+I (italic), Ctrl+U (underline)
+              </p>
             </div>
 
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">
-                Featured Image
+                Featured Image URL
               </label>
-              <div className="border-2 border-dashed border-gray-300 rounded-lg p-4 text-center hover:border-green-400 transition-colors text-gray-800">
-                <input
-                  type="file"
-                  accept="image/*"
-                  onChange={(e) => setFormData({...formData, image: e.target.files[0]})}
-                  className="hidden"
-                  id="image-upload"
-                />
-                <label htmlFor="image-upload" className="cursor-pointer">
-                  <Upload className="mx-auto text-gray-400 mb-2" size={32} />
-                  <p className="text-sm text-gray-600">
-                    {formData.image ? formData.image.name : 'Click to upload image'}
-                  </p>
-                </label>
-              </div>
+              <input
+                type="url"
+                value={formData.imageUrl}
+                onChange={(e) => handleImageUrlChange(e.target.value)}
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent text-gray-800"
+                placeholder="https://example.com/image.jpg"
+                disabled={isSubmitting}
+              />
+              <p className="text-xs text-gray-500 mt-1">
+                Enter a valid image URL (jpg, png, gif, webp)
+              </p>
+              
+              {/* Image Preview */}
+              {imagePreview && (
+                <div className="mt-3">
+                  <p className="text-sm font-medium text-gray-700 mb-2">Preview:</p>
+                  <div className="border border-gray-200 rounded-lg p-2 bg-gray-50">
+                    <img
+                      src={imagePreview}
+                      alt="Preview"
+                      className="max-w-full h-32 object-cover rounded"
+                      onError={() => setImagePreview('')}
+                    />
+                  </div>
+                </div>
+              )}
             </div>
 
             {uploadProgress > 0 && uploadProgress < 100 && (
               <div className="space-y-2">
                 <div className="flex justify-between text-sm text-gray-600">
-                  <span>Uploading...</span>
+                  <span>Creating article...</span>
                   <span>{uploadProgress}%</span>
                 </div>
                 <ProgressBar progress={uploadProgress} />
@@ -311,25 +587,38 @@ const ArticlesManager = ({ articles, setArticles, showNotification }) => {
 
             <div className="flex gap-3">
               <button
-                type="submit"
-                className="flex items-center gap-2 bg-gradient-to-r from-green-600 to-emerald-600 text-white px-4 py-2 rounded-lg hover:from-green-700 hover:to-emerald-700 transition-all duration-300"
+                type="button"
+                onClick={handleSubmit}
+                disabled={isSubmitting}
+                className="flex items-center gap-2 bg-gradient-to-r from-green-600 to-emerald-600 text-white px-4 py-2 rounded-lg hover:from-green-700 hover:to-emerald-700 transition-all duration-300 disabled:opacity-50"
               >
-                <Save size={16} />
-                {editingId ? 'Update' : 'Create'} Article
+                {isSubmitting ? (
+                  <>
+                    <Loader className="animate-spin" size={16} />
+                    Creating...
+                  </>
+                ) : (
+                  <>
+                    <Save size={16} />
+                    {editingId ? 'Update' : 'Create'} Article
+                  </>
+                )}
               </button>
               <button
                 type="button"
                 onClick={() => {
                   setIsEditing(false);
                   setEditingId(null);
-                  setFormData({ title: '', content: '', image: null });
+                  setFormData({ title: '', content: '', imageUrl: '' });
+                  setImagePreview('');
                 }}
-                className="px-4 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors"
+                disabled={isSubmitting}
+                className="px-4 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors disabled:opacity-50"
               >
                 Cancel
               </button>
             </div>
-          </form>
+          </div>
         </div>
       )}
 
@@ -343,13 +632,32 @@ const ArticlesManager = ({ articles, setArticles, showNotification }) => {
             <div key={article.id} className="bg-white rounded-xl shadow-md p-6 border border-green-100">
               <div className="flex justify-between items-start mb-4">
                 <div className="flex-1">
+                  {article.coverImage && (
+                    <div className="mb-3">
+                      <img
+                        src={article.coverImage}
+                        alt={article.title}
+                        className="w-20 h-16 object-cover rounded-lg"
+                        onError={(e) => {
+                          e.target.style.display = 'none';
+                        }}
+                      />
+                    </div>
+                  )}
                   <h3 className="text-lg font-semibold text-gray-800 mb-2">{article.title}</h3>
-                  <p className="text-gray-600 text-sm mb-2">
-                    {article.content.substring(0, 150)}
-                    {article.content.length > 150 && '...'}
-                  </p>
-                  <div className="text-xs text-gray-500">
-                    Created: {new Date(article.createdAt).toLocaleDateString()}
+                  <div 
+                    className="text-gray-600 text-sm mb-2 prose prose-sm max-w-none"
+                    dangerouslySetInnerHTML={{
+                      __html: article.content.length > 150 
+                        ? article.content.substring(0, 150) + '...'
+                        : article.content
+                    }}
+                  />
+                  <div className="flex items-center gap-4 text-xs text-gray-500">
+                    <span>Created: {formatDate(article.createdAt)}</span>
+                    {article.coverImage && (
+                      <span className="text-blue-600">🖼️ Has Image</span>
+                    )}
                   </div>
                 </div>
                 <div className="flex gap-2">
@@ -375,325 +683,11 @@ const ArticlesManager = ({ articles, setArticles, showNotification }) => {
   );
 };
 
-// Plan Management Component
-const PlanManager = ({ plans, setPlans, showNotification }) => {
-  const [isEditing, setIsEditing] = useState(false);
-  const [editingId, setEditingId] = useState(null);
-  const [formData, setFormData] = useState({
-    title: '',
-    description: '',
-    price: '',
-    pdf: null
-  });
-  const [uploadProgress, setUploadProgress] = useState(0);
-  const [isCreatingPaystack, setIsCreatingPaystack] = useState(false);
-
-  const createPaystackProduct = async (planData) => {
-    try {
-      // Mock Paystack API call - replace with actual implementation
-      const response = await fetch('https://api.paystack.co/product', {
-        method: 'POST',
-        headers: {
-          'Authorization': `Bearer ${PAYSTACK_SECRET_KEY}`,
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({
-          name: planData.title,
-          description: planData.description,
-          price: planData.price * 100, // Convert to kobo
-          currency: 'GHS'
-        })
-      });
-
-      if (!response.ok) {
-        throw new Error('Failed to create Paystack product');
-      }
-
-      const result = await response.json();
-      return {
-        productId: result.data.id,
-        paymentLink: `https://paystack.com/pay/${result.data.id}`
-      };
-    } catch (error) {
-      console.error('Paystack API Error:', error);
-      // Mock response for demo purposes
-      return {
-        productId: 'mock_product_' + Date.now(),
-        paymentLink: `https://paystack.com/pay/mock_${Date.now()}`
-      };
-    }
-  };
-
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-    setUploadProgress(0);
-    setIsCreatingPaystack(true);
-
-    // Simulate upload progress
-    const interval = setInterval(() => {
-      setUploadProgress(prev => {
-        if (prev >= 100) {
-          clearInterval(interval);
-          return 100;
-        }
-        return prev + 10;
-      });
-    }, 100);
-
-    await new Promise(resolve => setTimeout(resolve, 1000));
-
-    let paystackData = null;
-    if (!editingId) {
-      // Create Paystack product for new plans
-      paystackData = await createPaystackProduct({
-        title: formData.title,
-        description: formData.description,
-        price: parseFloat(formData.price)
-      });
-    }
-
-    const plan = {
-      id: editingId || Date.now(),
-      title: formData.title,
-      description: formData.description,
-      price: parseFloat(formData.price),
-      pdf: formData.pdf?.name || null,
-      paystackProductId: paystackData?.productId || null,
-      paymentLink: paystackData?.paymentLink || null,
-      createdAt: new Date().toISOString(),
-      updatedAt: new Date().toISOString()
-    };
-
-    if (editingId) {
-      setPlans(plans.map(p => p.id === editingId ? {...p, ...plan} : p));
-      showNotification('success', 'Plan updated successfully!');
-    } else {
-      setPlans([...plans, plan]);
-      showNotification('success', 'Plan created with Paystack integration!');
-    }
-
-    setFormData({ title: '', description: '', price: '', pdf: null });
-    setIsEditing(false);
-    setEditingId(null);
-    setUploadProgress(0);
-    setIsCreatingPaystack(false);
-  };
-
-  const handleEdit = (plan) => {
-    setFormData({
-      title: plan.title,
-      description: plan.description,
-      price: plan.price.toString(),
-      pdf: null
-    });
-    setEditingId(plan.id);
-    setIsEditing(true);
-  };
-
-  const handleDelete = (id) => {
-    if (window.confirm('Are you sure you want to delete this plan?')) {
-      setPlans(plans.filter(p => p.id !== id));
-      showNotification('success', 'Plan deleted successfully!');
-    }
-  };
-
-  return (
-    <div className="space-y-6">
-      <div className="flex justify-between items-center">
-        <h2 className="text-2xl font-bold text-green-700">Plan Management</h2>
-        <button
-          onClick={() => setIsEditing(true)}
-          className="flex items-center gap-2 bg-gradient-to-r from-orange-500 to-orange-600 text-white px-4 py-2 rounded-lg hover:from-orange-600 hover:to-orange-700 transition-all duration-300"
-        >
-          <Plus size={20} />
-          New Plan
-        </button>
-      </div>
-
-      {isEditing && (
-        <div className="bg-white rounded-xl shadow-lg p-6 border border-green-100">
-          <div className="flex justify-between items-center mb-6">
-            <h3 className="text-xl font-semibold text-gray-800">
-              {editingId ? 'Edit Plan' : 'Create New Plan'}
-            </h3>
-            <button
-              onClick={() => {
-                setIsEditing(false);
-                setEditingId(null);
-                setFormData({ title: '', description: '', price: '', pdf: null });
-                setUploadProgress(0);
-              }}
-              className="text-gray-500 hover:text-gray-700"
-            >
-              <X size={20} />
-            </button>
-          </div>
-
-          <form onSubmit={handleSubmit} className="space-y-4">
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Plan Title
-                </label>
-                <input
-                  type="text"
-                  value={formData.title}
-                  onChange={(e) => setFormData({...formData, title: e.target.value})}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent text-gray-800"
-                  placeholder="e.g., Weight Loss Starter Plan"
-                  required
-                />
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Price (GHS)
-                </label>
-                <input
-                  type="number"
-                  value={formData.price}
-                  onChange={(e) => setFormData({...formData, price: e.target.value})}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
-                  placeholder="0.00"
-                  step="0.01"
-                  min="0"
-                  required
-                />
-              </div>
-            </div>
-
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                Description
-              </label>
-              <textarea
-                value={formData.description}
-                onChange={(e) => setFormData({...formData, description: e.target.value})}
-                rows="4"
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent text-gray-800"
-                placeholder="Describe what this plan includes..."
-                required
-              />
-            </div>
-
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                Plan PDF
-              </label>
-              <div className="border-2 border-dashed border-gray-300 rounded-lg p-4 text-center hover:border-green-400 transition-colors text-gray-800">
-                <input
-                  type="file"
-                  accept=".pdf"
-                  onChange={(e) => setFormData({...formData, pdf: e.target.files[0]})}
-                  className="hidden"
-                  id="pdf-upload"
-                />
-                <label htmlFor="pdf-upload" className="cursor-pointer">
-                  <Upload className="mx-auto text-gray-400 mb-2" size={32} />
-                  <p className="text-sm text-gray-600">
-                    {formData.pdf ? formData.pdf.name : 'Click to upload PDF'}
-                  </p>
-                </label>
-              </div>
-            </div>
-
-            {(uploadProgress > 0 || isCreatingPaystack) && (
-              <div className="space-y-2">
-                <div className="flex justify-between text-sm text-gray-600">
-                  <span>
-                    {isCreatingPaystack ? 'Creating Paystack product...' : 'Uploading...'}
-                  </span>
-                  <span>{uploadProgress}%</span>
-                </div>
-                <ProgressBar progress={uploadProgress} />
-              </div>
-            )}
-
-            <div className="flex gap-3">
-              <button
-                type="submit"
-                disabled={isCreatingPaystack}
-                className="flex items-center gap-2 bg-gradient-to-r from-orange-500 to-orange-600 text-white px-4 py-2 rounded-lg hover:from-orange-600 hover:to-orange-700 transition-all duration-300 disabled:opacity-50"
-              >
-                <Save size={16} />
-                {editingId ? 'Update' : 'Create'} Plan
-              </button>
-              <button
-                type="button"
-                onClick={() => {
-                  setIsEditing(false);
-                  setEditingId(null);
-                  setFormData({ title: '', description: '', price: '', pdf: null });
-                }}
-                className="px-4 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors"
-              >
-                Cancel
-              </button>
-            </div>
-          </form>
-        </div>
-      )}
-
-      <div className="grid gap-4">
-        {plans.length === 0 ? (
-          <div className="text-center py-12 text-gray-500">
-            <p>No plans yet. Create your first plan!</p>
-          </div>
-        ) : (
-          plans.map(plan => (
-            <div key={plan.id} className="bg-white rounded-xl shadow-md p-6 border border-green-100">
-              <div className="flex justify-between items-start mb-4">
-                <div className="flex-1">
-                  <h3 className="text-lg font-semibold text-gray-800 mb-2">{plan.title}</h3>
-                  <p className="text-gray-600 text-sm mb-2">{plan.description}</p>
-                  <div className="flex items-center gap-4 text-sm">
-                    <span className="text-green-600 font-semibold">GHS {plan.price}</span>
-                    {plan.pdf && (
-                      <span className="text-blue-600">📄 {plan.pdf}</span>
-                    )}
-                  </div>
-                  {plan.paymentLink && (
-                    <div className="mt-2">
-                      <a
-                        href={plan.paymentLink}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="text-xs text-orange-600 hover:text-orange-700 underline"
-                      >
-                        Paystack Payment Link
-                      </a>
-                    </div>
-                  )}
-                </div>
-                <div className="flex gap-2">
-                  <button
-                    onClick={() => handleEdit(plan)}
-                    className="p-2 text-blue-600 hover:bg-blue-50 rounded-lg transition-colors"
-                  >
-                    <Edit2 size={16} />
-                  </button>
-                  <button
-                    onClick={() => handleDelete(plan.id)}
-                    className="p-2 text-red-600 hover:bg-red-50 rounded-lg transition-colors"
-                  >
-                    <Trash2 size={16} />
-                  </button>
-                </div>
-              </div>
-            </div>
-          ))
-        )}
-      </div>
-    </div>
-  );
-};
-
 // Main Admin Dashboard Component
 const AdminDashboard = ({ onLogout }) => {
-  const [activeTab, setActiveTab] = useState('articles');
   const [articles, setArticles] = useState([]);
-  const [plans, setPlans] = useState([]);
   const [notification, setNotification] = useState(null);
+  const [isLoading, setIsLoading] = useState(true);
 
   const showNotification = (type, message) => {
     setNotification({ type, message });
@@ -703,9 +697,29 @@ const AdminDashboard = ({ onLogout }) => {
     setNotification(null);
   };
 
+  const loadArticles = async () => {
+    setIsLoading(true);
+    try {
+      const result = await getArticles();
+      if (result.success) {
+        setArticles(result.data || []);
+      } else {
+        showNotification('error', 'Failed to load articles');
+        console.error('Error loading articles:', result.error);
+      }
+    } catch (error) {
+      console.error('Error loading articles:', error);
+      showNotification('error', 'Failed to load articles');
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    loadArticles();
+  }, []);
+
   const handleLogout = () => {
-    localStorage.removeItem('adminAuth');
-    localStorage.removeItem('adminEmail');
     onLogout();
   };
 
@@ -738,70 +752,50 @@ const AdminDashboard = ({ onLogout }) => {
       <div className="container mx-auto px-4 py-8">
         <div className="bg-white rounded-xl shadow-lg overflow-hidden">
           <div className="flex border-b border-gray-200">
-            <button
-              onClick={() => setActiveTab('articles')}
-              className={`flex-1 py-4 px-6 text-center font-medium transition-colors ${
-                activeTab === 'articles'
-                  ? 'text-green-600 border-b-2 border-green-600 bg-green-50'
-                  : 'text-gray-500 hover:text-gray-700'
-              }`}
-            >
+            <div className="flex-1 py-4 px-6 text-center font-medium text-green-600 border-b-2 border-green-600 bg-green-50">
               Articles
-            </button>
-            <button
-              onClick={() => setActiveTab('plans')}
-              className={`flex-1 py-4 px-6 text-center font-medium transition-colors ${
-                activeTab === 'plans'
-                  ? 'text-orange-600 border-b-2 border-orange-600 bg-orange-50'
-                  : 'text-gray-500 hover:text-gray-700'
-              }`}
-            >
-              Plans
-            </button>
+            </div>
           </div>
 
           <div className="p-6">
-            {activeTab === 'articles' && (
+            {isLoading ? (
+              <div className="flex items-center justify-center py-12">
+                <Loader className="animate-spin text-green-600" size={32} />
+                <span className="ml-2 text-gray-600">Loading articles...</span>
+              </div>
+            ) : (
               <ArticlesManager
                 articles={articles}
                 setArticles={setArticles}
                 showNotification={showNotification}
-              />
-            )}
-            {activeTab === 'plans' && (
-              <PlanManager
-                plans={plans}
-                setPlans={setPlans}
-                showNotification={showNotification}
+                loadArticles={loadArticles}
               />
             )}
           </div>
         </div>
       </div>
-    </div>)}
+    </div>
+  );
+};
 
-    // Main App Component
+
+// Main App Component
 const AdminApp = () => {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
 
   useEffect(() => {
     // Check if user is already authenticated
-    const authStatus = localStorage.getItem('adminAuth');
-    if (authStatus === 'true') {
-      setIsAuthenticated(true);
-    }
+    
   }, []);
 
   const handleLogin = () => {
-    localStorage.setItem('adminAuth', 'true');
     setIsAuthenticated(true);
   };
 
   const handleLogout = () => {
-    localStorage.removeItem('adminAuth');
-    localStorage.removeItem('adminEmail');
     setIsAuthenticated(false);
   };
+
 
   return (
     <div>

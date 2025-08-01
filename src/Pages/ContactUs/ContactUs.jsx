@@ -492,6 +492,21 @@ Date: ${new Date().toLocaleDateString('en-US', {
                   Preview Email / Other Options
                 </button>
               </div>
+              <div className="items-center h-20  rounded-xl mx-auto gap-2 pt-4 space-y-2 ">
+                  <div className='flex items-center gap-2 ml-3'>
+                  <div className='w-2 h-2 bg-green-500 rounded-full '></div>
+                  <p className='text-gray-400 text-sm items-center'>Booking Fee and consultation is ₵800.</p>
+                  </div>
+                  <div className='flex items-center gap-2 ml-3'>
+                  <div className='w-2 h-2 bg-green-500 rounded-full'></div>
+                  <p className='text-gray-400 text-sm items-center  '>This includes a free personalized custom plan.</p>
+                  </div>
+              </div>
+            </div>
+            <div className='pt-3'>
+            <p className="text-xl  text-gray-800  mb-1">Hours Available:</p>
+            <p className="text-sm  text-gray-500 ">Monday-Friday 9AM-5PM</p>
+            <p className="text-sm text-gray-500 ">Saturday-Sunday 2PM-5PM</p>
             </div>
           </div>
         </div>
@@ -501,11 +516,11 @@ Date: ${new Date().toLocaleDateString('en-US', {
           <h3 className="text-lg font-semibold text-gray-800 mb-6">Or contact us directly</h3>
           <div className="flex justify-center items-center space-x-8">
             <a 
-              href="mailto:dietwithdee@gmail.com"
+              href="mailto:dietwdee@gmail.com"
               className="flex items-center space-x-2 text-gray-600 hover:text-green-600 transition-colors"
             >
               <Mail size={20} />
-              <span>dietwithdee@gmail.com</span>
+              <span>dietwdee@gmail.com</span>
             </a>
             <a 
               href="https://wa.me/233592330870?text=Hello%2C%20I%E2%80%99d%20like%20to%20book%20a%20session%20with%20Diet%20with%20Dee"

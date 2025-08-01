@@ -1,7 +1,9 @@
 import React from 'react';
 import  LOGO from '../../assets/LOGO.png'
+import { useNavigate } from 'react-router';
 
 function AboutUsSection() {
+  const navigate = useNavigate();
   return (
     <div className='py-20 bg-gradient-to-b from-white to-green-50'>
           <div className='container mx-auto px-6 lg:px-12'>
@@ -23,8 +25,15 @@ function AboutUsSection() {
                   
                   {/* About Content */}
                   <div className='space-y-6'>
-                    <p className='text-lg text-gray-700 leading-relaxed'>
-                      Here at <span className=' text-green-700 font-black text-xl'>DietWithDee,</span> we believe that nutrition is the cornerstone of a vibrant life, and we're here to guide you every step of the way. Our mission is to provide personalized diet plans, delicious recipes, and expert advice to help you reach your wellness goals. DietWithDee is here to support you every step of the way. Let's make healthy living enjoyable and sustainable together!
+                    <p className='text-lg text-gray-700 leading-relaxed'> In Ghana, access to professional nutrition advice is often limited—and many people struggle with health conditions that could be better managed with the right support. <span className=' text-green-700 font-black text-xl'>DietWithDee</span> was born to bridge that gap.
+Founded by Registered Dietitian Nana Ama Dwamena, this initiative was created to make expert diet consultations more accessible, especially for Ghanaians who may not have easy access to in-person services. Through virtual support, personalized plans, and relatable health education, 
+<p className='pt-7'><span className=' text-green-700 font-black text-xl'>DietWithDee</span> nutrition guidance right to your phone, your home, and your everyday life.
+
+While our journey began with the goal of supporting Ghanaians, our vision is global. 
+</p>Diet with Dee is for anyone—anywhere—who wants practical, culturally aware, and evidence-based nutrition support. We believe that food is deeply personal, and nutrition should be too. That’s why we’re committed to helping people eat better, feel stronger, and thrive—no matter where they are in the world.
+
+<p className='pt-7'> Here, we don’t just give advice—we walk the journey with you, one simple and sustainable change at a time.</p>
+
                     </p>
     
                                 {/* why we are here */}
@@ -67,7 +76,9 @@ function AboutUsSection() {
                   
                   {/* CTA Button */}
                   <div className='pt-6'>
-                    <button className='px-8 py-4 bg-gradient-to-r from-orange-400 to-orange-400 text-white font-bold rounded-full shadow-lg hover:shadow-xl transform hover:-translate-y-1 transition-all duration-300 hover:from-green-700 hover:to-emerald-700'>
+                    <button 
+                    onClick={() => navigate('/diet-app/knowyourbody')}
+                    className='px-8 py-4 bg-gradient-to-r from-orange-400 to-orange-400 text-white font-bold rounded-full shadow-lg hover:shadow-xl transform hover:-translate-y-1 transition-all duration-300 hover:from-green-700 hover:to-emerald-700'>
                       Start Your Transformation
                     </button>
                   </div>
@@ -89,8 +100,7 @@ function AboutUsSection() {
                     <div className='flex flex-col items-center text-center space-y-6'>
                       <div className='relative'>
     
-                        {/* Decorative ring */}
-                        <div className='absolute -top-2 -left-2 w-36 h-36 border-4 border-gradient-to-r from-green-300 to-emerald-300 rounded-full opacity-30'></div>
+                        
                       </div>
                       
     

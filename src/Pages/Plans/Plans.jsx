@@ -13,64 +13,67 @@ function Plans() {
   const plans = [
     {
       title: 'Back to Basics',
-      Subtitle: '7-Day Healthy Eating Reset',
-      price: '₵499',
+      Subtitle: 'A 5-Day Healthy Eating Reset',
+      price: '₵349',
+      Url: "https://paystack.com/buy/back-to-basics-kogenu",
       img: B2B,
       features: [
-        'Custom Meal Plans',
-        'Healthy Recipes',
-        'Perfect for beginners, postpartum moms, busy women'
+        '5-Day Custom Meal Plan',
+        'Grocery List & Prep Guide',
+        'Perfect for busy professionals, healthy eating beginners.'
+
       ],
       gradient: 'from-orange-400 to-orange-500',
     },
     {
       title: 'Snatched & Nourised',
       Subtitle: 'Gentle Weight Loss Guide',
-      price: '₵299',
+      price: '₵249',
+      Url:"https://paystack.com/buy/snatched-and-nourished",
       img: Weightloss, 
       features: [
-        'Easy To Cook Meals ',
-        'Workout-Food Sync',
-        '1-on-1 Support'
+        'Balanced Meal Plan',
+        'Workout & Nutrition Sync',
+        'Self-guided tools'
       ],
       gradient: 'from-orange-400 to-orange-500',
     },
     {
       title: 'Blood Sugar Balance',
       Subtitle: 'A Type 2 Diabetes-Friendly Guide',
-      price: '₵399',
+      price: '₵299',
+      Url: "https://paystack.com/buy/blood-sugar-balance",
       img: Diabetes, 
       features: [
-        'Condition-Specific Diets',
-        'Consultations with Dietitian',
-        'Lifestyle Adjustments',
-        'Progress Monitoring'
+        'Easy to follow meal plan',
+        'Healthy Lifestyle Tips',
+        'Blood Sugar Tracker',
       ],
       gradient: 'from-orange-400 to-orange-500',
     },
     {
       title: 'Pressure No Dey Catch Me',
       Subtitle: 'A Hypertension-Friendly Plan',
-      price: '₵399',
+      price: '₵299',
+      Url: "https://paystack.com/buy/pressure-no-dey-catch-me",
       img: Pressure, 
       features: [
-        'Heart-healthy meals, low in salt & oil',
-        'Consultations with Dietitian',
-        'Lifestyle Adjustments',
-        'Progress Monitoring'
+        'Heart-Smart Meal Plan',
+        'Blood Pressure-Friendly Habits',
+        'Track & Tweak Toolkit',
       ],
       gradient: 'from-orange-400 to-orange-500',
     },
     {
       title: 'The Weight Gain',
       Subtitle: 'Wahala-Free Plan',
-      price: '₵399',
+      price: '₵249',
+      Url: "https://paystack.com/buy/the-weight-gain-wahala-free-plan",
       img: Gain, 
       features: [
-        'High-calorie, balanced meals using local staples',
-        'Consultations with Dietitian',
-        'Lifestyle Adjustments',
-        'Progress Monitoring'
+        'High-calorie meal plan',
+        'Snack list',
+        'Progress-monitoring tools',
       ],
       gradient: 'from-orange-400 to-orange-500',
     }
@@ -112,13 +115,13 @@ function Plans() {
                 </li>
               ))}
             </ul>
-
+            <a href={plan.Url}>
             <button
-              onClick={() => navigate('/diet-app/knowYourBody')}
               className={`w-full px-6 py-3 bg-gradient-to-r ${plan.gradient} text-white font-bold rounded-full transition-all hover:shadow-lg`}
             >
               Buy Now
             </button>
+            </a>
           </div>
         ))}
       </div>
@@ -133,7 +136,7 @@ function Plans() {
           </div>
           <div className='flex items-center gap-2'>
             <div className='w-3 h-3 bg-emerald-500 rounded-full'></div>
-            500+ Success Stories
+            300+ Success Stories
           </div>
           <div className='flex items-center gap-2'>
             <div className='w-3 h-3 bg-green-400 rounded-full'></div>

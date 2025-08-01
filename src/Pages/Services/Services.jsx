@@ -37,12 +37,12 @@ function ServicesContactSection() {
               <div className='space-y-6 sm:space-y-8'>
                 {/* Main Headline */}
                 <div className='space-y-3 sm:space-y-4'>
-                  <h1 className='text-3xl sm:text-4xl lg:text-5xl font-black text-gray-900 leading-tight'>
+                  <h1 className='text-3xl sm:text-4xl lg:text-5xl font-black text-green-700 leading-tight'>
                     Transform Your Health
                     <br />
                     <span className='text-green-700'>with Our Specialized</span>
                     <br />
-                    <span className='text-emerald-700'>Services</span>
+                    <span className='text-green-700'>Services</span>
                   </h1>
                   <div className='w-20 h-2 bg-gradient-to-r from-green-500 to-emerald-500 rounded-full'></div>
                 </div>
@@ -50,7 +50,7 @@ function ServicesContactSection() {
                 {/* Description */}
                 <div className='space-y-4 sm:space-y-6'>
                   <p className='text-base sm:text-lg text-gray-700 leading-relaxed px-2 sm:px-0'>
-                   With personalized attention, expert guidance, and a supportive community, we're your trusted partner on the path to a vibrant, healthy life.
+                   Health is personal, but creating impact can also be collective. We support individuals on their nutrition journey while partnering with brands, teams, and organizations to spread practical, culturally relevant wellness. Whether it’s one-on-one or on a bigger stage, we’re here to make nutrition accessible and meaningful.
                   </p>
                 </div>
                 
@@ -112,7 +112,7 @@ function ServicesContactSection() {
                   <path strokeLinecap='round' strokeLinejoin='round' strokeWidth={2} d='M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z' />
                 </svg>
               </div>
-              <h3 className='text-lg sm:text-xl font-bold text-gray-900'>Collaborations and Engagement</h3>
+              <h3 className='text-lg sm:text-xl font-bold text-gray-900'>Brand collaborations</h3>
               <p className='text-sm sm:text-base text-gray-600'>Health talks, brand collaboration, wellness campaigns.</p>
             </div>
 
@@ -171,7 +171,7 @@ function ServicesContactSection() {
                           <path d='M2.003 5.884L10 9.882l7.997-3.998A2 2 0 0016 4H4a2 2 0 00-1.997 1.884z' />
                           <path d='M18 8.118l-8 4-8-4V14a2 2 0 002 2h12a2 2 0 002-2V8.118z' />
                         </svg>
-                        <span className='text-sm sm:text-base text-gray-700 break-all'>dietwithdee@gmail.com</span>
+                        <span className='text-sm sm:text-base text-gray-700 break-all'>dietwdee@gmail.com</span>
                       </div>
                     </div>
                   </div>
