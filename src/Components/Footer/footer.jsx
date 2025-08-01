@@ -1,6 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { MessageCircle, CheckCircle, AlertCircle, Loader } from 'lucide-react';
 import {saveEmailToFirestore} from '../../firebaseUtils';
+import { Link } from 'react-router-dom';
+
 
 const Footer = () => {
   const [email, setEmail] = useState('');
@@ -206,7 +208,13 @@ const Footer = () => {
               <span className="text-green-300 text-xs sm:text-sm">•</span>
               <a href="#" className="text-green-100 hover:text-white transition-colors text-xs sm:text-sm">Terms and Conditions</a>
               <span className="text-green-300 text-xs sm:text-sm">•</span>
-              <a href="/diet-app/admin" className="text-green-100 hover:text-white transition-colors text-xs sm:text-sm">Login As Admin</a>
+                              <Link
+                  to="/diet-app/admin"
+                  className="text-green-100 hover:text-white transition-colors text-xs sm:text-sm"
+                >
+                  Login As Admin
+                </Link>
+
             </div>
 
             {/* Social Links */}
