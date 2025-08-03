@@ -26,8 +26,8 @@ function AboutUsSection() {
                   {/* About Content */}
                   <div className='space-y-6'>
                     <p className='text-lg text-gray-700 leading-relaxed'> In Ghana, access to professional nutrition advice is often limited—and many people struggle with health conditions that could be better managed with the right support. <span className=' text-green-700 font-black text-xl'>DietWithDee</span> was born to bridge that gap.
-Founded by Registered Dietitian Nana Ama Dwamena, this initiative was created to make expert diet consultations more accessible, especially for Ghanaians who may not have easy access to in-person services. Through virtual support, personalized plans, and relatable health education, 
-<p className='pt-7'><span className=' text-green-700 font-black text-xl'>DietWithDee</span> nutrition guidance right to your phone, your home, and your everyday life.
+Founded by Registered Dietitian Nana Ama Dwamena, this initiative was created to make expert diet consultations more accessible, especially for Ghanaians who may not have easy access to in-person services. Through virtual support, personalized plans, and relatable health education. 
+<p className='pt-7'><span className=' text-green-700 font-black text-xl'>DietWithDee</span> nutrition brings guidance right to your phone, your home, and your everyday life.
 
 While our journey began with the goal of supporting Ghanaians, our vision is global. 
 </p>Diet with Dee is for anyone—anywhere—who wants practical, culturally aware, and evidence-based nutrition support. We believe that food is deeply personal, and nutrition should be too. That’s why we’re committed to helping people eat better, feel stronger, and thrive—no matter where they are in the world.
@@ -38,18 +38,13 @@ While our journey began with the goal of supporting Ghanaians, our vision is glo
     
                                 {/* why we are here */}
                   <div className='text-lg text-gray-600 leading-relaxed'>
-                                  Our vision is to be a top online platform 
-              that transforms how people view nutrition 
-              and wellness
+                                  
                   </div>
-
-
-
-
-
                     <div className='bg-gradient-to-r from-green-50 to-emerald-50 p-6 rounded-2xl border-l-4 border-green-500'>
                       <p className='text-lg font-semibold text-green-800 italic'>
-                        "We strive continually to help you take control of your health in all aspects."
+                        "Our vision is to be a top online platform 
+              that transforms how people view nutrition 
+              and wellness."
                       </p>
                     </div>
                   </div>

@@ -4,7 +4,7 @@ import {
   collection, 
   addDoc, 
   getDocs, 
-  getDoc, // ADD THIS MISSING IMPORT
+  getDoc,
   doc, 
   updateDoc, 
   deleteDoc, 
@@ -162,3 +162,27 @@ export const saveEmailToFirestore = async (email) => {
     return { success: false, error: error.message };
   }
 };
+
+export const getAllEmails = async()=>{
+  try {
+    const q = query(collection(db, "emails"), orderBy("createdAt", "desc")); // SHOULD BE "emails"
+    const snapshot = await getDocs(q); 
+
+    if (snapshot.empty) {
+      console.log("No emails found");
+      return { success: true, data: [] }; 
+    }
+
+    const emails = snapshot.docs.map(doc => ({
+      id: doc.id,
+      ...doc.data(),
+    }));
+
+    console.log("Emails fetched successfully:", emails);
+
+    return { success: true, data: emails };
+  } catch (error) {
+    console.error("error fetching emails:", error); // FIXED: typo in error message
+    return { success: false, error : error.message}; // FIXED: typo "succees"
+  }
+}

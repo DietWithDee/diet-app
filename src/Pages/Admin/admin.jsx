@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { Eye, EyeOff, Plus, Edit2, Trash2, Save, X, AlertCircle, CheckCircle, Loader, Bold, Italic, Underline, List, ListOrdered, Link, Quote, Type } from 'lucide-react';
 import { createArticle, getArticles , deleteArticle} from '../../firebaseUtils';
-
+import { sendNewArticleNewsletter } from '../../EmailTemplateSystem/emailService';
 
 // Mock environment variables
 const ADMIN_EMAIL = 'admin@dietwithdee.com';
@@ -428,6 +428,23 @@ const ArticlesManager = ({ articles, setArticles, showNotification, loadArticles
       if (result.success) {
         showNotification('success', 'Article created successfully!');
         await loadArticles();
+
+            try {
+        const newsletterResult = await sendNewArticleNewsletter(
+          formData.title, 
+          formData.imageUrl, 
+          result.id
+        );
+        
+        if (newsletterResult.success) {
+          showNotification('success', `Newsletter sent to ${newsletterResult.sent} subscribers!`);
+        } else {
+          showNotification('error', 'Article created but newsletter failed to send');
+        }
+      } catch (error) {
+        console.error('Newsletter error:', error);
+        showNotification('error', 'Article created but newsletter failed to send');
+      }
         
         setFormData({ title: '', content: '', imageUrl: '' });
         setImagePreview('');
