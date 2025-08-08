@@ -10,7 +10,8 @@ import {
   deleteDoc, 
   Timestamp, 
   orderBy, 
-  query 
+  query,
+  increment
 } from "firebase/firestore";
 import { ref, uploadBytes, getDownloadURL, deleteObject } from "firebase/storage";
 
@@ -37,6 +38,9 @@ export const createArticle = async (title, content, imageInput) => {
       title,
       content,
       coverImage: imageUrl,
+      likesCount: 0, // Initialize likes count
+      helpfulCount: 0, // Initialize helpful count
+      notHelpfulCount: 0, // Initialize not helpful count
       createdAt: Timestamp.now(),
       updatedAt: Timestamp.now()
     });
@@ -58,6 +62,9 @@ export const getArticles = async () => {
     const articles = snapshot.docs.map(doc => ({
       id: doc.id,
       ...doc.data(),
+      likesCount: doc.data().likesCount || 0, // Ensure likesCount exists
+      helpfulCount: doc.data().helpfulCount || 0, // Ensure helpfulCount exists
+      notHelpfulCount: doc.data().notHelpfulCount || 0 // Ensure notHelpfulCount exists
     }));
     
     return { success: true, data: articles };
@@ -137,9 +144,16 @@ export const getArticleById = async (articleId) => {
     const docSnap = await getDoc(doc(db, "articles", articleId));
     
     if (docSnap.exists()) {
+      const data = docSnap.data();
       return { 
         success: true, 
-        data: { id: docSnap.id, ...docSnap.data() } 
+        data: { 
+          id: docSnap.id, 
+          ...data,
+          likesCount: data.likesCount || 0, // Ensure likesCount exists
+          helpfulCount: data.helpfulCount || 0, // Ensure helpfulCount exists
+          notHelpfulCount: data.notHelpfulCount || 0 // Ensure notHelpfulCount exists
+        } 
       };
     } else {
       return { success: false, error: "Article not found" };
@@ -186,3 +200,57 @@ export const getAllEmails = async()=>{
     return { success: false, error : error.message}; // FIXED: typo "succees"
   }
 }
+
+// SIMPLIFIED LIKES IMPLEMENTATION (without user tracking)
+export const likeNews = async (articleId) => {
+  try {
+    const articleRef = doc(db, "articles", articleId);
+    
+    // Check if article exists
+    const articleDoc = await getDoc(articleRef);
+    if (!articleDoc.exists()) {
+      return { success: false, message: "Article not found" };
+    }
+
+    // Simply increment the likes counter
+    await updateDoc(articleRef, {
+      likesCount: increment(1)
+    });
+
+    return { success: true, message: "Article liked successfully!" };
+  } catch (error) {
+    console.error("Error liking article:", error);
+    return { success: false, message: "Error liking article", error: error.message };
+  }
+};
+
+// Mark article as helpful
+export const markArticleHelpful = async (articleId, isHelpful) => {
+  try {
+    const articleRef = doc(db, "articles", articleId);
+    
+    // Check if article exists
+    const articleDoc = await getDoc(articleRef);
+    if (!articleDoc.exists()) {
+      return { success: false, message: "Article not found" };
+    }
+
+    // Increment the appropriate counter
+    const updateField = isHelpful ? 'helpfulCount' : '';
+    await updateDoc(articleRef, {
+      [updateField]: increment(1)
+    });
+
+    return { 
+      success: true, 
+      message: `Article marked as ${isHelpful ? 'helpful' : ''} successfully!` 
+    };
+  } catch (error) {
+    console.error("Error marking article helpfulness:", error);
+    return { 
+      success: false, 
+      message: "Error updating article feedback", 
+      error: error.message 
+    };
+  }
+};

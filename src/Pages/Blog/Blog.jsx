@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Loader, Calendar, User, ArrowRight, ArrowLeft, Share2, Heart, MessageCircle } from 'lucide-react';
-import { getArticles } from '../../firebaseUtils';
+import { getArticles, likeNews, markArticleHelpful } from '../../firebaseUtils';
 import BlogImage from '../../assets/Salad.png'; // Fallback image
 
 function Blog() {
@@ -11,6 +11,8 @@ function Blog() {
   const [error, setError] = useState(null);
   const [selectedArticle, setSelectedArticle] = useState(null);
   const [viewMode, setViewMode] = useState('list'); // 'list' or 'article'
+  const [likingArticles, setLikingArticles] = useState(new Set());
+  const [feedbackArticles, setFeedbackArticles] = useState(new Set());
 
   // Load articles from Firebase on component mount
   useEffect(() => {
@@ -35,6 +37,94 @@ function Blog() {
       setError('Something went wrong while loading articles');
     } finally {
       setIsLoading(false);
+    }
+  };
+
+  const handleLike = async (articleId) => {
+    // Prevent multiple simultaneous likes
+    if (likingArticles.has(articleId)) return;
+    
+    setLikingArticles(prev => new Set([...prev, articleId]));
+    
+    try {
+      const result = await likeNews(articleId);
+      
+      if (result.success) {
+        // Update the likes count in the local state
+        setBlogPosts(prev => prev.map(post => 
+          post.id === articleId 
+            ? { ...post, likesCount: (post.likesCount || 0) + 1 }
+            : post
+        ));
+
+        // Update selected article if it's the one being liked
+        if (selectedArticle && selectedArticle.id === articleId) {
+          setSelectedArticle(prev => ({
+            ...prev,
+            likesCount: (prev.likesCount || 0) + 1
+          }));
+        }
+      } else {
+        // Show error message
+        console.log(result.message);
+        // You could show a toast notification here
+      }
+    } catch (error) {
+      console.error('Error liking article:', error);
+    } finally {
+      setLikingArticles(prev => {
+        const newSet = new Set(prev);
+        newSet.delete(articleId);
+        return newSet;
+      });
+    }
+  };
+
+  const handleHelpfulFeedback = async (articleId, isHelpful) => {
+    // Prevent multiple simultaneous feedback submissions
+    if (feedbackArticles.has(articleId)) return;
+    
+    setFeedbackArticles(prev => new Set([...prev, articleId]));
+    
+    try {
+      const result = await markArticleHelpful(articleId, isHelpful);
+      
+      if (result.success) {
+        // Update the feedback counts in local state
+        setBlogPosts(prev => prev.map(post => 
+          post.id === articleId 
+            ? { 
+                ...post, 
+                helpfulCount: isHelpful 
+                  ? (post.helpfulCount || 0) + 1 
+                  : (post.helpfulCount || 0),
+                notHelpfulCount: !isHelpful 
+                  ? (post.notHelpfulCount || 0) + 1 
+                  : (post.notHelpfulCount || 0)
+              }
+            : post
+        ));
+
+        // Update selected article if it's the one being rated
+        if (selectedArticle && selectedArticle.id === articleId) {
+          setSelectedArticle(prev => ({
+            ...prev,
+            helpfulCount: isHelpful 
+              ? (prev.helpfulCount || 0) + 1 
+              : (prev.helpfulCount || 0),
+            notHelpfulCount: !isHelpful 
+              ? (prev.notHelpfulCount || 0) + 1 
+              : (prev.notHelpfulCount || 0)
+          }));
+        }
+      } else {
+        console.log(result.message);
+      }
+    } catch (error) {
+      console.error('Error submitting feedback:', error);
+    } finally {
+      // Keep the article in feedbackArticles to prevent multiple submissions
+      // Don't remove it from the set
     }
   };
 
@@ -136,6 +226,9 @@ function Blog() {
 
   // Individual Article View
   if (viewMode === 'article' && selectedArticle) {
+    const isLiking = likingArticles.has(selectedArticle.id);
+    const hasFeedback = feedbackArticles.has(selectedArticle.id);
+
     return (
       <div className="min-h-screen bg-gradient-to-br from-green-50 via-white to-emerald-50">
         {/* Article Header */}
@@ -186,10 +279,10 @@ function Blog() {
                       <span className="text-sm lg:text-base">{selectedArticle.author}</span>
                     </div>
                   )}
+                  {/* Likes count */}
                   <div className="flex items-center gap-2">
-                    <span className="text-xs lg:text-sm bg-green-100 text-green-700 px-3 py-1 rounded-full">
-                      Wellness
-                    </span>
+                    <Heart size={16} className="text-red-500" />
+                    <span className="text-sm lg:text-base">{selectedArticle.likesCount || 0} likes</span>
                   </div>
                 </div>
 
@@ -199,15 +292,23 @@ function Blog() {
                     onClick={() => handleShare(selectedArticle)}
                     className="flex items-center gap-2 px-3 sm:px-4 py-2 text-gray-600 hover:text-green-600 hover:bg-green-50 rounded-lg transition-all text-sm"
                   >
-                    <Share2 size={16} sm:size={18} />
+                    <Share2 size={16} />
                     Share
                   </button>
-                  <button className="flex items-center gap-2 px-3 sm:px-4 py-2 text-gray-600 hover:text-red-500 hover:bg-red-50 rounded-lg transition-all text-sm">
-                    <Heart size={16} sm:size={18} />
-                    Like
+                  <button 
+                    onClick={() => handleLike(selectedArticle.id)}
+                    disabled={isLiking}
+                    className={`flex items-center gap-2 px-3 sm:px-4 py-2 rounded-lg transition-all text-sm ${
+                      isLiking
+                        ? 'text-gray-400 bg-gray-50 cursor-not-allowed'
+                        : 'text-gray-600 hover:text-red-500 hover:bg-red-50'
+                    }`}
+                  >
+                    <Heart size={16} />
+                    {isLiking ? 'Liking...' : 'Like'}
                   </button>
                   <button className="flex items-center gap-2 px-3 sm:px-4 py-2 text-gray-600 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-all text-sm">
-                    <MessageCircle size={16} sm:size={18} />
+                    <MessageCircle size={16} />
                     Comment
                   </button>
                 </div>
@@ -228,16 +329,62 @@ function Blog() {
                 <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
                   <div className="text-sm text-gray-500">
                     Was this article helpful?
+                    {(selectedArticle.helpfulCount || 0) > 0 && (
+                      <span className="ml-2 text-green-600 font-medium">
+                        {selectedArticle.helpfulCount} people found this helpful
+                      </span>
+                    )}
                   </div>
                   <div className="flex gap-2">
-                    <button className="px-3 sm:px-4 py-2 bg-green-100 text-green-700 rounded-lg hover:bg-green-200 transition-colors text-xs sm:text-sm">
+                    <button 
+                      onClick={() => handleHelpfulFeedback(selectedArticle.id, true)}
+                      disabled={hasFeedback}
+                      className={`px-3 sm:px-4 py-2 rounded-lg transition-colors text-xs sm:text-sm ${
+                        hasFeedback
+                          ? 'bg-gray-100 text-gray-400 cursor-not-allowed'
+                          : 'bg-green-100 text-green-700 hover:bg-green-200'
+                      }`}
+                    >
                       Yes, helpful! 👍
                     </button>
-                    <button className="px-3 sm:px-4 py-2 bg-gray-100 text-gray-600 rounded-lg hover:bg-gray-200 transition-colors text-xs sm:text-sm">
+                    <button 
+                      onClick={() => handleHelpfulFeedback(selectedArticle.id, false)}
+                      disabled={hasFeedback}
+                      className={`px-3 sm:px-4 py-2 rounded-lg transition-colors text-xs sm:text-sm ${
+                        hasFeedback
+                          ? 'bg-gray-100 text-gray-400 cursor-not-allowed'
+                          : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+                      }`}
+                    >
                       Could be better 👎
                     </button>
                   </div>
                 </div>
+                
+                {/* Feedback Summary */}
+                {((selectedArticle.helpfulCount || 0) > 0 || (selectedArticle.notHelpfulCount || 0) > 0) && (
+                  <div className="mt-4 p-3 bg-gray-50 rounded-lg">
+                    <div className="flex items-center justify-between text-sm text-gray-600">
+                      <div className="flex items-center gap-4">
+                        <span className="text-green-600">
+                          👍 {selectedArticle.helpfulCount || 0} helpful
+                        </span>
+                        <span className="text-gray-500">
+                          👎 {selectedArticle.notHelpfulCount || 0} not helpful
+                        </span>
+                      </div>
+                      <div className="text-xs text-gray-500">
+                        Total feedback: {(selectedArticle.helpfulCount || 0) + (selectedArticle.notHelpfulCount || 0)}
+                      </div>
+                    </div>
+                  </div>
+                )}
+                
+                {hasFeedback && (
+                  <div className="mt-3 text-sm text-green-600 text-center">
+                    Thank you for your feedback! 🙏
+                  </div>
+                )}
               </div>
             </div>
           </div>
@@ -281,8 +428,12 @@ function Blog() {
                         <p className="text-xs lg:text-sm text-gray-600 mb-2 line-clamp-2">
                           {createSummary(post.content, 80)}
                         </p>
-                        <div className="text-xs text-gray-500">
-                          {formatDate(post.createdAt)}
+                        <div className="flex items-center justify-between text-xs text-gray-500">
+                          <span>{formatDate(post.createdAt)}</span>
+                          <div className="flex items-center gap-1">
+                            <Heart size={12} className="text-red-500" />
+                            <span>{post.likesCount || 0}</span>
+                          </div>
                         </div>
                       </div>
                     </div>
@@ -358,15 +509,19 @@ function Blog() {
                   
                   <div className="flex flex-wrap items-center gap-3 lg:gap-4 text-xs lg:text-sm text-gray-500">
                     <div className="flex items-center gap-1">
-                      <Calendar size={12} lg:size={14} />
+                      <Calendar size={12} />
                       <span>{formatDate(post.createdAt)}</span>
                     </div>
                     {post.author && (
                       <div className="flex items-center gap-1">
-                        <User size={12} lg:size={14} />
+                        <User size={12} />
                         <span>{post.author}</span>
                       </div>
                     )}
+                    <div className="flex items-center gap-1">
+                      <Heart size={12} className="text-red-500" />
+                      <span>{post.likesCount || 0} likes</span>
+                    </div>
                   </div>
                   
                   <p className="text-gray-700 text-sm lg:text-base leading-relaxed line-clamp-3">
@@ -378,7 +533,7 @@ function Blog() {
                     className="mt-3 lg:mt-4 inline-flex items-center gap-2 px-4 lg:px-6 py-2 border-2 border-green-600 text-green-700 font-semibold rounded-full hover:bg-green-50 hover:border-green-700 transition-all duration-300 group-hover:translate-x-1 text-sm lg:text-base"
                   >
                     Read More
-                    <ArrowRight size={14} lg:size={16} className="transition-transform group-hover:translate-x-1" />
+                    <ArrowRight size={14} className="transition-transform group-hover:translate-x-1" />
                   </button>
                 </div>
               </article>
