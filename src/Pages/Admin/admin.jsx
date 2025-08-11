@@ -429,22 +429,22 @@ const ArticlesManager = ({ articles, setArticles, showNotification, loadArticles
         showNotification('success', 'Article created successfully!');
         await loadArticles();
 
-            try {
-        const newsletterResult = await sendNewArticleNewsletter(
-          formData.title, 
-          formData.imageUrl, 
-          result.id
-        );
-        
-        if (newsletterResult.success) {
-          showNotification('success', `Newsletter sent to ${newsletterResult.sent} subscribers!`);
-        } else {
+        try {
+          const newsletterResult = await sendNewArticleNewsletter(
+            formData.title, 
+            formData.imageUrl, 
+            result.id
+          );
+          
+          if (newsletterResult.success) {
+            showNotification('success', `Newsletter sent to ${newsletterResult.sent} subscribers!`);
+          } else {
+            showNotification('error', 'Article created but newsletter failed to send');
+          }
+        } catch (error) {
+          console.error('Newsletter error:', error);
           showNotification('error', 'Article created but newsletter failed to send');
         }
-      } catch (error) {
-        console.error('Newsletter error:', error);
-        showNotification('error', 'Article created but newsletter failed to send');
-      }
         
         setFormData({ title: '', content: '', imageUrl: '' });
         setImagePreview('');
