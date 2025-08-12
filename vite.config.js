@@ -13,5 +13,5 @@ export default defineConfig({
     include: /src\/.*\.[jt]sx?$/,
     exclude: []
   },
-      base: "/diet-app/",
+      base: "/",
 })
