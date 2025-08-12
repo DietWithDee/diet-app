@@ -15,7 +15,7 @@ import PaymentSuccess from "../Pages/ContactUs/PaymentSuccess";
 
 const MainLayout = () => {
   return (
-    <BrowserRouter basename="/diet-app/">
+    <BrowserRouter basename="/">
       <ScrollToTop />
       <NavBar />
       <Routes>

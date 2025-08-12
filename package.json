@@ -9,8 +9,8 @@
     "build": "vite build",
     "lint": "eslint .",
     "preview": "vite preview",
-    "predeploy": "npm run build",
-    "deploy": "gh-pages -d dist -b gh-pages -c dietwithdee.org"
+    "predeploy": "vite build && copy dist\\index.html dist\\404.html && echo dietwithdee.org > dist\\CNAME",
+    "deploy": "gh-pages -d dist"
   },
   "dependencies": {
     "@emailjs/browser": "^4.4.1",
