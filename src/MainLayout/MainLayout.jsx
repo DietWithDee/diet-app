@@ -11,10 +11,11 @@ import KnowYourBody from "../Pages/KnowYourBody/KnowYourBody";
 import AdminApp from "../Pages/Admin/admin";
 import Plans from "../Pages/Plans/Plans";
 import ScrollToTop from "../utils/ScrollToTop"; 
+import PaymentSuccess from "../Pages/ContactUs/PaymentSuccess";
 
 const MainLayout = () => {
   return (
-    <BrowserRouter>
+    <BrowserRouter basename="/diet-app">
       <ScrollToTop />
       <NavBar />
       <Routes>
@@ -27,6 +28,7 @@ const MainLayout = () => {
         <Route path="/diet-app/knowYourBody" element={<KnowYourBody />} />
         <Route path="/diet-app/admin" element={<AdminApp />} />
         <Route path="/diet-app/plans" element={<Plans />} />
+        <Route path="/diet-app/paymentSuccess" element={<PaymentSuccess />} />
         <Route path="*" element={<Error />} />
       </Routes>
       <Footer />
