@@ -84,13 +84,6 @@ I hope this email finds you well. I have completed payment for a professional nu
 ═══════════════════════════════════════════════════════════════════════════════════════
 
 ${formData.message ? `"${formData.message}"` : 'No additional information provided at this time.'}
-
-I am eager to begin my nutrition journey with your professional guidance and would appreciate the opportunity to discuss these results in detail during a consultation. Please let me know your availability for the upcoming weeks.
-
-Thank you for your time and consideration.
-
-Warm regards,
-
 ${formData.name || ''}
 📧 ${formData.email || ''}
 ${formData.phone ? `📞 ${formData.phone}` : ''}

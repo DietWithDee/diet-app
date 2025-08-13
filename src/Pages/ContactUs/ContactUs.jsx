@@ -401,8 +401,8 @@ function ConsultationBooking() {
             
             <div className="pt-6 border-t border-gray-200 mt-6">
               <p className="text-lg font-semibold text-gray-800 mb-1">Hours Available:</p>
-              <p className="text-sm text-gray-500">Monday-Friday 9AM-5PM</p>
-              <p className="text-sm text-gray-500">Saturday-Sunday 2PM-5PM</p>
+              <p className="text-sm text-gray-500">Fridays-10am-1pm</p>
+              <p className="text-sm text-gray-500">Saturdays-2-6pm</p>
             </div>
           </div>
         </div>
