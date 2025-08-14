@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
+import SEO from '../../Components/SEO';
 import { useNavigate } from 'react-router';
 import Salad from '../../assets/Salad.png'; // Placeholder image
 import Logo from '../../assets/LOGO.png'; // Placeholder logo
@@ -67,6 +68,14 @@ function Home() {
   const navigate = useNavigate();
   
   return (
+    <>
+      <SEO
+        title="Best Dietitian in Ghana | Nana Ama Dwamena"
+        description="Welcome to DietWithDee, your ultimate destination for personalized diet plans and expert nutrition advice in Ghana. Start your wellness journey with Nana Ama Dwamena."
+        keywords="Dietitian, Nutritionist, Ghana, Nana Ama Dwamena, Weight Loss, Wellness, Healthy Eating, Diet With Dee"
+        image="https://dietwithdee.com/src/assets/LOGO.png"
+        url="https://dietwithdee.com/"
+      />
     <div className='min-h-screen bg-gradient-to-br from-green-50 via-white to-emerald-50'>
       <div className='container mx-auto px-6 lg:px-12 pt-20 lg:pt-20'>
         <div className='flex flex-col lg:flex-row items-center justify-between gap-12 lg:gap-20'>
@@ -280,6 +289,7 @@ function Home() {
         </div>
       </div>
     </div>
+  </>
   );
 }
 

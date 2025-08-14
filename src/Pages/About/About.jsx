@@ -4,8 +4,16 @@ import { useNavigate } from 'react-router';
 
 function AboutUsSection() {
   const navigate = useNavigate();
-  return (
-    <div className='py-20 bg-gradient-to-b from-white to-green-50'>
+    return (
+      <>
+        <SEO
+          title="About DietWithDee | Nana Ama Dwamena, Registered Dietitian in Ghana"
+          description="Learn about DietWithDee, founded by Nana Ama Dwamena, a registered dietitian in Ghana. Discover our mission to make expert nutrition accessible to all."
+          keywords="About DietWithDee, Nana Ama Dwamena, Registered Dietitian, Ghana, Nutrition, Wellness"
+          image="https://dietwithdee.com/src/assets/LOGO.png"
+          url="https://dietwithdee.com/about"
+        />
+        <div className='py-20 bg-gradient-to-b from-white to-green-50'>
           <div className='container mx-auto px-6 lg:px-12'>
             <div className='flex flex-col lg:flex-row items-center justify-between gap-12 lg:gap-20'>
     
@@ -112,6 +120,7 @@ While our journey began with the goal of supporting Ghanaians, our vision is glo
             </div>
           </div>
         </div>
+      </>
   );
 }
 

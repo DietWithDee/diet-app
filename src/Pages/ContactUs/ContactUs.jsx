@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import SEO from '../../Components/SEO';
 import { ArrowLeft, User, Mail, Calculator, Target, Heart, Utensils, MessageCircle, Phone, CheckCircle, CreditCard, Lock, Shield } from 'lucide-react';
 import { useLocation } from 'react-router-dom';
 
@@ -58,6 +59,14 @@ function ConsultationBooking() {
   // Payment Instructions Screen
   if (paymentStep === 'payment') {
     return (
+      <>
+        <SEO
+          title="Contact DietWithDee | Book a Consultation with Nana Ama Dwamena"
+          description="Book your personalized diet consultation with Nana Ama Dwamena, Ghana’s leading dietitian. Get expert nutrition advice and start your wellness journey today."
+          keywords="Contact DietWithDee, Book Consultation, Ghana Dietitian, Nana Ama Dwamena, Nutrition Advice"
+          image="https://dietwithdee.com/src/assets/LOGO.png"
+          url="https://dietwithdee.com/contactUs"
+        />
       <div className="min-h-screen bg-gradient-to-br from-green-50 via-white to-emerald-50 py-12">
         <div className="container mx-auto px-6 lg:px-12 max-w-2xl">
           <div className="bg-white rounded-2xl shadow-xl p-8">
@@ -142,6 +151,14 @@ function ConsultationBooking() {
   // Payment Completed - Confirmation (email sending removed)
   if (paymentStep === 'completed') {
     return (
+      <>
+        <SEO
+          title="Contact DietWithDee | Book a Consultation with Nana Ama Dwamena"
+          description="Book your personalized diet consultation with Nana Ama Dwamena, Ghana’s leading dietitian. Get expert nutrition advice and start your wellness journey today."
+          keywords="Contact DietWithDee, Book Consultation, Ghana Dietitian, Nana Ama Dwamena, Nutrition Advice"
+          image="https://dietwithdee.com/src/assets/LOGO.png"
+          url="https://dietwithdee.com/contactUs"
+        />
       <div className="min-h-screen bg-gradient-to-br from-green-50 via-white to-emerald-50 py-12">
         <div className="container mx-auto px-6 lg:px-12 max-w-2xl">
           <div className="bg-white rounded-2xl shadow-xl p-8">
@@ -185,7 +202,15 @@ function ConsultationBooking() {
 
   // Main booking form (before payment)
   return (
-    <div className="min-h-screen bg-gradient-to-br from-green-50 via-white to-emerald-50 py-20">
+    <>
+      <SEO
+        title="Contact DietWithDee | Book a Consultation with Nana Ama Dwamena"
+        description="Book your personalized diet consultation with Nana Ama Dwamena, Ghana’s leading dietitian. Get expert nutrition advice and start your wellness journey today."
+        keywords="Contact DietWithDee, Book Consultation, Ghana Dietitian, Nana Ama Dwamena, Nutrition Advice"
+        image="https://dietwithdee.com/src/assets/LOGO.png"
+        url="https://dietwithdee.com/contactUs"
+      />
+      <div className="min-h-screen bg-gradient-to-br from-green-50 via-white to-emerald-50 py-20">
       <div className="container mx-auto px-6 lg:px-12 max-w-4xl">
         {/* Header */}
         <div className="text-center space-y-6 mb-12">

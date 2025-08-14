@@ -80,16 +80,19 @@ function Plans() {
   ];
 
   return (
-    <div className='min-h-screen bg-gradient-to-br from-green-50 via-white to-emerald-50 py-20 px-6 lg:px-12'>
-      <div className='text-center space-y-4 max-w-3xl mx-auto mb-12'>
-        <h1 className='text-5xl font-black text-transparent bg-clip-text bg-gradient-to-r from-green-700 via-emerald-600 to-green-600'>
-          Choose Your Plan
-        </h1>
-        <p className='text-gray-700 text-lg'>
-          Tailored nutrition solutions for every lifestyle and goal. Pick a plan and begin your transformation.
-        </p>
-        <div className='w-20 h-1 bg-gradient-to-r from-green-500 to-emerald-500 mx-auto rounded-full'></div>
-      </div>
+ <>
+      {/* If you use SEO component, make sure it's imported */}
+      {/* <SEO ... /> */}
+      <div className='min-h-screen bg-gradient-to-br from-green-50 via-white to-emerald-50 py-20 px-6 lg:px-12'>
+        <div className='text-center space-y-4 max-w-3xl mx-auto mb-12'>
+          <h1 className='text-5xl font-black text-transparent bg-clip-text bg-gradient-to-r from-green-700 via-emerald-600 to-green-600'>
+            Diet Plans
+          </h1>
+          <p className='text-gray-700 text-lg'>
+            Tailored nutrition solutions for every lifestyle and goal. Pick a plan and begin your transformation.
+          </p>
+          <div className='w-20 h-1 bg-gradient-to-r from-green-500 to-emerald-500 mx-auto rounded-full'></div>
+        </div>
 
       <div className='grid grid-cols-1 md:grid-cols-3 gap-8 max-w-6xl mx-auto'>
         {plans.map((plan, index) => (
@@ -144,7 +147,7 @@ function Plans() {
           </div>
         </div>
       </div>
-    </div>
+    </>
   );
 }
 
