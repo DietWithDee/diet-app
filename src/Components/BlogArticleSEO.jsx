@@ -1,4 +1,4 @@
-import { Helmet } from "react-helmet-async";
+import { Helmet } from "react-helmet";
 
 /**
  * BlogArticleSEO component for dynamic meta tags and schema for blog articles
@@ -29,7 +29,7 @@ export default function BlogArticleSEO({ title, description, keywords, image, ur
       "name": "Diet With Dee",
       "logo": {
         "@type": "ImageObject",
-        "url": "https://dietwithdee.com/src/assets/LOGO.png"
+        "url": "https://dietwithdee.org/src/assets/LOGO.png"
       }
     }
   };

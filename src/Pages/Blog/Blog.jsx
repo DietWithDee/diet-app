@@ -5,6 +5,7 @@ import { Loader, Calendar, User, ArrowRight, ArrowLeft, Share2, Heart, MessageCi
 import { getArticles, likeNews, markArticleHelpful } from '../../firebaseUtils';
 import BlogImage from '../../assets/Salad.png'; // Fallback image
 import BlogArticleSEO from '../../Components/BlogArticleSEO';
+import ScrollHideRefreshButton from '../../utils/ScrollHideRefreshButton';
 
 function Blog() {
   const navigate = useNavigate();
@@ -15,6 +16,7 @@ function Blog() {
   const [viewMode, setViewMode] = useState('list'); // 'list' or 'article'
   const [likingArticles, setLikingArticles] = useState(new Set());
   const [feedbackArticles, setFeedbackArticles] = useState(new Set());
+  const [isLoadingArticles, setIsLoadingArticles] = useState(false);
 
   // Load articles from Firebase on component mount
   useEffect(() => {
@@ -39,6 +41,16 @@ function Blog() {
       setError('Something went wrong while loading articles');
     } finally {
       setIsLoading(false);
+    }
+
+    setIsLoadingArticles(true);
+    try {
+      // Your article loading logic here
+      await fetchArticles();
+    } catch (error) {
+      console.error('Failed to load articles:', error);
+    } finally {
+      setIsLoadingArticles(false);
     }
   };
 
@@ -234,8 +246,8 @@ function Blog() {
     // SEO values from article
     const articleTitle = selectedArticle.title;
     const articleDescription = createSummary(selectedArticle.content, 160);
-    const articleImage = selectedArticle.coverImage || 'https://dietwithdee.com/src/assets/LOGO.png';
-    const articleUrl = `https://dietwithdee.com/blog/${selectedArticle.id}`;
+    const articleImage = selectedArticle.coverImage || 'https://dietwithdee.org/src/assets/LOGO.png';
+    const articleUrl = `https://dietwithdee.org/blog/${selectedArticle.id}`;
     const articleAuthor = selectedArticle.author || 'Nana Ama Dwamena';
     const articleDate = selectedArticle.createdAt && selectedArticle.createdAt.toDate ? selectedArticle.createdAt.toDate().toISOString() : new Date(selectedArticle.createdAt).toISOString();
 
@@ -465,7 +477,8 @@ function Blog() {
         </div>
       </>
     );
-
+  }
+  
   // Blog List View (default)
   return (
     <div className="min-h-screen bg-gradient-to-br from-green-50 via-white to-emerald-50 py-12 lg:py-20 px-4 sm:px-6 lg:px-12">
@@ -564,15 +577,10 @@ function Blog() {
 
       {/* Refresh button for development */}
       {process.env.NODE_ENV === 'development' && (
-        <div className="fixed bottom-4 right-4">
-          <button
-            onClick={loadArticles}
-            className="p-3 bg-green-600 text-white rounded-full shadow-lg hover:bg-green-700 transition-colors"
-            title="Refresh Articles"
-          >
-            <Loader size={20} />
-          </button>
-        </div>
+        <ScrollHideRefreshButton 
+        loadArticles={loadArticles}
+        isLoading={isLoadingArticles}
+      />
       )}
     </div>
   );

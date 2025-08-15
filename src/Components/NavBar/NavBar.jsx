@@ -16,12 +16,12 @@ export default function NavBar() {
 
   const links = [
     { path: '/',            label: 'Home' },
-    { path: '/diet-app/about',        label: 'About' },
-    { path: '/diet-app/plans',        label: 'Plans' },
-    { path: '/diet-app/services',     label: 'Services' },
-    { path: '/diet-app/blog',         label: 'Blog' },
-    { path: '/diet-app/KnowYourBody', label: 'KnowYourBody' },
-    { path: '/diet-app/contactus',    label: 'Contact Us' },
+    { path: '/about',        label: 'About' },
+    { path: '/plans',        label: 'Plans' },
+    { path: '/services',     label: 'Services' },
+    { path: '/blog',         label: 'Blog' },
+    { path: '/KnowYourBody', label: 'KnowYourBody' },
+    { path: '/contactus',    label: 'Contact Us' },
   ]
 
   return (

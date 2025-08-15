@@ -4,7 +4,7 @@ import Dee from '../../assets/crad.png'
 import Food from '../../assets/Woman.png'
 import { useNavigate } from 'react-router';
 
-
+function ServicesContactSection() {
   const navigate = useNavigate();
   const Url = "https://wa.me/233592330870?text=Hello%2C%20I%E2%80%99d%20like%20to%20book%20a%20session%20with%20Diet%20with%20Dee"
   return (
@@ -13,8 +13,8 @@ import { useNavigate } from 'react-router';
         title="Our Services | DietWithDee Nutrition & Wellness Programs"
         description="Explore DietWithDee’s nutrition and wellness services, including personalized meal plans, weight management, and health coaching by Nana Ama Dwamena."
         keywords="DietWithDee Services, Nutrition Programs, Wellness, Meal Plans, Ghana Dietitian, Nana Ama Dwamena"
-        image="https://dietwithdee.com/src/assets/LOGO.png"
-        url="https://dietwithdee.com/services"
+        image="https://dietwithdee.org/src/assets/LOGO.png"
+        url="https://dietwithdee.org/services"
       />
       <div className='min-h-screen bg-gradient-to-br from-green-50 via-white to-emerald-50'>
       {/* Services Hero Section */}
@@ -211,6 +211,7 @@ import { useNavigate } from 'react-router';
         </div>
       </div>
     </div>
+  </>
   );
 }
 

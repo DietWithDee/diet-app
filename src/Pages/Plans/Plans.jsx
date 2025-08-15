@@ -93,7 +93,7 @@ function Plans() {
           </p>
           <div className='w-20 h-1 bg-gradient-to-r from-green-500 to-emerald-500 mx-auto rounded-full'></div>
         </div>
-
+      </div>
       <div className='grid grid-cols-1 md:grid-cols-3 gap-8 max-w-6xl mx-auto'>
         {plans.map((plan, index) => (
           <div
@@ -147,7 +147,8 @@ function Plans() {
           </div>
         </div>
       </div>
-    </>
+      
+      </>
   );
 }
 
