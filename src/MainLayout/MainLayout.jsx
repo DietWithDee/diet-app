@@ -1,4 +1,5 @@
 import NavBar from "../Components/NavBar/NavBar";
+import SEOProvider from "../Components/SEOProvider";
 import { BrowserRouter, Route, Routes } from "react-router";
 import Home from "../Pages/Home/Home";
 import About from "../Pages/About/About";
@@ -15,24 +16,28 @@ import PaymentSuccess from "../Pages/ContactUs/PaymentSuccess";
 
 const MainLayout = () => {
   return (
-    <BrowserRouter basename="/">
-      <ScrollToTop />
-      <NavBar />
-      <Routes>
-        <Route path="/" element={<Home />} />
-        <Route path="/" element={<Home />} />
-        <Route path="/about" element={<About />} />
-        <Route path="/blog" element={<Blog />} />
-        <Route path="/contactUs" element={<ContactUs />} />
-        <Route path="/services" element={<Services />} />
-        <Route path="/knowYourBody" element={<KnowYourBody />} />
-        <Route path="/admin" element={<AdminApp />} />
-        <Route path="/plans" element={<Plans />} />
-        <Route path="/paymentSuccess" element={<PaymentSuccess />} />
-        <Route path="*" element={<Error />} />
-      </Routes>
-      <Footer />
-    </BrowserRouter>
+
+    <SEOProvider>
+      <BrowserRouter basename="/">
+        <ScrollToTop />
+        <NavBar />
+        <Routes>
+          <Route path="/diet-app" element={<Home />} />
+          <Route path="/" element={<Home />} />
+          <Route path="/about" element={<About />} />
+          <Route path="/blog" element={<Blog />} />
+          <Route path="/contactUs" element={<ContactUs />} />
+          <Route path="/services" element={<Services />} />
+          <Route path="/knowYourBody" element={<KnowYourBody />} />
+          <Route path="/admin" element={<AdminApp />} />
+          <Route path="/plans" element={<Plans />} />
+          <Route path="/paymentSuccess" element={<PaymentSuccess />} />
+          <Route path="*" element={<Error />} />
+        </Routes>
+        <Footer />
+      </BrowserRouter>
+    </SEOProvider>
+
   );
 };
 

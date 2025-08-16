@@ -1,8 +1,11 @@
 import React, { useState, useEffect } from 'react';
+import SEO from '../../Components/SEO';
 import { useNavigate } from 'react-router-dom';
 import { Loader, Calendar, User, ArrowRight, ArrowLeft, Share2, Heart, MessageCircle } from 'lucide-react';
 import { getArticles, likeNews, markArticleHelpful } from '../../firebaseUtils';
 import BlogImage from '../../assets/Salad.png'; // Fallback image
+import BlogArticleSEO from '../../Components/BlogArticleSEO';
+import ScrollHideRefreshButton from '../../utils/ScrollHideRefreshButton';
 
 function Blog() {
   const navigate = useNavigate();
@@ -13,6 +16,7 @@ function Blog() {
   const [viewMode, setViewMode] = useState('list'); // 'list' or 'article'
   const [likingArticles, setLikingArticles] = useState(new Set());
   const [feedbackArticles, setFeedbackArticles] = useState(new Set());
+  const [isLoadingArticles, setIsLoadingArticles] = useState(false);
 
   // Load articles from Firebase on component mount
   useEffect(() => {
@@ -37,6 +41,16 @@ function Blog() {
       setError('Something went wrong while loading articles');
     } finally {
       setIsLoading(false);
+    }
+
+    setIsLoadingArticles(true);
+    try {
+      // Your article loading logic here
+      await fetchArticles();
+    } catch (error) {
+      console.error('Failed to load articles:', error);
+    } finally {
+      setIsLoadingArticles(false);
     }
   };
 
@@ -229,223 +243,242 @@ function Blog() {
     const isLiking = likingArticles.has(selectedArticle.id);
     const hasFeedback = feedbackArticles.has(selectedArticle.id);
 
+    // SEO values from article
+    const articleTitle = selectedArticle.title;
+    const articleDescription = createSummary(selectedArticle.content, 160);
+    const articleImage = selectedArticle.coverImage || 'https://dietwithdee.org/src/assets/LOGO.png';
+    const articleUrl = `https://dietwithdee.org/blog/${selectedArticle.id}`;
+    const articleAuthor = selectedArticle.author || 'Nana Ama Dwamena';
+    const articleDate = selectedArticle.createdAt && selectedArticle.createdAt.toDate ? selectedArticle.createdAt.toDate().toISOString() : new Date(selectedArticle.createdAt).toISOString();
+
     return (
-      <div className="min-h-screen bg-gradient-to-br from-green-50 via-white to-emerald-50">
-        {/* Article Header */}
-        <div className="bg-white shadow-sm border-b border-green-100">
-          <div className="max-w-4xl mx-auto px-4 sm:px-6 py-4">
-            <button
-              onClick={handleBackToList}
-              className="inline-flex items-center gap-2 text-green-600 hover:text-green-700 transition-colors mb-4"
-            >
-              <ArrowLeft size={20} />
-              Back to Articles
-            </button>
-          </div>
-        </div>
-
-        {/* Article Content */}
-        <article className="max-w-4xl mx-auto px-4 sm:px-6 py-8 lg:py-12">
-          <div className="bg-white rounded-2xl lg:rounded-3xl shadow-lg overflow-hidden">
-            {/* Featured Image */}
-            {selectedArticle.coverImage && (
-              <div className="h-48 sm:h-64 lg:h-96 overflow-hidden">
-                <img 
-                  src={selectedArticle.coverImage} 
-                  alt={selectedArticle.title}
-                  className="w-full h-full object-cover"
-                  onError={(e) => {
-                    e.target.src = BlogImage;
-                  }}
-                />
-              </div>
-            )}
-
-            {/* Article Header */}
-            <div className="p-4 sm:p-6 lg:p-12">
-              <div className="mb-6">
-                <h1 className="text-2xl sm:text-3xl lg:text-4xl font-black text-green-700 mb-4 leading-tight">
-                  {selectedArticle.title}
-                </h1>
-                
-                <div className="flex flex-wrap items-center gap-4 lg:gap-6 text-gray-600 mb-6">
-                  <div className="flex items-center gap-2">
-                    <Calendar size={18} />
-                    <span className="text-sm lg:text-base">{formatDate(selectedArticle.createdAt)}</span>
-                  </div>
-                  {selectedArticle.author && (
-                    <div className="flex items-center gap-2">
-                      <User size={18} />
-                      <span className="text-sm lg:text-base">{selectedArticle.author}</span>
-                    </div>
-                  )}
-                  {/* Likes count */}
-                  <div className="flex items-center gap-2">
-                    <Heart size={16} className="text-red-500" />
-                    <span className="text-sm lg:text-base">{selectedArticle.likesCount || 0} likes</span>
-                  </div>
-                </div>
-
-                {/* Social Actions */}
-                <div className="flex flex-wrap items-center gap-2 sm:gap-4 pb-6 border-b border-gray-200">
-                  <button
-                    onClick={() => handleShare(selectedArticle)}
-                    className="flex items-center gap-2 px-3 sm:px-4 py-2 text-gray-600 hover:text-green-600 hover:bg-green-50 rounded-lg transition-all text-sm"
-                  >
-                    <Share2 size={16} />
-                    Share
-                  </button>
-                  <button 
-                    onClick={() => handleLike(selectedArticle.id)}
-                    disabled={isLiking}
-                    className={`flex items-center gap-2 px-3 sm:px-4 py-2 rounded-lg transition-all text-sm ${
-                      isLiking
-                        ? 'text-gray-400 bg-gray-50 cursor-not-allowed'
-                        : 'text-gray-600 hover:text-red-500 hover:bg-red-50'
-                    }`}
-                  >
-                    <Heart size={16} />
-                    {isLiking ? 'Liking...' : 'Like'}
-                  </button>
-                  <button className="flex items-center gap-2 px-3 sm:px-4 py-2 text-gray-600 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-all text-sm">
-                    <MessageCircle size={16} />
-                    Comment
-                  </button>
-                </div>
-              </div>
-
-              {/* Article Content */}
-              <div 
-                className="prose prose-sm sm:prose-base lg:prose-lg max-w-none text-gray-800 leading-relaxed"
-                style={{
-                  fontSize: '14px',
-                  lineHeight: '1.6'
-                }}
-                dangerouslySetInnerHTML={{ __html: selectedArticle.content }}
-              />
-
-              {/* Article Footer */}
-              <div className="mt-8 lg:mt-12 pt-6 lg:pt-8 border-t border-gray-200">
-                <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-                  <div className="text-sm text-gray-500">
-                    Was this article helpful?
-                    {(selectedArticle.helpfulCount || 0) > 0 && (
-                      <span className="ml-2 text-green-600 font-medium">
-                        {selectedArticle.helpfulCount} people found this helpful
-                      </span>
-                    )}
-                  </div>
-                  <div className="flex gap-2">
-                    <button 
-                      onClick={() => handleHelpfulFeedback(selectedArticle.id, true)}
-                      disabled={hasFeedback}
-                      className={`px-3 sm:px-4 py-2 rounded-lg transition-colors text-xs sm:text-sm ${
-                        hasFeedback
-                          ? 'bg-gray-100 text-gray-400 cursor-not-allowed'
-                          : 'bg-green-100 text-green-700 hover:bg-green-200'
-                      }`}
-                    >
-                      Yes, helpful! 👍
-                    </button>
-                    <button 
-                      onClick={() => handleHelpfulFeedback(selectedArticle.id, false)}
-                      disabled={hasFeedback}
-                      className={`px-3 sm:px-4 py-2 rounded-lg transition-colors text-xs sm:text-sm ${
-                        hasFeedback
-                          ? 'bg-gray-100 text-gray-400 cursor-not-allowed'
-                          : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
-                      }`}
-                    >
-                      Could be better 👎
-                    </button>
-                  </div>
-                </div>
-                
-                {/* Feedback Summary */}
-                {((selectedArticle.helpfulCount || 0) > 0 || (selectedArticle.notHelpfulCount || 0) > 0) && (
-                  <div className="mt-4 p-3 bg-gray-50 rounded-lg">
-                    <div className="flex items-center justify-between text-sm text-gray-600">
-                      <div className="flex items-center gap-4">
-                        <span className="text-green-600">
-                          👍 {selectedArticle.helpfulCount || 0} helpful
-                        </span>
-                        <span className="text-gray-500">
-                          👎 {selectedArticle.notHelpfulCount || 0} not helpful
-                        </span>
-                      </div>
-                      <div className="text-xs text-gray-500">
-                        Total feedback: {(selectedArticle.helpfulCount || 0) + (selectedArticle.notHelpfulCount || 0)}
-                      </div>
-                    </div>
-                  </div>
-                )}
-                
-                {hasFeedback && (
-                  <div className="mt-3 text-sm text-green-600 text-center">
-                    Thank you for your feedback! 🙏
-                  </div>
-                )}
-              </div>
+      <>
+        <BlogArticleSEO
+          title={articleTitle}
+          description={articleDescription}
+          keywords="DietWithDee Blog, Nutrition Tips, Healthy Recipes, Ghana Dietitian, Nana Ama Dwamena, Wellness"
+          image={articleImage}
+          url={articleUrl}
+          author={articleAuthor}
+          datePublished={articleDate}
+        />
+        <div className="min-h-screen bg-gradient-to-br from-green-50 via-white to-emerald-50">
+          {/* Article Header */}
+          <div className="bg-white shadow-sm border-b border-green-100">
+            <div className="max-w-4xl mx-auto px-4 sm:px-6 py-4">
+              <button
+                onClick={handleBackToList}
+                className="inline-flex items-center gap-2 text-green-600 hover:text-green-700 transition-colors mb-4"
+              >
+                <ArrowLeft size={20} />
+                Back to Articles
+              </button>
             </div>
           </div>
 
-          {/* Related Articles Section */}
-          <div className="mt-8 lg:mt-12">
-            <h3 className="text-xl lg:text-2xl font-bold text-green-700 mb-4 lg:mb-6">More Articles</h3>
-            <div className="grid sm:grid-cols-2 gap-4 lg:gap-6">
-              {blogPosts
-                .filter(post => post.id !== selectedArticle.id)
-                .slice(0, 2)
-                .map((post) => (
-                  <div
-                    key={post.id}
-                    className="bg-white rounded-xl shadow-md hover:shadow-lg transition-all p-4 lg:p-6 cursor-pointer group"
-                    onClick={() => handleReadMore(post)}
-                  >
-                    <div className="flex gap-3 lg:gap-4">
-                      <div className="w-16 h-16 lg:w-20 lg:h-20 bg-gradient-to-br from-green-100 to-emerald-100 rounded-lg flex items-center justify-center overflow-hidden flex-shrink-0">
-                        {post.coverImage ? (
-                          <img 
-                            src={post.coverImage} 
-                            alt={post.title}
-                            className="w-full h-full object-cover"
-                            onError={(e) => {
-                              e.target.src = BlogImage;
-                            }}
-                          />
-                        ) : (
-                          <img 
-                            src={BlogImage} 
-                            alt={post.title}
-                            className="w-8 h-8 lg:w-12 lg:h-12 object-contain opacity-70"
-                          />
-                        )}
+          {/* Article Content */}
+          <article className="max-w-4xl mx-auto px-4 sm:px-6 py-8 lg:py-12">
+            <div className="bg-white rounded-2xl lg:rounded-3xl shadow-lg overflow-hidden">
+              {/* Featured Image */}
+              {selectedArticle.coverImage && (
+                <div className="h-48 sm:h-64 lg:h-96 overflow-hidden">
+                  <img 
+                    src={selectedArticle.coverImage} 
+                    alt={selectedArticle.title}
+                    className="w-full h-full object-cover"
+                    onError={(e) => {
+                      e.target.src = BlogImage;
+                    }}
+                  />
+                </div>
+              )}
+
+              {/* Article Header */}
+              <div className="p-4 sm:p-6 lg:p-12">
+                <div className="mb-6">
+                  <h1 className="text-2xl sm:text-3xl lg:text-4xl font-black text-green-700 mb-4 leading-tight">
+                    {selectedArticle.title}
+                  </h1>
+                  
+                  <div className="flex flex-wrap items-center gap-4 lg:gap-6 text-gray-600 mb-6">
+                    <div className="flex items-center gap-2">
+                      <Calendar size={18} />
+                      <span className="text-sm lg:text-base">{formatDate(selectedArticle.createdAt)}</span>
+                    </div>
+                    {selectedArticle.author && (
+                      <div className="flex items-center gap-2">
+                        <User size={18} />
+                        <span className="text-sm lg:text-base">{selectedArticle.author}</span>
                       </div>
-                      <div className="flex-1 min-w-0">
-                        <h4 className="font-semibold text-green-700 group-hover:text-green-800 transition-colors mb-1 text-sm lg:text-base line-clamp-2">
-                          {post.title}
-                        </h4>
-                        <p className="text-xs lg:text-sm text-gray-600 mb-2 line-clamp-2">
-                          {createSummary(post.content, 80)}
-                        </p>
-                        <div className="flex items-center justify-between text-xs text-gray-500">
-                          <span>{formatDate(post.createdAt)}</span>
-                          <div className="flex items-center gap-1">
-                            <Heart size={12} className="text-red-500" />
-                            <span>{post.likesCount || 0}</span>
+                    )}
+                    {/* Likes count */}
+                    <div className="flex items-center gap-2">
+                      <Heart size={16} className="text-red-500" />
+                      <span className="text-sm lg:text-base">{selectedArticle.likesCount || 0} likes</span>
+                    </div>
+                  </div>
+
+                  {/* Social Actions */}
+                  <div className="flex flex-wrap items-center gap-2 sm:gap-4 pb-6 border-b border-gray-200">
+                    <button
+                      onClick={() => handleShare(selectedArticle)}
+                      className="flex items-center gap-2 px-3 sm:px-4 py-2 text-gray-600 hover:text-green-600 hover:bg-green-50 rounded-lg transition-all text-sm"
+                    >
+                      <Share2 size={16} />
+                      Share
+                    </button>
+                    <button 
+                      onClick={() => handleLike(selectedArticle.id)}
+                      disabled={isLiking}
+                      className={`flex items-center gap-2 px-3 sm:px-4 py-2 rounded-lg transition-all text-sm ${
+                        isLiking
+                          ? 'text-gray-400 bg-gray-50 cursor-not-allowed'
+                          : 'text-gray-600 hover:text-red-500 hover:bg-red-50'
+                      }`}
+                    >
+                      <Heart size={16} />
+                      {isLiking ? 'Liking...' : 'Like'}
+                    </button>
+                    <button className="flex items-center gap-2 px-3 sm:px-4 py-2 text-gray-600 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-all text-sm">
+                      <MessageCircle size={16} />
+                      Comment
+                    </button>
+                  </div>
+                </div>
+
+                {/* Article Content */}
+                <div 
+                  className="prose prose-sm sm:prose-base lg:prose-lg max-w-none text-gray-800 leading-relaxed"
+                  style={{
+                    fontSize: '14px',
+                    lineHeight: '1.6'
+                  }}
+                  dangerouslySetInnerHTML={{ __html: selectedArticle.content }}
+                />
+
+                {/* Article Footer */}
+                <div className="mt-8 lg:mt-12 pt-6 lg:pt-8 border-t border-gray-200">
+                  <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+                    <div className="text-sm text-gray-500">
+                      Was this article helpful?
+                      {(selectedArticle.helpfulCount || 0) > 0 && (
+                        <span className="ml-2 text-green-600 font-medium">
+                          {selectedArticle.helpfulCount} people found this helpful
+                        </span>
+                      )}
+                    </div>
+                    <div className="flex gap-2">
+                      <button 
+                        onClick={() => handleHelpfulFeedback(selectedArticle.id, true)}
+                        disabled={hasFeedback}
+                        className={`px-3 sm:px-4 py-2 rounded-lg transition-colors text-xs sm:text-sm ${
+                          hasFeedback
+                            ? 'bg-gray-100 text-gray-400 cursor-not-allowed'
+                            : 'bg-green-100 text-green-700 hover:bg-green-200'
+                        }`}
+                      >
+                        Yes, helpful! 👍
+                      </button>
+                      <button 
+                        onClick={() => handleHelpfulFeedback(selectedArticle.id, false)}
+                        disabled={hasFeedback}
+                        className={`px-3 sm:px-4 py-2 rounded-lg transition-colors text-xs sm:text-sm ${
+                          hasFeedback
+                            ? 'bg-gray-100 text-gray-400 cursor-not-allowed'
+                            : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+                        }`}
+                      >
+                        Could be better 👎
+                      </button>
+                    </div>
+                  </div>
+                  
+                  {/* Feedback Summary */}
+                  {((selectedArticle.helpfulCount || 0) > 0 || (selectedArticle.notHelpfulCount || 0) > 0) && (
+                    <div className="mt-4 p-3 bg-gray-50 rounded-lg">
+                      <div className="flex items-center justify-between text-sm text-gray-600">
+                        <div className="flex items-center gap-4">
+                          <span className="text-green-600">
+                            👍 {selectedArticle.helpfulCount || 0} helpful
+                          </span>
+                          <span className="text-gray-500">
+                            👎 {selectedArticle.notHelpfulCount || 0} not helpful
+                          </span>
+                        </div>
+                        <div className="text-xs text-gray-500">
+                          Total feedback: {(selectedArticle.helpfulCount || 0) + (selectedArticle.notHelpfulCount || 0)}
+                        </div>
+                      </div>
+                    </div>
+                  )}
+                  
+                  {hasFeedback && (
+                    <div className="mt-3 text-sm text-green-600 text-center">
+                      Thank you for your feedback! 🙏
+                    </div>
+                  )}
+                </div>
+              </div>
+            </div>
+
+            {/* Related Articles Section */}
+            <div className="mt-8 lg:mt-12">
+              <h3 className="text-xl lg:text-2xl font-bold text-green-700 mb-4 lg:mb-6">More Articles</h3>
+              <div className="grid sm:grid-cols-2 gap-4 lg:gap-6">
+                {blogPosts
+                  .filter(post => post.id !== selectedArticle.id)
+                  .slice(0, 2)
+                  .map((post) => (
+                    <div
+                      key={post.id}
+                      className="bg-white rounded-xl shadow-md hover:shadow-lg transition-all p-4 lg:p-6 cursor-pointer group"
+                      onClick={() => handleReadMore(post)}
+                    >
+                      <div className="flex gap-3 lg:gap-4">
+                        <div className="w-16 h-16 lg:w-20 lg:h-20 bg-gradient-to-br from-green-100 to-emerald-100 rounded-lg flex items-center justify-center overflow-hidden flex-shrink-0">
+                          {post.coverImage ? (
+                            <img 
+                              src={post.coverImage} 
+                              alt={post.title}
+                              className="w-full h-full object-cover"
+                              onError={(e) => {
+                                e.target.src = BlogImage;
+                              }}
+                            />
+                          ) : (
+                            <img 
+                              src={BlogImage} 
+                              alt={post.title}
+                              className="w-8 h-8 lg:w-12 lg:h-12 object-contain opacity-70"
+                            />
+                          )}
+                        </div>
+                        <div className="flex-1 min-w-0">
+                          <h4 className="font-semibold text-green-700 group-hover:text-green-800 transition-colors mb-1 text-sm lg:text-base line-clamp-2">
+                            {post.title}
+                          </h4>
+                          <p className="text-xs lg:text-sm text-gray-600 mb-2 line-clamp-2">
+                            {createSummary(post.content, 80)}
+                          </p>
+                          <div className="flex items-center justify-between text-xs text-gray-500">
+                            <span>{formatDate(post.createdAt)}</span>
+                            <div className="flex items-center gap-1">
+                              <Heart size={12} className="text-red-500" />
+                              <span>{post.likesCount || 0}</span>
+                            </div>
                           </div>
                         </div>
                       </div>
                     </div>
-                  </div>
-                ))}
+                  ))}
+              </div>
             </div>
-          </div>
-        </article>
-      </div>
+          </article>
+        </div>
+      </>
     );
   }
-
+  
   // Blog List View (default)
   return (
     <div className="min-h-screen bg-gradient-to-br from-green-50 via-white to-emerald-50 py-12 lg:py-20 px-4 sm:px-6 lg:px-12">
@@ -544,15 +577,10 @@ function Blog() {
 
       {/* Refresh button for development */}
       {process.env.NODE_ENV === 'development' && (
-        <div className="fixed bottom-4 right-4">
-          <button
-            onClick={loadArticles}
-            className="p-3 bg-green-600 text-white rounded-full shadow-lg hover:bg-green-700 transition-colors"
-            title="Refresh Articles"
-          >
-            <Loader size={20} />
-          </button>
-        </div>
+        <ScrollHideRefreshButton 
+        loadArticles={loadArticles}
+        isLoading={isLoadingArticles}
+      />
       )}
     </div>
   );
