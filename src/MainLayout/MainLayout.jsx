@@ -16,6 +16,7 @@ import PaymentSuccess from "../Pages/ContactUs/PaymentSuccess";
 
 const MainLayout = () => {
   return (
+
     <SEOProvider>
       <BrowserRouter basename="/">
         <ScrollToTop />
@@ -36,6 +37,7 @@ const MainLayout = () => {
         <Footer />
       </BrowserRouter>
     </SEOProvider>
+
   );
 };
 
