@@ -1,5 +1,6 @@
 import React from 'react';
 import  LOGO from '../../assets/LOGO.png'
+import SEO from '../../Components/SEO';
 import { useNavigate } from 'react-router';
 
 function AboutUsSection() {
@@ -10,8 +11,8 @@ function AboutUsSection() {
           title="About DietWithDee | Nana Ama Dwamena, Registered Dietitian in Ghana"
           description="Learn about DietWithDee, founded by Nana Ama Dwamena, a registered dietitian in Ghana. Discover our mission to make expert nutrition accessible to all."
           keywords="About DietWithDee, Nana Ama Dwamena, Registered Dietitian, Ghana, Nutrition, Wellness"
-          image="https://dietwithdee.com/src/assets/LOGO.png"
-          url="https://dietwithdee.com/about"
+          image="https://dietwithdee.org/src/assets/LOGO.png"
+          url="https://dietwithdee.org/about"
         />
         <div className='py-20 bg-gradient-to-b from-white to-green-50'>
           <div className='container mx-auto px-6 lg:px-12'>

@@ -22,7 +22,6 @@ const MainLayout = () => {
         <ScrollToTop />
         <NavBar />
         <Routes>
-          <Route path="/diet-app" element={<Home />} />
           <Route path="/" element={<Home />} />
           <Route path="/about" element={<About />} />
           <Route path="/blog" element={<Blog />} />

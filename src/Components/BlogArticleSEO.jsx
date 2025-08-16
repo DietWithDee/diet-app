@@ -1,4 +1,4 @@
-import { Helmet } from "react-helmet";
+import { Helmet } from "react-helmet-async";
 
 /**
  * BlogArticleSEO component for dynamic meta tags and schema for blog articles

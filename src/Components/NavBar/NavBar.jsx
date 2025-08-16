@@ -56,7 +56,7 @@ export default function NavBar() {
 
         {/* Icons & Hamburger */}
         <div className="flex items-center space-x-4 text-orange-400">
-          <button onClick={() => navigate('/diet-app/plans')} className="relative">
+          <button onClick={() => navigate('/plans')} className="relative">
             <FiShoppingCart size={23} />
           </button>
           <button className="md:hidden text-gray-800" onClick={() => setMenuOpen(true)}>

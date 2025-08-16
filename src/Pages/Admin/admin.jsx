@@ -4,7 +4,7 @@ import { createArticle, getArticles , deleteArticle} from '../../firebaseUtils';
 import { sendNewArticleNewsletter } from '../../EmailTemplateSystem/emailServices';
 
 // Mock environment variables
-const ADMIN_EMAIL = 'admin@dietwithdee.com';
+const ADMIN_EMAIL = 'admin@dietwithdee.org';
 const ADMIN_PASSWORD = 'admin123';
 
 // Rich Text Editor Component - FIXED VERSION
@@ -319,7 +319,7 @@ const AdminLogin = ({ onLogin }) => {
                   value={formData.email}
                   onChange={(e) => setFormData({...formData, email: e.target.value})}
                   className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent text-gray-800"
-                  placeholder="admin@dietwithdee.com"
+                  placeholder="admin@dietwithdee.org"
                   required
                 />
               </div>
@@ -366,7 +366,7 @@ const AdminLogin = ({ onLogin }) => {
           </div>
 
           <div className="mt-6 text-xs text-gray-500 text-center">
-            Demo credentials: admin@dietwithdee.com / admin123
+            Demo credentials: admin@dietwithdee.org / admin123
           </div>
         </div>
       </div>
@@ -826,3 +826,4 @@ const AdminApp = () => {
 };
 
 export default AdminApp;
+
