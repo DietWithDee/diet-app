@@ -507,9 +507,9 @@ function Blog() {
   
   // Blog List View (default)
   return (
-    <div className="min-h-screen bg-gradient-to-br from-green-50 via-white to-emerald-50 py-12 lg:py-20 px-4 sm:px-6 lg:px-12">
+    <div className="min-h-screen bg-gradient-to-br from-green-50 via-white to-emerald-50 py-18 lg:py-20 px-4 sm:px-6 lg:px-12">
       {/* Header */}
-      <div className="text-center mb-8 lg:mb-12 space-y-4 max-w-3xl mx-auto">
+      <div className="text-center mb-8 lg:mb-12 space-y-8 max-w-3xl mx-auto">
         <h1 className="text-3xl sm:text-4xl lg:text-5xl font-black text-transparent bg-clip-text bg-gradient-to-r from-green-700 via-emerald-600 to-green-600">
           Wellness Reads
         </h1>
