@@ -246,7 +246,7 @@ function Blog() {
     // SEO values from article
     const articleTitle = selectedArticle.title;
     const articleDescription = createSummary(selectedArticle.content, 160);
-    const articleImage = selectedArticle.coverImage || 'https://dietwithdee.org/src/assets/LOGO.png';
+    const articleImage = selectedArticle.coverImage || 'https://dietwithdee.org/LOGO.png';
     const articleUrl = `https://dietwithdee.org/blog/${selectedArticle.id}`;
     const articleAuthor = selectedArticle.author || 'Nana Ama Dwamena';
     const articleDate = selectedArticle.createdAt && selectedArticle.createdAt.toDate ? selectedArticle.createdAt.toDate().toISOString() : new Date(selectedArticle.createdAt).toISOString();

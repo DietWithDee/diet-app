@@ -9,12 +9,14 @@ function AboutUsSection() {
   return (
     <>
       <SEO
-        title="About DietWithDee | Nana Ama Dwamena, Registered Dietitian in Ghana"
-        description="Learn about DietWithDee, founded by Nana Ama Dwamena, a registered dietitian in Ghana. Discover our mission to make expert nutrition accessible to all."
-        keywords="About DietWithDee, Nana Ama Dwamena, Registered Dietitian, Ghana, Nutrition, Wellness"
-        image="https://dietwithdee.org/src/assets/LOGO.png"
-        url="https://dietwithdee.org/about"
-      />
+  title="About DietWithDee | Nana Ama Dwamena, Registered Dietitian in Ghana"
+  description="Learn about DietWithDee, founded by Nana Ama Dwamena, a registered dietitian in Ghana. Discover our mission to make expert nutrition accessible to all."
+  keywords="About DietWithDee, Nana Ama Dwamena, Registered Dietitian, Ghana, Nutrition, Wellness"
+  image="/LOGO.png"          // we’ll coerce to absolute: https://dietwithdee.org/LOGO.png
+  url="/about"               // we’ll coerce to absolute canonical
+  ogType="article"
+  lang="en"
+/>
       <div className='py-20 bg-gradient-to-b from-white to-green-50'>
         <div className='container mx-auto px-6 lg:px-12'>
           <div className='flex flex-col lg:flex-row items-center justify-between gap-12 lg:gap-20'>

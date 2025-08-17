@@ -73,7 +73,7 @@ function Home() {
         title="Best Dietitian in Ghana | Nana Ama Dwamena"
         description="Welcome to DietWithDee, your ultimate destination for personalized diet plans and expert nutrition advice in Ghana. Start your wellness journey with Nana Ama Dwamena."
         keywords="Dietitian, Nutritionist, Ghana, Nana Ama Dwamena, Weight Loss, Wellness, Healthy Eating, Diet With Dee"
-        image="https://dietwithdee.com/src/assets/LOGO.png"
+        image="https://dietwithdee.com/LOGO.png"
         url="https://dietwithdee.com/"
       />
     <div className='min-h-screen bg-gradient-to-br from-green-50 via-white to-emerald-50'>

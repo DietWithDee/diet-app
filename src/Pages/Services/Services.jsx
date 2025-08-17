@@ -13,7 +13,7 @@ function ServicesContactSection() {
         title="Our Services | DietWithDee Nutrition & Wellness Programs"
         description="Explore DietWithDee’s nutrition and wellness services, including personalized meal plans, weight management, and health coaching by Nana Ama Dwamena."
         keywords="DietWithDee Services, Nutrition Programs, Wellness, Meal Plans, Ghana Dietitian, Nana Ama Dwamena"
-        image="https://dietwithdee.org/src/assets/LOGO.png"
+        image="https://dietwithdee.org/LOGO.png"
         url="https://dietwithdee.org/services"
       />
       <div className='min-h-screen bg-gradient-to-br from-green-50 via-white to-emerald-50'>
