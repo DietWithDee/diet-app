@@ -387,7 +387,7 @@ const ResultsStep = ({ results, formData, navigate }) => (
       </div>
       <div className="space-y-4">
         <button
-          onClick={() => navigate('/diet-app/contactUs', {
+          onClick={() => navigate('/contactUs', {
             state: {
               userResults: {
                 bmi: results.bmi,

@@ -315,10 +315,6 @@ function ConsultationBooking() {
                   </div>
                   <div className="flex items-center space-x-2">
                     <CheckCircle size={16} />
-                    <span className="text-sm">Custom macro breakdown</span>
-                  </div>
-                  <div className="flex items-center space-x-2">
-                    <CheckCircle size={16} />
                     <span className="text-sm">Ongoing support</span>
                   </div>
                 </div>

@@ -64,7 +64,7 @@ function ServicesContactSection() {
                 
                 {/* CTA Button */}
                 <div className='pt-4 sm:pt-6'>
-                  <button onClick={() => navigate('/diet-app/contactus')}
+                  <button onClick={() => navigate('/contactus')}
                   className='px-8 py-4 bg-orange-400 text-white font-bold rounded-full hover:bg-green-800 transition-all duration-300 hover:shadow-lg'>
                     Book a Consultation
                   </button>

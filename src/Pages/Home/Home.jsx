@@ -112,11 +112,11 @@ function Home() {
               {/* Call-to-Action Buttons */}
               <div className='flex flex-col sm:flex-row gap-4 pt-6'>
                 <button 
-                  onClick={() => navigate('/diet-app/knowyourbody')}
+                  onClick={() => navigate('/knowyourbody')}
                   className='px-8 py-4 bg-gradient-to-r from-[#F6841F] to-[#F6841F] text-white font-bold rounded-full shadow-lg hover:shadow-xl transform hover:-translate-y-1 transition-all duration-300 hover:from-orange-600 hover:to-orange-400'>
                   Start Your Journey
                 </button>
-                <button onClick={() => navigate('/diet-app/about')}
+                <button onClick={() => navigate('/about')}
                 className='px-8 py-4 border-2 border-green-600 text-green-700 font-bold rounded-full hover:bg-green-50 transition-all duration-300 hover:shadow-md'>
                   Learn More
                 </button>
@@ -253,7 +253,7 @@ function Home() {
                   
                   {/* CTA Button */}
                   <div className='pt-6'>
-                    <button onClick={() => navigate('/diet-app/plans')}
+                    <button onClick={() => navigate('/plans')}
                     className='px-8 py-4 bg-gradient-to-r from-orange-400 to-orange-400 text-white font-bold rounded-full shadow-lg hover:shadow-xl transform hover:-translate-y-1 transition-all duration-300 hover:from-green-700 hover:to-emerald-700'>
                       View Plans
                     </button>
