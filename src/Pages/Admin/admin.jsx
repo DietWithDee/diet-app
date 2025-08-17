@@ -2,6 +2,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import { Eye, EyeOff, Plus, Edit2, Trash2, Save, X, AlertCircle, CheckCircle, Loader, Bold, Italic, Underline, List, ListOrdered, Link, Quote, Type } from 'lucide-react';
 import { createArticle, getArticles , deleteArticle} from '../../firebaseUtils';
 import { sendNewArticleNewsletter } from '../../EmailTemplateSystem/emailServices';
+import NoIndex from "../../Components/NoIndex";
 
 // Mock environment variables
 const ADMIN_EMAIL = 'admin@dietwithdee.org';
@@ -815,6 +816,7 @@ const AdminApp = () => {
 
 
   return (
+    <NoIndex>
     <div>
       {isAuthenticated ? (
         <AdminDashboard onLogout={handleLogout} />
@@ -822,6 +824,7 @@ const AdminApp = () => {
         <AdminLogin onLogin={handleLogin} />
       )}
     </div>
+    </NoIndex>
   );
 };
 

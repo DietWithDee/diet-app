@@ -296,6 +296,7 @@ Date: ${new Date().toLocaleDateString('en-US', {
 
   // Default Payment Success screen with "Send Email" button
   return (
+    <NoIndex>
     <div className="min-h-screen bg-gradient-to-br from-green-50 via-white to-emerald-50 py-12">
       <div className="container mx-auto px-6 lg:px-12 max-w-2xl">
         <div className="bg-white rounded-2xl shadow-xl p-8">
@@ -351,6 +352,7 @@ Date: ${new Date().toLocaleDateString('en-US', {
         </div>
       </div>
     </div>
+    </NoIndex>
   );
 }
 

@@ -80,7 +80,7 @@ function AboutUsSection() {
                 {/* CTA Button */}
                 <div className='pt-6'>
                   <button 
-                    onClick={() => navigate('/diet-app/knowyourbody')}
+                    onClick={() => navigate('/knowyourbody')}
                     className='px-8 py-4 bg-gradient-to-r from-orange-400 to-orange-500 text-white font-bold rounded-full shadow-lg hover:shadow-xl transform hover:-translate-y-1 transition-all duration-300 hover:from-green-700 hover:to-emerald-700'
                     aria-label="Start your nutrition transformation journey"
                   >
