@@ -4,8 +4,8 @@
     <meta charset="utf-8">
     <title>dietwithdee</title>
     <script type="text/javascript">
-
-      var pathSegmentsToKeep = 1;
+      // https://github.com/rafgraph/spa-github-pages
+      var pathSegmentsToKeep = 0; // custom domain -> 0
 
       var l = window.location;
       l.replace(
@@ -15,9 +15,7 @@
         (l.search ? '&' + l.search.slice(1).replace(/&/g, '~and~') : '') +
         l.hash
       );
-
     </script>
   </head>
-  <body>
-  </body>
+  <body></body>
 </html>

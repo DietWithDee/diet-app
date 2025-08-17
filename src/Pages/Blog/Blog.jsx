@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import SEO from '../../Components/SEO';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate ,useParams} from 'react-router-dom';
 import { Loader, Calendar, User, ArrowRight, ArrowLeft, Share2, Heart, MessageCircle } from 'lucide-react';
 import { getArticles, likeNews, markArticleHelpful } from '../../firebaseUtils';
 import BlogImage from '../../assets/Salad.png'; // Fallback image
@@ -9,6 +9,7 @@ import ScrollHideRefreshButton from '../../utils/ScrollHideRefreshButton';
 
 function Blog() {
   const navigate = useNavigate();
+  const { id: routeId } = useParams();
   const [blogPosts, setBlogPosts] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -18,15 +19,44 @@ function Blog() {
   const [feedbackArticles, setFeedbackArticles] = useState(new Set());
   const [isLoadingArticles, setIsLoadingArticles] = useState(false);
 
-  // Load articles from Firebase on component mount
   useEffect(() => {
-    loadArticles();
-  }, []);
+     loadArticles();
+   }, []);
+ 
+   // When articles load or route changes, open the right article if there's an :id
+   useEffect(() => {
+     if (!routeId) return;
+     // If we already have posts, try to find it
+     const found = blogPosts.find(p => p.id === routeId);
+     if (found) {
+       setSelectedArticle(found);
+       setViewMode('article');
+       return;
+     }
+     // Otherwise fetch and select when available
+     (async () => {
+       const res = await getArticles();
+       if (res?.success) {
+         const list = res.data || [];
+         setBlogPosts(list);
+         const match = list.find(p => p.id === routeId);
+         if (match) {
+           setSelectedArticle(match);
+           setViewMode('article');
+         }
+       }
+   })();
+ }, [routeId, blogPosts]);
 
   const loadArticles = async () => {
     setIsLoading(true);
     setError(null);
     
+    // ✅ Scroll to top on step change
+  setTimeout(() => {
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  }, 100); // Delay slightly to ensure DOM has updated
+
     try {
       const result = await getArticles();
       
@@ -46,7 +76,7 @@ function Blog() {
     setIsLoadingArticles(true);
     try {
       // Your article loading logic here
-      await fetchArticles();
+      await getArticles();
     } catch (error) {
       console.error('Failed to load articles:', error);
     } finally {
@@ -178,6 +208,7 @@ function Blog() {
   const handleReadMore = (article) => {
     setSelectedArticle(article);
     setViewMode('article');
+    navigate(`/blog/${article.id}`);
     // Scroll to top when opening article
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
@@ -185,24 +216,25 @@ function Blog() {
   const handleBackToList = () => {
     setSelectedArticle(null);
     setViewMode('list');
+    navigate('/blog');
     // Scroll to top when going back to list
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
   const handleShare = async (article) => {
+    const articleUrl = `https://dietwithdee.org/blog/${article.id}`;
     if (navigator.share) {
       try {
         await navigator.share({
           title: article.title,
-          text: createSummary(article.content, 100),
-          url: window.location.href
+          url: articleUrl
         });
       } catch (error) {
         console.log('Error sharing:', error);
       }
     } else {
       // Fallback - copy to clipboard
-      navigator.clipboard.writeText(window.location.href);
+      navigator.clipboard.writeText(articleUrl);
       // You could show a toast notification here
     }
   };
@@ -339,10 +371,6 @@ function Blog() {
                       <Heart size={16} />
                       {isLiking ? 'Liking...' : 'Like'}
                     </button>
-                    <button className="flex items-center gap-2 px-3 sm:px-4 py-2 text-gray-600 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-all text-sm">
-                      <MessageCircle size={16} />
-                      Comment
-                    </button>
                   </div>
                 </div>
 
@@ -405,9 +433,6 @@ function Blog() {
                             👎 {selectedArticle.notHelpfulCount || 0} not helpful
                           </span>
                         </div>
-                        <div className="text-xs text-gray-500">
-                          Total feedback: {(selectedArticle.helpfulCount || 0) + (selectedArticle.notHelpfulCount || 0)}
-                        </div>
                       </div>
                     </div>
                   )}
@@ -425,9 +450,10 @@ function Blog() {
             <div className="mt-8 lg:mt-12">
               <h3 className="text-xl lg:text-2xl font-bold text-green-700 mb-4 lg:mb-6">More Articles</h3>
               <div className="grid sm:grid-cols-2 gap-4 lg:gap-6">
-                {blogPosts
+                {[...blogPosts]
                   .filter(post => post.id !== selectedArticle.id)
-                  .slice(0, 2)
+                  .sort((a, b) => (b.likesCount || 0) - (a.likesCount || 0))
+                  .slice(0, 4)
                   .map((post) => (
                     <div
                       key={post.id}
