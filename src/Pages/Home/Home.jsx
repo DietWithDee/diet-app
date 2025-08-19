@@ -79,6 +79,7 @@ function Home() {
       />
     <div className='min-h-screen bg-gradient-to-br from-green-50 via-white to-emerald-50'>
       <div className='container mx-auto px-6 lg:px-12 pt-20 lg:pt-20'>
+
         <div className='flex flex-col lg:flex-row items-center justify-between gap-12 lg:gap-20'>
           
           {/* Left Side: Text Content */}
@@ -288,8 +289,8 @@ function Home() {
             </div>
           </div>
         </div>
+        <InstallPrompt />
       </div>
-      <InstallPrompt />
     </div>
   </>
   );
