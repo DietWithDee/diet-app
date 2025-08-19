@@ -4,6 +4,7 @@ import { useNavigate } from 'react-router';
 import Salad from '../../assets/Salad.png'; // Placeholder image
 import Logo from '../../assets/LOGO.png'; // Placeholder logo
 import Dee from '../../assets/images/Dee1.png'
+import InstallPrompt from '../../Components/InstallPrompt';
 
 // Animated Counter Component
 const AnimatedCounter = ({ target, duration = 2000, suffix = '' }) => {

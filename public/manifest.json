@@ -1,14 +1,15 @@
 {
-  "short_name": "Flywheel",
-  "name": "Flywheel Technologies",
+  "short_name": "DietWithDee",
+  "name": "Dee",
+  "description": "DietWithDee — healthy plans, tips, and articles",
   "icons": [
     {
-      "src": "/icons/icon-192.png",
+      "src": "/LOGO.png",
       "sizes": "192x192",
       "type": "image/png"
     },
     {
-      "src": "/icons/icon-512.png",
+      "src": "/LOGO.png",
       "sizes": "512x512",
       "type": "image/png"
     }
