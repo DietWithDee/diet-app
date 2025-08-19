@@ -13,6 +13,7 @@ import AdminApp from "../Pages/Admin/admin";
 import Plans from "../Pages/Plans/Plans";
 import ScrollToTop from "../utils/ScrollToTop"; 
 import PaymentSuccess from "../Pages/ContactUs/PaymentSuccess";
+import TestEmails from "../Components/TestEmails"; // Import the TestEmails component
 
 const MainLayout = () => {
   return (
@@ -32,6 +33,7 @@ const MainLayout = () => {
           <Route path="/admin" element={<AdminApp />} />
           <Route path="/plans" element={<Plans />} />
           <Route path="/paymentSuccess" element={<PaymentSuccess />} />
+          <Route path="/test" element={<TestEmails />} />
           <Route path="*" element={<Error />} />
         </Routes>
         <Footer />

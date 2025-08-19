@@ -288,6 +288,7 @@ function Home() {
           </div>
         </div>
       </div>
+      <InstallPrompt />
     </div>
   </>
   );

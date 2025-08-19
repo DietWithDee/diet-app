@@ -65,12 +65,16 @@ const sendEmailViaEmailJS = async (toEmail, subject, htmlContent) => {
       from_name: EMAIL_SERVICE_CONFIG.fromName,
       from_email: EMAIL_SERVICE_CONFIG.fromEmail,
       subject: subject,
-      html_content: htmlContent
+      html_content: htmlContent,
+      message_html: htmlContent   // <-- MUST match placeholder in EmailJS template
     };
 
     const response = await fetch(EMAIL_SERVICE_CONFIG.apiEndpoint, {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+      headers: 
+      { 'Content-Type': 'application/json',
+        'Accept': 'application/json'  // Ensure we get JSON response
+       },
       body: JSON.stringify({
         service_id: EMAIL_SERVICE_CONFIG.serviceId,
         template_id: EMAIL_SERVICE_CONFIG.templateId,

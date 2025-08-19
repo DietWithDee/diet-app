@@ -179,7 +179,7 @@ export const saveEmailToFirestore = async (email) => {
 
 export const getAllEmails = async()=>{
   try {
-    const q = query(collection(db, "emails"), orderBy("createdAt", "desc")); // SHOULD BE "emails"
+    const q = query(collection(db, "emails"), orderBy("createdAt", "desc")); 
     const snapshot = await getDocs(q); 
 
     if (snapshot.empty) {
@@ -193,11 +193,12 @@ export const getAllEmails = async()=>{
     }));
 
     console.log("Emails fetched successfully:", emails);
+    console.log("Total emails:", emails.length);
 
     return { success: true, data: emails };
   } catch (error) {
-    console.error("error fetching emails:", error); // FIXED: typo in error message
-    return { success: false, error : error.message}; // FIXED: typo "succees"
+    console.error("error fetching emails:", error); 
+    return { success: false, error : error.message};
   }
 }
 

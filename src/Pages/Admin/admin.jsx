@@ -495,7 +495,12 @@ const RichTextEditor = ({ value, onChange, disabled = false }) => {
           pointer-events: none;
           color: #9CA3AF;
         }
-      `}</style>
+         /* 🔥 Make all bold text green */
+  b, strong {
+    color: #059669 !important;
+  }
+      `}
+      </style>
     </div>
   );
 };
