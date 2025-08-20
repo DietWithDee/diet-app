@@ -216,13 +216,13 @@ function ConsultationBooking() {
         <div className="container mx-auto px-6 lg:px-12 max-w-4xl">
           {/* Header */}
           <div className="text-center space-y-6 mb-12">
-            <div className="space-y-4">
+            <div className="space-y-6">
               <div className="text-5xl">🌟</div>
               <h1 className="text-4xl font-bold text-green-800">
                 Ready to Start Your Nutrition Journey?
               </h1>
-              <p className="text-xl text-gray-600 max-w-2xl mx-auto">
-                Complete your information below and secure your consultation with Diet with Dee.
+              <p className="text-xl text-gray-600 max-w-2xl mx-auto ">
+                Complete the <a href='/KnowYourBody' className='text-green-800 font-bold'>KnowYourBody</a> Test and fill in the information below to secure your consultation.
               </p>
             </div>
           </div>
@@ -399,7 +399,7 @@ function ConsultationBooking() {
                 <div className="space-y-3">
                   <button
                     onClick={handlePaymentRedirect}
-                    className="w-full py-4 bg-gradient-to-r from-green-600 to-emerald-500 text-white font-bold rounded-xl shadow-lg hover:shadow-xl transform hover:-translate-y-1 transition-all duration-300 flex items-center justify-center space-x-2"
+                    className="w-full py-4 bg-gradient-to-r from-[#F6841F] to-[#F6841F] text-white font-bold rounded-xl shadow-lg hover:shadow-xl transform hover:-translate-y-1 transition-all duration-300 flex items-center justify-center space-x-2"
                   >
                     <Lock size={20} />
                     <span>Secure Payment - ₵800</span>
