@@ -121,16 +121,6 @@ function Plans() {
       plan: 'Back to Basics',
       location: 'Accra, Ghana'
     },
-    {
-      name: 'Michael Asare',
-      img: Gain,
-      content: 'Nana Ama’s Weight gain helped me go from a measly 55kg to 70kg in just 6 months. I had just come off a prolonged hospitalization period that left me skinny and malnourished. Through her encouragement, step-by-step approach, and constant motivation made all the difference. I feel healthier, more confident, and energized than ever before. I couldn’t have done it without her support.',
-      stars: 5,
-      profession: 'Student ',
-      plan: 'The Weight Gain',
-      location: 'Accra, Ghana'
-    }
-    
   ];
 
   // Star rating component
