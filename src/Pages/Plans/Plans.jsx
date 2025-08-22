@@ -88,7 +88,7 @@ function Plans() {
     {
       name: 'Michael Asare',
       img: Weightloss,
-      content: 'Nana Ama’s Gentle Weight Loss guide helped me go from 96kg to 78kg in just 5 months. Before that her 5 week follow up period psyched my mind for the task ahead. Her encouragement, step-by-step approach, and constant motivation made all the difference. I feel healthier, more confident, and energized than ever before. I couldn’t have done it without her support.',
+      content: 'Nana Ama’s Weight Gain guide helped me go from 56kg to 78kg in just 5 months. Before that her 5 week follow up period psyched my mind for the task ahead. Her encouragement, step-by-step approach, and constant motivation made all the difference. I feel healthier, more confident, and energized than ever before. I couldn’t have done it without her support.',
       stars: 5,
       profession: 'Professional Engineer ',
       plan: 'Snatched & Nourished',
@@ -97,10 +97,10 @@ function Plans() {
     {
       name: 'Grace Blankson',
       img: Diabetes,
-      content: 'I’ve struggled with my blood sugar for well over 2 years. Thanks to Dee’s Blood Sugar Balance Plan, I now have a trusted source of meals that actually work for me. Her warm demeanor and constant willingness to listen made all the difference. I definitely recommend her to anyone managing diabetes.',
+      content: 'I’ve struggled with hypertension for well over 2 years. Thanks to Dee’s Pressure No Dey Catch Me Plan, I now have a trusted source of meals that actually work for me. Her warm demeanor and constant willingness to listen made all the difference. I definitely recommend her to anyone managing hypertension.',
       stars: 5,
       profession: 'Trader ',
-      plan: 'Blood Sugar Balance',
+      plan: 'Pressure No Dey Catch Me',
       location: 'Takoradi, Ghana'
     },
     {
@@ -109,7 +109,7 @@ function Plans() {
       content: 'When I was diagnosed with diabetes in October 2024, it felt like a death sentence. I was scared and overwhelmed. But with the guidance of my Doctor and my Dietician, Nana Ama Dwamena, I learned that with the right lifestyle changes, exercise and a proper diet, I could live a normal life. For six weeks, I committed to the plan, not just for myself, but for my daughter Nicole. Through the Blood Sugar Balancing plan, today, I feel healthier, stronger, and more hopeful than ever. Glory be to God!',
       stars: 5,
       profession: 'Professional Engineer ',
-      plan: 'Back to Basics',
+      plan: 'Blood Sugar Balance',
       location: 'Accra, Ghana'
     },
     {
@@ -121,6 +121,15 @@ function Plans() {
       plan: 'Back to Basics',
       location: 'Accra, Ghana'
     },
+    {
+      name: 'Richard Oti',
+      img: Pressure,
+      content: "This was my very first encounter with a dietitian, and the objective of my visit was to lose weight.I must say, the results over the past few weeks have been amazing! She gave me a personalized meal plan with familiar foods that are protein-rich, low in carbs, and full of healthy fats. Since following it, my digestion has improved, my bloating has reduced, I wake up more energized, and I’ve been able to cut out late-night snacking and junk food.I feel healthier and more active than ever!",
+      stars: 5,
+      profession: 'Teacher ',
+      plan: 'Weight loss',
+      location: 'Tema, Ghana'
+    }
   ];
 
   // Star rating component
