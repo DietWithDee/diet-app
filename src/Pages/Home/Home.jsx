@@ -3,7 +3,7 @@ import SEO from '../../Components/SEO';
 import { useNavigate } from 'react-router';
 import Salad from '../../assets/Salad.png'; // Placeholder image
 import Logo from '../../assets/LOGO.png'; // Placeholder logo
-import Dee from '../../assets/images/Dee1.png'
+import Dee from '../../assets/images/Dee1.webp'
 import InstallPrompt from '../../Components/InstallPrompt';
 
 // Animated Counter Component
@@ -71,12 +71,24 @@ function Home() {
   return (
     <>
       <SEO
-        title="Best Dietitian in Ghana | Nana Ama Dwamena"
-        description="Welcome to DietWithDee, your ultimate destination for personalized diet plans and expert nutrition advice in Ghana. Start your wellness journey with Nana Ama Dwamena."
-        keywords="Dietitian, Nutritionist, Ghana, Nana Ama Dwamena, Weight Loss, Wellness, Healthy Eating, Diet With Dee"
-        image="https://dietwithdee.org/LOGO.png"
-        url="https://dietwithdee.org/"
-      />
+  title="Best Dietitian in Ghana | Nana Ama Dwamena"
+  description="Welcome to DietWithDee, your ultimate destination for personalized diet plans and expert nutrition advice in Ghana. Start your wellness journey with Nana Ama Dwamena."
+  keywords="Dietitian, Nutritionist, Ghana, Nana Ama Dwamena, Weight Loss, Wellness, Healthy Eating, Diet With Dee"
+  image="https://dietwithdee.org/LOGO.png"
+  url="https://dietwithdee.org/"
+  jsonLd={{
+    "@context": "https://schema.org",
+    "@type": "Organization",
+    "name": "DietWithDee",
+    "url": "https://dietwithdee.org",
+    "logo": "https://dietwithdee.org/LOGO.png",
+    "sameAs": [
+      "https://www.tiktok.com/@dietwithdee?_t=ZM-8yWNZKQGM8G&_r=1",
+      "https://www.instagram.com/diet.withdee?igsh=MW03bXpwMjhyZWEyNA%3D%3D&utm_source=qr",
+      "https://www.linkedin.com/company/dietwithdee/"
+    ]
+  }}
+/>
     <div className='min-h-screen bg-gradient-to-br from-green-50 via-white to-emerald-50'>
       <div className='container mx-auto px-6 lg:px-12 pt-20 lg:pt-20'>
 
