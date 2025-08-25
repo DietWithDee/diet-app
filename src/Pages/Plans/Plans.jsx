@@ -21,7 +21,7 @@ function Plans() {
       title: 'Back to Basics',
       Subtitle: 'A 5-Day Healthy Eating Reset',
       price: '₵349',
-      Url: "https://paystack.com/buy/back-to-basics-cvcqbb",
+      Url: " https://paystack.shop/pay/backtobasics",
       img: B2B,
       features: [
         '5-Day Custom Meal Plan',
@@ -34,7 +34,7 @@ function Plans() {
       title: 'Snatched & Nourished',
       Subtitle: 'Gentle Weight Loss Guide',
       price: '₵249',
-      Url: "https://paystack.com/buy/snatched-and-nourished-npenal",
+      Url: "https://paystack.shop/pay/gentleweightloss",
       img: Weightloss, 
       features: [
         'Balanced Meal Plan',
@@ -47,7 +47,7 @@ function Plans() {
       title: 'Blood Sugar Balance',
       Subtitle: 'A Type 2 Diabetes-Friendly Guide',
       price: '₵299',
-      Url: "https://paystack.com/buy/blood-sugar-balance-usamxw",
+      Url: "https://paystack.shop/pay/bloodsugar",
       img: Diabetes, 
       features: [
         'Easy to follow meal plan',
@@ -60,7 +60,7 @@ function Plans() {
       title: 'Pressure No Dey Catch Me',
       Subtitle: 'A Hypertension-Friendly Plan',
       price: '₵299',
-      Url: "https://paystack.com/buy/pressure-no-dey-catch-me-nbkexo",
+      Url: "https://paystack.shop/pay/pressurenodey",
       img: Pressure, 
       features: [
         'Heart-Smart Meal Plan',
@@ -73,7 +73,7 @@ function Plans() {
       title: 'The Weight Gain',
       Subtitle: 'Wahala-Free Plan',
       price: '₵249',
-      Url: "https://paystack.com/buy/the-weight-gain-focost",
+      Url: "https://paystack.shop/pay/weightgain",
       img: Gain, 
       features: [
         'High-calorie meal plan',
