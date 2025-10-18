@@ -26,7 +26,7 @@ function FullyBooked() {
               {/* Heading */}
               <div className="space-y-4">
                 <h1 className="text-4xl md:text-5xl font-bold text-green-800">
-                  We're Currently Fully Booked
+                  Oops! We're Currently Fully Booked
                 </h1>
                 <p className="text-xl text-gray-600 max-w-2xl mx-auto">
                   Thank you for your interest in working with us! Our consultation slots are currently full, but we'd love to help you soon.
