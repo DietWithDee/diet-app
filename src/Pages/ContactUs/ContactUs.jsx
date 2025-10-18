@@ -1,9 +1,15 @@
 import React, { useState } from 'react';
 import SEO from '../../Components/SEO';
-import { ArrowLeft, User, Mail, Calculator, Target, Heart, Utensils, MessageCircle, Phone, CheckCircle, CreditCard, Lock, Shield } from 'lucide-react';
+import { ArrowLeft, User, Mail, Calculator, Target, Heart, Utensils, MessageCircle, Phone, CheckCircle, CreditCard, Lock, Shield, Calendar, Clock } from 'lucide-react';
 import { useLocation } from 'react-router-dom';
+import FullyBooked from '../FullyBooked/FullyBooked'; // Import the FullyBooked component
 
-function ConsultationBooking() {
+function ContactUs() {
+  // 🎯Change this to control bookings
+  // true = bookings open (normal form shows)
+  // false = bookings closed (fully booked screen shows)
+  const isBookingOpen = false; // ← CHANGE THIS TO false TO CLOSE BOOKINGS
+  console.log('ContactUs loaded, isBookingOpen:', isBookingOpen)
   const [formData, setFormData] = useState({
     name: '',
     email: '',
@@ -24,6 +30,13 @@ function ConsultationBooking() {
     dietaryRestrictions: 'No restrictions',
     macros: { protein: 0, carbs: 0, fats: 0 }
   };
+
+  // Check if bookings are closed BEFORE anything else
+  if (!isBookingOpen) {
+    return <FullyBooked />; // Show fully booked page and STOP here
+  }
+
+  //  if isBookingOpen = true
 
   const handleInputChange = (e) => {
     const { name, value } = e.target;
@@ -458,4 +471,4 @@ function ConsultationBooking() {
   );
 }
 
-export default ConsultationBooking;
+export default ContactUs;
