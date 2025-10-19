@@ -22,6 +22,7 @@ function ServicesContactSection() {
   const [touchStartX, setTouchStartX] = useState(0);
   const [touchEndX, setTouchEndX] = useState(0);
   const [slideDirection, setSlideDirection] = useState('right');
+  const [manualSlideTimeoutId, setManualSlideTimeoutId] = useState(null);
 
   const minSwipeDistance = 50; 
 
@@ -48,18 +49,6 @@ function ServicesContactSection() {
     };
   }, [isLightboxOpen]);
 
-  useEffect(() => {
-    let slideInterval;
-    if (isLightboxOpen) {
-      slideInterval = setInterval(() => {
-        goToNextImage();
-      }, 3000);
-    }
-    return () => {
-      clearInterval(slideInterval);
-    };
-  }, [isLightboxOpen, currentImageIndex, goToNextImage]);
-
   const eventImages = [
     { src: Event1, alt: "Event Landscape 1" },
     { src: Event2, alt: "Event Portrait 1" },
@@ -73,6 +62,40 @@ function ServicesContactSection() {
     { src: Event9, alt: "Event Portrait 5" },
   ];
 
+  const goToNextImage = React.useCallback(() => {
+    setSlideDirection('right');
+    setCurrentImageIndex((prevIndex) =>
+      prevIndex === eventImages.length - 1 ? 0 : prevIndex + 1
+    );
+    if (manualSlideTimeoutId) {
+      clearTimeout(manualSlideTimeoutId);
+    }
+    setManualSlideTimeoutId(setTimeout(() => setManualSlideTimeoutId(null), 7000));
+  }, [eventImages.length, manualSlideTimeoutId]);
+
+  const goToPreviousImage = () => {
+    setSlideDirection('left');
+    setCurrentImageIndex((prevIndex) =>
+      prevIndex === 0 ? eventImages.length - 1 : prevIndex - 1
+    );
+    if (manualSlideTimeoutId) {
+      clearTimeout(manualSlideTimeoutId);
+    }
+    setManualSlideTimeoutId(setTimeout(() => setManualSlideTimeoutId(null), 7000));
+  };
+
+  useEffect(() => {
+    let slideInterval;
+    if (!isLightboxOpen && manualSlideTimeoutId === null) { // Animation runs when lightbox is NOT open and no manual slide has occurred recently
+      slideInterval = setInterval(() => {
+        goToNextImage();
+      }, 3000);
+    }
+    return () => {
+      clearInterval(slideInterval);
+    };
+  }, [isLightboxOpen, goToNextImage, manualSlideTimeoutId]);
+
   const openLightbox = (index) => {
     setCurrentImageIndex(index);
     setIsLightboxOpen(true);
@@ -80,20 +103,6 @@ function ServicesContactSection() {
 
   const closeLightbox = () => {
     setIsLightboxOpen(false);
-  };
-
-  const goToNextImage = React.useCallback(() => {
-    setSlideDirection('right');
-    setCurrentImageIndex((prevIndex) =>
-      prevIndex === eventImages.length - 1 ? 0 : prevIndex + 1
-    );
-  }, [eventImages.length]);
-
-  const goToPreviousImage = () => {
-    setSlideDirection('left');
-    setCurrentImageIndex((prevIndex) =>
-      prevIndex === 0 ? eventImages.length - 1 : prevIndex - 1
-    );
   };
 
   const handleTouchStart = (e) => {
