@@ -70,7 +70,7 @@ function ServicesContactSection() {
     if (manualSlideTimeoutId) {
       clearTimeout(manualSlideTimeoutId);
     }
-    setManualSlideTimeoutId(setTimeout(() => setManualSlideTimeoutId(null), 7000));
+    setManualSlideTimeoutId(setTimeout(() => setManualSlideTimeoutId(null), 5000));
   }, [eventImages.length, manualSlideTimeoutId]);
 
   const goToPreviousImage = () => {
