@@ -1,12 +1,126 @@
-import React from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import SEO from '../../Components/SEO';
-import Dee from '../../assets/crad.png'
 import Food from '../../assets/Woman.png'
 import { useNavigate } from 'react-router';
+import Event1 from '../../assets/images/Events/Event1.webp';
+import Event2 from '../../assets/images/Events/Event2.webp';
+import Event3 from '../../assets/images/Events/Event3.webp';
+import Event4 from '../../assets/images/Events/Event4.webp';
+import Event5 from '../../assets/images/Events/Event5.webp';
+import Event5_5 from '../../assets/images/Events/Event5.5.webp';
+import Event6 from '../../assets/images/Events/Event6.webp';
+import Event7 from '../../assets/images/Events/Event7.webp';
+import Event8 from '../../assets/images/Events/Event8.webp';
+import Event9 from '../../assets/images/Events/Event9.webp';
 
 function ServicesContactSection() {
   const navigate = useNavigate();
   const Url = "https://wa.me/233592330870?text=Hello%2C%20I%E2%80%99d%20like%20to%20book%20a%20session%20with%20Diet%20with%20Dee"
+
+  const [isLightboxOpen, setIsLightboxOpen] = useState(false);
+  const [currentImageIndex, setCurrentImageIndex] = useState(0);
+  const [touchStartX, setTouchStartX] = useState(0);
+  const [touchEndX, setTouchEndX] = useState(0);
+  const [slideDirection, setSlideDirection] = useState('right');
+
+  const minSwipeDistance = 50; 
+
+  const lightboxRef = useRef(null);
+
+  useEffect(() => {
+    const handleKeyDown = (event) => {
+      if (event.key === 'Escape') {
+        closeLightbox();
+      }
+    };
+
+    if (isLightboxOpen) {
+      document.addEventListener('keydown', handleKeyDown);
+      if (lightboxRef.current) {
+        lightboxRef.current.focus();
+      }
+    } else {
+      document.removeEventListener('keydown', handleKeyDown);
+    }
+
+    return () => {
+      document.removeEventListener('keydown', handleKeyDown);
+    };
+  }, [isLightboxOpen]);
+
+  useEffect(() => {
+    let slideInterval;
+    if (isLightboxOpen) {
+      slideInterval = setInterval(() => {
+        goToNextImage();
+      }, 3000);
+    }
+    return () => {
+      clearInterval(slideInterval);
+    };
+  }, [isLightboxOpen, currentImageIndex, goToNextImage]);
+
+  const eventImages = [
+    { src: Event1, alt: "Event Landscape 1" },
+    { src: Event2, alt: "Event Portrait 1" },
+    { src: Event3, alt: "Event Portrait 2" },
+    { src: Event4, alt: "Event Landscape 2" },
+    { src: Event5, alt: "Event Landscape 3" },
+    { src: Event5_5, alt: "Event Portrait 3" },
+    { src: Event6, alt: "Event Landscape 4" },
+    { src: Event7, alt: "Event Portrait 4" },
+    { src: Event8, alt: "Event Landscape 5" },
+    { src: Event9, alt: "Event Portrait 5" },
+  ];
+
+  const openLightbox = (index) => {
+    setCurrentImageIndex(index);
+    setIsLightboxOpen(true);
+  };
+
+  const closeLightbox = () => {
+    setIsLightboxOpen(false);
+  };
+
+  const goToNextImage = React.useCallback(() => {
+    setSlideDirection('right');
+    setCurrentImageIndex((prevIndex) =>
+      prevIndex === eventImages.length - 1 ? 0 : prevIndex + 1
+    );
+  }, [eventImages.length]);
+
+  const goToPreviousImage = () => {
+    setSlideDirection('left');
+    setCurrentImageIndex((prevIndex) =>
+      prevIndex === 0 ? eventImages.length - 1 : prevIndex - 1
+    );
+  };
+
+  const handleTouchStart = (e) => {
+    setTouchStartX(e.targetTouches[0].clientX);
+  };
+
+  const handleTouchMove = (e) => {
+    setTouchEndX(e.targetTouches[0].clientX);
+  };
+
+  const handleTouchEnd = () => {
+    if (touchStartX === 0 || touchEndX === 0) return; 
+
+    const distance = touchStartX - touchEndX;
+    const isLeftSwipe = distance > minSwipeDistance;
+    const isRightSwipe = distance < -minSwipeDistance;
+
+    if (isLeftSwipe) {
+      goToNextImage();
+    } else if (isRightSwipe) {
+      goToPreviousImage();
+    }
+
+    setTouchStartX(0);
+    setTouchEndX(0);
+  };
+
   return (
     <>
       <SEO
@@ -137,6 +251,100 @@ function ServicesContactSection() {
           </div>
         </div>
       </div>
+
+  {/* Events Gallery */}
+      <div className='py-12 sm:py-16 lg:py-20 bg-white'>
+        <div className='container mx-auto px-4 sm:px-6 lg:px-12'>
+          <h2 className='text-3xl sm:text-4xl lg:text-5xl font-black text-center text-transparent bg-clip-text bg-gradient-to-r from-green-700 via-emerald-600 to-green-600 leading-tight mb-12'>
+            Events Gallery
+          </h2>
+          <p className='text-center text-gray-600 mb-12'>Browse through our various community engagement and outreach programs</p>
+          <div
+            className="relative w-full max-w-lg mx-auto h-80 cursor-grab"
+            onTouchStart={handleTouchStart}
+            onTouchMove={handleTouchMove}
+            onTouchEnd={handleTouchEnd}
+            role="group"
+            aria-roledescription="carousel"
+          >
+            <div
+              key={currentImageIndex}
+              className="absolute inset-0 w-full h-full overflow-hidden shadow-lg transform transition-transform duration-300 rounded-2xl"
+              style={{ backgroundImage: `url(${eventImages[currentImageIndex].src})`, backgroundSize: 'cover', backgroundPosition: 'center' }}
+              aria-label={`Image ${currentImageIndex + 1} of ${eventImages.length}`}
+            >
+
+            </div>
+            <button
+              onClick={() => openLightbox(currentImageIndex)}
+              className="absolute bottom-4 right-4 z-50 bg-green-600 text-white rounded-full px-4 py-2 text-sm font-semibold shadow-md"
+            >
+              {currentImageIndex + 1} / {eventImages.length} Photos
+            </button>
+            <button
+              onClick={goToPreviousImage}
+              className="absolute left-4 top-1/2 transform -translate-y-1/2 text-white text-5xl z-40"
+              aria-label="Previous image"
+            >
+              &lsaquo;
+            </button>
+            <button
+              onClick={goToNextImage}
+              className="absolute right-4 top-1/2 transform -translate-y-1/2 text-white text-5xl z-40"
+              aria-label="Next image"
+            >
+              &rsaquo;
+            </button>
+          </div>
+        </div>
+      </div>
+
+      {/* Lightbox Modal */}
+      {isLightboxOpen && (
+        <div
+          className="fixed inset-0 bg-black bg-opacity-75 flex items-center justify-center z-50 p-4"
+          role="dialog"
+          aria-modal="true"
+          aria-label="Image gallery lightbox"
+          ref={lightboxRef}
+          tabIndex={-1} // Make the div focusable
+        >
+          <button
+            onClick={closeLightbox}
+            className="absolute top-4 right-4 text-white text-3xl font-bold"
+            aria-label="Close image gallery"
+          >
+            &times;
+          </button>
+          <div
+            className="relative max-w-4xl max-h-full"
+            onTouchStart={handleTouchStart}
+            onTouchMove={handleTouchMove}
+            onTouchEnd={handleTouchEnd}
+          >
+            <img
+              src={eventImages[currentImageIndex].src}
+              alt={eventImages[currentImageIndex].alt}
+              className={`max-w-full max-h-full object-contain ${slideDirection === 'right' ? 'slide-in-right' : 'slide-in-left'}`}
+              aria-label={`Image ${currentImageIndex + 1} of ${eventImages.length}`}
+            />
+            <button
+              onClick={goToPreviousImage}
+              className="absolute left-4 top-1/2 transform -translate-y-1/2 text-white text-5xl"
+              aria-label="Previous image"
+            >
+              &lsaquo;
+            </button>
+            <button
+              onClick={goToNextImage}
+              className="absolute right-4 top-1/2 transform -translate-y-1/2 text-white text-5xl"
+              aria-label="Next image"
+            >
+              &rsaquo;
+            </button>
+          </div>
+        </div>
+      )}
 
       {/* Contact Section */}
       <div className='py-12 sm:py-16 lg:py-20 bg-gradient-to-br from-green-50 to-emerald-50'>
