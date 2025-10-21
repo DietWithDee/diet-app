@@ -22,11 +22,76 @@ function ServicesContactSection() {
   const [touchStartX, setTouchStartX] = useState(0);
   const [touchEndX, setTouchEndX] = useState(0);
   const [slideDirection, setSlideDirection] = useState('right');
-  const [manualSlideTimeoutId, setManualSlideTimeoutId] = useState(null);
+  const [isPaused, setIsPaused] = useState(false);
 
   const minSwipeDistance = 50; 
 
   const lightboxRef = useRef(null);
+
+  const eventImages = [
+    { src: Event1, alt: "Event Landscape 1" },
+    { src: Event2, alt: "Event Portrait 1" },
+    { src: Event3, alt: "Event Portrait 2" },
+    { src: Event4, alt: "Event Landscape 2" },
+    { src: Event5, alt: "Event Landscape 3" },
+    { src: Event5_5, alt: "Event Portrait 3" },
+    { src: Event6, alt: "Event Landscape 4" },
+    { src: Event7, alt: "Event Portrait 4" },
+    { src: Event8, alt: "Event Landscape 5" },
+    { src: Event9, alt: "Event Portrait 5" },
+  ];
+
+  const goToNextImage = React.useCallback((isManual = false) => {
+    setSlideDirection('right');
+    setCurrentImageIndex((prevIndex) =>
+      prevIndex === eventImages.length - 1 ? 0 : prevIndex + 1
+    );
+    if (isManual) {
+      setIsPaused(true);
+    }
+  }, [eventImages.length]);
+
+  const goToPreviousImage = React.useCallback(() => {
+    setSlideDirection('left');
+    setCurrentImageIndex((prevIndex) =>
+      prevIndex === 0 ? eventImages.length - 1 : prevIndex - 1
+    );
+    setIsPaused(true);
+  }, [eventImages.length]);
+
+  const openLightbox = React.useCallback((index) => {
+    setCurrentImageIndex(index);
+    setIsLightboxOpen(true);
+  }, []);
+
+  const closeLightbox = React.useCallback(() => {
+    setIsLightboxOpen(false);
+  }, []);
+
+  const handleTouchStart = React.useCallback((e) => {
+    setTouchStartX(e.targetTouches[0].clientX);
+  }, []);
+
+  const handleTouchMove = React.useCallback((e) => {
+    setTouchEndX(e.targetTouches[0].clientX);
+  }, []);
+
+  const handleTouchEnd = React.useCallback(() => {
+    if (touchStartX === 0 || touchEndX === 0) return; 
+
+    const distance = touchStartX - touchEndX;
+    const isLeftSwipe = distance > minSwipeDistance;
+    const isRightSwipe = distance < -minSwipeDistance;
+
+    if (isLeftSwipe) {
+      goToNextImage(true);
+    } else if (isRightSwipe) {
+      goToPreviousImage();
+    }
+
+    setTouchStartX(0);
+    setTouchEndX(0);
+  }, [touchStartX, touchEndX, goToNextImage, goToPreviousImage, minSwipeDistance]);
 
   useEffect(() => {
     const handleKeyDown = (event) => {
@@ -47,94 +112,38 @@ function ServicesContactSection() {
     return () => {
       document.removeEventListener('keydown', handleKeyDown);
     };
-  }, [isLightboxOpen]);
-
-  const eventImages = [
-    { src: Event1, alt: "Event Landscape 1" },
-    { src: Event2, alt: "Event Portrait 1" },
-    { src: Event3, alt: "Event Portrait 2" },
-    { src: Event4, alt: "Event Landscape 2" },
-    { src: Event5, alt: "Event Landscape 3" },
-    { src: Event5_5, alt: "Event Portrait 3" },
-    { src: Event6, alt: "Event Landscape 4" },
-    { src: Event7, alt: "Event Portrait 4" },
-    { src: Event8, alt: "Event Landscape 5" },
-    { src: Event9, alt: "Event Portrait 5" },
-  ];
-
-  const goToNextImage = React.useCallback(() => {
-    setSlideDirection('right');
-    setCurrentImageIndex((prevIndex) =>
-      prevIndex === eventImages.length - 1 ? 0 : prevIndex + 1
-    );
-    if (manualSlideTimeoutId) {
-      clearTimeout(manualSlideTimeoutId);
-    }
-    setManualSlideTimeoutId(setTimeout(() => setManualSlideTimeoutId(null), 5000));
-  }, [eventImages.length, manualSlideTimeoutId]);
-
-  const goToPreviousImage = () => {
-    setSlideDirection('left');
-    setCurrentImageIndex((prevIndex) =>
-      prevIndex === 0 ? eventImages.length - 1 : prevIndex - 1
-    );
-    if (manualSlideTimeoutId) {
-      clearTimeout(manualSlideTimeoutId);
-    }
-    setManualSlideTimeoutId(setTimeout(() => setManualSlideTimeoutId(null), 7000));
-  };
+  }, [isLightboxOpen, closeLightbox]);
 
   useEffect(() => {
     let slideInterval;
-    if (!isLightboxOpen && manualSlideTimeoutId === null) { // Animation runs when lightbox is NOT open and no manual slide has occurred recently
+    if (!isLightboxOpen && !isPaused) {
       slideInterval = setInterval(() => {
-        goToNextImage();
+        goToNextImage(false);
       }, 3000);
     }
     return () => {
       clearInterval(slideInterval);
     };
-  }, [isLightboxOpen, goToNextImage, manualSlideTimeoutId]);
+  }, [isLightboxOpen, isPaused, goToNextImage]);
 
-  const openLightbox = (index) => {
-    setCurrentImageIndex(index);
-    setIsLightboxOpen(true);
-  };
-
-  const closeLightbox = () => {
-    setIsLightboxOpen(false);
-  };
-
-  const handleTouchStart = (e) => {
-    setTouchStartX(e.targetTouches[0].clientX);
-  };
-
-  const handleTouchMove = (e) => {
-    setTouchEndX(e.targetTouches[0].clientX);
-  };
-
-  const handleTouchEnd = () => {
-    if (touchStartX === 0 || touchEndX === 0) return; 
-
-    const distance = touchStartX - touchEndX;
-    const isLeftSwipe = distance > minSwipeDistance;
-    const isRightSwipe = distance < -minSwipeDistance;
-
-    if (isLeftSwipe) {
-      goToNextImage();
-    } else if (isRightSwipe) {
-      goToPreviousImage();
+  // Resume auto-slide after 6 seconds of manual navigation
+  useEffect(() => {
+    let resumeTimeout;
+    if (isPaused) {
+      resumeTimeout = setTimeout(() => {
+        setIsPaused(false);
+      }, 6000);
     }
-
-    setTouchStartX(0);
-    setTouchEndX(0);
-  };
+    return () => {
+      clearTimeout(resumeTimeout);
+    };
+  }, [isPaused]);
 
   return (
     <>
       <SEO
         title="Our Services | DietWithDee Nutrition & Wellness Programs"
-        description="Explore DietWithDee’s nutrition and wellness services, including personalized meal plans, weight management, and health coaching by Nana Ama Dwamena."
+        description="Explore DietWithDee's nutrition and wellness services, including personalized meal plans, weight management, and health coaching by Nana Ama Dwamena."
         keywords="DietWithDee Services, Nutrition Programs, Wellness, Meal Plans, Ghana Dietitian, Nana Ama Dwamena"
         image="https://dietwithdee.org/LOGO.png"
         url="https://dietwithdee.org/services"
@@ -181,7 +190,7 @@ function ServicesContactSection() {
                 {/* Description */}
                 <div className='space-y-4 sm:space-y-6'>
                   <p className='text-base sm:text-lg text-gray-700 leading-relaxed px-2 sm:px-0'>
-                   Health is personal, but creating impact can also be collective. We support individuals on their nutrition journey while partnering with brands, teams, and organizations to spread practical, culturally relevant wellness. Whether it’s one-on-one or on a bigger stage, we’re here to make nutrition accessible and meaningful.
+                   Health is personal, but creating impact can also be collective. We support individuals on their nutrition journey while partnering with brands, teams, and organizations to spread practical, culturally relevant wellness. Whether it's one-on-one or on a bigger stage, we're here to make nutrition accessible and meaningful.
                   </p>
                 </div>
                 
@@ -255,7 +264,7 @@ function ServicesContactSection() {
                 </svg>
               </div>
               <h3 className='text-lg sm:text-xl font-bold text-gray-900'>Professional Bookings</h3>
-              <p className='text-sm sm:text-base text-gray-600'>Elevate your team's wellbeing with our corporate wellness services</p>
+              <p className='text-sm sm:text-base text-gray-600'>Elevate your team's wellbeing with our corporate wellness services</p>
             </div>
           </div>
         </div>
@@ -291,14 +300,14 @@ function ServicesContactSection() {
               {currentImageIndex + 1} / {eventImages.length} Photos
             </button>
             <button
-              onClick={goToPreviousImage}
+              onClick={() => goToPreviousImage()}
               className="absolute left-4 top-1/2 transform -translate-y-1/2 text-white text-5xl z-40"
               aria-label="Previous image"
             >
               &lsaquo;
             </button>
             <button
-              onClick={goToNextImage}
+              onClick={() => goToNextImage(true)}
               className="absolute right-4 top-1/2 transform -translate-y-1/2 text-white text-5xl z-40"
               aria-label="Next image"
             >
@@ -316,7 +325,7 @@ function ServicesContactSection() {
           aria-modal="true"
           aria-label="Image gallery lightbox"
           ref={lightboxRef}
-          tabIndex={-1} // Make the div focusable
+          tabIndex={-1}
         >
           <button
             onClick={closeLightbox}
@@ -345,7 +354,7 @@ function ServicesContactSection() {
               &lsaquo;
             </button>
             <button
-              onClick={goToNextImage}
+              onClick={() => goToNextImage(true)}
               className="absolute right-4 top-1/2 transform -translate-y-1/2 text-white text-5xl"
               aria-label="Next image"
             >
@@ -418,7 +427,7 @@ function ServicesContactSection() {
                   href={Url}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className='w-full sm:w-auto px-6 sm:px-8 py-3 sm:py-4 bg-gradient-to-r from-orange-400 to-orange-400 text-white font-bold rounded-full shadow-lg hover:shadow-xl transform hover:-translate-y-1 transition-all duration-300 hover:from-green-700 hover:to-emerald-700 text-sm sm:text-base'>
+                  className='inline-block w-full sm:w-auto px-6 sm:px-8 py-3 sm:py-4 bg-gradient-to-r from-orange-400 to-orange-400 text-white font-bold rounded-full shadow-lg hover:shadow-xl transform hover:-translate-y-1 transition-all duration-300 hover:from-green-700 hover:to-emerald-700 text-sm sm:text-base'>
                     Get In Touch
                   </a>
                 </div>
