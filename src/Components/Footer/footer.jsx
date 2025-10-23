@@ -216,7 +216,7 @@ const Footer = () => {
               <a href="https://www.linkedin.com/company/dietwithdee/ " className="text-green-100 hover:text-white transition-colors text-xs sm:text-sm">LinkedIn</a>
               <span className="text-green-300 text-xs sm:text-sm">•</span>
               <a href="https://www.tiktok.com/@dietwithdee?_t=ZM-8yWNZKQGM8G&_r=1" className="text-green-100 hover:text-white transition-colors text-xs sm:text-sm">TikTok</a>
-              <a href="https://wa.me/233594309978?text=Hi,%20I%20would%20like%20to%20build%20something%20with%20Flywheel%20Technologies" className="text-green-100 hover:text-white transition-colors text-xs sm:text-sm "> Powered by FlyWheelTechnologies</a>
+              <a href="https://wa.me/233200645732?text=Hi,%20I%20would%20like%20to%20build%20something%20with%20Flywheel%20Technologies" className="text-green-100 hover:text-white transition-colors text-xs sm:text-sm "> Powered by FlyWheelTechnologies</a>
             </div>
           </div>
         </div>

@@ -106,7 +106,7 @@ function FullyBooked() {
                 </div>
                 <div className="flex items-start space-x-3">
                   <span className="text-xl">✓</span>
-                  <p>Explore our <a href="/blog" className="font-semibold underline hover:text-green-600"> resources and blog posts </a> for nutrition tips</p>
+                  <p>Explore our <a href="/plans" className="font-semibold underline hover:text-green-600">Plans</a> and <a href="/blog" className="font-semibold underline hover:text-green-600">blog posts</a> for nutrition tips</p>
                 </div>
                 <div className="flex items-start space-x-3">
                   <span className="text-xl">✓</span>
