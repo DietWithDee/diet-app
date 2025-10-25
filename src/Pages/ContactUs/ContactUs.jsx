@@ -58,7 +58,7 @@ function ContactUs() {
     localStorage.setItem('userResults', JSON.stringify(userResults));
     
     // Redirect to Paystack payment page
-    window.open('https://paystack.shop/pay/rsy4-wou7i', '_blank');
+    window.open('https://paystack.shop/pay/bookdee', '_blank');
     
     // Show payment instructions
     setPaymentStep('payment');
