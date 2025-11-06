@@ -2,27 +2,30 @@ import React, { useState } from 'react';
 import SEO from '../../Components/SEO';
 import { ArrowLeft, User, Mail, Calculator, Target, Heart, Utensils, MessageCircle, Phone, CheckCircle, CreditCard, Lock, Shield, Calendar, Clock } from 'lucide-react';
 import { useLocation } from 'react-router-dom';
-import FullyBooked from '../FullyBooked/FullyBooked'; // Import the FullyBooked component
+import FullyBooked from '../FullyBooked/FullyBooked';
 
 function ContactUs() {
+  // State to manage FullyBooked page visibility
+  const [isFullyBooked, setIsFullyBooked] = useState(false);
+
   // 🎯Change this to control bookings
   // true = bookings open (normal form shows)
   // false = bookings closed (fully booked screen shows)
-  const isBookingOpen = false; // ← CHANGE THIS TO false TO CLOSE BOOKINGS
-  console.log('ContactUs loaded, isBookingOpen:', isBookingOpen)
+  const isBookingOpen = true; // ← CHANGE THIS TO false TO CLOSE BOOKINGS
+  console.log('ContactUs loaded, isBookingOpen:', isBookingOpen);
+
   const [formData, setFormData] = useState({
     name: '',
     email: '',
     phone: '',
     message: ''
   });
-  
+
   const [paymentStep, setPaymentStep] = useState('form'); // 'form', 'payment', 'completed'
-  
+
   // Mock data from previous steps - in real app, this would come from props or context
   const location = useLocation();
   const userResults = location.state?.userResults || {
-    // Default values as fallback
     bmi: 0,
     bmiCategory: 'Normal Weight',
     dailyCalories: 0,
@@ -30,13 +33,6 @@ function ContactUs() {
     dietaryRestrictions: 'No restrictions',
     macros: { protein: 0, carbs: 0, fats: 0 }
   };
-
-  // Check if bookings are closed BEFORE anything else
-  if (!isBookingOpen) {
-    return <FullyBooked />; // Show fully booked page and STOP here
-  }
-
-  //  if isBookingOpen = true
 
   const handleInputChange = (e) => {
     const { name, value } = e.target;
@@ -52,14 +48,20 @@ function ContactUs() {
       alert('Please fill in all required fields (Name and Email) before proceeding to payment');
       return;
     }
-    
+
+    if (!isBookingOpen) {
+      // Show FullyBooked page if bookings are closed
+      setIsFullyBooked(true);
+      return;
+    }
+
     // Store form data in localStorage for retrieval after payment
     localStorage.setItem('consultationFormData', JSON.stringify(formData));
     localStorage.setItem('userResults', JSON.stringify(userResults));
-    
+
     // Redirect to Paystack payment page
     window.open('https://paystack.shop/pay/bookdee', '_blank');
-    
+
     // Show payment instructions
     setPaymentStep('payment');
   };
@@ -68,6 +70,11 @@ function ContactUs() {
     setPaymentStep('completed');
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
+
+  // Check if FullyBooked page should be displayed
+  if (isFullyBooked) {
+    return <FullyBooked />;
+  }
 
   // Payment Instructions Screen
   if (paymentStep === 'payment') {
