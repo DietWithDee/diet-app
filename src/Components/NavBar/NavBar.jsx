@@ -28,7 +28,7 @@ export default function NavBar() {
     <header className="fixed inset-x-0 top-0 z-50 bg-white ">
       <div className="flex items-center justify-between px-4 ">
         {/* Logo */}
-        <div className="flex items-center space-x-2">
+        <div className="flex items-center space-x-2 cursor-pointer" onClick={() => navigate('/')}> {/* Added onClick to navigate to homepage */}
           <img src={logo} alt="Logo" className="h-14 w-auto" />
           <span className="text-3xl text-green-800 font-transcity pt-4">
             DietWithDee

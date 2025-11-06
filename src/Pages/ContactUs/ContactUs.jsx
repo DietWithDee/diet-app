@@ -1,22 +1,26 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import SEO from '../../Components/SEO';
-import { ArrowLeft, User, Mail, Calculator, Target, Heart, Utensils, MessageCircle, Phone, CheckCircle, CreditCard, Lock, Shield } from 'lucide-react';
+import { ArrowLeft, User, Mail, Calculator, Target, Heart, Utensils, MessageCircle, Phone, CheckCircle, CreditCard, Lock, Shield, Calendar, Clock } from 'lucide-react';
 import { useLocation } from 'react-router-dom';
+import FullyBooked from '../FullyBooked/FullyBooked';
+import { getBookingStatus } from '../../firebaseBookingUtils';
 
-function ConsultationBooking() {
+function ContactUs() {
+  const [isFullyBooked, setIsFullyBooked] = useState(false);
+  const [isBookingOpen, setIsBookingOpen] = useState(true); // Default to true, will be updated on payment redirect
+
   const [formData, setFormData] = useState({
     name: '',
     email: '',
     phone: '',
     message: ''
   });
-  
+
   const [paymentStep, setPaymentStep] = useState('form'); // 'form', 'payment', 'completed'
-  
+
   // Mock data from previous steps - in real app, this would come from props or context
   const location = useLocation();
   const userResults = location.state?.userResults || {
-    // Default values as fallback
     bmi: 0,
     bmiCategory: 'Normal Weight',
     dailyCalories: 0,
@@ -33,20 +37,27 @@ function ConsultationBooking() {
     }));
   };
 
-  const handlePaymentRedirect = () => {
+  const handlePaymentRedirect = async () => {
     // Validate required fields before payment
     if (!formData.name || !formData.email) {
       alert('Please fill in all required fields (Name and Email) before proceeding to payment');
       return;
     }
-    
+
+    // Fetch current booking status before proceeding
+    const result = await getBookingStatus();
+    if (!result.success || !result.isOpen) {
+      setIsFullyBooked(true);
+      return;
+    }
+
     // Store form data in localStorage for retrieval after payment
     localStorage.setItem('consultationFormData', JSON.stringify(formData));
     localStorage.setItem('userResults', JSON.stringify(userResults));
-    
+
     // Redirect to Paystack payment page
-    window.open('https://paystack.shop/pay/rsy4-wou7i', '_blank');
-    
+    window.open('https://paystack.shop/pay/bookdee', '_blank');
+
     // Show payment instructions
     setPaymentStep('payment');
   };
@@ -55,6 +66,10 @@ function ConsultationBooking() {
     setPaymentStep('completed');
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
+
+  if (isFullyBooked) {
+    return <FullyBooked />;
+  }
 
   // Payment Instructions Screen
   if (paymentStep === 'payment') {
@@ -458,4 +473,4 @@ function ConsultationBooking() {
   );
 }
 
-export default ConsultationBooking;
+export default ContactUs;
