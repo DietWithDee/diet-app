@@ -59,26 +59,7 @@ function AboutUsSection() {
                   </div>
                 </div>
                 
-                {/* Key Features */}
-                <div className='grid grid-cols-1 sm:grid-cols-2 gap-4 pt-6'>
-                  <div className='flex items-center gap-3 p-4 bg-white rounded-xl shadow-sm'>
-                    <div className='w-3 h-3 bg-green-500 rounded-full'></div>
-                    <span className='text-gray-700 font-medium'>Expert Professionals</span>
-                  </div>
-                  <div className='flex items-center gap-3 p-4 bg-white rounded-xl shadow-sm'>
-                    <div className='w-3 h-3 bg-emerald-500 rounded-full'></div>
-                    <span className='text-gray-700 font-medium'>Personalized Approach</span>
-                  </div>
-                  <div className='flex items-center gap-3 p-4 bg-white rounded-xl shadow-sm'>
-                    <div className='w-3 h-3 bg-green-400 rounded-full'></div>
-                    <span className='text-gray-700 font-medium'>Evidence-based Care</span>
-                  </div>
-                  <div className='flex items-center gap-3 p-4 bg-white rounded-xl shadow-sm'>
-                    <div className='w-3 h-3 bg-emerald-400 rounded-full'></div>
-                    <span className='text-gray-700 font-medium'>Proven Results</span>
-                  </div>
-                </div>
-                
+
                 {/* CTA Button */}
                 <div className='pt-6'>
                   <button 
