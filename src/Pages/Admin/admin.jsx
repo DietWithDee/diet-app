@@ -637,10 +637,6 @@ const AdminLogin = ({ onLogin }) => {
               )}
             </button>
           </div>
-
-          <div className="mt-6 text-xs text-gray-500 text-center">
-            Demo credentials: admin@dietwithdee.org / admin123
-          </div>
         </div>
       </div>
     </div>
