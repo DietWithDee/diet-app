@@ -1,18 +1,13 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import SEO from '../../Components/SEO';
 import { ArrowLeft, User, Mail, Calculator, Target, Heart, Utensils, MessageCircle, Phone, CheckCircle, CreditCard, Lock, Shield, Calendar, Clock } from 'lucide-react';
 import { useLocation } from 'react-router-dom';
 import FullyBooked from '../FullyBooked/FullyBooked';
+import { getBookingStatus } from '../../firebaseBookingUtils';
 
 function ContactUs() {
-  // State to manage FullyBooked page visibility
   const [isFullyBooked, setIsFullyBooked] = useState(false);
-
-  // 🎯Change this to control bookings
-  // true = bookings open (normal form shows)
-  // false = bookings closed (fully booked screen shows)
-  const isBookingOpen = true; // ← CHANGE THIS TO false TO CLOSE BOOKINGS
-  console.log('ContactUs loaded, isBookingOpen:', isBookingOpen);
+  const [isBookingOpen, setIsBookingOpen] = useState(true); // Default to true, will be updated on payment redirect
 
   const [formData, setFormData] = useState({
     name: '',
@@ -42,15 +37,16 @@ function ContactUs() {
     }));
   };
 
-  const handlePaymentRedirect = () => {
+  const handlePaymentRedirect = async () => {
     // Validate required fields before payment
     if (!formData.name || !formData.email) {
       alert('Please fill in all required fields (Name and Email) before proceeding to payment');
       return;
     }
 
-    if (!isBookingOpen) {
-      // Show FullyBooked page if bookings are closed
+    // Fetch current booking status before proceeding
+    const result = await getBookingStatus();
+    if (!result.success || !result.isOpen) {
       setIsFullyBooked(true);
       return;
     }
@@ -71,7 +67,6 @@ function ContactUs() {
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
-  // Check if FullyBooked page should be displayed
   if (isFullyBooked) {
     return <FullyBooked />;
   }

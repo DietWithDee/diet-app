@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { Eye, EyeOff, Plus, Edit2, Trash2, Save, X, AlertCircle, CheckCircle, Loader, Bold, Italic, Underline, List, ListOrdered, Link, Quote, Type } from 'lucide-react';
 import { createArticle, getArticles , deleteArticle} from '../../firebaseUtils';
+import { getBookingStatus, setBookingStatus } from '../../firebaseBookingUtils';
 import { sendNewArticleNewsletter } from '../../EmailTemplateSystem/emailServices';
 import NoIndex from "../../Components/NoIndex";
 
@@ -970,6 +971,50 @@ const AdminDashboard = ({ onLogout }) => {
   const [articles, setArticles] = useState([]);
   const [notification, setNotification] = useState(null);
   const [isLoading, setIsLoading] = useState(true);
+  const [isBookingOpen, setIsBookingOpen] = useState(false); // New state for booking toggle
+
+  // Function to fetch booking status
+  const fetchBookingStatus = async () => {
+    const result = await getBookingStatus();
+    if (result.success) {
+      return result.isOpen;
+    } else {
+      showNotification('error', 'Failed to load booking status.');
+      console.error('Error loading booking status:', result.error);
+      return false; // Default to closed on error
+    }
+  };
+
+  // Function to update booking status
+  const updateBookingStatusInFirestore = async (status) => {
+    const result = await setBookingStatus(status);
+    if (result.success) {
+      showNotification('success', `Bookings are now ${status ? 'open' : 'closed'}.`);
+      return { success: true };
+    } else {
+      showNotification('error', 'Failed to update booking status.');
+      console.error('Error updating booking status:', result.error);
+      return { success: false };
+    }
+  };
+
+  useEffect(() => {
+    const getStatus = async () => {
+      const status = await fetchBookingStatus();
+      setIsBookingOpen(status);
+    };
+    getStatus();
+  }, []);
+
+  const handleBookingToggle = async () => {
+    const newStatus = !isBookingOpen;
+    const result = await updateBookingStatusInFirestore(newStatus);
+    if (result.success) {
+      setIsBookingOpen(newStatus);
+    } else {
+      showNotification('error', 'Failed to update booking status.');
+    }
+  };
 
   const showNotification = (type, message) => {
     setNotification({ type, message });
@@ -1032,6 +1077,29 @@ const AdminDashboard = ({ onLogout }) => {
       </div>
 
       <div className="container mx-auto px-4 py-8">
+        {/* Booking Toggle UI */}
+        <div className="bg-white rounded-xl shadow-lg p-6 mb-8 border border-green-100 flex items-center justify-between">
+          <h2 className="text-xl font-bold text-green-700">Manage Bookings</h2>
+          <label htmlFor="booking-toggle" className="flex items-center cursor-pointer">
+            <div className="relative">
+              <input
+                type="checkbox"
+                id="booking-toggle"
+                className="sr-only"
+                checked={isBookingOpen}
+                onChange={handleBookingToggle}
+              />
+              <div className="block bg-gray-300 w-14 h-8 rounded-full"></div>
+              <div
+                className={`dot absolute left-1 top-1 bg-white w-6 h-6 rounded-full transition-transform ${isBookingOpen ? 'translate-x-full bg-green-500' : ''}`}
+              ></div>
+            </div>
+            <div className="ml-3 text-gray-700 font-medium">
+              {isBookingOpen ? 'Bookings Open' : 'Bookings Closed'}
+            </div>
+          </label>
+        </div>
+
         <div className="bg-white rounded-xl shadow-lg overflow-hidden">
           <div className="flex border-b border-gray-200">
             <div className="flex-1 py-4 px-6 text-center font-medium text-green-600 border-b-2 border-green-600 bg-green-50">

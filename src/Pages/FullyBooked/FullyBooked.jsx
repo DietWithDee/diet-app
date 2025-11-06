@@ -1,8 +1,12 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import SEO from '../../Components/SEO';
 import { Calendar, MessageCircle, Mail, Clock, ArrowLeft } from 'lucide-react';
 
 function FullyBooked() {
+  useEffect(() => {
+    window.scrollTo(0, 0);
+  }, []);
+
   return (
     <>
       <SEO
