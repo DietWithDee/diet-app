@@ -29,6 +29,22 @@ function ContactUs() {
     macros: { protein: 0, carbs: 0, fats: 0 }
   };
 
+  // Check booking status on mount to prevent async blocking later
+  useEffect(() => {
+    const checkAvailability = async () => {
+      try {
+        const result = await getBookingStatus();
+        if (!result.success || !result.isOpen) {
+          setIsFullyBooked(true);
+        }
+      } catch (error) {
+        console.error("Error checking booking status:", error);
+        // Optional: Default to open or closed on error depending on preference
+      }
+    };
+    checkAvailability();
+  }, []);
+
   const handleInputChange = (e) => {
     const { name, value } = e.target;
     setFormData(prev => ({
@@ -37,28 +53,25 @@ function ContactUs() {
     }));
   };
 
-  const handlePaymentRedirect = async () => {
-    // Validate required fields before payment
+  const handlePaymentRedirect = () => {
+    // 1. Validate required fields
     if (!formData.name || !formData.email) {
       alert('Please fill in all required fields (Name and Email) before proceeding to payment');
       return;
     }
 
-    // Fetch current booking status before proceeding
-    const result = await getBookingStatus();
-    if (!result.success || !result.isOpen) {
-      setIsFullyBooked(true);
-      return;
-    }
+    // Note: We removed the async getBookingStatus check here. 
+    // Since we checked on mount, if the user is still on this screen, 
+    // we assume bookings are open. This ensures window.open fires synchronously.
 
-    // Store form data in localStorage for retrieval after payment
+    // 2. Store form data in localStorage
     localStorage.setItem('consultationFormData', JSON.stringify(formData));
     localStorage.setItem('userResults', JSON.stringify(userResults));
 
-    // Redirect to Paystack payment page
+    // 3. Redirect to Paystack (Now Synchronous - Browser will allow this)
     window.open('https://paystack.shop/pay/bookdee', '_blank');
 
-    // Show payment instructions
+    // 4. Show payment instructions
     setPaymentStep('payment');
   };
 

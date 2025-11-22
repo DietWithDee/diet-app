@@ -8,7 +8,7 @@ const EMAIL_SERVICE_CONFIG = {
   serviceId: 'service_6dvxkid',
   templateId: 'template_u0bmden',
   publicKey: 'T7o7fFGosrfDNbf16',
-  fromEmail: 'nana@dietwithdee.com',
+  fromEmail: 'dietwdee@gmail.com',
   fromName: 'Nana Ama from Diet with Dee'
 };
 
