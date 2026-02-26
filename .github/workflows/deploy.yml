@@ -21,10 +21,11 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: 22
-          cache: 'npm'
 
-      - name: Install dependencies
-        run: npm install
+      - name: Clean install for correct platform binaries
+        run: |
+          rm -f package-lock.json
+          npm install
 
       - name: Generate Sitemap
         run: node scripts/generate-sitemap.mjs
