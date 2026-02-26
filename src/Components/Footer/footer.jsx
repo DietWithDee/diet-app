@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { MessageCircle, CheckCircle, AlertCircle, Loader, Instagram, Linkedin, Music2 } from 'lucide-react';
 import { saveEmailToFirestore } from '../../firebaseUtils';
 import { Link } from 'react-router-dom';
+import { isValidEmail } from '../../utils/validation';
 
 const Footer = () => {
   const [email, setEmail] = useState('');
@@ -10,8 +11,6 @@ const Footer = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [message, setMessage] = useState({ type: '', text: '' });
   const Url = "https://wa.me/233592330870?text=Hello%2C%20I%E2%80%99d%20like%20to%20book%20a%20session%20with%20Diet%20with%20Dee";
-
-  const isValidEmail = (email) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
 
   const clearMessage = () => {
     setTimeout(() => setMessage({ type: '', text: '' }), 5000);

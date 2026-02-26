@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { saveEmailToFirestore } from "../firebaseUtils";
+import { isValidEmail } from "../utils/validation";
 
 const LS_KEY_DISMISSED = "newsletterPopupLastDismissed";
 const LS_KEY_COUNT = "newsletterPopupCount";
@@ -41,7 +42,7 @@ export default function NewsletterPopup() {
 
     const handleSubscribe = async () => {
         const trimmed = email.trim().toLowerCase();
-        if (!trimmed || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(trimmed)) {
+        if (!trimmed || !isValidEmail(trimmed)) {
             setStatus("error");
             setErrorMsg("Please enter a valid email.");
             return;

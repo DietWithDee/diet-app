@@ -4,6 +4,7 @@ import { ArrowLeft, User, Mail, Calculator, Target, Heart, Utensils, MessageCirc
 import { useLocation } from 'react-router-dom';
 import FullyBooked from '../FullyBooked/FullyBooked';
 import { getBookingStatus } from '../../firebaseBookingUtils';
+import { isValidEmail } from '../../utils/validation';
 
 function ContactUs() {
   const [isFullyBooked, setIsFullyBooked] = useState(false);
@@ -57,6 +58,11 @@ function ContactUs() {
     // 1. Validate required fields
     if (!formData.name || !formData.email) {
       alert('Please fill in all required fields (Name and Email) before proceeding to payment');
+      return;
+    }
+
+    if (!isValidEmail(formData.email)) {
+      alert('Please enter a valid email address');
       return;
     }
 
@@ -250,7 +256,7 @@ function ContactUs() {
                 Ready to Start Your Nutrition Journey?
               </h1>
               <p className="text-xl text-gray-600 max-w-2xl mx-auto ">
-                Complete the <a href='/KnowYourBody' className='text-green-800 font-bold'>KnowYourBody</a> Test and fill in the information below to secure your consultation.
+                Complete the <a href='/KnowYourBody' className='text-green-800 font-bold underline'>KnowYourBody</a> Test in <a href='/my-journey' className='text-green-800 font-bold underline'>My Journey</a> and fill in the information below to secure your consultation.
               </p>
             </div>
           </div>
