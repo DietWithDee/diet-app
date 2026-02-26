@@ -30,6 +30,9 @@ jobs:
       - name: Generate Sitemap
         run: node scripts/generate-sitemap.mjs
 
+      - name: Create .env file
+        run: echo "${{ secrets.ENV_FILE }}" > .env
+
       - name: Build
         run: npm run build
 
