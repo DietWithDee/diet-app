@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import SEO from '../../Components/SEO';
 import { useNavigate, useParams } from 'react-router-dom';
 import { Loader, Calendar, User, ArrowRight, ArrowLeft, Share2, Heart, MessageCircle } from 'lucide-react';
-import { getArticles, likeNews, markArticleHelpful } from '../../firebaseUtils';
+import { getArticlesPaged, getArticleById, likeNews, markArticleHelpful } from '../../firebaseUtils';
 import BlogImage from '../../assets/Salad.png'; // Fallback image
 import BlogArticleSEO from '../../Components/BlogArticleSEO';
 import ScrollHideRefreshButton from '../../utils/ScrollHideRefreshButton';
@@ -19,6 +19,10 @@ function Blog() {
   const [likingArticles, setLikingArticles] = useState(new Set());
   const [feedbackArticles, setFeedbackArticles] = useState(new Set());
   const [isLoadingArticles, setIsLoadingArticles] = useState(false);
+  const [lastVisibleDoc, setLastVisibleDoc] = useState(null);
+  const [hasMore, setHasMore] = useState(true);
+  const [isLoadingMore, setIsLoadingMore] = useState(false);
+  const [isInitialLoadingArticle, setIsInitialLoadingArticle] = useState(false);
 
   useEffect(() => {
     loadArticles();
@@ -26,43 +30,66 @@ function Blog() {
 
   // When articles load or route changes, open the right article if there's an :id
   useEffect(() => {
-    if (!routeId) return;
-    // If we already have posts, try to find it
+    if (!routeId) {
+      if (viewMode === 'article') {
+        setViewMode('list');
+        setSelectedArticle(null);
+      }
+      return;
+    }
+
+    // If we're already viewing this article, do nothing
+    if (selectedArticle && selectedArticle.id === routeId) {
+      if (viewMode !== 'article') setViewMode('article');
+      return;
+    }
+
+    // Try to find it in current blogPosts list
     const found = blogPosts.find(p => p.id === routeId);
     if (found) {
       setSelectedArticle(found);
-      setViewMode('article');
+      if (viewMode !== 'article') setViewMode('article');
       return;
     }
-    // Otherwise fetch and select when available
-    (async () => {
-      const res = await getArticles();
-      if (res?.success) {
-        const list = res.data || [];
-        setBlogPosts(list);
-        const match = list.find(p => p.id === routeId);
-        if (match) {
-          setSelectedArticle(match);
+
+    // Otherwise fetch specifically this article
+    const fetchSingleArticle = async () => {
+      setIsInitialLoadingArticle(true);
+      try {
+        const res = await getArticleById(routeId);
+        if (res?.success) {
+          setSelectedArticle(res.data);
           setViewMode('article');
+        } else {
+          setError('Article not found');
         }
+      } catch (err) {
+        console.error('Error fetching single article:', err);
+        setError('Failed to load article');
+      } finally {
+        setIsInitialLoadingArticle(false);
       }
-    })();
+    };
+    
+    fetchSingleArticle();
   }, [routeId, blogPosts]);
 
   const loadArticles = async () => {
     setIsLoading(true);
     setError(null);
 
-    // ✅ Scroll to top on step change
+    // ✅ Scroll to top on load
     setTimeout(() => {
       window.scrollTo({ top: 0, behavior: 'smooth' });
-    }, 100); // Delay slightly to ensure DOM has updated
+    }, 100);
 
     try {
-      const result = await getArticles();
+      const result = await getArticlesPaged(6);
 
       if (result.success) {
         setBlogPosts(result.data || []);
+        setLastVisibleDoc(result.lastVisible);
+        setHasMore(result.hasMore);
       } else {
         setError('Failed to load articles');
         console.error('Error loading articles:', result.error);
@@ -73,15 +100,25 @@ function Blog() {
     } finally {
       setIsLoading(false);
     }
+  };
 
-    setIsLoadingArticles(true);
+  const loadMoreArticles = async () => {
+    if (isLoadingMore || !hasMore) return;
+    
+    setIsLoadingMore(true);
     try {
-      // Your article loading logic here
-      await getArticles();
+      const result = await getArticlesPaged(6, lastVisibleDoc);
+      
+      if (result.success) {
+        const newPosts = result.data || [];
+        setBlogPosts(prev => [...prev, ...newPosts]);
+        setLastVisibleDoc(result.lastVisible);
+        setHasMore(result.hasMore);
+      }
     } catch (error) {
-      console.error('Failed to load articles:', error);
+      console.error('Error loading more articles:', error);
     } finally {
-      setIsLoadingArticles(false);
+      setIsLoadingMore(false);
     }
   };
 
@@ -241,12 +278,14 @@ function Blog() {
   };
 
   // Loading state
-  if (isLoading) {
+  if (isLoading || isInitialLoadingArticle) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-green-50 via-white to-emerald-50 flex items-center justify-center px-4">
         <div className="text-center space-y-4">
           <Loader className="animate-spin text-green-600 mx-auto" size={48} />
-          <p className="text-gray-600 text-lg">Loading articles...</p>
+          <p className="text-gray-600 text-lg">
+            {isInitialLoadingArticle ? 'Loading article...' : 'Loading articles...'}
+          </p>
         </div>
       </div>
     );
@@ -378,8 +417,8 @@ function Blog() {
                 <div
                   className="prose prose-sm sm:prose-base lg:prose-lg max-w-none text-gray-800 leading-relaxed"
                   style={{
-                    fontSize: '14px',
-                    lineHeight: '1.6'
+                    fontSize: '18px',
+                    lineHeight: '1.8'
                   }}
                   dangerouslySetInnerHTML={{ __html: selectedArticle.content }}
                 />
@@ -595,6 +634,31 @@ function Blog() {
                 </div>
               </article>
             ))}
+          </div>
+        )}
+
+        {/* Load More Button */}
+        {viewMode === 'list' && hasMore && blogPosts.length > 0 && (
+          <div className="mt-12 text-center">
+            <button
+              onClick={loadMoreArticles}
+              disabled={isLoadingMore}
+              className={`px-8 py-3 bg-white border-2 border-green-600 text-green-700 font-bold rounded-full transition-all hover:bg-green-50 flex items-center gap-2 mx-auto ${
+                isLoadingMore ? 'opacity-70 cursor-not-allowed' : ''
+              }`}
+            >
+              {isLoadingMore ? (
+                <>
+                  <Loader className="animate-spin" size={20} />
+                  Loading...
+                </>
+              ) : (
+                <>
+                  Load More Articles
+                  <ArrowRight size={20} />
+                </>
+              )}
+            </button>
           </div>
         )}
       </div>

@@ -60,13 +60,22 @@ function MyJourney() {
                         </h1>
                         <div className="w-20 h-2 bg-gradient-to-r from-green-500 to-emerald-500 rounded-full mx-auto mb-8"></div>
 
-                        <p className="text-lg lg:text-xl text-gray-600 leading-relaxed">
+                        <p className="text-lg lg:text-xl text-gray-600 leading-relaxed mb-8">
                             We're building something special just for you.{' '}
                             <span className="text-green-700 font-bold">My Journey</span> will
                             be your personalised wellness hub...a place to track your
                             progress, manage your preferences, and discover content curated
                             for your goals.
                         </p>
+
+                        <div className="bg-orange-50 rounded-2xl p-6 border border-orange-100 inline-block max-w-lg shadow-sm">
+                            <p className="text-orange-900 font-medium mb-4">
+                                Create an account with us to be notified when this is available!
+                            </p>
+                            <button className="px-10 py-3 bg-[#F6841F] text-white font-bold rounded-full shadow-lg hover:shadow-xl transform hover:-translate-y-0.5 transition-all duration-300 hover:bg-orange-600">
+                                Get started
+                            </button>
+                        </div>
                     </div>
 
                     {/* Under construction illustration */}
@@ -80,7 +89,7 @@ function MyJourney() {
                                 Page Under Development
                             </h2>
                             <p className="text-gray-500">
-                               Godwin and Prince are hard at work crafting this experience. Let Us cook!
+                               We are hard at work crafting this experience. Let Us cook!
                             </p>
                         </div>
                     </div>

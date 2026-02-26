@@ -11,7 +11,9 @@ import {
   Timestamp, 
   orderBy, 
   query,
-  increment
+  increment,
+  limit,
+  startAfter
 } from "firebase/firestore";
 import { ref, uploadBytes, getDownloadURL, deleteObject } from "firebase/storage";
 
@@ -70,6 +72,48 @@ export const getArticles = async () => {
     return { success: true, data: articles };
   } catch (error) {
     console.error("Error fetching articles:", error);
+    return { success: false, error: error.message };
+  }
+};
+
+// GET articles with pagination
+export const getArticlesPaged = async (pageSize = 6, lastVisibleDoc = null) => {
+  try {
+    let q;
+    if (lastVisibleDoc) {
+      q = query(
+        collection(db, "articles"), 
+        orderBy("createdAt", "desc"), 
+        startAfter(lastVisibleDoc),
+        limit(pageSize)
+      );
+    } else {
+      q = query(
+        collection(db, "articles"), 
+        orderBy("createdAt", "desc"), 
+        limit(pageSize)
+      );
+    }
+    
+    const snapshot = await getDocs(q);
+    const lastVisible = snapshot.docs[snapshot.docs.length - 1];
+    
+    const articles = snapshot.docs.map(doc => ({
+      id: doc.id,
+      ...doc.data(),
+      likesCount: doc.data().likesCount || 0,
+      helpfulCount: doc.data().helpfulCount || 0,
+      notHelpfulCount: doc.data().notHelpfulCount || 0
+    }));
+    
+    return { 
+      success: true, 
+      data: articles, 
+      lastVisible, 
+      hasMore: articles.length === pageSize 
+    };
+  } catch (error) {
+    console.error("Error fetching paged articles:", error);
     return { success: false, error: error.message };
   }
 };
