@@ -2,12 +2,18 @@
 export const createEmailTemplate = (title, imageUrl, articleId) => {
   return `
     <!DOCTYPE html>
-    <html lang="en">
+    <html lang="en" xmlns="http://www.w3.org/1999/xhtml">
     <head>
         <meta charset="UTF-8">
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <meta name="color-scheme" content="light dark">
+        <meta name="supported-color-schemes" content="light dark">
         <title>New Article from Diet with Dee</title>
         <style>
+            :root {
+                color-scheme: light dark;
+            }
+
             * {
                 margin: 0;
                 padding: 0;
@@ -18,7 +24,7 @@ export const createEmailTemplate = (title, imageUrl, articleId) => {
                 font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
                 line-height: 1.6;
                 color: #1f2937;
-                background: linear-gradient(135deg, #f0fdf4 0%, #ecfdf5 100%);
+                background-color: #f0fdf4;
                 padding: 20px 0;
             }
             
@@ -29,27 +35,22 @@ export const createEmailTemplate = (title, imageUrl, articleId) => {
                 border-radius: 20px;
                 overflow: hidden;
                 box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
-                border: 1px solid rgba(255, 255, 255, 0.2);
-                backdrop-filter: blur(10px);
+                border: 1px solid #e5e7eb;
             }
             
             .header {
-                background: linear-gradient(135deg, #ffffff 0%, #f8fafc 100%);
+                background-color: #ffffff;
                 padding: 40px 20px 30px;
                 text-align: center;
                 position: relative;
                 overflow: hidden;
             }
             
-            .header::before {
-                content: '';
-                position: absolute;
-                top: 0;
-                left: 0;
-                right: 0;
+            .header-accent {
+                display: block;
+                width: 100%;
                 height: 4px;
-                background: linear-gradient(90deg, #fdba74, #fb923c);
-                border-radius: 0 0 2px 2px;
+                background-color: #fb923c;
             }
             
             .logo-img {
@@ -57,12 +58,6 @@ export const createEmailTemplate = (title, imageUrl, articleId) => {
                 max-width: 80%;
                 margin: 0 auto 20px;
                 display: block;
-                filter: drop-shadow(0 4px 8px rgba(0, 0, 0, 0.1));
-                transition: transform 0.3s ease;
-            }
-            
-            .logo-img:hover {
-                transform: scale(1.05);
             }
             
             .subtitle {
@@ -70,21 +65,17 @@ export const createEmailTemplate = (title, imageUrl, articleId) => {
                 font-weight: 700;
                 color: #16a34a;
                 letter-spacing: 0.5px;
-                text-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
             }
             
             .content {
                 padding: 50px 40px;
-                background: linear-gradient(180deg, #ffffff 0%, #fefefe 100%);
+                background-color: #ffffff;
             }
             
             .greeting {
                 font-size: 24px;
                 font-weight: 700;
-                background: linear-gradient(135deg, #16a34a, #15803d);
-                -webkit-background-clip: text;
-                -webkit-text-fill-color: transparent;
-                background-clip: text;
+                color: #16a34a;
                 margin-bottom: 25px;
                 text-align: center;
             }
@@ -98,7 +89,6 @@ export const createEmailTemplate = (title, imageUrl, articleId) => {
                 max-width: 480px;
                 margin-left: auto;
                 margin-right: auto;
-                margin-bottom: 35px;
             }
             
             .article-preview {
@@ -106,11 +96,8 @@ export const createEmailTemplate = (title, imageUrl, articleId) => {
                 border-radius: 20px;
                 overflow: hidden;
                 margin-bottom: 35px;
-                background: linear-gradient(145deg, #fff7ed, #fffaf5);
-                box-shadow: 0 15px 30px rgba(253, 186, 116, 0.25);
-                transform: translateY(0);
-                transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
-                position: relative;
+                background-color: #fff7ed;
+                box-shadow: 0 10px 25px rgba(253, 186, 116, 0.2);
             }
             
             .article-image {
@@ -118,12 +105,11 @@ export const createEmailTemplate = (title, imageUrl, articleId) => {
                 height: 240px;
                 object-fit: cover;
                 display: block;
-                transition: transform 0.4s ease;
             }
             
             .article-content {
                 padding: 30px;
-                background: linear-gradient(145deg, #ffffff, #fafafa);
+                background-color: #ffffff;
             }
             
             .article-title {
@@ -137,17 +123,14 @@ export const createEmailTemplate = (title, imageUrl, articleId) => {
             
             .cta-button {
                 display: inline-block;
-                background: linear-gradient(135deg, #fdba74 0%, #fb923c 50%, #f97316 100%);
-                color: white;
+                background-color: #f97316;
+                color: #ffffff;
                 text-decoration: none;
                 font-weight: 700;
                 font-size: 16px;
                 padding: 18px 36px;
                 border-radius: 12px;
-                transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
-                box-shadow: 0 8px 25px rgba(253, 186, 116, 0.5);
-                position: relative;
-                overflow: hidden;
+                box-shadow: 0 8px 20px rgba(249, 115, 22, 0.35);
                 text-transform: uppercase;
                 letter-spacing: 0.5px;
                 width: 100%;
@@ -156,36 +139,22 @@ export const createEmailTemplate = (title, imageUrl, articleId) => {
             }
             
             .cta-button:hover {
-                background: linear-gradient(135deg, #fb923c 0%, #f97316 50%, #ea580c 100%);
-                box-shadow: 0 15px 40px rgba(251, 146, 60, 0.55);
-                transform: translateY(-3px);
+                background-color: #ea580c;
             }
             
             .divider {
                 height: 2px;
-                background: linear-gradient(90deg, transparent, #fdba74, transparent);
-                margin: 40px 0;
+                background-color: #fdba74;
+                margin: 40px auto;
                 border-radius: 1px;
+                max-width: 200px;
             }
             
             .footer {
-                background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%);
+                background-color: #f8fafc;
                 padding: 40px 30px;
                 text-align: center;
                 border-top: 1px solid #e2e8f0;
-                position: relative;
-            }
-            
-            .footer::before {
-                content: '';
-                position: absolute;
-                top: 0;
-                left: 50%;
-                transform: translateX(-50%);
-                width: 100px;
-                height: 3px;
-                background: linear-gradient(90deg, #fdba74, #fb923c);
-                border-radius: 0 0 10px 10px;
             }
             
             .footer-text {
@@ -207,14 +176,157 @@ export const createEmailTemplate = (title, imageUrl, articleId) => {
                 text-decoration: none;
                 padding: 8px 16px;
                 border-radius: 20px;
-                background: rgba(148, 163, 184, 0.1);
-                transition: all 0.3s ease;
+                background-color: #f1f5f9;
                 display: inline-block;
+            }
+
+            /* ========== DARK MODE ========== */
+            @media (prefers-color-scheme: dark) {
+                body {
+                    background-color: #1a1a2e !important;
+                    color: #e0e0e0 !important;
+                }
+
+                .email-container {
+                    background-color: #2d2d44 !important;
+                    border-color: #3a3a52 !important;
+                    box-shadow: 0 20px 40px rgba(0, 0, 0, 0.4) !important;
+                }
+
+                .header {
+                    background-color: #2d2d44 !important;
+                }
+
+                .subtitle {
+                    color: #4ade80 !important;
+                }
+
+                .content {
+                    background-color: #2d2d44 !important;
+                }
+
+                .greeting {
+                    color: #4ade80 !important;
+                }
+
+                .message {
+                    color: #c9c9d4 !important;
+                }
+
+                .article-preview {
+                    background-color: #3a3a52 !important;
+                    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.3) !important;
+                }
+
+                .article-content {
+                    background-color: #33334a !important;
+                }
+
+                .article-title {
+                    color: #f0f0f0 !important;
+                }
+
+                .cta-button {
+                    background-color: #f97316 !important;
+                    color: #ffffff !important;
+                    box-shadow: 0 8px 20px rgba(249, 115, 22, 0.25) !important;
+                }
+
+                .divider {
+                    background-color: #f9731680 !important;
+                }
+
+                .footer {
+                    background-color: #252540 !important;
+                    border-top-color: #3a3a52 !important;
+                }
+
+                .footer-text {
+                    color: #a0a0b4 !important;
+                }
+
+                .footer-text strong {
+                    color: #d0d0e0 !important;
+                }
+
+                .unsubscribe {
+                    color: #9090a8 !important;
+                    background-color: #3a3a52 !important;
+                }
+            }
+
+            /* Outlook App (Android/iOS) dark mode */
+            [data-ogsc] body {
+                background-color: #1a1a2e !important;
+                color: #e0e0e0 !important;
+            }
+
+            [data-ogsc] .email-container {
+                background-color: #2d2d44 !important;
+                border-color: #3a3a52 !important;
+            }
+
+            [data-ogsc] .header {
+                background-color: #2d2d44 !important;
+            }
+
+            [data-ogsc] .subtitle {
+                color: #4ade80 !important;
+            }
+
+            [data-ogsc] .content {
+                background-color: #2d2d44 !important;
+            }
+
+            [data-ogsc] .greeting {
+                color: #4ade80 !important;
+            }
+
+            [data-ogsc] .message {
+                color: #c9c9d4 !important;
+            }
+
+            [data-ogsc] .article-preview {
+                background-color: #3a3a52 !important;
+            }
+
+            [data-ogsc] .article-content {
+                background-color: #33334a !important;
+            }
+
+            [data-ogsc] .article-title {
+                color: #f0f0f0 !important;
+            }
+
+            [data-ogsc] .cta-button {
+                background-color: #f97316 !important;
+                color: #ffffff !important;
+            }
+
+            [data-ogsc] .footer {
+                background-color: #252540 !important;
+                border-top-color: #3a3a52 !important;
+            }
+
+            [data-ogsc] .footer-text {
+                color: #a0a0b4 !important;
+            }
+
+            [data-ogsc] .footer-text strong {
+                color: #d0d0e0 !important;
+            }
+
+            [data-ogsc] .unsubscribe {
+                color: #9090a8 !important;
+                background-color: #3a3a52 !important;
             }
         </style>
     </head>
     <body>
         <div class="email-container">
+            <!-- Orange accent bar -->
+            <div class="header-accent"></div>
+
             <!-- Header -->
             <div class="header">
                 <img src="https://dietwithdee.org/LOGO.png" alt="DietWithDee Logo" class="logo-img" />
@@ -238,7 +350,7 @@ export const createEmailTemplate = (title, imageUrl, articleId) => {
                         <h2 class="article-title">${title}</h2>
                         <a href="https://dietwithdee.org/blog/${articleId}" 
                            class="cta-button">
-                            Vist Website →
+                            Visit Website →
                         </a>
                     </div>
                 </div>
