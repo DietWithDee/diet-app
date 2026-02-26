@@ -1,0 +1,8 @@
+name = "dwd-email-proxy"
+main = "src/worker.js"
+compatibility_date = "2024-01-01"
+
+[vars]
+ALLOWED_ORIGIN = "https://dietwithdee.org"
+FROM_EMAIL = "noreply@dietwithdee.org"
+FROM_NAME = "Nana Ama from Diet with Dee"

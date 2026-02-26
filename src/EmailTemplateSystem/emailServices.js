@@ -2,15 +2,10 @@
 import { getAllEmails } from '../firebaseUtils';
 import { createEmailTemplate } from './emailTemplate';
 
-// Email service configuration
-const EMAIL_SERVICE_CONFIG = {
-  apiEndpoint: 'https://api.emailjs.com/api/v1.0/email/send',
-  serviceId: 'service_6dvxkid',
-  templateId: 'template_u0bmden',
-  publicKey: 'T7o7fFGosrfDNbf16',
-  fromEmail: 'dietwdee@gmail.com',
-  fromName: 'Nana Ama from Diet with Dee'
-};
+// -------- Configuration ----------
+// In production, this should point to your deployed Cloudflare Worker URL.
+// During development, run the worker locally with `npm run dev` in workers/email-proxy/
+const EMAIL_PROXY_URL = import.meta.env.VITE_EMAIL_PROXY_URL || 'https://dwd-email-proxy.godwinokro2020.workers.dev';
 
 // -------- Runtime lock (same-tab/same-session) ----------
 const sendingLocks = new Set();
@@ -57,57 +52,31 @@ export const getAllSubscriberEmails = async () => {
   }
 };
 
-// -------- Send via EmailJS ----------
-const sendEmailViaEmailJS = async (toEmail, subject, htmlContent) => {
+// -------- Send via Resend (through Cloudflare Worker proxy) ----------
+const sendEmailViaResend = async (toEmail, subject, htmlContent) => {
   try {
-    const templateParams = {
-      to_email: toEmail,
-      from_name: EMAIL_SERVICE_CONFIG.fromName,
-      from_email: EMAIL_SERVICE_CONFIG.fromEmail,
-      subject: subject,
-      html_content: htmlContent,
-      message_html: htmlContent   // <-- MUST match placeholder in EmailJS template
-    };
-
-    const response = await fetch(EMAIL_SERVICE_CONFIG.apiEndpoint, {
+    const response = await fetch(EMAIL_PROXY_URL, {
       method: 'POST',
-      headers: 
-      { 'Content-Type': 'application/json',
-        'Accept': 'application/json'  // Ensure we get JSON response
-       },
-      body: JSON.stringify({
-        service_id: EMAIL_SERVICE_CONFIG.serviceId,
-        template_id: EMAIL_SERVICE_CONFIG.templateId,
-        user_id: EMAIL_SERVICE_CONFIG.publicKey,
-        template_params: templateParams
-      })
-    });
-
-    return response.ok;
-  } catch (error) {
-    console.error('Error sending email via EmailJS:', error);
-    return false;
-  }
-};
-
-// -------- Optional webhook path (unchanged) ----------
-const sendEmailViaWebhook = async (toEmail, subject, htmlContent) => {
-  try {
-    const response = await fetch('/api/send-email', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+      headers: {
+        'Content-Type': 'application/json',
+      },
       body: JSON.stringify({
         to: toEmail,
-        from: EMAIL_SERVICE_CONFIG.fromEmail,
-        fromName: EMAIL_SERVICE_CONFIG.fromName,
         subject: subject,
-        html: htmlContent
-      })
+        html: htmlContent,
+      }),
     });
 
-    return response.ok;
+    const result = await response.json();
+
+    if (!response.ok) {
+      console.error(`Resend error for ${toEmail}:`, result.error);
+      return false;
+    }
+
+    return true;
   } catch (error) {
-    console.error('Error sending email via webhook:', error);
+    console.error('Error sending email via Resend:', error);
     return false;
   }
 };
@@ -135,7 +104,7 @@ export const sendNewArticleNewsletter = async (articleTitle, articleImageUrl, ar
 
     if (uniqueEmails.length === 0) {
       console.log('No subscribers found');
-      // Mark as sent so we don’t retry needlessly for this article
+      // Mark as sent so we don't retry needlessly for this article
       setLocalIdempotency(articleId);
       return { success: true, message: 'No subscribers to notify', sent: 0, failed: 0, total: 0 };
     }
@@ -155,8 +124,7 @@ export const sendNewArticleNewsletter = async (articleTitle, articleImageUrl, ar
       await Promise.all(
         batch.map(async (email) => {
           try {
-            const ok = await sendEmailViaEmailJS(email, subject, emailContent);
-            // const ok = await sendEmailViaWebhook(email, subject, emailContent); // alt
+            const ok = await sendEmailViaResend(email, subject, emailContent);
             if (ok) {
               successCount++;
               console.log(`Email sent successfully to: ${email}`);
@@ -176,7 +144,7 @@ export const sendNewArticleNewsletter = async (articleTitle, articleImageUrl, ar
       }
     }
 
-    // If at least one succeeded, mark idempotency so future calls won’t resend
+    // If at least one succeeded, mark idempotency so future calls won't resend
     if (successCount > 0) {
       setLocalIdempotency(articleId);
     }
@@ -199,9 +167,9 @@ export const sendNewArticleNewsletter = async (articleTitle, articleImageUrl, ar
   }
 };
 
-// -------- Test helper (unchanged) ----------
+// -------- Test helper ----------
 export const sendTestNewsletter = async () => {
-  const testEmail = 'test@example.com';
+  const testEmail = 'dietwdee@gmail.com';
   const testTitle = 'Sample Article Title';
   const testImageUrl = 'https://images.unsplash.com/photo-1490645935967-10de6ba17061';
   const testArticleId = 'test-article-id';
@@ -210,7 +178,7 @@ export const sendTestNewsletter = async () => {
   const subject = `Test: New Article from Nana Ama Dwamena: ${testTitle}`;
 
   try {
-    const success = await sendEmailViaEmailJS(testEmail, subject, emailContent);
+    const success = await sendEmailViaResend(testEmail, subject, emailContent);
     return { success, message: success ? 'Test email sent successfully!' : 'Failed to send test email' };
   } catch (error) {
     return { success: false, message: `Error sending test email: ${error.message}` };

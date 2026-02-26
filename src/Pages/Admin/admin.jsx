@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { Eye, EyeOff, Plus, Edit2, Trash2, Save, X, AlertCircle, CheckCircle, Loader, Bold, Italic, Underline, List, ListOrdered, Link, Quote, Type } from 'lucide-react';
-import { createArticle, getArticles , deleteArticle} from '../../firebaseUtils';
+import { createArticle, getArticles , deleteArticle, getAllEmails} from '../../firebaseUtils';
 import { getBookingStatus, setBookingStatus } from '../../firebaseBookingUtils';
 import { sendNewArticleNewsletter } from '../../EmailTemplateSystem/emailServices';
 import NoIndex from "../../Components/NoIndex";
@@ -967,7 +967,8 @@ const AdminDashboard = ({ onLogout }) => {
   const [articles, setArticles] = useState([]);
   const [notification, setNotification] = useState(null);
   const [isLoading, setIsLoading] = useState(true);
-  const [isBookingOpen, setIsBookingOpen] = useState(false); // New state for booking toggle
+  const [isBookingOpen, setIsBookingOpen] = useState(false);
+  const [subscriberCount, setSubscriberCount] = useState(0);
 
   // Function to fetch booking status
   const fetchBookingStatus = async () => {
@@ -1040,6 +1041,18 @@ const AdminDashboard = ({ onLogout }) => {
 
   useEffect(() => {
     loadArticles();
+    // Fetch subscriber count
+    const fetchSubscribers = async () => {
+      try {
+        const result = await getAllEmails();
+        if (result.success) {
+          setSubscriberCount(result.data?.length || 0);
+        }
+      } catch (err) {
+        console.error('Error fetching subscriber count:', err);
+      }
+    };
+    fetchSubscribers();
   }, []);
 
   const handleLogout = () => {
@@ -1073,6 +1086,28 @@ const AdminDashboard = ({ onLogout }) => {
       </div>
 
       <div className="container mx-auto px-4 py-8">
+        {/* Metrics */}
+        <div className="grid grid-cols-2 gap-4 mb-6">
+          <div className="bg-white rounded-xl shadow-md p-5 border border-green-100 flex items-center gap-4">
+            <div className="w-12 h-12 rounded-full bg-green-100 flex items-center justify-center text-green-600 text-xl font-bold flex-shrink-0">
+              📧
+            </div>
+            <div>
+              <p className="text-2xl font-bold text-gray-800">{subscriberCount}</p>
+              <p className="text-sm text-gray-500">Total Subscribers</p>
+            </div>
+          </div>
+          <div className="bg-white rounded-xl shadow-md p-5 border border-green-100 flex items-center gap-4">
+            <div className="w-12 h-12 rounded-full bg-emerald-100 flex items-center justify-center text-emerald-600 text-xl font-bold flex-shrink-0">
+              📝
+            </div>
+            <div>
+              <p className="text-2xl font-bold text-gray-800">{articles.length}</p>
+              <p className="text-sm text-gray-500">Articles Published</p>
+            </div>
+          </div>
+        </div>
+
         {/* Booking Toggle UI */}
         <div className="bg-white rounded-xl shadow-lg p-6 mb-8 border border-green-100 flex items-center justify-between">
           <h2 className="text-xl font-bold text-green-700">Manage Bookings</h2>
