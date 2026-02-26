@@ -210,6 +210,14 @@ function ServicesContactSection() {
         {/* Services Grid */}
         <div className='py-12 sm:py-16 lg:py-20 bg-white'>
           <div className='container mx-auto px-4 sm:px-6 lg:px-12'>
+            {/* Section Title */}
+            <div className='text-center mb-12 sm:mb-16'>
+              <h2 className='text-3xl sm:text-4xl lg:text-5xl font-black text-transparent bg-clip-text bg-gradient-to-r from-green-700 via-emerald-600 to-green-600 leading-tight'>
+                What we offer
+              </h2>
+              <div className='w-20 h-2 bg-gradient-to-r from-green-500 to-emerald-500 rounded-full mx-auto mt-4'></div>
+            </div>
+
             <div className='grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 sm:gap-8'>
 
               {/* Corporate Wellness */}
@@ -285,34 +293,47 @@ function ServicesContactSection() {
               role="group"
               aria-roledescription="carousel"
             >
-              <div
-                key={currentImageIndex}
-                className="absolute inset-0 w-full h-full overflow-hidden shadow-lg transform transition-transform duration-300 rounded-2xl"
-                style={{ backgroundImage: `url(${eventImages[currentImageIndex].src})`, backgroundSize: 'cover', backgroundPosition: 'center' }}
-                aria-label={`Image ${currentImageIndex + 1} of ${eventImages.length}`}
-              >
-
+              <div className="absolute inset-0 w-full h-full overflow-hidden shadow-lg rounded-2xl bg-gray-100">
+                {eventImages.map((image, index) => (
+                  <div
+                    key={index}
+                    className={`absolute inset-0 w-full h-full bg-cover bg-center transition-all duration-1000 ease-in-out ${
+                      index === currentImageIndex 
+                        ? 'opacity-100 scale-100' 
+                        : 'opacity-0 scale-105 pointer-events-none'
+                    }`}
+                    style={{ backgroundImage: `url(${image.src})` }}
+                    aria-hidden={index !== currentImageIndex}
+                    aria-label={`Image ${index + 1} of ${eventImages.length}`}
+                  />
+                ))}
               </div>
               <button
                 onClick={() => openLightbox(currentImageIndex)}
-                className="absolute bottom-4 right-4 z-50 bg-green-600 text-white rounded-full px-4 py-2 text-sm font-semibold shadow-md"
+                className="absolute bottom-4 right-4 z-30 bg-green-600 text-white rounded-full px-4 py-2 text-sm font-semibold shadow-md"
               >
                 {currentImageIndex + 1} / {eventImages.length} Photos
               </button>
               <button
                 onClick={() => goToPreviousImage()}
-                className="absolute left-4 top-1/2 transform -translate-y-1/2 text-white text-5xl z-40"
+                className="absolute left-4 top-1/2 transform -translate-y-1/2 text-white text-5xl z-30"
                 aria-label="Previous image"
               >
                 &lsaquo;
               </button>
               <button
                 onClick={() => goToNextImage(true)}
-                className="absolute right-4 top-1/2 transform -translate-y-1/2 text-white text-5xl z-40"
+                className="absolute right-4 top-1/2 transform -translate-y-1/2 text-white text-5xl z-30"
                 aria-label="Next image"
               >
                 &rsaquo;
               </button>
+            </div>
+            <div className='mt-8 text-center'>
+              <div className='inline-flex items-center gap-2 text-gray-500 bg-emerald-50 px-4 py-2 rounded-full border border-emerald-100 shadow-sm'>
+                <div className='w-2 h-2 bg-green-500 rounded-full animate-pulse'></div>
+                <p className='text-sm font-medium'>Click the green button to view in full screen</p>
+              </div>
             </div>
           </div>
         </div>
@@ -320,7 +341,7 @@ function ServicesContactSection() {
         {/* Lightbox Modal */}
         {isLightboxOpen && (
           <div
-            className="fixed inset-0 bg-black bg-opacity-75 flex items-center justify-center z-50 p-4"
+            className="fixed inset-0 bg-black bg-opacity-75 flex items-center justify-center z-[100] p-4"
             role="dialog"
             aria-modal="true"
             aria-label="Image gallery lightbox"
@@ -341,6 +362,7 @@ function ServicesContactSection() {
               onTouchEnd={handleTouchEnd}
             >
               <img
+                key={currentImageIndex}
                 src={eventImages[currentImageIndex].src}
                 alt={eventImages[currentImageIndex].alt}
                 className={`max-w-full max-h-full object-contain ${slideDirection === 'right' ? 'slide-in-right' : 'slide-in-left'}`}

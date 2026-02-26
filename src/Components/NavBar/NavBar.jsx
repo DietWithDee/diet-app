@@ -20,7 +20,6 @@ export default function NavBar() {
     { path: '/plans', label: 'Plans' },
     { path: '/services', label: 'Services' },
     { path: '/blog', label: 'Blog' },
-    { path: '/KnowYourBody', label: 'KnowYourBody' },
     { path: '/contactus', label: 'Contact Us' },
   ]
 
@@ -72,30 +71,50 @@ export default function NavBar() {
         </div>
       </div>
 
-      {/* Mobile Slide-Down Menu */}
+      {/* Mobile Backdrop */}
+      {menuOpen && (
+        <div 
+          className="fixed inset-0 bg-black/50 z-40 transition-opacity"
+          onClick={() => setMenuOpen(false)}
+        />
+      )}
+
+      {/* Mobile Side Drawer */}
       <div
         className={`
-          fixed inset-x-0 top-0 h-100 bg-orange-400 z-40
+          fixed right-0 top-0 h-full w-64 bg-white shadow-2xl z-50
           transform transition-transform duration-300 ease-in-out
-          ${menuOpen ? 'translate-y-0' : '-translate-y-full'}
+          ${menuOpen ? 'translate-x-0' : 'translate-x-full'}
         `}
       >
-        <div className="relative h-full flex flex-col items-center justify-center">
-          {/* Close button */}
-          <button
-            className="absolute top-4 right-4 text-white text-3xl"
-            onClick={() => setMenuOpen(false)}
-          >
-            <FiX />
-          </button>
+        <div className="flex flex-col h-full">
+          {/* Drawer Header */}
+          <div className="flex items-center justify-between p-4 border-b border-gray-100">
+            <div className="flex items-center space-x-2">
+              <img src={logo} alt="Logo" className="h-10 w-auto" />
+              <span className="text-xl text-green-800 font-transcity pt-2">
+                DietWithDee
+              </span>
+            </div>
+            <button
+              className="text-gray-800 text-3xl"
+              onClick={() => setMenuOpen(false)}
+            >
+              <FiX />
+            </button>
+          </div>
 
-          {/* Nav links */}
-          <ul className="space-y-6 text-white text-xl font-semibold text-center">
+          {/* Drawer Links */}
+          <ul className="flex flex-col py-2">
             {links.map(({ path, label }) => (
               <li key={path}>
                 <NavLink
                   to={path}
-                  className="block hover:text-black transition-colors duration-200"
+                  className={({ isActive }) =>
+                    `block px-6 py-4 text-lg hover:bg-gray-50 transition-colors ${
+                      isActive ? 'text-green-600 font-bold' : 'text-gray-800'
+                    }`
+                  }
                   onClick={() => setMenuOpen(false)}
                   end={path === '/'}
                 >
@@ -106,13 +125,36 @@ export default function NavBar() {
             <li>
               <NavLink
                 to="/my-journey"
-                className="block hover:text-black transition-colors duration-200"
+                className={({ isActive }) =>
+                  `block px-6 py-4 text-lg hover:bg-gray-50 transition-colors ${
+                    isActive ? 'text-green-600 font-bold' : 'text-gray-800'
+                  }`
+                }
                 onClick={() => setMenuOpen(false)}
               >
                 My Journey
               </NavLink>
             </li>
           </ul>
+
+          {/* Bottom Links (Terms & Privacy) */}
+          <div className="mt-auto p-6 border-t border-gray-100 flex justify-center items-center gap-4">
+            <NavLink 
+              to="/terms" 
+              className="text-[10px] uppercase tracking-wider font-semibold text-gray-400 hover:text-green-600 transition-colors"
+              onClick={() => setMenuOpen(false)}
+            >
+              Terms
+            </NavLink>
+            <span className="text-gray-300 text-[10px]">|</span>
+            <NavLink 
+              to="/privacy" 
+              className="text-[10px] uppercase tracking-wider font-semibold text-gray-400 hover:text-green-600 transition-colors"
+              onClick={() => setMenuOpen(false)}
+            >
+              Privacy
+            </NavLink>
+          </div>
         </div>
       </div>
     </header>

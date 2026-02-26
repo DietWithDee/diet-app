@@ -181,11 +181,17 @@ const Footer = () => {
         <div className="border-t border-green-500 pt-4 sm:pt-8">
           <div className="flex flex-col sm:flex-row justify-between items-center space-y-6 sm:space-y-0 text-center sm:text-left">
 
-            {/* Legal Links */}
-            <div className="flex flex-wrap justify-center sm:justify-start gap-4">
-              <Link to="/privacy" className="text-green-100 hover:text-white transition-colors text-xs sm:text-sm">Privacy Policy</Link>
-              <span className="text-green-300 text-xs sm:text-sm">•</span>
-              <Link to="/terms" className="text-green-100 hover:text-white transition-colors text-xs sm:text-sm">Terms and Conditions</Link>
+            {/* Legal Links & Copyright */}
+            <div className="flex flex-col sm:flex-row items-center gap-4">
+              <div className="flex flex-wrap justify-center sm:justify-start gap-4">
+                <Link to="/privacy" className="text-green-100 hover:text-white transition-colors text-xs sm:text-sm">Privacy Policy</Link>
+                <span className="text-green-300 text-xs sm:text-sm">•</span>
+                <Link to="/terms" className="text-green-100 hover:text-white transition-colors text-xs sm:text-sm">Terms and Conditions</Link>
+              </div>
+              <span className="hidden sm:block text-green-300 text-xs sm:text-sm">•</span>
+              <p className="text-green-200 text-xs sm:text-sm opacity-80">
+                © {new Date().getFullYear()} DietWithDee. All Rights Reserved.
+              </p>
             </div>
 
             {/* Social Links and Power By */}

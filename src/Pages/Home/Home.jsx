@@ -61,7 +61,7 @@ function Home() {
   return (
     <>
       <SEO
-        title="Best Dietitian in Ghana | Nana Ama Dwamena"
+        title="Your Favourite Dietitian | Nana Ama Dwamena"
         description="Welcome to DietWithDee, your ultimate destination for personalized diet plans and expert nutrition advice in Ghana. Start your wellness journey with Nana Ama Dwamena."
         keywords="Dietitian, Nutritionist, Ghana, Nana Ama Dwamena, Weight Loss, Wellness, Healthy Eating, Diet With Dee"
         image="https://dietwithdee.org/LOGO.png"
@@ -101,7 +101,7 @@ function Home() {
 
                 <div className="space-y-6">
                   <p className="text-lg lg:text-xl text-gray-700 leading-relaxed font-medium pt-3">
-                    Welcome to <span className="text-green-700 font-black text-xl">DietWithDee</span>,
+                    Welcome to <span className="italic font-semibold text-green-700">DietWithDee</span>,
                     your ultimate destination for personalized diet plans and consultations!
                   </p>
                   <p className="text-lg text-gray-600 leading-relaxed">
@@ -203,7 +203,7 @@ function Home() {
 
                     <div className="space-y-6">
                       <p className="text-lg text-gray-700 leading-relaxed">
-                        Here at <span className="text-green-700 font-black text-xl">DietWithDee</span>, we believe that nutrition is the cornerstone of a vibrant life, and we're here to guide you every step of the way. Our mission is to provide personalized diet plans, delicious recipes, and expert advice to help you reach your wellness goals. DietWithDee is here to support you every step of the way. Let's make healthy living enjoyable and sustainable together!
+                        Here at <span className="italic font-semibold text-green-700">DietWithDee</span>, we believe that nutrition is the cornerstone of a vibrant life, and we're here to guide you every step of the way. Our mission is to provide personalized diet plans, delicious recipes, and expert advice to help you reach your wellness goals. DietWithDee is here to support you every step of the way. Let's make healthy living enjoyable and sustainable together!
                       </p>
 
                       <div className="bg-gradient-to-r from-green-50 to-emerald-50 p-6 rounded-2xl border-l-4 border-green-500">

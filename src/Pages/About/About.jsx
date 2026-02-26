@@ -9,7 +9,7 @@ function AboutUsSection() {
   return (
     <>
       <SEO
-        title="About DietWithDee | Nana Ama Dwamena, Registered Dietitian in Ghana"
+        title="About DietWithDee | Nana Ama Dwamena, Your Favourite Dietitian"
         description="Learn about DietWithDee, founded by Nana Ama Dwamena, a registered dietitian in Ghana. Discover our mission to make expert nutrition accessible to all."
         keywords="About DietWithDee, Nana Ama Dwamena, Registered Dietitian, Ghana, Nutrition, Wellness"
         image="/LOGO.png"          // we’ll coerce to absolute: https://dietwithdee.org/LOGO.png
@@ -36,13 +36,13 @@ function AboutUsSection() {
                 <div className='space-y-6'>
                   <div className='text-lg text-gray-700 leading-relaxed'>
                     <p>
-                      In Ghana, access to professional nutrition advice is often limited—and many people struggle with health conditions that could be better managed with the right support. <span className='text-green-700 font-black text-xl'>DietWithDee</span> was born to bridge that gap.
+                      In Ghana, access to professional nutrition advice is often limited, and many people struggle with health conditions that could be better managed with the right support. <span className='italic font-semibold text-green-700'>DietWithDee</span> was born to bridge that gap.
                     </p>
                     <p className='mt-4'>
-                      Founded by Registered Dietitian Nana Ama Dwamena, this initiative was created to make expert diet consultations more accessible, especially for Ghanaians who may not have easy access to in-person services.
+                      Founded by <span className='italic font-semibold text-green-700'>Registered Dietitian Nana Ama Dwamena</span>, this initiative was created to make expert diet consultations more accessible, especially for Ghanaians who may not have easy access to in-person services.
                     </p>
                     <p className='mt-4'>
-                      <span className='text-green-700 font-black text-xl'>DietWithDee</span> nutrition brings guidance right to your phone, your home, and your everyday life.
+                      <span className='italic font-semibold text-green-700'>DietWithDee</span> nutrition brings guidance right to your phone, your home, and your everyday life.
                     </p>
                     <p className='mt-4'>
                       While our journey began with the goal of supporting Ghanaians, our vision is global. Diet with Dee is for anyone anywhere who wants practical, culturally aware, and evidence-based nutrition support. We believe that food is deeply personal, and nutrition should be too. That's why we're committed to helping people eat better, feel stronger, and thrive—no matter where they are in the world.
@@ -99,7 +99,7 @@ function AboutUsSection() {
           </div>
         </div>
       </div>
-      <div id="community-impact" className='py-20 bg-white'>
+      <div id="community-impact" className='py-10 bg-white'>
         <div className='container mx-auto px-6 lg:px-12'>
           <div className='max-w-4xl mx-auto'>
             <div className='space-y-8'>
@@ -111,10 +111,10 @@ function AboutUsSection() {
               </div>
               <div className='space-y-6 text-lg text-gray-700 leading-relaxed max-w-3xl'>
                 <p>
-                  Beyond individual consultations, we believe in the power of collective change. <span className='text-green-700 font-bold'>DietWithDee</span> is actively involved in community programs, health outreaches, and educational initiatives across Ghana.
+                  Beyond individual consultations, we believe in the power of collective change. <span className='italic font-semibold text-green-700'>DietWithDee</span> is actively involved in community programs, health outreaches, and educational initiatives across Ghana.
                 </p>
                 <p>
-                  Our mission is to take nutrition education out of the clinic and into the heart of communities—schools, religious organizations, and corporate spaces—making health guidance practical, inclusive, and fun.
+                  Our mission is to take nutrition education out of the clinic and into the heart of communities; from schools and religious organizations, to corporate spaces making health guidance practical, inclusive, and fun.
                 </p>
               </div>
 

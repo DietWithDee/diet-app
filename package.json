@@ -10,7 +10,7 @@
     "lint": "eslint .",
     "postbuild": "node scripts/generate-sitemap.mjs",
     "prerender": "node scripts/prerender.mjs",
-    "predeploy": "vite build && node scripts/generate-sitemap.mjs && node scripts/prerender.mjs && copy dist\\index.html dist\\404.html && echo dietwithdee.org > dist\\CNAME",
+    "predeploy": "npm run build && node scripts/generate-sitemap.mjs && node scripts/prerender.mjs",
     "deploy": "gh-pages -d dist"
   },
   "dependencies": {
