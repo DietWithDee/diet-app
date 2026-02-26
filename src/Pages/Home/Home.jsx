@@ -88,7 +88,7 @@ function Home() {
             <div className="flex-1 max-w-2xl">
               <div className="space-y-8">
                 <div className="space-y-4">
-                  <h1 className="text-4xl lg:text-7xl font-black text-transparent bg-clip-text bg-gradient-to-r from-green-700 to-green-700 leading-tight">
+                  <h1 className="text-4xl lg:text-6xl font-black text-transparent bg-clip-text bg-gradient-to-r from-green-700 to-green-700 leading-tight">
                     Your Wellness
                     <br />
                     <span className="text-green-700">Journey </span>
@@ -149,7 +149,7 @@ function Home() {
               <div className="absolute -bottom-8 -left-8 w-64 h-54 bg-gradient-to-tr from-emerald-300 to-green-300 rounded-full opacity-15 blur-2xl"></div>
 
               <div className="relative z-10 p-8">
-                <div className="bg-white rounded-3xl shadow-2xl p-8 hover:shadow-3xl transition-all duration-500 hover:scale-105">
+                <div className="bg-white rounded-3xl  p-8  transition-all duration-500 hover:scale-105">
                   <div className="w-full h-80 bg-gradient-to-br from-green-100 to-emerald-100 rounded-2xl flex items-center justify-center">
                     <img src={Salad} alt="Healthy Salad" className="object-contain w-full h-full" />
                   </div>

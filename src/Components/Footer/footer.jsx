@@ -86,18 +86,18 @@ const Footer = () => {
   return (
     <footer className="bg-green-800 text-white py-6 sm:py-12 px-4 sm:px-6 lg:px-8 relative">
       <div className="max-w-6xl mx-auto">
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-2 sm:gap-8 mb-8">
+        <div className="grid grid-cols-1 lg:grid-cols-4 gap-8 mb-8 sm:mb-12">
 
           {/* Newsletter Section */}
-          <div className="sm:col-span-2 lg:col-span-1">
+          <div className="lg:col-span-2">
             <h3 className="text-lg sm:text-xl font-semibold mb-4 sm:mb-6">Subscribe to Our Newsletter</h3>
             <p className="text-green-100 mb-4 sm:mb-6 text-xs sm:text-sm leading-relaxed">
-              Want to stay up to date with the latest nutrition tips, healthy recipes, 
-              and wellness insights? Subscribe to our newsletter and join our 
-              community of individuals committed to nourishing their bodies and 
+              Want to stay up to date with the latest nutrition tips, healthy recipes,
+              and wellness insights? Subscribe to our newsletter and join our
+              community of individuals committed to nourishing their bodies and
               living their best lives.
             </p>
-            <div className="space-y-3 sm:space-y-4">
+            <div className="space-y-3 sm:space-y-4 max-w-md">
               <div className="relative">
                 <input
                   type="email"
@@ -113,14 +113,14 @@ const Footer = () => {
                   `}
                 />
               </div>
-              
+
               <button
                 onClick={handleSubmit}
                 disabled={isLoading || !email.trim()}
                 className={`
                   w-full font-semibold py-2 sm:py-3 px-4 sm:px-6 rounded transition-all duration-200 text-sm sm:text-base flex items-center justify-center gap-2
-                  ${isLoading || !email.trim() 
-                    ? 'bg-gray-500 cursor-not-allowed opacity-50' 
+                  ${isLoading || !email.trim()
+                    ? 'bg-gray-500 cursor-not-allowed opacity-50'
                     : 'bg-orange-500 hover:bg-yellow-700 text-white hover:scale-105 transform'
                   }
                 `}
@@ -148,55 +148,86 @@ const Footer = () => {
               )}
             </div>
           </div>
+
+          {/* Wrapper for side-by-side links on mobile */}
+          <div className="lg:col-span-2 grid grid-cols-2 gap-4 sm:gap-8">
+            {/* Quick Links Section */}
+            <div>
+              <h3 className="text-lg sm:text-xl font-semibold mb-4 sm:mb-6">Quick Links</h3>
+              <ul className="space-y-3">
+                <li><Link to="/" className="text-green-100 hover:text-white transition-colors text-sm">Home</Link></li>
+                <li><Link to="/about" className="text-green-100 hover:text-white transition-colors text-sm">About Us</Link></li>
+                <li><Link to="/services" className="text-green-100 hover:text-white transition-colors text-sm">Our Services</Link></li>
+                <li><Link to="/plans" className="text-green-100 hover:text-white transition-colors text-sm">Diet Plans</Link></li>
+                <li><Link to="/blog" className="text-green-100 hover:text-white transition-colors text-sm">Blog</Link></li>
+                <li><Link to="/knowYourBody" className="text-green-100 hover:text-white transition-colors text-sm">Know Your Body</Link></li>
+              </ul>
+            </div>
+
+            {/* Explore Section */}
+            <div>
+              <h3 className="text-lg sm:text-xl font-semibold mb-4 sm:mb-6">Explore</h3>
+              <ul className="space-y-3">
+                <li><Link to="/services#events-gallery" className="text-green-100 hover:text-white transition-colors text-sm">Events Gallery</Link></li>
+                <li><Link to="/plans#success-stories" className="text-green-100 hover:text-white transition-colors text-sm">Success Stories</Link></li>
+                <li><Link to="/contactUs" className="text-green-100 hover:text-white transition-colors text-sm">Contact Us</Link></li>
+              </ul>
+            </div>
+          </div>
+
         </div>
 
         {/* Bottom Section */}
         <div className="border-t border-green-500 pt-4 sm:pt-8">
-          <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center space-y-4 sm:space-y-0">
-            
+          <div className="flex flex-col sm:flex-row justify-between items-center space-y-6 sm:space-y-0 text-center sm:text-left">
+
             {/* Legal Links */}
-            <div className="flex flex-wrap gap-2 sm:gap-4">
-              <a href="#" className="text-green-100 hover:text-white transition-colors text-xs sm:text-sm">Privacy Policy</a>
+            <div className="flex flex-wrap justify-center sm:justify-start gap-4">
+              <Link to="/privacy" className="text-green-100 hover:text-white transition-colors text-xs sm:text-sm">Privacy Policy</Link>
               <span className="text-green-300 text-xs sm:text-sm">•</span>
-              <a href="#" className="text-green-100 hover:text-white transition-colors text-xs sm:text-sm">Terms and Conditions</a>
+              <Link to="/terms" className="text-green-100 hover:text-white transition-colors text-xs sm:text-sm">Terms and Conditions</Link>
             </div>
 
-            {/* Social Links with Icons */}
-            <div className="flex items-center gap-4">
-              <a
-                href="https://www.instagram.com/diet.withdee?igsh=MW03bXpwMjhyZWEyNA%3D%3D&utm_source=qr"
-                target="_blank"
-                rel="noopener noreferrer"
-                className="text-green-100 hover:text-pink-400 transition-colors hover:scale-110 transform"
-              >
-                <Instagram size={20} />
-              </a>
+            {/* Social Links and Power By */}
+            <div className="flex flex-col items-center sm:flex-row gap-4 sm:gap-8">
+              {/* Social Icons */}
+              <div className="flex items-center gap-6">
+                <a
+                  href="https://www.instagram.com/diet.withdee?igsh=MW03bXpwMjhyZWEyNA%3D%3D&utm_source=qr"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="text-green-100 hover:text-pink-400 transition-colors hover:scale-110 transform"
+                >
+                  <Instagram size={20} />
+                </a>
 
-              <a
-                href="https://www.linkedin.com/company/dietwithdee/"
-                target="_blank"
-                rel="noopener noreferrer"
-                className="text-green-100 hover:text-blue-400 transition-colors hover:scale-110 transform"
-              >
-                <Linkedin size={20} />
-              </a>
+                <a
+                  href="https://www.linkedin.com/company/dietwithdee/"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="text-green-100 hover:text-blue-400 transition-colors hover:scale-110 transform"
+                >
+                  <Linkedin size={20} />
+                </a>
 
-              <a
-                href="https://www.tiktok.com/@dietwithdee?_t=ZM-8yWNZKQGM8G&_r=1"
-                target="_blank"
-                rel="noopener noreferrer"
-                className="text-green-100 hover:text-gray-200 transition-colors hover:scale-110 transform"
-              >
-                <Music2 size={20} />
-              </a>
+                <a
+                  href="https://www.tiktok.com/@dietwithdee?_t=ZM-8yWNZKQGM8G&_r=1"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="text-green-100 hover:text-gray-200 transition-colors hover:scale-110 transform"
+                >
+                  <Music2 size={20} />
+                </a>
+              </div>
 
+              {/* Powered By */}
               <a
-                href="https://wa.me/233200645732?text=Hi,%20I%20would%20like%20to%20build%20something%20with%20Flywheel%20Technologies"
+                href="https://www.bookflywheel.com"
                 target="_blank"
                 rel="noopener noreferrer"
-                className="text-green-100 hover:text-white text-xs sm:text-sm font-medium"
+                className="text-orange-500 hover:text-white text-xs sm:text-sm font-medium border-t sm:border-t-0 border-green-500/30 pt-4 sm:pt-0 w-full sm:w-auto mt-2 sm:mt-0"
               >
-                Powered by FlyWheelTechnologies
+                Powered by Flywheel Technologies
               </a>
             </div>
           </div>
@@ -205,11 +236,11 @@ const Footer = () => {
 
       {/* Floating Chat Button */}
       <div className="fixed bottom-4 sm:bottom-6 right-4 sm:right-6 z-50">
-        <div 
+        <div
           onMouseEnter={handleMouseEnter}
           className="relative"
         >
-          <a 
+          <a
             href={Url}
             target="_blank"
             rel="noopener noreferrer"
@@ -220,14 +251,14 @@ const Footer = () => {
               ${isExpanded ? 'px-4 py-3' : 'p-3 w-12 h-12 justify-center'}
             `}
           >
-            <MessageCircle 
-              size={20} 
+            <MessageCircle
+              size={20}
               className={`
                 flex-shrink-0 transition-all duration-300 z-10
                 ${isExpanded ? 'animate-pulse' : 'animate-bounce'}
-              `} 
+              `}
             />
-            <span 
+            <span
               className={`
                 font-medium text-sm whitespace-nowrap transition-all duration-500
                 ${isExpanded ? 'opacity-100 max-w-xs' : 'opacity-0 max-w-0'}

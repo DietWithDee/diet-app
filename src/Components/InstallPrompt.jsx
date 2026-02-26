@@ -1,35 +1,65 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useRef } from "react";
 
 export default function InstallPrompt() {
   const [show, setShow] = useState(false);
+  const [platform, setPlatform] = useState(null); // "ios" | "android"
+  const deferredPrompt = useRef(null);
 
   useEffect(() => {
-    const isIos = /iphone|ipad|ipod/.test(window.navigator.userAgent.toLowerCase());
-    const isInStandalone = window.navigator.standalone;
+    const isIos = /iphone|ipad|ipod/.test(navigator.userAgent.toLowerCase());
+    const isInStandalone =
+      window.navigator.standalone ||
+      window.matchMedia("(display-mode: standalone)").matches;
 
-    // Show only on iOS Safari and not already installed
-    if (isIos && !isInStandalone) {
+    // Already installed — don't show anything
+    if (isInStandalone) return;
+
+    const shouldShow = () => {
       const lastDismissed = localStorage.getItem("installPromptLastDismissed");
       const count = parseInt(localStorage.getItem("installPromptCount") || "0");
 
-      if (!lastDismissed) {
-        // Never dismissed before, show after delay
-        setTimeout(() => setShow(true), 12000);
-      } else {
-        const lastTime = parseInt(lastDismissed);
-        const now = Date.now();
-        const daysSince = (now - lastTime) / (1000 * 60 * 60 * 24);
+      if (!lastDismissed) return true;
 
-        // Define intervals based on dismissal count
-        let waitDays = 3; // 1st dismissal: wait 3 days
-        if (count === 2) waitDays = 7; // 2nd dismissal: wait 1 week
-        if (count >= 3) waitDays = 14; // 3+ dismissals: wait 2 weeks
+      const daysSince = (Date.now() - parseInt(lastDismissed)) / (1000 * 60 * 60 * 24);
+      let waitDays = 3;
+      if (count === 2) waitDays = 7;
+      if (count >= 3) waitDays = 14;
 
-        if (daysSince >= waitDays) {
-          setTimeout(() => setShow(true), 12000);
-        }
+      return daysSince >= waitDays;
+    };
+
+    // --- Android / Chrome ---
+    const handleBeforeInstall = (e) => {
+      e.preventDefault();
+      deferredPrompt.current = e;
+
+      if (shouldShow()) {
+        setPlatform("android");
+        setTimeout(() => setShow(true), 5000);
       }
+    };
+
+    window.addEventListener("beforeinstallprompt", handleBeforeInstall);
+
+    // Auto-hide after successful install
+    const handleAppInstalled = () => {
+      setShow(false);
+      deferredPrompt.current = null;
+      localStorage.setItem("appInstalled", "true");
+    };
+
+    window.addEventListener("appinstalled", handleAppInstalled);
+
+    // --- iOS Safari ---
+    if (isIos && shouldShow()) {
+      setPlatform("ios");
+      setTimeout(() => setShow(true), 12000);
     }
+
+    return () => {
+      window.removeEventListener("beforeinstallprompt", handleBeforeInstall);
+      window.removeEventListener("appinstalled", handleAppInstalled);
+    };
   }, []);
 
   const handleDismiss = () => {
@@ -39,8 +69,71 @@ export default function InstallPrompt() {
     localStorage.setItem("installPromptLastDismissed", Date.now().toString());
   };
 
+  const handleInstall = async () => {
+    if (!deferredPrompt.current) return;
+    deferredPrompt.current.prompt();
+    const { outcome } = await deferredPrompt.current.userChoice;
+    if (outcome === "accepted") {
+      setShow(false);
+    }
+    deferredPrompt.current = null;
+  };
+
   if (!show) return null;
 
+  // ─── Android UI ───
+  if (platform === "android") {
+    return (
+      <div className="fixed bottom-6 left-1/2 -translate-x-1/2 z-[9999] w-[calc(100%-2rem)] max-w-[340px] animate-in fade-in slide-in-from-bottom-8 duration-700 ease-out">
+        <div className="relative overflow-hidden rounded-[1.5rem] border border-white/30 bg-white/80 p-5 shadow-[0_15px_40px_rgba(0,0,0,0.15)] backdrop-blur-2xl">
+          <div className="absolute -right-8 -top-8 h-24 w-24 rounded-full bg-green-500/10 blur-2xl"></div>
+
+          <div className="relative">
+            <div className="flex items-start justify-between mb-4">
+              <div className="flex items-center gap-3">
+                <div className="h-11 w-11 flex items-center justify-center rounded-xl bg-white shadow-sm overflow-hidden border border-gray-100 p-1">
+                  <img src="/LOGO.png" alt="DietWithDee Logo" className="w-full h-full object-contain" />
+                </div>
+                <div>
+                  <h3 className="text-[17px] font-bold text-gray-900 leading-tight">Install DietWithDee</h3>
+                  <p className="text-[11px] text-gray-500 mt-0.5">Get the full app experience</p>
+                </div>
+              </div>
+              <button
+                onClick={handleDismiss}
+                className="p-1 -mr-1 text-gray-400 hover:text-gray-600 transition-colors"
+              >
+                <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                  <path fillRule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clipRule="evenodd" />
+                </svg>
+              </button>
+            </div>
+
+            <p className="text-[13px] text-gray-600 mb-4">
+              Add DietWithDee to your home screen for quick access to nutrition tips, diet plans, and more.
+            </p>
+
+            <div className="flex gap-3">
+              <button
+                onClick={handleDismiss}
+                className="flex-1 py-3 text-gray-600 text-[14px] font-semibold rounded-xl border border-gray-200 active:scale-[0.98] transition-all duration-200"
+              >
+                Not now
+              </button>
+              <button
+                onClick={handleInstall}
+                className="flex-1 py-3 bg-green-600 text-white text-[14px] font-bold rounded-xl shadow-lg shadow-green-500/20 active:scale-[0.98] transition-all duration-200"
+              >
+                Install
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  // ─── iOS UI (existing) ───
   return (
     <div className="fixed bottom-6 left-1/2 -translate-x-1/2 z-[9999] w-[calc(100%-2rem)] max-w-[340px] animate-in fade-in slide-in-from-bottom-8 duration-700 ease-out">
       <div className="relative overflow-hidden rounded-[1.5rem] border border-white/30 bg-white/80 p-5 shadow-[0_15px_40px_rgba(0,0,0,0.15)] backdrop-blur-2xl dark:bg-black/40">

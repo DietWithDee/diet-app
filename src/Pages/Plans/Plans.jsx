@@ -10,10 +10,10 @@ import ScrollToTop from "../../utils/ScrollToTop";
 
 function Plans() {
   const navigate = useNavigate();
-  const scrollUp = ()=>{
+  const scrollUp = () => {
     setTimeout(() => {
-    window.scrollTo({ top: 0, behavior: 'smooth' });
-  }, 100); // Delay slightly to ensure DOM has updated
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }, 100); // Delay slightly to ensure DOM has updated
   }
 
   const plans = [
@@ -35,7 +35,7 @@ function Plans() {
       Subtitle: 'Gentle Weight Loss Guide',
       price: '₵249',
       Url: "https://paystack.shop/pay/gentleweightloss",
-      img: Weightloss, 
+      img: Weightloss,
       features: [
         'Balanced Meal Plan',
         'Workout & Nutrition Sync',
@@ -48,7 +48,7 @@ function Plans() {
       Subtitle: 'A Type 2 Diabetes-Friendly Guide',
       price: '₵299',
       Url: "https://paystack.shop/pay/bloodsugar",
-      img: Diabetes, 
+      img: Diabetes,
       features: [
         'Easy to follow meal plan',
         'Healthy Lifestyle Tips',
@@ -61,7 +61,7 @@ function Plans() {
       Subtitle: 'A Hypertension-Friendly Plan',
       price: '₵299',
       Url: "https://paystack.shop/pay/pressurenodey",
-      img: Pressure, 
+      img: Pressure,
       features: [
         'Heart-Smart Meal Plan',
         'Blood Pressure-Friendly Habits',
@@ -74,7 +74,7 @@ function Plans() {
       Subtitle: 'Wahala-Free Plan',
       price: '₵249',
       Url: "https://paystack.shop/pay/weightgain",
-      img: Gain, 
+      img: Gain,
       features: [
         'High-calorie meal plan',
         'Snack list',
@@ -164,7 +164,7 @@ function Plans() {
           </p>
           <div className='w-20 h-1 bg-gradient-to-r from-green-500 to-emerald-500 mx-auto rounded-full'></div>
         </div>
-        
+
         <div className='grid grid-cols-1 md:grid-cols-3 gap-8 max-w-6xl mx-auto'>
           {plans.map((plan, index) => (
             <div
@@ -189,7 +189,7 @@ function Plans() {
                   </li>
                 ))}
               </ul>
-              
+
               <a href={plan.Url} target="_blank" rel="noopener noreferrer">
                 <button
                   className={`w-full px-6 py-3 bg-gradient-to-r ${plan.gradient} text-white font-bold rounded-full transition-all hover:shadow-lg`}
@@ -221,7 +221,7 @@ function Plans() {
         </div>
 
         {/* Improved Testimonials Section */}
-        <div className='mt-20 mb-12'>
+        <div id="success-stories" className='mt-20 mb-12'>
           <div className='text-center space-y-4 max-w-3xl mx-auto mb-12'>
             <h2 className='text-4xl font-black text-transparent bg-clip-text bg-gradient-to-r from-green-700 via-emerald-600 to-green-600'>
               Success Stories
@@ -241,17 +241,17 @@ function Plans() {
                 {/* Quote Icon */}
                 <div className='absolute top-6 right-6 text-green-200 group-hover:text-green-300 transition-colors'>
                   <svg className='w-8 h-8' fill='currentColor' viewBox='0 0 24 24'>
-                    <path d='M14.017 21v-7.391c0-5.704 3.731-9.57 8.983-10.609l.995 2.151c-2.432.917-3.995 3.638-3.995 5.849h4v10h-9.983zm-14.017 0v-7.391c0-5.704 3.748-9.57 9-10.609l.996 2.151c-2.433.917-3.996 3.638-3.996 5.849h4v10h-10z'/>
+                    <path d='M14.017 21v-7.391c0-5.704 3.731-9.57 8.983-10.609l.995 2.151c-2.432.917-3.995 3.638-3.995 5.849h4v10h-9.983zm-14.017 0v-7.391c0-5.704 3.748-9.57 9-10.609l.996 2.151c-2.433.917-3.996 3.638-3.996 5.849h4v10h-10z' />
                   </svg>
                 </div>
 
                 {/* Profile Section */}
                 <div className='flex items-center gap-4 mb-6'>
                   <div className='relative'>
-                    <img 
-                      src={testimonial.img} 
-                      alt={testimonial.name} 
-                      className='h-16 w-16 object-cover rounded-full border-4 border-gradient-to-r from-green-400 to-emerald-400 shadow-lg' 
+                    <img
+                      src={testimonial.img}
+                      alt={testimonial.name}
+                      className='h-16 w-16 object-cover rounded-full border-4 border-gradient-to-r from-green-400 to-emerald-400 shadow-lg'
                     />
                     <div className='absolute -bottom-1 -right-1 bg-green-500 rounded-full p-1'>
                       <svg className='w-3 h-3 text-white' fill='currentColor' viewBox='0 0 20 20'>
@@ -283,8 +283,8 @@ function Plans() {
           {/* Call to Action */}
           <div className='text-center mt-12'>
             <p className='text-gray-600 text-lg mb-6'>Ready to start your transformation?</p>
-            <button onClick={() => {scrollUp()}}
-            className='px-8 py-3 bg-gradient-to-r from-[#F6841F] to-[#F6841F] text-white font-bold rounded-full hover:shadow-lg transition-all hover:scale-105'>
+            <button onClick={() => { scrollUp() }}
+              className='px-8 py-3 bg-gradient-to-r from-[#F6841F] to-[#F6841F] text-white font-bold rounded-full hover:shadow-lg transition-all hover:scale-105'>
               Choose Your Plan
             </button>
           </div>

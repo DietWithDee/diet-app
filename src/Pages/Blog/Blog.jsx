@@ -1,11 +1,12 @@
 import React, { useState, useEffect } from 'react';
 import SEO from '../../Components/SEO';
-import { useNavigate ,useParams} from 'react-router-dom';
+import { useNavigate, useParams } from 'react-router-dom';
 import { Loader, Calendar, User, ArrowRight, ArrowLeft, Share2, Heart, MessageCircle } from 'lucide-react';
 import { getArticles, likeNews, markArticleHelpful } from '../../firebaseUtils';
 import BlogImage from '../../assets/Salad.png'; // Fallback image
 import BlogArticleSEO from '../../Components/BlogArticleSEO';
 import ScrollHideRefreshButton from '../../utils/ScrollHideRefreshButton';
+import NewsletterPopup from '../../Components/NewsletterPopup';
 
 function Blog() {
   const navigate = useNavigate();
@@ -20,46 +21,46 @@ function Blog() {
   const [isLoadingArticles, setIsLoadingArticles] = useState(false);
 
   useEffect(() => {
-     loadArticles();
-   }, []);
- 
-   // When articles load or route changes, open the right article if there's an :id
-   useEffect(() => {
-     if (!routeId) return;
-     // If we already have posts, try to find it
-     const found = blogPosts.find(p => p.id === routeId);
-     if (found) {
-       setSelectedArticle(found);
-       setViewMode('article');
-       return;
-     }
-     // Otherwise fetch and select when available
-     (async () => {
-       const res = await getArticles();
-       if (res?.success) {
-         const list = res.data || [];
-         setBlogPosts(list);
-         const match = list.find(p => p.id === routeId);
-         if (match) {
-           setSelectedArticle(match);
-           setViewMode('article');
-         }
-       }
-   })();
- }, [routeId, blogPosts]);
+    loadArticles();
+  }, []);
+
+  // When articles load or route changes, open the right article if there's an :id
+  useEffect(() => {
+    if (!routeId) return;
+    // If we already have posts, try to find it
+    const found = blogPosts.find(p => p.id === routeId);
+    if (found) {
+      setSelectedArticle(found);
+      setViewMode('article');
+      return;
+    }
+    // Otherwise fetch and select when available
+    (async () => {
+      const res = await getArticles();
+      if (res?.success) {
+        const list = res.data || [];
+        setBlogPosts(list);
+        const match = list.find(p => p.id === routeId);
+        if (match) {
+          setSelectedArticle(match);
+          setViewMode('article');
+        }
+      }
+    })();
+  }, [routeId, blogPosts]);
 
   const loadArticles = async () => {
     setIsLoading(true);
     setError(null);
-    
+
     // ✅ Scroll to top on step change
-  setTimeout(() => {
-    window.scrollTo({ top: 0, behavior: 'smooth' });
-  }, 100); // Delay slightly to ensure DOM has updated
+    setTimeout(() => {
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }, 100); // Delay slightly to ensure DOM has updated
 
     try {
       const result = await getArticles();
-      
+
       if (result.success) {
         setBlogPosts(result.data || []);
       } else {
@@ -87,16 +88,16 @@ function Blog() {
   const handleLike = async (articleId) => {
     // Prevent multiple simultaneous likes
     if (likingArticles.has(articleId)) return;
-    
+
     setLikingArticles(prev => new Set([...prev, articleId]));
-    
+
     try {
       const result = await likeNews(articleId);
-      
+
       if (result.success) {
         // Update the likes count in the local state
-        setBlogPosts(prev => prev.map(post => 
-          post.id === articleId 
+        setBlogPosts(prev => prev.map(post =>
+          post.id === articleId
             ? { ...post, likesCount: (post.likesCount || 0) + 1 }
             : post
         ));
@@ -127,25 +128,25 @@ function Blog() {
   const handleHelpfulFeedback = async (articleId, isHelpful) => {
     // Prevent multiple simultaneous feedback submissions
     if (feedbackArticles.has(articleId)) return;
-    
+
     setFeedbackArticles(prev => new Set([...prev, articleId]));
-    
+
     try {
       const result = await markArticleHelpful(articleId, isHelpful);
-      
+
       if (result.success) {
         // Update the feedback counts in local state
-        setBlogPosts(prev => prev.map(post => 
-          post.id === articleId 
-            ? { 
-                ...post, 
-                helpfulCount: isHelpful 
-                  ? (post.helpfulCount || 0) + 1 
-                  : (post.helpfulCount || 0),
-                notHelpfulCount: !isHelpful 
-                  ? (post.notHelpfulCount || 0) + 1 
-                  : (post.notHelpfulCount || 0)
-              }
+        setBlogPosts(prev => prev.map(post =>
+          post.id === articleId
+            ? {
+              ...post,
+              helpfulCount: isHelpful
+                ? (post.helpfulCount || 0) + 1
+                : (post.helpfulCount || 0),
+              notHelpfulCount: !isHelpful
+                ? (post.notHelpfulCount || 0) + 1
+                : (post.notHelpfulCount || 0)
+            }
             : post
         ));
 
@@ -153,11 +154,11 @@ function Blog() {
         if (selectedArticle && selectedArticle.id === articleId) {
           setSelectedArticle(prev => ({
             ...prev,
-            helpfulCount: isHelpful 
-              ? (prev.helpfulCount || 0) + 1 
+            helpfulCount: isHelpful
+              ? (prev.helpfulCount || 0) + 1
               : (prev.helpfulCount || 0),
-            notHelpfulCount: !isHelpful 
-              ? (prev.notHelpfulCount || 0) + 1 
+            notHelpfulCount: !isHelpful
+              ? (prev.notHelpfulCount || 0) + 1
               : (prev.notHelpfulCount || 0)
           }));
         }
@@ -174,7 +175,7 @@ function Blog() {
 
   const formatDate = (timestamp) => {
     if (!timestamp) return 'Unknown date';
-    
+
     // Handle Firestore Timestamp
     if (timestamp.toDate) {
       return timestamp.toDate().toLocaleDateString('en-US', {
@@ -183,7 +184,7 @@ function Blog() {
         day: 'numeric'
       });
     }
-    
+
     // Handle regular Date or string
     return new Date(timestamp).toLocaleDateString('en-US', {
       year: 'numeric',
@@ -200,7 +201,7 @@ function Blog() {
 
   const createSummary = (content, maxLength = 150) => {
     const plainText = stripHtml(content);
-    return plainText.length > maxLength 
+    return plainText.length > maxLength
       ? plainText.substring(0, maxLength) + '...'
       : plainText;
   };
@@ -314,8 +315,8 @@ function Blog() {
               {/* Featured Image */}
               {selectedArticle.coverImage && (
                 <div className="h-48 sm:h-64 lg:h-96 overflow-hidden">
-                  <img 
-                    src={selectedArticle.coverImage} 
+                  <img
+                    src={selectedArticle.coverImage}
                     alt={selectedArticle.title}
                     className="w-full h-full object-cover"
                     onError={(e) => {
@@ -331,7 +332,7 @@ function Blog() {
                   <h1 className="text-2xl sm:text-3xl lg:text-4xl font-black text-green-700 mb-4 leading-tight">
                     {selectedArticle.title}
                   </h1>
-                  
+
                   <div className="flex flex-wrap items-center gap-4 lg:gap-6 text-gray-600 mb-6">
                     <div className="flex items-center gap-2">
                       <Calendar size={18} />
@@ -359,14 +360,13 @@ function Blog() {
                       <Share2 size={16} />
                       Share
                     </button>
-                    <button 
+                    <button
                       onClick={() => handleLike(selectedArticle.id)}
                       disabled={isLiking}
-                      className={`flex items-center gap-2 px-3 sm:px-4 py-2 rounded-lg transition-all text-sm ${
-                        isLiking
+                      className={`flex items-center gap-2 px-3 sm:px-4 py-2 rounded-lg transition-all text-sm ${isLiking
                           ? 'text-gray-400 bg-gray-50 cursor-not-allowed'
                           : 'text-gray-600 hover:text-red-500 hover:bg-red-50'
-                      }`}
+                        }`}
                     >
                       <Heart size={16} />
                       {isLiking ? 'Liking...' : 'Like'}
@@ -375,7 +375,7 @@ function Blog() {
                 </div>
 
                 {/* Article Content */}
-                <div 
+                <div
                   className="prose prose-sm sm:prose-base lg:prose-lg max-w-none text-gray-800 leading-relaxed"
                   style={{
                     fontSize: '14px',
@@ -396,31 +396,29 @@ function Blog() {
                       )}
                     </div>
                     <div className="flex gap-2">
-                      <button 
+                      <button
                         onClick={() => handleHelpfulFeedback(selectedArticle.id, true)}
                         disabled={hasFeedback}
-                        className={`px-3 sm:px-4 py-2 rounded-lg transition-colors text-xs sm:text-sm ${
-                          hasFeedback
+                        className={`px-3 sm:px-4 py-2 rounded-lg transition-colors text-xs sm:text-sm ${hasFeedback
                             ? 'bg-gray-100 text-gray-400 cursor-not-allowed'
                             : 'bg-green-100 text-green-700 hover:bg-green-200'
-                        }`}
+                          }`}
                       >
                         Yes, helpful! 👍
                       </button>
-                      <button 
+                      <button
                         onClick={() => handleHelpfulFeedback(selectedArticle.id, false)}
                         disabled={hasFeedback}
-                        className={`px-3 sm:px-4 py-2 rounded-lg transition-colors text-xs sm:text-sm ${
-                          hasFeedback
+                        className={`px-3 sm:px-4 py-2 rounded-lg transition-colors text-xs sm:text-sm ${hasFeedback
                             ? 'bg-gray-100 text-gray-400 cursor-not-allowed'
                             : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
-                        }`}
+                          }`}
                       >
                         Could be better 👎
                       </button>
                     </div>
                   </div>
-                  
+
                   {/* Feedback Summary */}
                   {((selectedArticle.helpfulCount || 0) > 0 || (selectedArticle.notHelpfulCount || 0) > 0) && (
                     <div className="mt-4 p-3 bg-gray-50 rounded-lg">
@@ -436,7 +434,7 @@ function Blog() {
                       </div>
                     </div>
                   )}
-                  
+
                   {hasFeedback && (
                     <div className="mt-3 text-sm text-green-600 text-center">
                       Thank you for your feedback! 🙏
@@ -463,8 +461,8 @@ function Blog() {
                       <div className="flex gap-3 lg:gap-4">
                         <div className="w-16 h-16 lg:w-20 lg:h-20 bg-gradient-to-br from-green-100 to-emerald-100 rounded-lg flex items-center justify-center overflow-hidden flex-shrink-0">
                           {post.coverImage ? (
-                            <img 
-                              src={post.coverImage} 
+                            <img
+                              src={post.coverImage}
                               alt={post.title}
                               className="w-full h-full object-cover"
                               onError={(e) => {
@@ -472,8 +470,8 @@ function Blog() {
                               }}
                             />
                           ) : (
-                            <img 
-                              src={BlogImage} 
+                            <img
+                              src={BlogImage}
                               alt={post.title}
                               className="w-8 h-8 lg:w-12 lg:h-12 object-contain opacity-70"
                             />
@@ -504,7 +502,7 @@ function Blog() {
       </>
     );
   }
-  
+
   // Blog List View (default)
   return (
     <div className="min-h-screen bg-gradient-to-br from-green-50 via-white to-emerald-50 py-18 lg:py-20 px-4 sm:px-6 lg:px-12">
@@ -542,18 +540,18 @@ function Blog() {
                 <div className="w-full lg:w-52 flex-shrink-0 order-first lg:order-none">
                   <div className="h-48 sm:h-56 lg:h-32 w-full bg-gradient-to-br from-green-100 to-emerald-100 rounded-xl flex items-center justify-center overflow-hidden">
                     {post.coverImage ? (
-                      <img 
-                        src={post.coverImage} 
-                        alt={post.title} 
+                      <img
+                        src={post.coverImage}
+                        alt={post.title}
                         className="w-full h-full object-cover"
                         onError={(e) => {
                           e.target.src = BlogImage; // Fallback to default image
                         }}
                       />
                     ) : (
-                      <img 
-                        src={BlogImage} 
-                        alt={post.title} 
+                      <img
+                        src={BlogImage}
+                        alt={post.title}
                         className="h-16 sm:h-20 lg:h-24 object-contain opacity-70"
                       />
                     )}
@@ -565,7 +563,7 @@ function Blog() {
                   <h3 className="text-xl sm:text-2xl font-bold text-green-700 group-hover:text-green-800 transition-colors line-clamp-2">
                     {post.title}
                   </h3>
-                  
+
                   <div className="flex flex-wrap items-center gap-3 lg:gap-4 text-xs lg:text-sm text-gray-500">
                     <div className="flex items-center gap-1">
                       <Calendar size={12} />
@@ -582,11 +580,11 @@ function Blog() {
                       <span>{post.likesCount || 0} likes</span>
                     </div>
                   </div>
-                  
+
                   <p className="text-gray-700 text-sm lg:text-base leading-relaxed line-clamp-3">
                     {createSummary(post.content)}
                   </p>
-                  
+
                   <button
                     onClick={() => handleReadMore(post)}
                     className="mt-3 lg:mt-4 inline-flex items-center gap-2 px-4 lg:px-6 py-2 border-2 border-green-600 text-green-700 font-semibold rounded-full hover:bg-green-50 hover:border-green-700 transition-all duration-300 group-hover:translate-x-1 text-sm lg:text-base"
@@ -603,11 +601,13 @@ function Blog() {
 
       {/* Refresh button for development */}
       {process.env.NODE_ENV === 'development' && (
-        <ScrollHideRefreshButton 
-        loadArticles={loadArticles}
-        isLoading={isLoadingArticles}
-      />
+        <ScrollHideRefreshButton
+          loadArticles={loadArticles}
+          isLoading={isLoadingArticles}
+        />
       )}
+      {/* Newsletter Popup */}
+      <NewsletterPopup />
     </div>
   );
 }
