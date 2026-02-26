@@ -15,6 +15,7 @@ import Terms from "../Pages/Terms/Terms";
 import Privacy from "../Pages/Privacy/Privacy";
 import ScrollToTop from "../utils/ScrollToTop";
 import PaymentSuccess from "../Pages/ContactUs/PaymentSuccess";
+import MyJourney from "../Pages/MyJourney/MyJourney";
 import TestEmails from "../Components/TestEmails"; // Import the TestEmails component
 
 const MainLayout = () => {
@@ -32,6 +33,7 @@ const MainLayout = () => {
           <Route path="/contactUs" element={<ContactUs />} />
           <Route path="/services" element={<Services />} />
           <Route path="/knowYourBody" element={<KnowYourBody />} />
+          <Route path="/my-journey" element={<MyJourney />} />
           <Route path="/admin" element={<AdminApp />} />
           <Route path="/plans" element={<Plans />} />
           <Route path="/terms" element={<Terms />} />

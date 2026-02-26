@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react'
 import { NavLink } from 'react-router-dom'
-import { FiShoppingCart, FiMenu, FiX } from "react-icons/fi"
+import { FiShoppingCart, FiMenu, FiX, FiUser } from "react-icons/fi"
 import logo from "../../assets/LOGO.png"
 import { useNavigate } from 'react-router'
 
@@ -15,20 +15,20 @@ export default function NavBar() {
   }, [menuOpen])
 
   const links = [
-    { path: '/',            label: 'Home' },
-    { path: '/about',        label: 'About' },
-    { path: '/plans',        label: 'Plans' },
-    { path: '/services',     label: 'Services' },
-    { path: '/blog',         label: 'Blog' },
+    { path: '/', label: 'Home' },
+    { path: '/about', label: 'About' },
+    { path: '/plans', label: 'Plans' },
+    { path: '/services', label: 'Services' },
+    { path: '/blog', label: 'Blog' },
     { path: '/KnowYourBody', label: 'KnowYourBody' },
-    { path: '/contactus',    label: 'Contact Us' },
+    { path: '/contactus', label: 'Contact Us' },
   ]
 
   return (
     <header className="fixed inset-x-0 top-0 z-50 bg-white ">
       <div className="flex items-center justify-between px-4 ">
         {/* Logo */}
-        <div className="flex items-center space-x-2 cursor-pointer" onClick={() => navigate('/')}> {/* Added onClick to navigate to homepage */}
+        <div className="flex items-center space-x-2 cursor-pointer" onClick={() => navigate('/')}>
           <img src={logo} alt="Logo" className="h-14 w-auto" />
           <span className="text-3xl text-green-800 font-transcity pt-4">
             DietWithDee
@@ -42,8 +42,7 @@ export default function NavBar() {
               <NavLink
                 to={path}
                 className={({ isActive }) =>
-                  `cursor-pointer hover:text-green-600 ${
-                    isActive ? 'text-green-600 font-bold' : 'text-gray-800'
+                  `cursor-pointer hover:text-green-600 ${isActive ? 'text-green-600 font-bold' : 'text-gray-800'
                   }`
                 }
                 end={path === '/'}
@@ -56,6 +55,14 @@ export default function NavBar() {
 
         {/* Icons & Hamburger */}
         <div className="flex items-center space-x-4 text-orange-400">
+          {/* My Journey icon */}
+          <button
+            onClick={() => navigate('/my-journey')}
+            className="relative group"
+            title="My Journey"
+          >
+            <FiUser size={23} className="transition-transform duration-300 group-hover:scale-110" />
+          </button>
           <button onClick={() => navigate('/plans')} className="relative">
             <FiShoppingCart size={23} />
           </button>
@@ -65,7 +72,7 @@ export default function NavBar() {
         </div>
       </div>
 
-      {/* Mobile Slide-Down Menu (50% height, solid green) */}
+      {/* Mobile Slide-Down Menu */}
       <div
         className={`
           fixed inset-x-0 top-0 h-100 bg-orange-400 z-40
@@ -96,6 +103,15 @@ export default function NavBar() {
                 </NavLink>
               </li>
             ))}
+            <li>
+              <NavLink
+                to="/my-journey"
+                className="block hover:text-black transition-colors duration-200"
+                onClick={() => setMenuOpen(false)}
+              >
+                My Journey
+              </NavLink>
+            </li>
           </ul>
         </div>
       </div>

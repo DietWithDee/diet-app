@@ -19,7 +19,7 @@ const ProgressBar = ({ step }) => {
         <span>Results</span>
       </div>
     </div>
-    </div>
+  </div>
   );
 };
 
@@ -32,7 +32,7 @@ const WelcomeStep = ({ onNext }) => (
         Let's personalize your nutrition journey
       </h1>
       <p className="text-xl text-gray-600 max-w-2xl mx-auto leading-relaxed">
-Track your daily calories with our easy-to-use tool and stay on top of your health goals. Get expert guidance and book a session with our dietitians when you're ready.
+        Track your daily calories with our easy-to-use tool and stay on top of your health goals. Get expert guidance and book a session with our dietitians when you're ready.
       </p>
     </div>
     <div className="flex justify-center space-x-4">
@@ -56,6 +56,12 @@ Track your daily calories with our easy-to-use tool and stay on top of your heal
       <span>Start Now</span>
       <ChevronRight size={20} />
     </button>
+    <p className="text-xs text-gray-400 max-w-md mx-auto">
+      By proceeding, you agree to our{' '}
+      <a href="/privacy" className="text-green-600 hover:underline">Privacy Policy</a>{' '}
+      and{' '}
+      <a href="/terms" className="text-green-600 hover:underline">Terms of Service</a>.
+    </p>
   </div>
 );
 
@@ -76,11 +82,10 @@ const BMIStep = ({ formData, setFormData, units, setUnits, onNext }) => (
               setUnits('metric');
               setFormData(prev => ({ ...prev, height: '', weight: '' }));
             }}
-            className={`flex items-center space-x-2 px-4 py-2 rounded-full transition-all ${
-              units === 'metric'
+            className={`flex items-center space-x-2 px-4 py-2 rounded-full transition-all ${units === 'metric'
                 ? 'bg-white shadow-md text-green-700 font-semibold'
                 : 'text-gray-600'
-            }`}
+              }`}
           >
             <span className="text-lg">🇬🇧</span>
             <span>Metric</span>
@@ -90,11 +95,10 @@ const BMIStep = ({ formData, setFormData, units, setUnits, onNext }) => (
               setUnits('imperial');
               setFormData(prev => ({ ...prev, height: '', weight: '' }));
             }}
-            className={`flex items-center space-x-2 px-4 py-2 rounded-full transition-all ${
-              units === 'imperial'
+            className={`flex items-center space-x-2 px-4 py-2 rounded-full transition-all ${units === 'imperial'
                 ? 'bg-white shadow-md text-green-700 font-semibold'
                 : 'text-gray-600'
-            }`}
+              }`}
           >
             <span className="text-lg">🇺🇸</span>
             <span>Imperial</span>
@@ -109,11 +113,10 @@ const BMIStep = ({ formData, setFormData, units, setUnits, onNext }) => (
             <button
               key={gender}
               onClick={() => setFormData(prev => ({ ...prev, gender }))}
-              className={`flex-1 py-3 px-6 rounded-xl border-2 font-medium capitalize transition-all ${
-                formData.gender === gender
+              className={`flex-1 py-3 px-6 rounded-xl border-2 font-medium capitalize transition-all ${formData.gender === gender
                   ? 'border-green-500 bg-green-50 text-green-700'
                   : 'border-gray-200 hover:border-green-300'
-              }`}
+                }`}
             >
               <User className="inline mr-2" size={18} />
               {gender}
@@ -193,11 +196,10 @@ const CalorieStep = ({ formData, setFormData, onNext }) => (
             <button
               key={goal.key}
               onClick={() => setFormData(prev => ({ ...prev, goal: goal.key }))}
-              className={`py-4 px-4 rounded-xl border-2 font-medium transition-all text-center ${
-                formData.goal === goal.key
+              className={`py-4 px-4 rounded-xl border-2 font-medium transition-all text-center ${formData.goal === goal.key
                   ? 'border-green-500 bg-green-50 text-green-700'
                   : 'border-gray-200 hover:border-green-300'
-              }`}
+                }`}
             >
               <div className="text-2xl mb-2">{goal.icon}</div>
               {goal.label}
@@ -220,11 +222,10 @@ const CalorieStep = ({ formData, setFormData, onNext }) => (
             <button
               key={activity.key}
               onClick={() => setFormData(prev => ({ ...prev, activityLevel: activity.key }))}
-              className={`py-4 px-4 rounded-xl border-2 font-medium transition-all text-left ${
-                formData.activityLevel === activity.key
+              className={`py-4 px-4 rounded-xl border-2 font-medium transition-all text-left ${formData.activityLevel === activity.key
                   ? 'border-green-500 bg-green-50 text-green-700'
                   : 'border-gray-200 hover:border-green-300'
-              }`}
+                }`}
             >
               <div className="font-semibold">{activity.label}</div>
               <div className="text-sm text-gray-600">{activity.desc}</div>
@@ -242,11 +243,10 @@ const CalorieStep = ({ formData, setFormData, onNext }) => (
             <button
               key={sleep}
               onClick={() => setFormData(prev => ({ ...prev, sleepHours: sleep }))}
-              className={`py-3 px-4 rounded-xl border-2 font-medium transition-all ${
-                formData.sleepHours === sleep
+              className={`py-3 px-4 rounded-xl border-2 font-medium transition-all ${formData.sleepHours === sleep
                   ? 'border-green-500 bg-green-50 text-green-700'
                   : 'border-gray-200 hover:border-green-300'
-              }`}
+                }`}
             >
               {sleep}
             </button>
@@ -290,11 +290,10 @@ const CalorieStep = ({ formData, setFormData, onNext }) => (
             <button
               key={diet}
               onClick={() => setFormData(prev => ({ ...prev, dietaryRestrictions: diet }))}
-              className={`py-3 px-4 rounded-xl border-2 font-medium transition-all ${
-                formData.dietaryRestrictions === diet
+              className={`py-3 px-4 rounded-xl border-2 font-medium transition-all ${formData.dietaryRestrictions === diet
                   ? 'border-green-500 bg-green-50 text-green-700'
                   : 'border-gray-200 hover:border-green-300'
-              }`}
+                }`}
             >
               {diet}
             </button>
@@ -329,12 +328,11 @@ const ResultsStep = ({ results, formData, navigate }) => (
           <h3 className="text-2xl font-bold text-green-800">Your BMI</h3>
           <div className="space-y-2">
             <div className="text-4xl font-bold text-green-600">{results.bmi}</div>
-            <div className={`text-lg font-semibold px-4 py-2 rounded-full inline-block ${
-              results.bmiCategory === 'Normal Weight' ? 'bg-green-100 text-green-700' :
-              results.bmiCategory === 'Underweight' ? 'bg-blue-100 text-blue-700' :
-              results.bmiCategory === 'Overweight' ? 'bg-yellow-100 text-yellow-700' :
-              'bg-red-100 text-red-700'
-            }`}>
+            <div className={`text-lg font-semibold px-4 py-2 rounded-full inline-block ${results.bmiCategory === 'Normal Weight' ? 'bg-green-100 text-green-700' :
+                results.bmiCategory === 'Underweight' ? 'bg-blue-100 text-blue-700' :
+                  results.bmiCategory === 'Overweight' ? 'bg-yellow-100 text-yellow-700' :
+                    'bg-red-100 text-red-700'
+              }`}>
               {results.bmiCategory}
             </div>
           </div>
@@ -503,21 +501,21 @@ function KnowYourBody() {
 
   // Next Step Logic
   const handleNext = () => {
-  if (step === 1) {
-    const bmiResults = calculateBMI();
-    setResults(prev => ({ ...prev, ...bmiResults }));
-  } else if (step === 2) {
-    const calorieResults = calculateCalories();
-    setResults(prev => ({ ...prev, ...calorieResults }));
-  }
+    if (step === 1) {
+      const bmiResults = calculateBMI();
+      setResults(prev => ({ ...prev, ...bmiResults }));
+    } else if (step === 2) {
+      const calorieResults = calculateCalories();
+      setResults(prev => ({ ...prev, ...calorieResults }));
+    }
 
-  setStep(prev => prev + 1);
+    setStep(prev => prev + 1);
 
-  // ✅ Scroll to top on step change
-  setTimeout(() => {
-    window.scrollTo({ top: 0, behavior: 'smooth' });
-  }, 100); // Delay slightly to ensure DOM has updated
-};
+    // ✅ Scroll to top on step change
+    setTimeout(() => {
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }, 100); // Delay slightly to ensure DOM has updated
+  };
 
 
   return (
