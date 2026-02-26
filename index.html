@@ -1,29 +1,34 @@
 <!doctype html>
 <html lang="en">
-  <head>
-    <meta charset="UTF-8" />
-        <!-- Favicons for Google Search -->
-    <link rel="icon" href="/favicon.ico" sizes="any">
-    <link rel="icon" type="image/png" sizes="48x48" href="/favicon-48x48.png?v=2">
-    <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png">
-    <link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png">
-    <link rel="icon" type="image/svg+xml" href="dietwithdee.svg" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>DietWithDee</title>
-    <meta name="description" content="Best Dietitian in Ghana | Nana Ama Dwamena offers expert nutrition advice, weight loss plans, and wellness coaching. Start your healthy journey today!" />
-    <meta name="keywords" content="Dietitian, Nutritionist, Ghana, Nana Ama Dwamena, Weight Loss, Wellness, Healthy Eating, Diet With Dee" />
-    <link rel="canonical" href="https://dietwithdee.org/" />
-    <!-- Open Graph Meta Tags -->
-    <meta property="og:title" content="Best Dietitian in Ghana | Nana Ama Dwamena" />
-    <meta property="og:description" content="Expert nutrition advice, weight loss plans, and wellness coaching from Ghana’s leading dietitian." />
-    <meta property="og:type" content="website" />
-    <meta property="og:url" content="https://dietwithdee.org/" />
-    <meta property="og:image" content="https://dietwithdee.org/LOGO.png" />
-    <!-- Twitter Card Meta Tags -->
-    <meta name="twitter:card" content="summary_large_image" />
-    <meta name="twitter:title" content="Best Dietitian in Ghana | Nana Ama Dwamena" />
-    <meta name="twitter:description" content="Expert nutrition advice, weight loss plans, and wellness coaching from Ghana’s leading dietitian." />
-    <meta name="twitter:image" content="https://dietwithdee.org/LOGO.png" />
+
+<head>
+  <meta charset="UTF-8" />
+  <!-- Favicons for Google Search -->
+  <link rel="icon" href="/favicon.ico" sizes="any">
+  <link rel="icon" type="image/png" sizes="48x48" href="/favicon-48x48.png?v=2">
+  <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png">
+  <link rel="icon" type="image/svg+xml" href="dietwithdee.svg" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>DietWithDee</title>
+  <meta name="description"
+    content="Ghana's Favourite Dietitian | Nana Ama Dwamena offers expert nutrition advice, weight loss plans, and wellness coaching. Start your healthy journey today!" />
+  <meta name="keywords"
+    content="Dietitian, Nutritionist, Ghana, Nana Ama Dwamena, Weight Loss, Wellness, Healthy Eating, Diet With Dee" />
+  <link rel="canonical" href="https://dietwithdee.org/" />
+  <!-- Open Graph Meta Tags -->
+  <meta property="og:title" content="Ghana's Favourite Dietitian | Nana Ama Dwamena" />
+  <meta property="og:description"
+    content="Expert nutrition advice, weight loss plans, and wellness coaching from Ghana’s leading dietitian." />
+  <meta property="og:type" content="website" />
+  <meta property="og:url" content="https://dietwithdee.org/" />
+  <meta property="og:image" content="https://dietwithdee.org/LOGO.png" />
+  <!-- Twitter Card Meta Tags -->
+  <meta name="twitter:card" content="summary_large_image" />
+  <meta name="twitter:title" content="Ghana's Favourite Dietitian | Nana Ama Dwamena" />
+  <meta name="twitter:description"
+    content="Expert nutrition advice, weight loss plans, and wellness coaching from Ghana’s leading dietitian." />
+  <meta name="twitter:image" content="https://dietwithdee.org/LOGO.png" />
 
   <meta name="apple-mobile-web-app-capable" content="yes" />
   <meta name="apple-mobile-web-app-status-bar-style" content="default" />
@@ -36,52 +41,65 @@
 
   <!-- Theme Color -->
   <meta name="theme-color" content="#16a34a" />
-    <!-- JSON-LD Schema Markup -->
-    <script type="application/ld+json">
+  <script type="application/ld+json">
     {
       "@context": "https://schema.org",
       "@type": "Organization",
-      "name": "Diet With Dee",
+      "name": "DietWithDee",
+      "alternateName": "Diet With Dee",
       "url": "https://dietwithdee.org/",
       "logo": "https://dietwithdee.org/LOGO.png",
+      "description": "Ghana's favourite dietitian — expert nutrition advice, personalised diet plans, and wellness coaching by Registered Dietitian Nana Ama Dwamena.",
+      "founder": {
+        "@type": "Person",
+        "name": "Nana Ama Dwamena",
+        "jobTitle": "Registered Dietitian"
+      },
       "sameAs": [
-        "https://www.facebook.com/dietwithdee",
-        "https://www.instagram.com/dietwithdee"
+        "https://www.instagram.com/diet.withdee",
+        "https://www.linkedin.com/company/dietwithdee/",
+        "https://www.tiktok.com/@dietwithdee"
       ],
       "contactPoint": [{
         "@type": "ContactPoint",
-        "telephone": "+233-XXX-XXXXXX",
+        "telephone": "+233592330870",
         "contactType": "customer service",
         "areaServed": "GH",
         "availableLanguage": ["English"]
-      }]
+      }],
+      "address": {
+        "@type": "PostalAddress",
+        "addressCountry": "GH"
+      }
     }
     </script>
-    <script type="text/javascript">
-      // Single Page Apps for GitHub Pages
-      // MIT License
-      // https://github.com/rafgraph/spa-github-pages
-      // This script checks to see if a redirect is present in the query string,
-      // converts it back into the correct url and adds it to the
-      // browser's history using window.history.replaceState(...),
-      // which won't cause the browser to attempt to load the new url.
-      // When the single page app is loaded further down in this file,
-      // the correct url will be waiting in the browser's history for
-      // the single page app to route accordingly.
-      (function(l) {
-        if (l.search[1] === '/' ) {
-          var decoded = l.search.slice(1).split('&').map(function(s) { 
-            return s.replace(/~and~/g, '&')
-          }).join('?');
-          window.history.replaceState(null, null,
-              l.pathname.slice(0, -1) + decoded + l.hash
-          );
-        }
-      }(window.location))
-    </script>
-  </head>
-  <body>
-    <div id="root"></div>
-    <script type="module" src="/src/main.jsx"></script>
-  </body>
+  <script type="text/javascript">
+    // Single Page Apps for GitHub Pages
+    // MIT License
+    // https://github.com/rafgraph/spa-github-pages
+    // This script checks to see if a redirect is present in the query string,
+    // converts it back into the correct url and adds it to the
+    // browser's history using window.history.replaceState(...),
+    // which won't cause the browser to attempt to load the new url.
+    // When the single page app is loaded further down in this file,
+    // the correct url will be waiting in the browser's history for
+    // the single page app to route accordingly.
+    (function (l) {
+      if (l.search[1] === '/') {
+        var decoded = l.search.slice(1).split('&').map(function (s) {
+          return s.replace(/~and~/g, '&')
+        }).join('?');
+        window.history.replaceState(null, null,
+          l.pathname.slice(0, -1) + decoded + l.hash
+        );
+      }
+    }(window.location))
+  </script>
+</head>
+
+<body>
+  <div id="root"></div>
+  <script type="module" src="/src/main.jsx"></script>
+</body>
+
 </html>
