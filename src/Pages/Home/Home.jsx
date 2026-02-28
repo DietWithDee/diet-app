@@ -185,18 +185,18 @@ function Home() {
                 </motion.div>
 
                 {/* Trust Indicators */}
-                <motion.div variants={fadeUp} className="flex flex-wrap items-center gap-6 pt-8 text-sm text-gray-600">
-                  <div className="flex items-center gap-2">
-                    <div className="w-3 h-3 bg-green-500 rounded-full"></div>
-                    <span>300+ Success Stories</span>
+                <motion.div variants={fadeUp} className="flex flex-row items-start gap-4 sm:gap-8 pt-8 text-xs text-gray-600">
+                  <div className="flex items-start gap-2 max-w-[90px]">
+                    <div className="w-3 h-3 bg-green-500 rounded-full mt-0.5 flex-shrink-0"></div>
+                    <span className="leading-tight">300+ Success Stories</span>
                   </div>
-                  <div className="flex items-center gap-2">
-                    <div className="w-3 h-3 bg-emerald-500 rounded-full"></div>
-                    <span>Expert Dietitians</span>
+                  <div className="flex items-start gap-2 max-w-[90px]">
+                    <div className="w-3 h-3 bg-emerald-500 rounded-full mt-0.5 flex-shrink-0"></div>
+                    <span className="leading-tight">Expert Dietitians</span>
                   </div>
-                  <div className="flex items-center gap-2">
-                    <div className="w-3 h-3 bg-green-400 rounded-full"></div>
-                    <span>Personalized Plans</span>
+                  <div className="flex items-start gap-2 max-w-[90px]">
+                    <div className="w-3 h-3 bg-green-400 rounded-full mt-0.5 flex-shrink-0"></div>
+                    <span className="leading-tight">Personalized Plans</span>
                   </div>
                 </motion.div>
               </motion.div>
