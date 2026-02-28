@@ -73,8 +73,8 @@ function Home() {
 
   const fadeUp = {
     hidden: { opacity: 0, y: 30 },
-    show: { 
-      opacity: 1, 
+    show: {
+      opacity: 1,
       y: 0,
       transition: { type: "spring", stiffness: 50, damping: 15 }
     }
@@ -82,7 +82,7 @@ function Home() {
 
   const scaleRight = {
     hidden: { scaleX: 0, originX: 0 },
-    show: { 
+    show: {
       scaleX: 1,
       transition: { duration: 0.8, ease: "easeOut" }
     }
@@ -90,18 +90,10 @@ function Home() {
 
   const floatingImage = {
     hidden: { opacity: 0, x: 50 },
-    show: { 
-      opacity: 1, 
+    show: {
+      opacity: 1,
       x: 0,
       transition: { type: "spring", stiffness: 40, damping: 20 }
-    },
-    float: {
-      y: [0, -15, 0],
-      transition: {
-        duration: 4,
-        repeat: Infinity,
-        ease: "easeInOut"
-      }
     }
   };
 
@@ -133,14 +125,14 @@ function Home() {
           <div className="flex flex-col lg:flex-row items-center justify-between gap-12 lg:gap-20">
             {/* Left: Text Content */}
             <div className="flex-1 max-w-2xl">
-              <motion.div 
+              <motion.div
                 className="space-y-8"
                 variants={staggerContainer}
                 initial="hidden"
                 animate="show"
               >
                 <div className="space-y-4">
-                  <motion.h1 
+                  <motion.h1
                     variants={fadeUp}
                     className="text-4xl lg:text-6xl font-black text-transparent bg-clip-text bg-gradient-to-r from-green-700 to-green-700 leading-tight"
                   >
@@ -207,11 +199,11 @@ function Home() {
               <div className="absolute -top-4 -right-4 w-72 h-62 bg-gradient-to-br from-green-200 to-emerald-200 rounded-full opacity-20 blur-3xl"></div>
               <div className="absolute -bottom-8 -left-8 w-64 h-54 bg-gradient-to-tr from-emerald-300 to-green-300 rounded-full opacity-15 blur-2xl"></div>
 
-              <motion.div 
+              <motion.div
                 className="relative z-10 p-4 lg:p-8"
                 variants={floatingImage}
                 initial="hidden"
-                animate={["show", "float"]}
+                animate="show"
               >
                 <div className="bg-transparent rounded-3xl transition-all duration-500 hover:scale-[1.02]">
                   <div className="w-full flex items-center justify-center relative">
@@ -229,7 +221,7 @@ function Home() {
             <div className="container mx-auto px-2 lg:px-8">
               <div className="flex flex-col lg:flex-row items-center justify-between gap-12 lg:gap-20">
                 {/* Left: Image */}
-                <motion.div 
+                <motion.div
                   className="flex-1 relative max-w-lg order-2 lg:order-1"
                   initial={{ opacity: 0, y: 40 }}
                   whileInView={{ opacity: 1, y: 0 }}
@@ -265,7 +257,7 @@ function Home() {
 
                 {/* Right: Text */}
                 <div className="flex-1 max-w-2xl order-1 lg:order-2">
-                  <motion.div 
+                  <motion.div
                     className="space-y-8"
                     initial="hidden"
                     whileInView="show"
@@ -284,7 +276,7 @@ function Home() {
                         Here at <span className="italic font-semibold text-green-700">DietWithDee</span>, we believe that nutrition is the cornerstone of a vibrant life, and we're here to guide you every step of the way. Our mission is to provide personalized diet plans, delicious recipes, and expert advice to help you reach your wellness goals. DietWithDee is here to support you every step of the way. Let's make healthy living enjoyable and sustainable together!
                       </motion.p>
 
-                      <motion.div 
+                      <motion.div
                         variants={fadeUp}
                         className="bg-gradient-to-r from-green-50 to-emerald-50 p-6 rounded-2xl border-l-4 border-green-500 relative overflow-hidden group"
                       >
@@ -318,7 +310,7 @@ function Home() {
           </div>
 
           {/* Stats Section */}
-          <motion.div 
+          <motion.div
             className="mt-10 pb-16"
             initial={{ opacity: 0, y: 40 }}
             whileInView={{ opacity: 1, y: 0 }}
@@ -327,25 +319,25 @@ function Home() {
           >
             <div className="grid grid-cols-1 md:grid-cols-3 gap-8 text-center bg-white shadow-xl shadow-green-900/5 rounded-3xl p-8 lg:p-12 mx-auto max-w-5xl relative overflow-hidden">
               <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-green-400 via-emerald-500 to-green-600"></div>
-              
+
               <div className="space-y-2">
                 <div className="text-green-600">
                   <AnimatedCounter target={300} suffix="+" />
                 </div>
                 <div className="text-gray-600 font-medium">Happy Clients</div>
               </div>
-              
+
               <div className="hidden md:block w-px h-16 bg-gray-200 mx-auto mt-2"></div>
-              
+
               <div className="space-y-2">
                 <div className="text-emerald-600">
                   <AnimatedCounter target={6} suffix="+" />
                 </div>
                 <div className="text-gray-600 font-medium">Years Experience</div>
               </div>
-              
+
               <div className="hidden md:block w-px h-16 bg-gray-200 mx-auto mt-2"></div>
-              
+
               <div className="space-y-2">
                 <div className="text-green-700">
                   <AnimatedCounter target={95} suffix="%" />

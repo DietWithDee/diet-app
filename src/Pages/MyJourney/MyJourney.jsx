@@ -206,10 +206,30 @@ function MyJourney() {
   return (
     <>
       <SEO
-        title="My Journey | DietWithDee"
-        description="Your personal wellness dashboard — coming soon. Track progress, manage settings, and access curated content with DietWithDee."
-        keywords="Diet Journey, Progress Tracking, Wellness Dashboard, DietWithDee"
+        title="My Journey | Personal Wellness Dashboard | DietWithDee"
+        description="Your personalized health and wellness dashboard. Track your diet progress, manage wellness goals, and access curated nutrition content tailored to your unique journey with DietWithDee."
+        keywords="Diet Journey, Wellness Dashboard, Nutrition Progress, Personalized Diet Plan, Health Tracker, DietWithDee Ghana"
         url="https://dietwithdee.org/my-journey"
+        jsonLd={{
+          "@context": "https://schema.org",
+          "@type": "WebPage",
+          "name": "My Journey - Wellness Dashboard",
+          "description": "Personalized health tracking and wellness management dashboard by DietWithDee.",
+          "breadcrumb": {
+            "@type": "BreadcrumbList",
+            "itemListElement": [{
+              "@type": "ListItem",
+              "position": 1,
+              "name": "Home",
+              "item": "https://dietwithdee.org"
+            }, {
+              "@type": "ListItem",
+              "position": 2,
+              "name": "My Journey",
+              "item": "https://dietwithdee.org/my-journey"
+            }]
+          }
+        }}
       />
 
       <div className="min-h-screen bg-gradient-to-br from-green-50 via-white to-emerald-50 w-full overflow-hidden">
