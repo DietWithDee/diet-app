@@ -12,6 +12,16 @@ import Event6 from '../../assets/images/Events/Event6.webp';
 import Event7 from '../../assets/images/Events/Event7.webp';
 import Event8 from '../../assets/images/Events/Event8.webp';
 import Event9 from '../../assets/images/Events/Event9.webp';
+import Event11 from '../../assets/images/Events/Event11.webp';
+import Event12 from '../../assets/images/Events/Event12.webp';
+import Event13 from '../../assets/images/Events/Event13.webp';
+import Event14 from '../../assets/images/Events/Event14.webp';
+import Event15 from '../../assets/images/Events/Event15.webp';
+import Event16 from '../../assets/images/Events/Event16.webp';
+import Event17 from '../../assets/images/Events/Event17.webp';
+import Event18 from '../../assets/images/Events/Event18.webp';
+import Event19 from '../../assets/images/Events/Event19.webp';
+import Event5_6 from '../../assets/images/Events/Event5.6.webp';
 
 function ServicesContactSection() {
   const navigate = useNavigate();
@@ -34,11 +44,21 @@ function ServicesContactSection() {
     { src: Event3, alt: "Event Portrait 2" },
     { src: Event4, alt: "Event Landscape 2" },
     { src: Event5, alt: "Event Landscape 3" },
+    { src: Event5_6, alt: "Event Gallery 6" },
     { src: Event5_5, alt: "Event Portrait 3" },
     { src: Event6, alt: "Event Landscape 4" },
     { src: Event7, alt: "Event Portrait 4" },
     { src: Event8, alt: "Event Landscape 5" },
     { src: Event9, alt: "Event Portrait 5" },
+    { src: Event11, alt: "Event Gallery 12" },
+    { src: Event12, alt: "Event Gallery 13" },
+    { src: Event13, alt: "Event Gallery 14" },
+    { src: Event14, alt: "Event Gallery 15" },
+    { src: Event15, alt: "Event Gallery 16" },
+    { src: Event16, alt: "Event Gallery 17" },
+    { src: Event17, alt: "Event Gallery 18" },
+    { src: Event18, alt: "Event Gallery 19" },
+    { src: Event19, alt: "Event Gallery 20" },
   ];
 
   const goToNextImage = React.useCallback((isManual = false) => {
@@ -126,13 +146,13 @@ function ServicesContactSection() {
     };
   }, [isLightboxOpen, isPaused, goToNextImage]);
 
-  // Resume auto-slide after 6 seconds of manual navigation
+  // Resume auto-slide after 6 seconds of manual navigation(3+3)
   useEffect(() => {
     let resumeTimeout;
     if (isPaused) {
       resumeTimeout = setTimeout(() => {
         setIsPaused(false);
-      }, 6000);
+      }, 3000);
     }
     return () => {
       clearTimeout(resumeTimeout);
