@@ -80,15 +80,21 @@ export const AuthProvider = ({ children }) => {
     });
 
     try {
-      // Save current path to jump back to it after redirect
-      if (typeof window !== 'undefined') {
-        localStorage.setItem('authRedirect', window.location.pathname + window.location.search);
-      }
-      // Direct redirect is the most bulletproof method across all mobile browsers
-      await signInWithRedirect(auth, provider);
-      return null;
+      // First try popup - it generally works better without leaving the page
+      const result = await signInWithPopup(auth, provider);
+      return result.user;
     } catch (err) {
-      console.error('Google sign-in error:', err);
+      console.error('Google popup sign-in error:', err);
+
+      // If popup is blocked by mobile browser, fallback smoothly to redirect
+      if (err.code === 'auth/popup-blocked' || err.code === 'auth/popup-closed-by-user') {
+        if (typeof window !== 'undefined') {
+          localStorage.setItem('authRedirect', window.location.pathname + window.location.search);
+        }
+        await signInWithRedirect(auth, provider);
+        return null;
+      }
+
       throw err;
     }
   };
