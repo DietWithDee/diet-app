@@ -3,17 +3,42 @@ rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
 
-    // This rule allows anyone with your Firestore database reference to view, edit,
-    // and delete all data in your Firestore database. It is useful for getting
-    // started, but it is configured to expire after 30 days because it
-    // leaves your app open to attackers. At that time, all client
-    // requests to your Firestore database will be denied.
-    //
-    // Make sure to write security rules for your app before that time, or else
-    // all client requests to your Firestore database will be denied until you Update
-    // your rules
+    // Helper functions
+    function isAuthenticated() {
+      return request.auth != null;
+    }
+    
+    // For now, allow any authenticated user to act as admin (for the admin panel)
+    // Eventually, you might want a specific `isAdmin(userId)` lookup in your users table.
+    function isAdmin() {
+      return request.auth != null;
+    }
+
+    match /users/{userId} {
+      allow read, write: if request.auth != null && request.auth.uid == userId;
+      
+      match /logs/{logId} {
+        allow read, write: if request.auth != null && request.auth.uid == userId;
+      }
+    }
+
+    match /articles/{articleId} {
+      allow read: if true; // public can see articles
+      allow write: if isAdmin(); // only admins can create/edit articles
+    }
+
+    match /settings/{settingId} {
+      allow read: if true; // public can read settings (like booking status)
+      allow write: if isAdmin(); // only admins can change settings
+    }
+
+    match /emails/{emailId} {
+      allow read, write: if isAdmin(); // only admins can manage collected emails
+    }
+
+    // Default deny for anything not explicitly specified above
     match /{document=**} {
-      allow read, write: if request.time < timestamp.date(2025, 8, 30);
+      allow read, write: if false;
     }
   }
 }

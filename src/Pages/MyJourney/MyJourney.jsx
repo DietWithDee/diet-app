@@ -173,8 +173,15 @@ function MyJourney() {
     });
   };
 
-  // Show onboarding if user is logged in but has no profile
-  const shouldShowOnboarding = user && !userProfile && !loading;
+  // Show onboarding if user is logged in, has no profile, and hasn't explicitly dismissed it this session
+  const hasDismissedOnboarding = localStorage.getItem('onboardingDismissed') === 'true';
+  const shouldShowOnboarding = user && !userProfile && !loading && !hasDismissedOnboarding;
+
+  const handleCloseOnboarding = () => {
+    localStorage.setItem('onboardingDismissed', 'true');
+    setShowOnboarding(false);
+    setEditMode(false);
+  };
 
   // Goal label mapper
   const goalLabel = (g) => {
@@ -525,7 +532,7 @@ function MyJourney() {
           <OnboardingModal
             userName={user.displayName}
             onSave={handleOnboardingSave}
-            onClose={() => { setShowOnboarding(false); setEditMode(false); }}
+            onClose={handleCloseOnboarding}
             initialData={editMode ? userProfile : null}
           />
         )}
