@@ -380,7 +380,7 @@ function MyJourney() {
                                 <div className="w-14 h-14 bg-gradient-to-br from-green-100 to-emerald-100 rounded-2xl flex items-center justify-center mx-auto">
                                   <span className="text-2xl">🌿</span>
                                 </div>
-                                <h3 className="text-xl font-bold text-green-800">Join Your Wellness Journey</h3>
+                                <h3 className="text-xl font-bold text-green-800">Start Your Wellness Journey</h3>
                                 <p className="text-gray-500 text-sm leading-relaxed">
                                   Sign up to save your progress, get personalized recommendations, and be first to access new features.
                                 </p>

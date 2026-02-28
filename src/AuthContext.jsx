@@ -5,8 +5,11 @@ import { auth, db } from './firebaseConfig';
 
 const AuthContext = createContext(null);
 
-// Simple mobile detection
-const isMobile = () => /Android|iPhone|iPad|iPod|webOS|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+const ADMIN_EMAILS = [
+  'nanaamadwamena4@gmail.com',
+  'princetetteh963@gmail.com',
+  'godwinokro2020@gmail.com'
+];
 
 export const useAuth = () => {
   const ctx = useContext(AuthContext);
@@ -53,23 +56,20 @@ export const AuthProvider = ({ children }) => {
     });
   }, []);
 
-  // Google sign-in — try popup first, fall back to redirect if blocked (e.g. mobile)
+  // Google sign-in
   const signInWithGoogle = async () => {
     const provider = new GoogleAuthProvider();
+    auth.useDeviceLanguage();
+    provider.setCustomParameters({
+      prompt: 'select_account'
+    });
+
     try {
-      const result = await signInWithPopup(auth, provider);
-      return result.user;
+      // Direct redirect is the most bulletproof method across all mobile browsers
+      await signInWithRedirect(auth, provider);
+      return null;
     } catch (err) {
-      // Popup blocked or closed — fall back to redirect
-      if (
-        err.code === 'auth/popup-blocked' ||
-        err.code === 'auth/popup-closed-by-user' ||
-        err.code === 'auth/cancelled-popup-request'
-      ) {
-        console.log('Popup blocked, falling back to redirect...');
-        await signInWithRedirect(auth, provider);
-        return null; // page will redirect
-      }
+      console.error('Google sign-in error:', err);
       throw err;
     }
   };
@@ -119,6 +119,7 @@ export const AuthProvider = ({ children }) => {
       user,
       userProfile,
       loading,
+      isAdmin: user ? ADMIN_EMAILS.includes(user.email) : false,
       signInWithGoogle,
       signOut: signOutUser,
       saveUserProfile,

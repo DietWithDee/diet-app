@@ -4,10 +4,8 @@ import { createArticle, getArticles , deleteArticle, getAllEmails} from '../../f
 import { getBookingStatus, setBookingStatus } from '../../firebaseBookingUtils';
 import { sendNewArticleNewsletter } from '../../EmailTemplateSystem/emailServices';
 import NoIndex from "../../Components/NoIndex";
-
-// Mock environment variables
-const ADMIN_EMAIL = 'admin@dietwithdee.org';
-const ADMIN_PASSWORD = 'admin123';
+import { useAuth } from "../../AuthContext";
+import { FcGoogle } from "react-icons/fc";
 
 /* ============================
    Rich Text Editor (re-built)
@@ -543,100 +541,81 @@ const ProgressBar = ({ progress }) => (
 );
 
 // Login Component
-const AdminLogin = ({ onLogin }) => {
-  const [formData, setFormData] = useState({ email: '', password: '' });
-  const [showPassword, setShowPassword] = useState(false);
+const AdminLogin = () => {
+  const { signInWithGoogle, user, isAdmin, loading } = useAuth();
   const [error, setError] = useState('');
-  const [isLoading, setIsLoading] = useState(false);
+  const [isSigningIn, setIsSigningIn] = useState(false);
 
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-    setIsLoading(true);
+  // If they are logged in but not an admin, show a message
+  if (user && !isAdmin && !loading) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-green-50 via-white to-emerald-50 flex items-center justify-center p-4">
+        <div className="bg-white rounded-3xl shadow-xl p-8 border border-red-100 max-w-md w-full text-center">
+          <div className="w-16 h-16 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-4">
+            <AlertCircle className="text-red-500" size={32} />
+          </div>
+          <h2 className="text-2xl font-bold text-gray-800 mb-2">Access Denied</h2>
+          <p className="text-gray-600 mb-6">
+            Your account ({user.email}) does not have admin privileges.
+          </p>
+          <button
+            onClick={() => window.location.href = '/'}
+            className="w-full py-3 bg-gray-100 text-gray-700 font-bold rounded-xl hover:bg-gray-200 transition-all font-inter"
+          >
+            Return to Home
+          </button>
+        </div>
+      </div>
+    );
+  }
+
+  const handleGoogleLogin = async () => {
+    setIsSigningIn(true);
     setError('');
-
-    await new Promise(resolve => setTimeout(resolve, 1000));
-
-    if (formData.email === ADMIN_EMAIL && formData.password === ADMIN_PASSWORD) {
-      onLogin();
-    } else {
-      setError('Invalid email or password');
+    try {
+      await signInWithGoogle();
+    } catch (err) {
+      console.error('Admin login error:', err);
+      setError('Failed to sign in. Please try again.');
+    } finally {
+      setIsSigningIn(false);
     }
-    setIsLoading(false);
   };
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-green-50 via-white to-emerald-50 flex items-center justify-center p-4">
       <div className="w-full max-w-md">
-        <div className="bg-white rounded-3xl shadow-2xl p-8 border border-green-100">
-          <div className="text-center mb-8">
-            <h1 className="text-3xl font-black text-transparent bg-clip-text bg-gradient-to-r from-green-700 to-emerald-600">
+        <div className="bg-white rounded-3xl shadow-2xl p-8 border border-green-100 text-center">
+          <div className="mb-8">
+            <h1 className="text-4xl font-black text-transparent bg-clip-text bg-gradient-to-r from-green-700 to-emerald-600 mb-2 font-transcity">
               DietWithDee
             </h1>
-            <p className="text-gray-600 mt-2">Admin Panel</p>
+            <p className="text-gray-500 font-medium">Admin Portal</p>
           </div>
 
-          <div className="space-y-6">
-            {error && (
-              <div className="bg-red-50 border border-red-200 rounded-lg p-3 text-red-700 text-sm">
-                {error}
-              </div>
-            )}
-
-            <div className="space-y-4">
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Email
-                </label>
-                <input
-                  type="email"
-                  value={formData.email}
-                  onChange={(e) => setFormData({...formData, email: e.target.value})}
-                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent text-gray-800"
-                  placeholder="admin@dietwithdee.org"
-                  required
-                />
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Password
-                </label>
-                <div className="relative">
-                  <input
-                    type={showPassword ? 'text' : 'password'}
-                    value={formData.password}
-                    onChange={(e) => setFormData({...formData, password: e.target.value})}
-                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent pr-12 text-gray-800"
-                    placeholder="Enter password"
-                    required
-                  />
-                  <button
-                    type="button"
-                    onClick={() => setShowPassword(!showPassword)}
-                    className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-500 hover:text-gray-700"
-                  >
-                    {showPassword ? <EyeOff size={20} /> : <Eye size={20} />}
-                  </button>
-                </div>
-              </div>
+          {error && (
+            <div className="bg-red-50 border border-red-200 rounded-lg p-3 text-red-700 text-sm mb-6 flex items-center justify-center gap-2">
+              <AlertCircle size={16} /> {error}
             </div>
+          )}
 
-            <button
-              type="button"
-              onClick={handleSubmit}
-              disabled={isLoading}
-              className="w-full bg-gradient-to-r from-green-600 to-emerald-600 text-white py-3 rounded-lg font-medium hover:from-green-700 hover:to-emerald-700 transition-all duration-300 disabled:opacity-50"
-            >
-              {isLoading ? (
-                <div className="flex items-center justify-center gap-2">
-                  <Loader className="animate-spin" size={20} />
-                  Signing in...
-                </div>
-              ) : (
-                'Sign In'
-              )}
-            </button>
-          </div>
+          <button
+            onClick={handleGoogleLogin}
+            disabled={isSigningIn || loading}
+            className="w-full py-3.5 bg-white border-2 border-gray-200 text-gray-800 font-bold rounded-xl shadow-sm hover:bg-gray-50 hover:border-gray-300 transition-all flex items-center justify-center gap-3 disabled:opacity-60"
+          >
+            {isSigningIn || loading ? (
+              <>
+                <Loader className="animate-spin text-gray-500" size={20} />
+                Signing in...
+              </>
+            ) : (
+              <>
+                <FcGoogle size={24} />
+                Sign in with Google
+              </>
+            )}
+          </button>
         </div>
       </div>
     </div>
@@ -963,7 +942,7 @@ const ArticlesManager = ({ articles, setArticles, showNotification, loadArticles
 };
 
 // Main Admin Dashboard Component
-const AdminDashboard = ({ onLogout }) => {
+const AdminDashboard = () => {
   const [articles, setArticles] = useState([]);
   const [notification, setNotification] = useState(null);
   const [isLoading, setIsLoading] = useState(true);
@@ -1055,8 +1034,10 @@ const AdminDashboard = ({ onLogout }) => {
     fetchSubscribers();
   }, []);
 
-  const handleLogout = () => {
-    onLogout();
+  const { signOut } = useAuth();
+
+  const handleLogout = async () => {
+    await signOut();
   };
 
   return (
@@ -1162,31 +1143,25 @@ const AdminDashboard = ({ onLogout }) => {
 
 // Main App Component
 const AdminApp = () => {
-  const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const { user, isAdmin, loading } = useAuth();
 
-  useEffect(() => {
-    // Check if user is already authenticated
-    
-  }, []);
-
-  const handleLogin = () => {
-    setIsAuthenticated(true);
-  };
-
-  const handleLogout = () => {
-    setIsAuthenticated(false);
-  };
-
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-green-50 via-white to-emerald-50 flex items-center justify-center">
+        <Loader className="animate-spin text-green-600" size={40} />
+      </div>
+    );
+  }
 
   return (
     <NoIndex>
-    <div>
-      {isAuthenticated ? (
-        <AdminDashboard onLogout={handleLogout} />
-      ) : (
-        <AdminLogin onLogin={handleLogin} />
-      )}
-    </div>
+      <div>
+        {user && isAdmin ? (
+          <AdminDashboard />
+        ) : (
+          <AdminLogin />
+        )}
+      </div>
     </NoIndex>
   );
 };
