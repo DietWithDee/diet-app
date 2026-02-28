@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { FiChevronRight, FiChevronLeft, FiCheck, FiEdit2 } from 'react-icons/fi';
+import { FiChevronRight, FiChevronLeft, FiCheck, FiEdit2, FiX } from 'react-icons/fi';
 import { User, Activity, Moon, Heart, Utensils, Target } from 'lucide-react';
 
 const OnboardingModal = ({ userName, onSave, onClose, initialData = null }) => {
@@ -62,6 +62,17 @@ const OnboardingModal = ({ userName, onSave, onClose, initialData = null }) => {
       >
         {/* Progress bar */}
         <div className="sticky top-0 z-20 bg-white rounded-t-3xl px-8 pt-6 pb-2">
+          {/* Close Button */}
+          {!isEditing && (
+            <button
+              onClick={onClose}
+              className="absolute top-4 right-4 p-2 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-full transition-colors z-30"
+              aria-label="Close"
+            >
+              <FiX size={20} />
+            </button>
+          )}
+
           <div className="flex items-center gap-2 mb-2">
             {[0, 1, 2].map((i) => (
               <div key={i} className="flex-1 h-2 rounded-full overflow-hidden bg-gray-100">
@@ -160,11 +171,10 @@ const OnboardingModal = ({ userName, onSave, onClose, initialData = null }) => {
                       <button
                         key={g}
                         onClick={() => setFormData(p => ({ ...p, gender: g }))}
-                        className={`flex-1 py-3 rounded-xl border-2 font-medium capitalize transition-all ${
-                          formData.gender === g
+                        className={`flex-1 py-3 rounded-xl border-2 font-medium capitalize transition-all ${formData.gender === g
                             ? 'border-green-500 bg-green-50 text-green-700'
                             : 'border-gray-200 hover:border-green-300 text-gray-600'
-                        }`}
+                          }`}
                       >
                         {g}
                       </button>
@@ -222,11 +232,10 @@ const OnboardingModal = ({ userName, onSave, onClose, initialData = null }) => {
                       <button
                         key={goal.key}
                         onClick={() => setFormData(p => ({ ...p, goal: goal.key }))}
-                        className={`py-3 px-3 rounded-xl border-2 font-medium transition-all text-center text-sm ${
-                          formData.goal === goal.key
+                        className={`py-3 px-3 rounded-xl border-2 font-medium transition-all text-center text-sm ${formData.goal === goal.key
                             ? 'border-green-500 bg-green-50 text-green-700'
                             : 'border-gray-200 hover:border-green-300 text-gray-600'
-                        }`}
+                          }`}
                       >
                         <div className="text-xl mb-1">{goal.icon}</div>
                         {goal.label}
@@ -250,11 +259,10 @@ const OnboardingModal = ({ userName, onSave, onClose, initialData = null }) => {
                       <button
                         key={a.key}
                         onClick={() => setFormData(p => ({ ...p, activityLevel: a.key }))}
-                        className={`py-3 px-3 rounded-xl border-2 font-medium transition-all text-left ${
-                          formData.activityLevel === a.key
+                        className={`py-3 px-3 rounded-xl border-2 font-medium transition-all text-left ${formData.activityLevel === a.key
                             ? 'border-green-500 bg-green-50 text-green-700'
                             : 'border-gray-200 hover:border-green-300 text-gray-600'
-                        }`}
+                          }`}
                       >
                         <div className="font-semibold text-sm">{a.label}</div>
                         <div className="text-xs text-gray-500">{a.desc}</div>
@@ -273,11 +281,10 @@ const OnboardingModal = ({ userName, onSave, onClose, initialData = null }) => {
                       <button
                         key={s}
                         onClick={() => setFormData(p => ({ ...p, sleepHours: s }))}
-                        className={`py-3 rounded-xl border-2 font-medium transition-all text-sm ${
-                          formData.sleepHours === s
+                        className={`py-3 rounded-xl border-2 font-medium transition-all text-sm ${formData.sleepHours === s
                             ? 'border-green-500 bg-green-50 text-green-700'
                             : 'border-gray-200 hover:border-green-300 text-gray-600'
-                        }`}
+                          }`}
                       >
                         {s}
                       </button>
@@ -323,11 +330,10 @@ const OnboardingModal = ({ userName, onSave, onClose, initialData = null }) => {
                       <button
                         key={d}
                         onClick={() => setFormData(p => ({ ...p, dietaryRestrictions: d }))}
-                        className={`py-3 rounded-xl border-2 font-medium transition-all text-sm ${
-                          formData.dietaryRestrictions === d
+                        className={`py-3 rounded-xl border-2 font-medium transition-all text-sm ${formData.dietaryRestrictions === d
                             ? 'border-green-500 bg-green-50 text-green-700'
                             : 'border-gray-200 hover:border-green-300 text-gray-600'
-                        }`}
+                          }`}
                       >
                         {d}
                       </button>

@@ -169,12 +169,20 @@ function MyJourney() {
     });
   };
 
-  // Show onboarding if user is logged in, has no profile, and hasn't explicitly dismissed it this session
-  const hasDismissedOnboarding = localStorage.getItem('onboardingDismissed') === 'true';
-  const shouldShowOnboarding = user && !userProfile && !loading && !hasDismissedOnboarding;
+  // Show onboarding if user is logged in, has no profile, and isn't currently loading.
+  // Note: if a user skipped onboarding, saveUserProfile({ onboardingSkipped: true }) was called,
+  // meaning userProfile will no longer be null!
+  const shouldShowOnboarding = user && !userProfile && !loading;
 
-  const handleCloseOnboarding = () => {
-    localStorage.setItem('onboardingDismissed', 'true');
+  const handleCloseOnboarding = async () => {
+    try {
+      // Save a minimal profile so they aren't asked again on this or any other device.
+      if (!userProfile) {
+        await saveUserProfile({ onboardingSkipped: true });
+      }
+    } catch (err) {
+      console.error('Failed to save skip status:', err);
+    }
     setShowOnboarding(false);
     setEditMode(false);
   };
