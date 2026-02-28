@@ -28,7 +28,7 @@ export default function NewsletterPopup() {
             if (count >= 3) waitDays = 14;
 
             if (daysSince >= waitDays) {
-                setTimeout(() => setShow(true), 8000);
+                setTimeout(() => setShow(true), 5000);
             }
         }
     }, []);

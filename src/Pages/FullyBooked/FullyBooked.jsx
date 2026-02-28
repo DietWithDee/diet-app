@@ -13,7 +13,7 @@ function FullyBooked() {
         title="Fully Booked | DietWithDee - Check Back Soon"
         description="Our consultation slots are currently fully booked. Check back later or reach out via WhatsApp for updates on availability."
         keywords="DietWithDee, Consultation Booking, Ghana Dietitian, Nana Ama Dwamena"
-        image="https://dietwithdee.org/src/assets/LOGO.png"
+        image="https://dietwithdee.org/src/assets/LOGO.webp"
         url="https://dietwithdee.org/fullyBooked"
       />
       

@@ -92,7 +92,7 @@ export default function InstallPrompt() {
             <div className="flex items-start justify-between mb-4">
               <div className="flex items-center gap-3">
                 <div className="h-11 w-11 flex items-center justify-center rounded-xl bg-white shadow-sm overflow-hidden border border-gray-100 p-1">
-                  <img src="/LOGO.png" alt="DietWithDee Logo" className="w-full h-full object-contain" />
+                  <img src="/LOGO.webp" alt="DietWithDee Logo" className="w-full h-full object-contain" />
                 </div>
                 <div>
                   <h3 className="text-[17px] font-bold text-gray-900 leading-tight">Install DietWithDee</h3>
@@ -144,7 +144,7 @@ export default function InstallPrompt() {
           <div className="flex items-start justify-between mb-4">
             <div className="flex items-center gap-3">
               <div className="h-11 w-11 flex items-center justify-center rounded-xl bg-white shadow-sm overflow-hidden border border-gray-100 p-1">
-                <img src="/LOGO.png" alt="DietWithDee Logo" className="w-full h-full object-contain" />
+                <img src="/LOGO.webp" alt="DietWithDee Logo" className="w-full h-full object-contain" />
               </div>
               <div>
                 <h3 className="text-[17px] font-bold text-gray-900 dark:text-white leading-tight">Install DietWithDee</h3>

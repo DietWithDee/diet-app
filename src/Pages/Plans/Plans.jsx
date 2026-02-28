@@ -1,11 +1,11 @@
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
-import PlanImg from '../../assets/Salad.png'; // you can replace this with actual plan images
-import B2B from '../../assets/images/B2B.png'; // example image for Back to Basics plan
-import Gain from '../../assets/images/Gain.png'; // example image for Weight Gain plan
-import Weightloss from '../../assets/images/Weightloss.png'; // example image for Weight Loss plan
-import Diabetes from '../../assets/images/Diabetes.PNG'; // example image for Diabetes plan
-import Pressure from '../../assets/images/Pressure.png'; // example image for Hypertension plan
+import PlanImg from '../../assets/Salad.webp'; // you can replace this with actual plan images
+import B2B from '../../assets/images/B2B.webp'; // example image for Back to Basics plan
+import Gain from '../../assets/images/Gain.webp'; // example image for Weight Gain plan
+import Weightloss from '../../assets/images/Weightloss.webp'; // example image for Weight Loss plan
+import Diabetes from '../../assets/images/Diabetes.webp'; // example image for Diabetes plan
+import Pressure from '../../assets/images/Pressure.webp'; // example image for Hypertension plan
 import ScrollToTop from "../../utils/ScrollToTop";
 
 function Plans() {

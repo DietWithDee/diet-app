@@ -1,7 +1,8 @@
 import React, { useState, useEffect, useRef } from 'react';
 import SEO from '../../Components/SEO';
-import Food from '../../assets/Woman.png'
+import Food from '../../assets/Woman.webp'
 import { useNavigate } from 'react-router';
+import { motion } from 'framer-motion';
 import Event1 from '../../assets/images/Events/Event1.webp';
 import Event2 from '../../assets/images/Events/Event2.webp';
 import Event3 from '../../assets/images/Events/Event3.webp';
@@ -159,16 +160,62 @@ function ServicesContactSection() {
     };
   }, [isPaused]);
 
+  // Animation Variants
+  const staggerContainer = {
+    hidden: { opacity: 0 },
+    show: {
+      opacity: 1,
+      transition: {
+        staggerChildren: 0.15,
+        delayChildren: 0.1
+      }
+    }
+  };
+
+  const fadeUp = {
+    hidden: { opacity: 0, y: 30 },
+    show: { 
+      opacity: 1, 
+      y: 0,
+      transition: { type: "spring", stiffness: 50, damping: 15 }
+    }
+  };
+
+  const scaleRight = {
+    hidden: { scaleX: 0, originX: 0 },
+    show: { 
+      scaleX: 1,
+      transition: { duration: 0.8, ease: "easeOut" }
+    }
+  };
+
+  const floatingImage = {
+    hidden: { opacity: 0, x: -50 },
+    show: { 
+      opacity: 1, 
+      x: 0,
+      transition: { type: "spring", stiffness: 40, damping: 20 }
+    },
+    float: {
+      y: [0, -10, 0],
+      transition: {
+        duration: 4.5,
+        repeat: Infinity,
+        ease: "easeInOut"
+      }
+    }
+  };
+
   return (
     <>
       <SEO
         title="Our Services | DietWithDee Nutrition & Wellness Programs"
         description="Explore DietWithDee's nutrition and wellness services, including personalized meal plans, weight management, and health coaching by Nana Ama Dwamena."
         keywords="DietWithDee Services, Nutrition Programs, Wellness, Meal Plans, Ghana Dietitian, Nana Ama Dwamena"
-        image="https://dietwithdee.org/LOGO.png"
+        image="https://dietwithdee.org/LOGO.webp"
         url="https://dietwithdee.org/services"
       />
-      <div className='min-h-screen bg-gradient-to-br from-green-50 via-white to-emerald-50'>
+      <div className='min-h-screen bg-gradient-to-br from-green-50 via-white to-emerald-50 overflow-hidden'>
         {/* Services Hero Section */}
         <div className='py-20 sm:py-16 lg:py-20'>
           <div className='container mx-auto px-4 sm:px-6 lg:px-12'>
@@ -181,67 +228,95 @@ function ServicesContactSection() {
                 <div className='absolute -bottom-4 -left-4 sm:-bottom-6 sm:-left-6 lg:-bottom-8 lg:-left-8 w-40 h-40 sm:w-56 sm:h-56 lg:w-64 lg:h-64 bg-gradient-to-tr from-emerald-300 to-green-300 rounded-full opacity-15 blur-2xl'></div>
 
                 {/* Main image container */}
-                <div className='relative z-10 p-3 sm:p-6 lg:p-7'>
-                  <div className='bg-white rounded-2xl sm:rounded-3xl shadow-xl lg:shadow-2xl p-3 sm:p-4 hover:shadow-2xl lg:hover:shadow-3xl transition-all duration-500 hover:scale-105'>
+                <motion.div 
+                  className='relative z-10 p-3 sm:p-6 lg:p-7'
+                  variants={floatingImage}
+                  initial="hidden"
+                  animate={["show", "float"]}
+                >
+                  <div className='bg-white rounded-2xl sm:rounded-3xl shadow-xl lg:shadow-2xl p-3 sm:p-4 hover:shadow-2xl lg:hover:shadow-3xl transition-all duration-500 hover:scale-[1.02]'>
                     <img
                       src={Food}
                       alt="Health and nutrition consultation"
                       className='h-115 w-90 max-h-74 sm:max-h-80 lg:max-h-96 object-cover rounded-xl'
                     />
                   </div>
-                </div>
+                </motion.div>
               </div>
 
               {/* Right Side: Services Content */}
               <div className='flex-1 max-w-full lg:max-w-2xl  lg:text-left'>
-                <div className='space-y-6 sm:space-y-8'>
+                <motion.div 
+                  className='space-y-6 sm:space-y-8'
+                  variants={staggerContainer}
+                  initial="hidden"
+                  animate="show"
+                >
                   {/* Main Headline */}
                   <div className='space-y-3 sm:space-y-4'>
-                    <h1 className='text-3xl sm:text-4xl lg:text-5xl font-black text-green-700 leading-tight'>
+                    <motion.h1 variants={fadeUp} className='text-3xl sm:text-4xl lg:text-5xl font-black text-green-700 leading-tight'>
                       Transform Your Health
                       <br />
                       <span className='text-green-700'>with Our Specialized</span>
                       <br />
                       <span className='text-green-700'>Services</span>
-                    </h1>
-                    <div className='w-20 h-2 bg-gradient-to-r from-green-500 to-emerald-500 rounded-full'></div>
+                    </motion.h1>
+                    <motion.div variants={scaleRight} className='w-20 h-2 bg-gradient-to-r from-green-500 to-emerald-500 rounded-full'></motion.div>
                   </div>
 
                   {/* Description */}
-                  <div className='space-y-4 sm:space-y-6'>
+                  <motion.div variants={fadeUp} className='space-y-4 sm:space-y-6'>
                     <p className='text-base sm:text-lg text-gray-700 leading-relaxed px-2 sm:px-0'>
                       Health is personal, but creating impact can also be collective. We support individuals on their nutrition journey while partnering with brands, teams, and organizations to spread practical, culturally relevant wellness. Whether it's one-on-one or on a bigger stage, we're here to make nutrition accessible and meaningful.
                     </p>
-                  </div>
+                  </motion.div>
 
                   {/* CTA Button */}
-                  <div className='pt-4 sm:pt-6'>
-                    <button onClick={() => navigate('/contactus')}
-                      className='px-8 py-4 bg-orange-400 text-white font-bold rounded-full hover:bg-green-800 transition-all duration-300 hover:shadow-lg'>
+                  <motion.div variants={fadeUp} className='pt-4 sm:pt-6'>
+                    <motion.button 
+                      whileHover={{ scale: 1.05 }}
+                      whileTap={{ scale: 0.95 }}
+                      onClick={() => navigate('/contactus')}
+                      className='px-8 py-4 bg-orange-400 text-white font-bold rounded-full hover:bg-green-800 transition-all duration-300 hover:shadow-lg'
+                    >
                       Book a Consultation
-                    </button>
-                  </div>
-                </div>
+                    </motion.button>
+                  </motion.div>
+                </motion.div>
               </div>
             </div>
+
           </div>
         </div>
 
         {/* Services Grid */}
-        <div className='py-12 sm:py-16 lg:py-20 bg-white'>
+        <div className='py-12 sm:py-16 lg:py-20 bg-white relative'>
+          <div className="absolute top-0 w-full h-px bg-gradient-to-r from-transparent via-green-200 to-transparent"></div>
           <div className='container mx-auto px-4 sm:px-6 lg:px-12'>
             {/* Section Title */}
-            <div className='text-center mb-12 sm:mb-16'>
+            <motion.div 
+              className='text-center mb-12 sm:mb-16'
+              initial={{ opacity: 0, y: 30 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true }}
+              transition={{ duration: 0.6 }}
+            >
               <h2 className='text-3xl sm:text-4xl lg:text-5xl font-black text-transparent bg-clip-text bg-gradient-to-r from-green-700 via-emerald-600 to-green-600 leading-tight'>
                 What we offer
               </h2>
               <div className='w-20 h-2 bg-gradient-to-r from-green-500 to-emerald-500 rounded-full mx-auto mt-4'></div>
-            </div>
+            </motion.div>
 
-            <div className='grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 sm:gap-8'>
+            <motion.div 
+              className='grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 sm:gap-8'
+              variants={staggerContainer}
+              initial="hidden"
+              whileInView="show"
+              viewport={{ once: true, margin: "-100px" }}
+            >
 
               {/* Corporate Wellness */}
-              <div className='text-center space-y-3 sm:space-y-4 p-6 sm:p-8 bg-gradient-to-br from-green-50 to-emerald-50 rounded-xl sm:rounded-2xl hover:shadow-lg transition-all duration-300'>
+              <motion.div variants={fadeUp} whileHover={{ y: -5, scale: 1.02 }} className='text-center space-y-3 sm:space-y-4 p-6 sm:p-8 bg-gradient-to-br from-green-50 to-emerald-50 rounded-xl sm:rounded-2xl shadow-sm hover:shadow-xl transition-all duration-300'>
                 <div className='w-12 h-12 sm:w-16 sm:h-16 bg-gradient-to-br from-green-500 to-emerald-500 rounded-full flex items-center justify-center mx-auto '>
                   <svg className='w-6 h-6 sm:w-8 sm:h-8 text-white' fill='none' stroke='currentColor' viewBox='0 0 24 24'>
                     <path strokeLinecap='round' strokeLinejoin='round' strokeWidth={2} d='M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4' />
@@ -249,10 +324,10 @@ function ServicesContactSection() {
                 </div>
                 <h3 className='text-lg sm:text-xl font-bold text-gray-900'>Personalized Diet Consultations</h3>
                 <p className='text-sm sm:text-base text-gray-600'>One-on-one consultations to understand your unique dietary needs and preferences.</p>
-              </div>
+              </motion.div>
 
               {/* Custom Made Plans */}
-              <div className='text-center space-y-3 sm:space-y-4 p-6 sm:p-8 bg-gradient-to-br from-green-50 to-emerald-50 rounded-xl sm:rounded-2xl hover:shadow-lg transition-all duration-300'>
+              <motion.div variants={fadeUp} whileHover={{ y: -5, scale: 1.02 }} className='text-center space-y-3 sm:space-y-4 p-6 sm:p-8 bg-gradient-to-br from-green-50 to-emerald-50 rounded-xl sm:rounded-2xl shadow-sm hover:shadow-xl transition-all duration-300'>
                 <div className='w-12 h-12 sm:w-16 sm:h-16 bg-gradient-to-br from-green-500 to-emerald-500 rounded-full flex items-center justify-center mx-auto'>
                   <svg className='w-6 h-6 sm:w-8 sm:h-8 text-white' fill='none' stroke='currentColor' viewBox='0 0 24 24'>
                     <path strokeLinecap='round' strokeLinejoin='round' strokeWidth={2} d='M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z' />
@@ -260,10 +335,10 @@ function ServicesContactSection() {
                 </div>
                 <h3 className='text-lg sm:text-xl font-bold text-gray-900'>Customized Diet Plans</h3>
                 <p className='text-sm sm:text-base text-gray-600'>Meal plans designed to meet your specific health goals.</p>
-              </div>
+              </motion.div>
 
               {/* Consultations */}
-              <div className='text-center space-y-3 sm:space-y-4 p-6 sm:p-8 bg-gradient-to-br from-green-50 to-emerald-50 rounded-xl sm:rounded-2xl hover:shadow-lg transition-all duration-300'>
+              <motion.div variants={fadeUp} whileHover={{ y: -5, scale: 1.02 }} className='text-center space-y-3 sm:space-y-4 p-6 sm:p-8 bg-gradient-to-br from-green-50 to-emerald-50 rounded-xl sm:rounded-2xl shadow-sm hover:shadow-xl transition-all duration-300'>
                 <div className='w-12 h-12 sm:w-16 sm:h-16 bg-gradient-to-br from-green-500 to-emerald-500 rounded-full flex items-center justify-center mx-auto'>
                   <svg className='w-6 h-6 sm:w-8 sm:h-8 text-white' fill='none' stroke='currentColor' viewBox='0 0 24 24'>
                     <path strokeLinecap='round' strokeLinejoin='round' strokeWidth={2} d='M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z' />
@@ -271,10 +346,10 @@ function ServicesContactSection() {
                 </div>
                 <h3 className='text-lg sm:text-xl font-bold text-gray-900'>Specialized Programs</h3>
                 <p className='text-sm sm:text-base text-gray-600'>Weight loss programs, diabetes management, heart health management.</p>
-              </div>
+              </motion.div>
 
               {/* Group Program - spans full width on mobile, normal on larger screens */}
-              <div className='text-center space-y-3 sm:space-y-4 p-6 sm:p-8 bg-gradient-to-br from-green-50 to-emerald-50 rounded-xl sm:rounded-2xl hover:shadow-lg transition-all duration-300 sm:col-span-2 lg:col-span-1'>
+              <motion.div variants={fadeUp} whileHover={{ y: -5, scale: 1.02 }} className='text-center space-y-3 sm:space-y-4 p-6 sm:p-8 bg-gradient-to-br from-green-50 to-emerald-50 rounded-xl sm:rounded-2xl shadow-sm hover:shadow-xl transition-all duration-300 sm:col-span-2 lg:col-span-1 border border-green-100'>
                 <div className='w-12 h-12 sm:w-16 sm:h-16 bg-gradient-to-br from-green-500 to-emerald-500 rounded-full flex items-center justify-center mx-auto'>
                   <svg className='w-6 h-6 sm:w-8 sm:h-8 text-white' fill='none' stroke='currentColor' viewBox='0 0 24 24'>
                     <path strokeLinecap='round' strokeLinejoin='round' strokeWidth={2} d='M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z' />
@@ -282,10 +357,10 @@ function ServicesContactSection() {
                 </div>
                 <h3 className='text-lg sm:text-xl font-bold text-gray-900'>Brand collaborations</h3>
                 <p className='text-sm sm:text-base text-gray-600'>Health talks, brand collaboration, wellness campaigns.</p>
-              </div>
+              </motion.div>
 
               {/* Professional Booking */}
-              <div className='text-center space-y-3 sm:space-y-4 p-6 sm:p-8 bg-gradient-to-br from-green-50 to-emerald-50 rounded-xl sm:rounded-2xl hover:shadow-lg transition-all duration-300'>
+              <motion.div variants={fadeUp} whileHover={{ y: -5, scale: 1.02 }} className='text-center space-y-3 sm:space-y-4 p-6 sm:p-8 bg-gradient-to-br from-green-50 to-emerald-50 rounded-xl sm:rounded-2xl shadow-sm hover:shadow-xl transition-all duration-300 border border-green-100'>
                 <div className='w-12 h-12 sm:w-16 sm:h-16 bg-gradient-to-br from-green-500 to-emerald-500 rounded-full flex items-center justify-center mx-auto'>
                   <svg className='w-6 h-6 sm:w-8 sm:h-8 text-white' fill='none' stroke='currentColor' viewBox='0 0 24 24'>
                     <path strokeLinecap='round' strokeLinejoin='round' strokeWidth={2} d='M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z' />
@@ -293,19 +368,25 @@ function ServicesContactSection() {
                 </div>
                 <h3 className='text-lg sm:text-xl font-bold text-gray-900'>Professional Bookings</h3>
                 <p className='text-sm sm:text-base text-gray-600'>Elevate your team's wellbeing with our corporate wellness services</p>
-              </div>
-            </div>
+              </motion.div>
+            </motion.div>
           </div>
         </div>
 
         {/* Events Gallery */}
         <div id="events-gallery" className='py-12 sm:py-16 lg:py-20 bg-white'>
           <div className='container mx-auto px-4 sm:px-6 lg:px-12'>
-            <h2 className='text-3xl sm:text-4xl lg:text-5xl font-black text-center text-transparent bg-clip-text bg-gradient-to-r from-green-700 via-emerald-600 to-green-600 leading-tight mb-12'>
-              Events Gallery
-            </h2>
-            <p className='text-center text-gray-600 mb-12'>Browse through our various community engagement and outreach programs</p>
-            <div
+            <motion.div 
+              initial={{ opacity: 0, y: 30 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true, margin: "-100px" }}
+              transition={{ duration: 0.6 }}
+            >
+              <h2 className='text-3xl sm:text-4xl lg:text-5xl font-black text-center text-transparent bg-clip-text bg-gradient-to-r from-green-700 via-emerald-600 to-green-600 leading-tight mb-12'>
+                Events Gallery
+              </h2>
+              <p className='text-center text-gray-600 mb-12'>Browse through our various community engagement and outreach programs</p>
+              <div
               className="relative w-full max-w-lg mx-auto h-80 cursor-grab"
               onTouchStart={handleTouchStart}
               onTouchMove={handleTouchMove}
@@ -355,6 +436,7 @@ function ServicesContactSection() {
                 <p className='text-sm font-medium'>Click the green button to view in full screen</p>
               </div>
             </div>
+            </motion.div>
           </div>
         </div>
 
@@ -409,7 +491,13 @@ function ServicesContactSection() {
         {/* Contact Section */}
         <div className='py-12 sm:py-16 lg:py-20 bg-gradient-to-br from-green-50 to-emerald-50'>
           <div className='container mx-auto px-4 sm:px-6 lg:px-12'>
-            <div className='flex flex-col lg:flex-row items-center justify-between gap-8 sm:gap-12 lg:gap-20'>
+            <motion.div 
+              className='flex flex-col lg:flex-row items-center justify-between gap-8 sm:gap-12 lg:gap-20'
+              initial={{ opacity: 0, y: 50 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true, margin: "-100px" }}
+              transition={{ duration: 0.8, type: "spring", bounce: 0.3 }}
+            >
 
               {/* Left Side: Contact Image */}
               <div className='flex-1 relative max-w-sm sm:max-w-md lg:max-w-lg w-full order-2 lg:order-1'>
@@ -465,17 +553,19 @@ function ServicesContactSection() {
 
                   {/* CTA Button */}
                   <div className='pt-4 sm:pt-6'>
-                    <a
+                    <motion.a
+                      whileHover={{ scale: 1.05 }}
+                      whileTap={{ scale: 0.95 }}
                       href={Url}
                       target="_blank"
                       rel="noopener noreferrer"
-                      className='inline-block w-full sm:w-auto px-6 sm:px-8 py-3 sm:py-4 bg-gradient-to-r from-orange-400 to-orange-400 text-white font-bold rounded-full shadow-lg hover:shadow-xl transform hover:-translate-y-1 transition-all duration-300 hover:from-green-700 hover:to-emerald-700 text-sm sm:text-base'>
+                      className='inline-block w-full sm:w-auto px-6 sm:px-8 py-3 sm:py-4 bg-gradient-to-r from-orange-400 to-orange-400 text-white font-bold rounded-full shadow-lg hover:shadow-xl transition-all duration-300 hover:from-green-700 hover:to-emerald-700 text-sm sm:text-base'>
                       Get In Touch
-                    </a>
+                    </motion.a>
                   </div>
                 </div>
               </div>
-            </div>
+            </motion.div>
           </div>
         </div>
       </div>

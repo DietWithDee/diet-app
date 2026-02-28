@@ -329,7 +329,7 @@ export const createEmailTemplate = (title, imageUrl, articleId) => {
 
             <!-- Header -->
             <div class="header">
-                <img src="https://dietwithdee.org/LOGO.png" alt="DietWithDee Logo" class="logo-img" />
+                <img src="https://dietwithdee.org/LOGO.webp" alt="DietWithDee Logo" class="logo-img" />
                 <div class="subtitle">Nana Ama Dwamena</div>
             </div>
             

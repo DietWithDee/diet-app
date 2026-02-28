@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react'
 import { NavLink } from 'react-router-dom'
 import { FiShoppingCart, FiMenu, FiX, FiUser } from "react-icons/fi"
-import logo from "../../assets/LOGO.png"
+import logo from "../../assets/LOGO.webp"
 import { useNavigate } from 'react-router'
 
 export default function NavBar() {

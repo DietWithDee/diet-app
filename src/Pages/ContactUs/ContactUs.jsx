@@ -98,7 +98,7 @@ function ContactUs() {
           title="Contact DietWithDee | Book a Consultation with Nana Ama Dwamena"
           description="Book your personalized diet consultation with Nana Ama Dwamena, Ghana's leading dietitian. Get expert nutrition advice and start your wellness journey today."
           keywords="Contact DietWithDee, Book Consultation, Ghana Dietitian, Nana Ama Dwamena, Nutrition Advice"
-          image="https://dietwithdee.org/src/assets/LOGO.png"
+          image="https://dietwithdee.org/src/assets/LOGO.webp"
           url="https://dietwithdee.org/contactUs"
         />
         <div className="min-h-screen bg-gradient-to-br from-green-50 via-white to-emerald-50 py-12">
@@ -191,7 +191,7 @@ function ContactUs() {
           title="Contact DietWithDee | Book a Consultation with Nana Ama Dwamena"
           description="Book your personalized diet consultation with Nana Ama Dwamena, Ghana's leading dietitian. Get expert nutrition advice and start your wellness journey today."
           keywords="Contact DietWithDee, Book Consultation, Ghana Dietitian, Nana Ama Dwamena, Nutrition Advice"
-          image="https://dietwithdee.org/src/assets/LOGO.png"
+          image="https://dietwithdee.org/src/assets/LOGO.webp"
           url="https://dietwithdee.org/contactUs"
         />
         <div className="min-h-screen bg-gradient-to-br from-green-50 via-white to-emerald-50 py-12">
@@ -243,7 +243,7 @@ function ContactUs() {
         title="Contact DietWithDee | Book a Consultation with Nana Ama Dwamena"
         description="Book your personalized diet consultation with Nana Ama Dwamena, Ghana's leading dietitian. Get expert nutrition advice and start your wellness journey today."
         keywords="Contact DietWithDee, Book Consultation, Ghana Dietitian, Nana Ama Dwamena, Nutrition Advice"
-        image="https://dietwithdee.org/LOGO.png"
+        image="https://dietwithdee.org/LOGO.webp"
         url="https://dietwithdee.org/contactUs"
       />
       <div className="min-h-screen bg-gradient-to-br from-green-50 via-white to-emerald-50 py-20">

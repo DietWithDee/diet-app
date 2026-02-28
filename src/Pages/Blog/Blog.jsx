@@ -3,10 +3,12 @@ import SEO from '../../Components/SEO';
 import { useNavigate, useParams } from 'react-router-dom';
 import { Loader, Calendar, User, ArrowRight, ArrowLeft, Share2, Heart, MessageCircle } from 'lucide-react';
 import { getArticlesPaged, getArticleById, likeNews, markArticleHelpful } from '../../firebaseUtils';
-import BlogImage from '../../assets/Salad.png'; // Fallback image
+import BlogImage from '../../assets/Salad.webp'; // Fallback image
 import BlogArticleSEO from '../../Components/BlogArticleSEO';
 import ScrollHideRefreshButton from '../../utils/ScrollHideRefreshButton';
 import NewsletterPopup from '../../Components/NewsletterPopup';
+import { LazyLoadImage } from 'react-lazy-load-image-component';
+import 'react-lazy-load-image-component/src/effects/blur.css';
 
 function Blog() {
   const navigate = useNavigate();
@@ -277,15 +279,44 @@ function Blog() {
     }
   };
 
-  // Loading state
+  // Skeleton Loader for initial load
   if (isLoading || isInitialLoadingArticle) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-green-50 via-white to-emerald-50 flex items-center justify-center px-4">
-        <div className="text-center space-y-4">
-          <Loader className="animate-spin text-green-600 mx-auto" size={48} />
-          <p className="text-gray-600 text-lg">
-            {isInitialLoadingArticle ? 'Loading article...' : 'Loading articles...'}
-          </p>
+      <div className="min-h-screen bg-gradient-to-br from-green-50 via-white to-emerald-50 py-18 lg:py-20 px-4 sm:px-6 lg:px-12">
+        <div className="max-w-5xl mx-auto">
+          {/* Header Skeleton */}
+          <div className="text-center mb-8 lg:mb-12 space-y-4 max-w-3xl mx-auto">
+            <div className="h-10 sm:h-12 w-64 bg-gray-200 rounded-lg mx-auto animate-pulse"></div>
+            <div className="h-6 w-full max-w-md bg-gray-200 rounded-lg mx-auto animate-pulse"></div>
+            <div className="w-20 h-1 bg-gray-300 mx-auto rounded-full"></div>
+          </div>
+          
+          {/* Skeleton List Items */}
+          <div className="flex flex-col gap-6 lg:gap-10">
+            {[1, 2, 3].map((item) => (
+              <div key={item} className="bg-white rounded-2xl lg:rounded-3xl shadow-sm p-4 sm:p-6 flex flex-col lg:flex-row gap-4 lg:gap-6 items-start border border-gray-100">
+                {/* Image Skeleton */}
+                <div className="w-full lg:w-52 h-48 sm:h-56 lg:h-32 bg-gray-200 rounded-xl animate-pulse flex-shrink-0"></div>
+                
+                {/* Content Skeleton */}
+                <div className="flex-1 space-y-4 w-full">
+                  <div className="h-6 sm:h-8 bg-gray-200 rounded-lg w-3/4 animate-pulse"></div>
+                  
+                  <div className="flex gap-4">
+                    <div className="h-4 bg-gray-200 rounded-lg w-20 animate-pulse"></div>
+                    <div className="h-4 bg-gray-200 rounded-lg w-24 animate-pulse"></div>
+                  </div>
+                  
+                  <div className="space-y-2">
+                    <div className="h-4 bg-gray-200 rounded-lg w-full animate-pulse"></div>
+                    <div className="h-4 bg-gray-200 rounded-lg w-5/6 animate-pulse"></div>
+                  </div>
+                  
+                  <div className="h-10 bg-gray-200 rounded-full w-32 mt-4 animate-pulse"></div>
+                </div>
+              </div>
+            ))}
+          </div>
         </div>
       </div>
     );
@@ -318,7 +349,7 @@ function Blog() {
     // SEO values from article
     const articleTitle = selectedArticle.title;
     const articleDescription = createSummary(selectedArticle.content, 160);
-    const articleImage = selectedArticle.coverImage || 'https://dietwithdee.org/LOGO.png';
+    const articleImage = selectedArticle.coverImage || 'https://dietwithdee.org/LOGO.webp';
     const articleUrl = `https://dietwithdee.org/blog/${selectedArticle.id}`;
     const articleAuthor = selectedArticle.author || 'Nana Ama Dwamena';
     const articleDate = selectedArticle.createdAt && selectedArticle.createdAt.toDate ? selectedArticle.createdAt.toDate().toISOString() : new Date(selectedArticle.createdAt).toISOString();
@@ -354,10 +385,12 @@ function Blog() {
               {/* Featured Image */}
               {selectedArticle.coverImage && (
                 <div className="h-48 sm:h-64 lg:h-96 overflow-hidden">
-                  <img
+                  <LazyLoadImage
                     src={selectedArticle.coverImage}
                     alt={selectedArticle.title}
+                    effect="blur"
                     className="w-full h-full object-cover"
+                    wrapperClassName="w-full h-full"
                     onError={(e) => {
                       e.target.src = BlogImage;
                     }}
@@ -500,10 +533,12 @@ function Blog() {
                       <div className="flex gap-3 lg:gap-4">
                         <div className="w-16 h-16 lg:w-20 lg:h-20 bg-gradient-to-br from-green-100 to-emerald-100 rounded-lg flex items-center justify-center overflow-hidden flex-shrink-0">
                           {post.coverImage ? (
-                            <img
+                            <LazyLoadImage
                               src={post.coverImage}
                               alt={post.title}
+                              effect="blur"
                               className="w-full h-full object-cover"
+                              wrapperClassName="w-full h-full"
                               onError={(e) => {
                                 e.target.src = BlogImage;
                               }}
@@ -579,10 +614,12 @@ function Blog() {
                 <div className="w-full lg:w-52 flex-shrink-0 order-first lg:order-none">
                   <div className="h-48 sm:h-56 lg:h-32 w-full bg-gradient-to-br from-green-100 to-emerald-100 rounded-xl flex items-center justify-center overflow-hidden">
                     {post.coverImage ? (
-                      <img
+                      <LazyLoadImage
                         src={post.coverImage}
                         alt={post.title}
+                        effect="blur"
                         className="w-full h-full object-cover"
+                        wrapperClassName="w-full h-full"
                         onError={(e) => {
                           e.target.src = BlogImage; // Fallback to default image
                         }}
