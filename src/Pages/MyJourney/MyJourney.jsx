@@ -264,14 +264,14 @@ function MyJourney() {
             >
               <motion.h1
                 variants={fadeUp}
-                className="text-5xl md:text-7xl lg:text-8xl font-black text-white drop-shadow-xl tracking-tight mb-4"
+                className="text-5xl md:text-6xl lg:text-7xl font-black text-green-700 tracking-tight mb-4"
               >
                 My Journey
               </motion.h1>
               <motion.div variants={fadeUp} className="w-24 h-2 bg-gradient-to-r from-green-400 to-emerald-400 rounded-full mx-auto mb-6 shadow-md"></motion.div>
               <motion.p
                 variants={fadeUp}
-                className="text-xl md:text-2xl text-white font-medium drop-shadow-md max-w-2xl px-4"
+                className="text-xl md:text-2xl text-green-700 font-medium max-w-2xl px-4"
               >
                 Your personalized path to lasting wellness starts here.
               </motion.p>
