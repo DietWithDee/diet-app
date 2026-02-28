@@ -21,8 +21,8 @@ function AboutUsSection() {
 
   const fadeUp = {
     hidden: { opacity: 0, y: 30 },
-    show: { 
-      opacity: 1, 
+    show: {
+      opacity: 1,
       y: 0,
       transition: { type: "spring", stiffness: 50, damping: 15 }
     }
@@ -30,7 +30,7 @@ function AboutUsSection() {
 
   const scaleRight = {
     hidden: { scaleX: 0, originX: 0 },
-    show: { 
+    show: {
       scaleX: 1,
       transition: { duration: 0.8, ease: "easeOut" }
     }
@@ -38,8 +38,8 @@ function AboutUsSection() {
 
   const floatingImage = {
     hidden: { opacity: 0, x: 50 },
-    show: { 
-      opacity: 1, 
+    show: {
+      opacity: 1,
       x: 0,
       transition: { type: "spring", stiffness: 40, damping: 20 }
     },
@@ -70,7 +70,7 @@ function AboutUsSection() {
 
             {/* Left Side: About Content */}
             <div className='flex-1 max-w-2xl'>
-              <motion.div 
+              <motion.div
                 className='space-y-5'
                 variants={staggerContainer}
                 initial="hidden"
@@ -78,7 +78,7 @@ function AboutUsSection() {
               >
                 {/* Section Header */}
                 <div className='space-y-4'>
-                  <motion.h1 
+                  <motion.h1
                     variants={fadeUp}
                     className='text-4xl lg:text-5xl text-transparent bg-clip-text bg-gradient-to-r from-green-700 via-emerald-600 to-green-600 leading-tight font-black'
                   >
@@ -107,7 +107,7 @@ function AboutUsSection() {
                     </p>
                   </div>
 
-                  <motion.div 
+                  <motion.div
                     variants={fadeUp}
                     className='bg-gradient-to-r from-green-50 to-emerald-50 p-6 rounded-2xl border-l-4 border-green-500 relative overflow-hidden group'
                   >
@@ -124,7 +124,7 @@ function AboutUsSection() {
                   <motion.button
                     whileHover={{ scale: 1.05 }}
                     whileTap={{ scale: 0.95 }}
-                    onClick={() => navigate('/knowyourbody')}
+                    onClick={() => navigate('/my-journey')}
                     className='px-8 py-4 bg-gradient-to-r from-orange-400 to-orange-500 text-white font-bold rounded-full shadow-lg hover:shadow-xl transition-all duration-300 hover:from-green-700 hover:to-emerald-700'
                     aria-label="Start your nutrition transformation journey"
                   >
@@ -141,7 +141,7 @@ function AboutUsSection() {
               <div className='absolute -bottom-4 -right-4 w-64 h-64 bg-gradient-to-tr from-green-300 to-emerald-300 rounded-full opacity-15 blur-2xl' aria-hidden="true"></div>
 
               {/* Main logo container */}
-              <motion.div 
+              <motion.div
                 className='relative z-10 p-7'
                 variants={floatingImage}
                 initial="hidden"
@@ -157,7 +157,7 @@ function AboutUsSection() {
                 </div>
 
                 {/* Floating elements */}
-                <motion.div 
+                <motion.div
                   initial={{ opacity: 0, scale: 0 }}
                   animate={{ opacity: 1, scale: 1 }}
                   transition={{ delay: 0.5, type: "spring", stiffness: 200 }}
@@ -170,11 +170,11 @@ function AboutUsSection() {
           </div>
         </div>
       </div>
-      
+
       <div id="community-impact" className='py-16 bg-white'>
         <div className='container mx-auto px-6 lg:px-12'>
           <div className='max-w-4xl mx-auto'>
-            <motion.div 
+            <motion.div
               className='space-y-8'
               initial="hidden"
               whileInView="show"
@@ -182,7 +182,7 @@ function AboutUsSection() {
               variants={staggerContainer}
             >
               <div className='space-y-4'>
-                <motion.h2 
+                <motion.h2
                   variants={fadeUp}
                   className='text-3xl lg:text-4xl font-black text-transparent bg-clip-text bg-gradient-to-r from-green-700 to-emerald-600'
                 >

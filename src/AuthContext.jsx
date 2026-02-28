@@ -49,11 +49,26 @@ export const AuthProvider = ({ children }) => {
 
   // Handle redirect result (for mobile sign-in)
   useEffect(() => {
-    getRedirectResult(auth).catch((err) => {
-      if (err.code !== 'auth/redirect-cancelled-by-user') {
-        console.error('Redirect sign-in error:', err);
-      }
-    });
+    getRedirectResult(auth)
+      .then((result) => {
+        if (result && result.user) {
+          const redirectUrl = localStorage.getItem('authRedirect');
+          if (redirectUrl) {
+            localStorage.removeItem('authRedirect');
+            // If the redirectUrl is not the current page, redirect
+            if (window.location.pathname !== redirectUrl) {
+              window.location.href = redirectUrl;
+            }
+          }
+        }
+      })
+      .catch((err) => {
+        if (err.code !== 'auth/redirect-cancelled-by-user') {
+          console.error('Redirect sign-in error:', err);
+          // Alert the error so mobile users can see it
+          alert(`Redirect Error: ${err.message || err.code}`);
+        }
+      });
   }, []);
 
   // Google sign-in
@@ -65,6 +80,10 @@ export const AuthProvider = ({ children }) => {
     });
 
     try {
+      // Save current path to jump back to it after redirect
+      if (typeof window !== 'undefined') {
+        localStorage.setItem('authRedirect', window.location.pathname + window.location.search);
+      }
       // Direct redirect is the most bulletproof method across all mobile browsers
       await signInWithRedirect(auth, provider);
       return null;

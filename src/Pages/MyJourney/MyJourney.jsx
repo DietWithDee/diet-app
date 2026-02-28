@@ -103,6 +103,12 @@ function MyJourney() {
       } catch (err) {
         console.error('Sign-in failed:', err);
         setSigningIn(false);
+        // Show alert so user testing on mobile via local IP can see why it fails
+        if (err.code === 'auth/unauthorized-domain') {
+          alert("Firebase Error: This domain (likely your local IP) is not authorized for OAuth. You must test authentication on localhost or add your phone's local network IP to the Firebase Console -> Authentication -> Settings -> Authorized Domains.");
+        } else {
+          alert(`Sign in failed: ${err.message || err.code}`);
+        }
       }
     };
 
