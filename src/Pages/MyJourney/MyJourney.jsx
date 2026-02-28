@@ -250,8 +250,8 @@ function MyJourney() {
               role="img"
               aria-label="My Journey 3D Hero Background"
             ></div>
-            {/* Dark overlay specifically for text contrast if needed, subtle */}
-            <div className="absolute inset-0 bg-black/10"></div>
+            {/* White overlay for a clean, pro look */}
+            <div className="absolute inset-0 bg-white/50"></div>
           </motion.div>
 
           {/* Content Overlay */}
@@ -271,7 +271,7 @@ function MyJourney() {
               <motion.div variants={fadeUp} className="w-24 h-2 bg-gradient-to-r from-green-400 to-emerald-400 rounded-full mx-auto mb-6 shadow-md"></motion.div>
               <motion.p
                 variants={fadeUp}
-                className="text-xl md:text-2xl text-green-700 font-medium max-w-2xl px-4"
+                className="text-xl md:text-2xl text-[#4B5563] font-medium max-w-2xl px-4"
               >
                 Your personalized path to lasting wellness starts here.
               </motion.p>
