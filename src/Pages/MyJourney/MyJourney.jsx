@@ -91,14 +91,10 @@ function MyJourney() {
     try {
       const userResult = await signInWithGoogle();
       if (userResult) {
-        // Popup succeeded — show onboarding after state settles
-        setTimeout(() => {
-          setShowOnboarding(true);
-          setSigningIn(false);
-        }, 500);
-      }
-      // If null, redirect might be happening, or user closed popup.
-      if (!userResult) {
+        // Sign-in successful; the smart 'shouldShowOnboarding' logic
+        // will automatically trigger the modal if they don't have a profile.
+        setSigningIn(false);
+      } else {
         setSigningIn(false);
       }
     } catch (err) {

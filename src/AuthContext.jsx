@@ -25,6 +25,8 @@ export const AuthProvider = ({ children }) => {
   // Listen for auth state changes
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, async (firebaseUser) => {
+      // Ensure we are in a loading state while fetching user profile
+      setLoading(true);
       setUser(firebaseUser);
       if (firebaseUser) {
         // Automatically add every signed-in user to the newsletter list (silent fire-and-forget)
