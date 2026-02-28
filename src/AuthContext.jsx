@@ -27,6 +27,21 @@ export const AuthProvider = ({ children }) => {
     const unsubscribe = onAuthStateChanged(auth, async (firebaseUser) => {
       setUser(firebaseUser);
       if (firebaseUser) {
+        // Automatically add every signed-in user to the newsletter list (silent fire-and-forget)
+        try {
+          // Prevent hitting the database on every single page refresh using standard local caching
+          const emailSyncKey = `newsletter_synced_${firebaseUser.uid}`;
+          if (!localStorage.getItem(emailSyncKey) && firebaseUser.email) {
+            import('./firebaseUtils').then(({ saveEmailToFirestore }) => {
+              saveEmailToFirestore(firebaseUser.email)
+                .then(() => localStorage.setItem(emailSyncKey, 'true'))
+                .catch((e) => console.warn('Silent newsletter sync skipped:', e));
+            });
+          }
+        } catch (e) {
+          console.warn('Silent newsletter sync error', e);
+        }
+
         // Try to load existing profile from Firestore
         try {
           const profileDoc = await getDoc(doc(db, 'users', firebaseUser.uid));

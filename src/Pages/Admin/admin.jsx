@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { Eye, EyeOff, Plus, Edit2, Trash2, Save, X, AlertCircle, CheckCircle, Loader, Bold, Italic, Underline, List, ListOrdered, Link, Quote, Type } from 'lucide-react';
-import { createArticle, getArticles , deleteArticle, getAllEmails} from '../../firebaseUtils';
+import { createArticle, getArticles, deleteArticle, getAllEmails } from '../../firebaseUtils';
 import { getBookingStatus, setBookingStatus } from '../../firebaseBookingUtils';
 import { sendNewArticleNewsletter } from '../../EmailTemplateSystem/emailServices';
 import NoIndex from "../../Components/NoIndex";
@@ -98,9 +98,9 @@ const RichTextEditor = ({ value, onChange, disabled = false }) => {
 
   const sanitizeHTML = (dirty) => {
     // allow a small safe subset
-    const ALLOWED_TAGS = new Set(["b","strong","i","em","u","a","ul","ol","li","blockquote","span","br","p","div"]);
+    const ALLOWED_TAGS = new Set(["b", "strong", "i", "em", "u", "a", "ul", "ol", "li", "blockquote", "span", "br", "p", "div"]);
     const ALLOWED_ATTRS = {
-      a: new Set(["href","rel","target","style"]),
+      a: new Set(["href", "rel", "target", "style"]),
       span: new Set(["style"]),
       p: new Set(["style"]),
       div: new Set(["style"]),
@@ -176,7 +176,7 @@ const RichTextEditor = ({ value, onChange, disabled = false }) => {
         italic: document.queryCommandState("italic"),
         underline: document.queryCommandState("underline"),
       });
-    } catch {}
+    } catch { }
     setFontPx(getCurrentFontSizePx());
   };
 
@@ -223,7 +223,7 @@ const RichTextEditor = ({ value, onChange, disabled = false }) => {
       s.addRange(newR);
       savedRangeRef.current = newR.cloneRange();
     } else {
-      try { document.execCommand("styleWithCSS", false, true); } catch {}
+      try { document.execCommand("styleWithCSS", false, true); } catch { }
       document.execCommand("fontSize", false, 7);
       editorRef.current.querySelectorAll('font[size="7"]').forEach((f) => {
         const span = document.createElement("span");
@@ -385,9 +385,8 @@ const RichTextEditor = ({ value, onChange, disabled = false }) => {
       onClick={onClick}
       disabled={disabled}
       title={title}
-      className={`p-2 rounded hover:bg-gray-100 transition-colors ${
-        active ? "bg-green-100 text-green-700" : "text-gray-600"
-      } ${disabled ? "opacity-50 cursor-not-allowed" : ""} ${className}`}
+      className={`p-2 rounded hover:bg-gray-100 transition-colors ${active ? "bg-green-100 text-green-700" : "text-gray-600"
+        } ${disabled ? "opacity-50 cursor-not-allowed" : ""} ${className}`}
       aria-pressed={!!active}
       aria-label={title}
     >
@@ -457,9 +456,8 @@ const RichTextEditor = ({ value, onChange, disabled = false }) => {
       <div
         ref={editorRef}
         contentEditable={!disabled}
-        className={`p-3 min-h-[200px] focus:outline-none relative ${
-          disabled ? "bg-gray-50 cursor-not-allowed" : "bg-white text-gray-800"
-        }`}
+        className={`p-3 min-h-[200px] focus:outline-none relative ${disabled ? "bg-gray-50 cursor-not-allowed" : "bg-white text-gray-800"
+          }`}
         style={{
           fontSize: "14px",
           lineHeight: "1.6",
@@ -514,11 +512,10 @@ const Notification = ({ type, message, onClose }) => {
   }, [onClose]);
 
   return (
-    <div className={`fixed top-4 right-4 z-50 p-4 rounded-lg shadow-lg border-l-4 ${
-      type === 'success' 
-        ? 'bg-green-50 border-green-500 text-green-800' 
+    <div className={`fixed top-4 right-4 z-50 p-4 rounded-lg shadow-lg border-l-4 ${type === 'success'
+        ? 'bg-green-50 border-green-500 text-green-800'
         : 'bg-red-50 border-red-500 text-red-800'
-    }`}>
+      }`}>
       <div className="flex items-center gap-2">
         {type === 'success' ? <CheckCircle size={20} /> : <AlertCircle size={20} />}
         <span>{message}</span>
@@ -533,7 +530,7 @@ const Notification = ({ type, message, onClose }) => {
 // Progress Bar Component
 const ProgressBar = ({ progress }) => (
   <div className="w-full bg-gray-200 rounded-full h-2">
-    <div 
+    <div
       className="bg-gradient-to-r from-green-500 to-emerald-500 h-2 rounded-full transition-all duration-300"
       style={{ width: `${progress}%` }}
     />
@@ -637,8 +634,8 @@ const ArticlesManager = ({ articles, setArticles, showNotification, loadArticles
 
   // Validate and preview image URL
   const handleImageUrlChange = (url) => {
-    setFormData({...formData, imageUrl: url});
-    
+    setFormData({ ...formData, imageUrl: url });
+
     if (url) {
       try {
         new URL(url);
@@ -668,7 +665,7 @@ const ArticlesManager = ({ articles, setArticles, showNotification, loadArticles
       }, 100);
 
       const result = await createArticle(formData.title, formData.content, formData.imageUrl);
-      
+
       clearInterval(interval);
       setUploadProgress(100);
 
@@ -678,11 +675,11 @@ const ArticlesManager = ({ articles, setArticles, showNotification, loadArticles
 
         try {
           const newsletterResult = await sendNewArticleNewsletter(
-            formData.title, 
-            formData.imageUrl, 
+            formData.title,
+            formData.imageUrl,
             result.id
           );
-          
+
           if (newsletterResult.success) {
             showNotification('success', `Newsletter sent to ${newsletterResult.sent} subscribers!`);
           } else {
@@ -692,7 +689,7 @@ const ArticlesManager = ({ articles, setArticles, showNotification, loadArticles
           console.error('Newsletter error:', error);
           showNotification('error', 'Article created but newsletter failed to send');
         }
-        
+
         setFormData({ title: '', content: '', imageUrl: '' });
         setImagePreview('');
         setIsEditing(false);
@@ -708,7 +705,7 @@ const ArticlesManager = ({ articles, setArticles, showNotification, loadArticles
       setUploadProgress(0);
     }
 
-  setTimeout(() => {
+    setTimeout(() => {
       window.scrollTo({ top: 0, behavior: 'smooth' });
     }, 100);
   };
@@ -779,7 +776,7 @@ const ArticlesManager = ({ articles, setArticles, showNotification, loadArticles
               <input
                 type="text"
                 value={formData.title}
-                onChange={(e) => setFormData({...formData, title: e.target.value})}
+                onChange={(e) => setFormData({ ...formData, title: e.target.value })}
                 className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent text-gray-800"
                 placeholder="Article title"
                 required
@@ -793,7 +790,7 @@ const ArticlesManager = ({ articles, setArticles, showNotification, loadArticles
               </label>
               <RichTextEditor
                 value={formData.content}
-                onChange={(content) => setFormData({...formData, content})}
+                onChange={(content) => setFormData({ ...formData, content })}
                 disabled={isSubmitting}
               />
               <p className="text-xs text-gray-500 mt-2">
@@ -816,7 +813,7 @@ const ArticlesManager = ({ articles, setArticles, showNotification, loadArticles
               <p className="text-xs text-gray-500 mt-1">
                 Enter a valid image URL (jpg, png, gif, webp)
               </p>
-              
+
               {/* Image Preview */}
               {imagePreview && (
                 <div className="mt-3">
@@ -903,10 +900,10 @@ const ArticlesManager = ({ articles, setArticles, showNotification, loadArticles
                     </div>
                   )}
                   <h3 className="text-lg font-semibold text-gray-800 mb-2">{article.title}</h3>
-                  <div 
+                  <div
                     className="text-gray-600 text-sm mb-2 prose prose-sm max-w-none"
                     dangerouslySetInnerHTML={{
-                      __html: article.content.length > 150 
+                      __html: article.content.length > 150
                         ? article.content.substring(0, 150) + '...'
                         : article.content
                     }}
@@ -1068,7 +1065,7 @@ const AdminDashboard = () => {
 
       <div className="container mx-auto px-4 py-8">
         {/* Metrics */}
-        <div className="grid grid-cols-2 gap-4 mb-6">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
           <div className="bg-white rounded-xl shadow-md p-5 border border-green-100 flex items-center gap-4">
             <div className="w-12 h-12 rounded-full bg-green-100 flex items-center justify-center text-green-600 text-xl font-bold flex-shrink-0">
               📧
@@ -1085,6 +1082,15 @@ const AdminDashboard = () => {
             <div>
               <p className="text-2xl font-bold text-gray-800">{articles.length}</p>
               <p className="text-sm text-gray-500">Articles Published</p>
+            </div>
+          </div>
+          <div className="bg-white rounded-xl shadow-md p-5 border border-blue-100 flex items-center gap-4 cursor-not-allowed opacity-80">
+            <div className="w-12 h-12 rounded-full bg-blue-100 flex items-center justify-center text-blue-600 text-xl font-bold flex-shrink-0">
+              📊
+            </div>
+            <div>
+              <p className="text-2xl font-bold text-gray-800">Analytics</p>
+              <p className="text-sm text-gray-500 text-blue-600">Coming Soon</p>
             </div>
           </div>
         </div>

@@ -70,7 +70,7 @@ const Footer = () => {
 
   useEffect(() => {
     startCollapseTimer();
-    
+
     // Enable scroll behavior after 10 seconds
     const scrollEnableTimer = setTimeout(() => {
       setEnableScrollBehavior(true);
@@ -78,7 +78,7 @@ const Footer = () => {
 
     const handleScroll = () => {
       const currentScrollY = window.scrollY;
-      
+
       if (enableScrollBehavior) {
         if (currentScrollY > lastScrollY.current && currentScrollY > 100) {
           // Scrolling down
@@ -202,7 +202,7 @@ const Footer = () => {
                 <li><Link to="/services" className="text-green-100 hover:text-white transition-colors text-sm">Our Services</Link></li>
                 <li><Link to="/plans" className="text-green-100 hover:text-white transition-colors text-sm">Diet Plans</Link></li>
                 <li><Link to="/blog" className="text-green-100 hover:text-white transition-colors text-sm">Blog</Link></li>
-                <li><Link to="/knowYourBody" className="text-green-100 hover:text-white transition-colors text-sm">Know Your Body</Link></li>
+                <li><Link to="/my-journey" className="text-green-100 hover:text-white transition-colors text-sm">My Journey</Link></li>
               </ul>
             </div>
 
@@ -316,7 +316,7 @@ const Footer = () => {
       </div>
 
       {/* WhatsApp Confirmation Popup */}
-      <WhatsAppPopup 
+      <WhatsAppPopup
         isOpen={showWhatsAppPopup}
         onClose={() => setShowWhatsAppPopup(false)}
         onConfirm={handleConfirmWhatsApp}

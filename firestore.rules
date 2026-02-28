@@ -3,13 +3,7 @@ rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
 
-    // Helper functions
-    function isAuthenticated() {
-      return request.auth != null;
-    }
-    
-    // For now, allow any authenticated user to act as admin (for the admin panel)
-    // Eventually, you might want a specific `isAdmin(userId)` lookup in your users table.
+    // Allow any authenticated user to act as admin (for the admin panel)
     function isAdmin() {
       return request.auth != null;
     }
