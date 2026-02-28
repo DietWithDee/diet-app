@@ -150,10 +150,32 @@ function Plans() {
     );
   };
 
+  const [loading, setLoading] = React.useState(true);
+
+  React.useEffect(() => {
+    const timer = setTimeout(() => {
+      setLoading(false);
+    }, 1500);
+    return () => clearTimeout(timer);
+  }, []);
+
+  const SkeletonCard = () => (
+    <div className="bg-white rounded-3xl shadow-xl p-6 relative border-l-4 border-l-gray-100 animate-pulse">
+      <div className="w-full h-44 bg-gray-200 rounded-2xl mb-6"></div>
+      <div className="h-8 bg-gray-200 rounded-lg mb-4 w-3/4"></div>
+      <div className="h-4 bg-gray-200 rounded-lg mb-3 w-1/2"></div>
+      <div className="h-6 bg-gray-200 rounded-lg mb-4 w-1/4"></div>
+      <div className="space-y-3 mb-6">
+        <div className="h-4 bg-gray-200 rounded-lg w-full"></div>
+        <div className="h-4 bg-gray-200 rounded-lg w-5/6"></div>
+        <div className="h-4 bg-gray-200 rounded-lg w-4/6"></div>
+      </div>
+      <div className="h-12 bg-gray-200 rounded-full w-full"></div>
+    </div>
+  );
+
   return (
     <>
-      {/* If you use SEO component, make sure it's imported */}
-      {/* <SEO ... /> */}
       <div className='min-h-screen bg-gradient-to-br from-green-50 via-white to-emerald-50 py-20 px-6 lg:px-12'>
         <div className='text-center space-y-4 max-w-3xl mx-auto mb-12'>
           <h1 className='text-5xl font-black text-transparent bg-clip-text bg-gradient-to-r from-green-700 via-emerald-600 to-green-600'>
@@ -166,39 +188,44 @@ function Plans() {
         </div>
 
         <div className='grid grid-cols-1 md:grid-cols-3 gap-8 max-w-6xl mx-auto'>
-          {plans.map((plan, index) => (
-            <div
-              key={index}
-              className={`bg-white rounded-3xl shadow-xl hover:shadow-2xl transition-transform hover:-translate-y-1 p-6 relative border-l-4 border-l-green-100`}
-            >
+          {loading ? (
+            // Show 5 skeleton cards (one for each plan)
+            [...Array(5)].map((_, index) => <SkeletonCard key={index} />)
+          ) : (
+            plans.map((plan, index) => (
               <div
-                className={`w-full h-44 bg-gradient-to-br ${plan.gradient} rounded-2xl flex items-center justify-center mb-6`}
+                key={index}
+                className={`bg-white rounded-3xl shadow-xl hover:shadow-2xl transition-transform hover:-translate-y-1 p-6 relative border-l-4 border-l-green-100`}
               >
-                <img src={plan.img} alt={plan.title} className='h-auto object-contain rounded-2xl' />
-              </div>
-
-              <h3 className='text-2xl font-bold text-green-700 mb-2'>{plan.title}</h3>
-              <h2 className='text-sm font-bold text-black mb-3'>{plan.Subtitle}</h2>
-              <p className='text-xl font-semibold text-gray-600 mb-4'>{plan.price}</p>
-
-              <ul className='space-y-2 text-gray-700 text-sm mb-6'>
-                {plan.features.map((feature, idx) => (
-                  <li key={idx} className='flex items-center gap-2'>
-                    <div className='w-2 h-2 bg-green-300 rounded-full'></div>
-                    {feature}
-                  </li>
-                ))}
-              </ul>
-
-              <a href={plan.Url} target="_blank" rel="noopener noreferrer">
-                <button
-                  className={`w-full px-6 py-3 bg-gradient-to-r ${plan.gradient} text-white font-bold rounded-full transition-all hover:shadow-lg`}
+                <div
+                  className={`w-full h-44 bg-gradient-to-br ${plan.gradient} rounded-2xl flex items-center justify-center mb-6`}
                 >
-                  Buy Now
-                </button>
-              </a>
-            </div>
-          ))}
+                  <img src={plan.img} alt={plan.title} className='h-auto object-contain rounded-2xl' />
+                </div>
+
+                <h3 className='text-2xl font-bold text-green-700 mb-2'>{plan.title}</h3>
+                <h2 className='text-sm font-bold text-black mb-3'>{plan.Subtitle}</h2>
+                <p className='text-xl font-semibold text-gray-600 mb-4'>{plan.price}</p>
+
+                <ul className='space-y-2 text-gray-700 text-sm mb-6'>
+                  {plan.features.map((feature, idx) => (
+                    <li key={idx} className='flex items-center gap-2'>
+                      <div className='w-2 h-2 bg-green-300 rounded-full'></div>
+                      {feature}
+                    </li>
+                  ))}
+                </ul>
+
+                <a href={plan.Url} target="_blank" rel="noopener noreferrer">
+                  <button
+                    className={`w-full px-6 py-3 bg-gradient-to-r ${plan.gradient} text-white font-bold rounded-full transition-all hover:shadow-lg`}
+                  >
+                    Buy Now
+                  </button>
+                </a>
+              </div>
+            ))
+          )}
         </div>
 
         {/* Trust Indicator Section */}

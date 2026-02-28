@@ -1,15 +1,21 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { MessageCircle, CheckCircle, AlertCircle, Loader, Instagram, Linkedin, Music2 } from 'lucide-react';
 import { saveEmailToFirestore } from '../../firebaseUtils';
 import { Link } from 'react-router-dom';
 import { isValidEmail } from '../../utils/validation';
+import WhatsAppPopup from '../WhatsAppPopup';
 
 const Footer = () => {
   const [email, setEmail] = useState('');
   const [isExpanded, setIsExpanded] = useState(true);
-  const [timer, setTimer] = useState(null);
+  const collapseTimerRef = useRef(null);
   const [isLoading, setIsLoading] = useState(false);
   const [message, setMessage] = useState({ type: '', text: '' });
+  const [showWhatsAppPopup, setShowWhatsAppPopup] = useState(false);
+  const [isWhatsAppVisible, setIsWhatsAppVisible] = useState(true);
+  const [enableScrollBehavior, setEnableScrollBehavior] = useState(false);
+  const lastScrollY = useRef(0);
+
   const Url = "https://wa.me/233592330870?text=Hello%2C%20I%E2%80%99d%20like%20to%20book%20a%20session%20with%20Diet%20with%20Dee";
 
   const clearMessage = () => {
@@ -58,19 +64,56 @@ const Footer = () => {
   const handleKeyPress = (e) => e.key === 'Enter' && handleSubmit();
 
   const startCollapseTimer = () => {
-    if (timer) clearTimeout(timer);
-    const newTimer = setTimeout(() => setIsExpanded(false), 10000);
-    setTimer(newTimer);
+    if (collapseTimerRef.current) clearTimeout(collapseTimerRef.current);
+    collapseTimerRef.current = setTimeout(() => setIsExpanded(false), 10000);
   };
 
   useEffect(() => {
     startCollapseTimer();
-    return () => timer && clearTimeout(timer);
-  }, []);
+    
+    // Enable scroll behavior after 10 seconds
+    const scrollEnableTimer = setTimeout(() => {
+      setEnableScrollBehavior(true);
+    }, 10000);
+
+    const handleScroll = () => {
+      const currentScrollY = window.scrollY;
+      
+      if (enableScrollBehavior) {
+        if (currentScrollY > lastScrollY.current && currentScrollY > 100) {
+          // Scrolling down
+          setIsWhatsAppVisible(false);
+        } else {
+          // Scrolling up
+          setIsWhatsAppVisible(true);
+        }
+      }
+      lastScrollY.current = currentScrollY;
+    };
+
+    window.addEventListener('scroll', handleScroll, { passive: true });
+
+    return () => {
+      if (collapseTimerRef.current) clearTimeout(collapseTimerRef.current);
+      clearTimeout(scrollEnableTimer);
+      window.removeEventListener('scroll', handleScroll);
+    };
+  }, [enableScrollBehavior]);
 
   const handleMouseEnter = () => {
     setIsExpanded(true);
     startCollapseTimer();
+    setIsWhatsAppVisible(true);
+  };
+
+  const handleWhatsAppClick = (e) => {
+    e.preventDefault();
+    setShowWhatsAppPopup(true);
+  };
+
+  const handleConfirmWhatsApp = () => {
+    window.open(Url, "_blank", "noopener,noreferrer");
+    setShowWhatsAppPopup(false);
   };
 
   const getMessageIcon = () => {
@@ -240,15 +283,13 @@ const Footer = () => {
       </div>
 
       {/* Floating Chat Button */}
-      <div className="fixed bottom-4 sm:bottom-6 right-4 sm:right-6 z-50">
+      <div className={`fixed bottom-4 sm:bottom-6 right-4 sm:right-6 z-50 transition-all duration-500 ${isWhatsAppVisible ? 'translate-y-0 opacity-100' : 'translate-y-20 opacity-0 pointer-events-none'}`}>
         <div
           onMouseEnter={handleMouseEnter}
           className="relative"
         >
-          <a
-            href={Url}
-            target="_blank"
-            rel="noopener noreferrer"
+          <button
+            onClick={handleWhatsAppClick}
             className={`
               bg-green-500 hover:bg-green-600 text-white rounded-full shadow-lg 
               transition-all duration-500 ease-in-out transform hover:scale-105
@@ -260,7 +301,6 @@ const Footer = () => {
               size={20}
               className={`
                 flex-shrink-0 transition-all duration-300 z-10
-                ${isExpanded ? 'animate-pulse' : 'animate-bounce'}
               `}
             />
             <span
@@ -271,13 +311,16 @@ const Footer = () => {
             >
               Talk to Dee
             </span>
-          </a>
-
-          {!isExpanded && (
-            <div className="absolute inset-0 rounded-full bg-green-400 opacity-20 animate-ping pointer-events-none"></div>
-          )}
+          </button>
         </div>
       </div>
+
+      {/* WhatsApp Confirmation Popup */}
+      <WhatsAppPopup 
+        isOpen={showWhatsAppPopup}
+        onClose={() => setShowWhatsAppPopup(false)}
+        onConfirm={handleConfirmWhatsApp}
+      />
     </footer>
   );
 };

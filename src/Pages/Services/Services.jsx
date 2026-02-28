@@ -3,6 +3,7 @@ import SEO from '../../Components/SEO';
 import Food from '../../assets/Woman.webp'
 import { useNavigate } from 'react-router';
 import { motion } from 'framer-motion';
+import WhatsAppPopup from '../../Components/WhatsAppPopup';
 import Event1 from '../../assets/images/Events/Event1.webp';
 import Event2 from '../../assets/images/Events/Event2.webp';
 import Event3 from '../../assets/images/Events/Event3.webp';
@@ -29,6 +30,7 @@ function ServicesContactSection() {
   const Url = "https://wa.me/233592330870?text=Hello%2C%20I%E2%80%99d%20like%20to%20book%20a%20session%20with%20Diet%20with%20Dee"
 
   const [isLightboxOpen, setIsLightboxOpen] = useState(false);
+  const [showWhatsAppPopup, setShowWhatsAppPopup] = useState(false);
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
   const [touchStartX, setTouchStartX] = useState(0);
   const [touchEndX, setTouchEndX] = useState(0);
@@ -553,21 +555,29 @@ function ServicesContactSection() {
 
                   {/* CTA Button */}
                   <div className='pt-4 sm:pt-6'>
-                    <motion.a
+                    <motion.button
                       whileHover={{ scale: 1.05 }}
                       whileTap={{ scale: 0.95 }}
-                      href={Url}
-                      target="_blank"
-                      rel="noopener noreferrer"
+                      onClick={() => setShowWhatsAppPopup(true)}
                       className='inline-block w-full sm:w-auto px-6 sm:px-8 py-3 sm:py-4 bg-gradient-to-r from-orange-400 to-orange-400 text-white font-bold rounded-full shadow-lg hover:shadow-xl transition-all duration-300 hover:from-green-700 hover:to-emerald-700 text-sm sm:text-base'>
                       Get In Touch
-                    </motion.a>
+                    </motion.button>
                   </div>
                 </div>
               </div>
             </motion.div>
           </div>
         </div>
+
+        {/* WhatsApp Confirmation Popup */}
+        <WhatsAppPopup 
+          isOpen={showWhatsAppPopup}
+          onClose={() => setShowWhatsAppPopup(false)}
+          onConfirm={() => {
+            window.open(Url, "_blank", "noopener,noreferrer");
+            setShowWhatsAppPopup(false);
+          }}
+        />
       </div>
     </>
   );
