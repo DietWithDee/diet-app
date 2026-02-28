@@ -5,10 +5,48 @@ import { useLocation } from 'react-router-dom';
 import FullyBooked from '../FullyBooked/FullyBooked';
 import { getBookingStatus } from '../../firebaseBookingUtils';
 import { isValidEmail } from '../../utils/validation';
+import { useAuth } from '../../AuthContext';
+
+// Compute BMI/calories from a stored profile (reusable helper)
+const computeResultsFromProfile = (profile) => {
+  if (!profile?.height || !profile?.weight) return null;
+  const h = parseFloat(profile.height) / 100;
+  const w = parseFloat(profile.weight);
+  const age = parseFloat(profile.age) || 25;
+  const bmi = Math.round((w / (h * h)) * 10) / 10;
+  let bmiCategory = '';
+  if (bmi < 18.5) bmiCategory = 'Underweight';
+  else if (bmi < 25) bmiCategory = 'Normal Weight';
+  else if (bmi < 30) bmiCategory = 'Overweight';
+  else bmiCategory = 'Obese';
+
+  const genderFactor = profile.gender === 'male' ? 5 : -161;
+  const bmr = 10 * w + 6.25 * parseFloat(profile.height) - 5 * age + genderFactor;
+  const activityMultipliers = { sedentary: 1.2, light: 1.375, moderate: 1.55, active: 1.725 };
+  const tdee = bmr * (activityMultipliers[profile.activityLevel] || 1.2);
+  let goalCalories = tdee;
+  if (profile.goal === 'lose') goalCalories = tdee - 500;
+  else if (profile.goal === 'gain') goalCalories = tdee + 500;
+  const goalLabels = { lose: 'Lose Weight', maintain: 'Maintain Weight', gain: 'Gain Weight' };
+  return {
+    bmi,
+    bmiCategory,
+    dailyCalories: Math.round(goalCalories),
+    goal: goalLabels[profile.goal] || profile.goal || 'Not specified',
+    dietaryRestrictions: profile.dietaryRestrictions || 'None',
+    macros: {
+      protein: Math.round((goalCalories * 0.3) / 4),
+      carbs: Math.round((goalCalories * 0.4) / 4),
+      fats: Math.round((goalCalories * 0.3) / 9),
+    },
+  };
+};
 
 function ContactUs() {
   const [isFullyBooked, setIsFullyBooked] = useState(false);
-  const [isBookingOpen, setIsBookingOpen] = useState(true); // Default to true, will be updated on payment redirect
+  const [isBookingOpen, setIsBookingOpen] = useState(true);
+
+  const { user, userProfile } = useAuth();
 
   const [formData, setFormData] = useState({
     name: '',
@@ -17,18 +55,31 @@ function ContactUs() {
     message: ''
   });
 
-  const [paymentStep, setPaymentStep] = useState('form'); // 'form', 'payment', 'completed'
+  const [paymentStep, setPaymentStep] = useState('form');
 
-  // Mock data from previous steps - in real app, this would come from props or context
+  // Use router state first, then Firestore profile as fallback, then defaults
   const location = useLocation();
-  const userResults = location.state?.userResults || {
-    bmi: 0,
-    bmiCategory: 'Normal Weight',
-    dailyCalories: 0,
-    goal: 'Weight Loss',
-    dietaryRestrictions: 'No restrictions',
-    macros: { protein: 0, carbs: 0, fats: 0 }
-  };
+  const userResults = location.state?.userResults
+    || computeResultsFromProfile(userProfile)
+    || {
+      bmi: 0,
+      bmiCategory: 'Normal Weight',
+      dailyCalories: 0,
+      goal: 'Weight Loss',
+      dietaryRestrictions: 'No restrictions',
+      macros: { protein: 0, carbs: 0, fats: 0 }
+    };
+
+  // Auto-fill form from Google account if logged in and form is empty
+  useEffect(() => {
+    if (user && !formData.name && !formData.email) {
+      setFormData(prev => ({
+        ...prev,
+        name: user.displayName || '',
+        email: user.email || '',
+      }));
+    }
+  }, [user]);
 
   // Check booking status on mount to prevent async blocking later
   useEffect(() => {
