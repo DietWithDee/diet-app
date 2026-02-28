@@ -53,19 +53,23 @@ export const AuthProvider = ({ children }) => {
     });
   }, []);
 
-  // Google sign-in — uses redirect on mobile, popup on desktop
+  // Google sign-in — try popup first, fall back to redirect if blocked (e.g. mobile)
   const signInWithGoogle = async () => {
     const provider = new GoogleAuthProvider();
     try {
-      if (isMobile()) {
-        await signInWithRedirect(auth, provider);
-        return null; // page redirects, onAuthStateChanged handles the rest
-      } else {
-        const result = await signInWithPopup(auth, provider);
-        return result.user;
-      }
+      const result = await signInWithPopup(auth, provider);
+      return result.user;
     } catch (err) {
-      console.error('Google sign-in error:', err);
+      // Popup blocked or closed — fall back to redirect
+      if (
+        err.code === 'auth/popup-blocked' ||
+        err.code === 'auth/popup-closed-by-user' ||
+        err.code === 'auth/cancelled-popup-request'
+      ) {
+        console.log('Popup blocked, falling back to redirect...');
+        await signInWithRedirect(auth, provider);
+        return null; // page will redirect
+      }
       throw err;
     }
   };

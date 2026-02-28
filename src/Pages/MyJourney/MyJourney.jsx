@@ -91,13 +91,15 @@ function MyJourney() {
       try {
         const googleUser = await signInWithGoogle();
         if (googleUser) {
-          // Check if profile already exists (the context loads it)
-          // If not, show onboarding. We need a brief delay for state to settle.
+          // Popup succeeded — show onboarding after state settles
           setTimeout(() => {
             setShowOnboarding(true);
             setSigningIn(false);
           }, 500);
         }
+        // If null, redirect is happening — page will reload.
+        // After reload, onAuthStateChanged fires and shouldShowOnboarding
+        // auto-triggers the modal if no profile exists.
       } catch (err) {
         console.error('Sign-in failed:', err);
         setSigningIn(false);
