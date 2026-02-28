@@ -1,9 +1,12 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
-import { GoogleAuthProvider, signInWithPopup, onAuthStateChanged, signOut as firebaseSignOut } from 'firebase/auth';
+import { GoogleAuthProvider, signInWithPopup, signInWithRedirect, getRedirectResult, onAuthStateChanged, signOut as firebaseSignOut } from 'firebase/auth';
 import { doc, getDoc, setDoc, addDoc, collection } from 'firebase/firestore';
 import { auth, db } from './firebaseConfig';
 
 const AuthContext = createContext(null);
+
+// Simple mobile detection
+const isMobile = () => /Android|iPhone|iPad|iPod|webOS|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
 
 export const useAuth = () => {
   const ctx = useContext(AuthContext);
@@ -41,12 +44,26 @@ export const AuthProvider = ({ children }) => {
     return () => unsubscribe();
   }, []);
 
-  // Google sign-in
+  // Handle redirect result (for mobile sign-in)
+  useEffect(() => {
+    getRedirectResult(auth).catch((err) => {
+      if (err.code !== 'auth/redirect-cancelled-by-user') {
+        console.error('Redirect sign-in error:', err);
+      }
+    });
+  }, []);
+
+  // Google sign-in — uses redirect on mobile, popup on desktop
   const signInWithGoogle = async () => {
     const provider = new GoogleAuthProvider();
     try {
-      const result = await signInWithPopup(auth, provider);
-      return result.user;
+      if (isMobile()) {
+        await signInWithRedirect(auth, provider);
+        return null; // page redirects, onAuthStateChanged handles the rest
+      } else {
+        const result = await signInWithPopup(auth, provider);
+        return result.user;
+      }
     } catch (err) {
       console.error('Google sign-in error:', err);
       throw err;

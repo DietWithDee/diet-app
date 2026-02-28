@@ -231,10 +231,10 @@ function Home() {
                 {/* Left: Image */}
                 <motion.div 
                   className="flex-1 relative max-w-lg order-2 lg:order-1"
-                  initial={{ opacity: 0, x: -50 }}
-                  whileInView={{ opacity: 1, x: 0 }}
+                  initial={{ opacity: 0, y: 40 }}
+                  whileInView={{ opacity: 1, y: 0 }}
                   viewport={{ once: true, margin: "-100px" }}
-                  transition={{ duration: 0.8, type: "spring", bounce: 0.4 }}
+                  transition={{ duration: 1.2, ease: "easeOut" }}
                 >
                   <div className="absolute -top-6 -left-6 w-72 h-72 bg-gradient-to-br from-emerald-200 to-green-200 rounded-full opacity-20 blur-3xl"></div>
                   <div className="absolute -bottom-4 -right-4 w-64 h-64 bg-gradient-to-tr from-green-300 to-emerald-300 rounded-full opacity-15 blur-2xl"></div>

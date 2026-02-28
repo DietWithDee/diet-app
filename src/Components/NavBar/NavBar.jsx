@@ -18,8 +18,8 @@ export default function NavBar() {
     { path: '/', label: 'Home' },
     { path: '/about', label: 'About' },
     { path: '/plans', label: 'Plans' },
-    { path: '/services', label: 'Services' },
     { path: '/blog', label: 'Blog' },
+    { path: '/services', label: 'Services' },
     { path: '/contactus', label: 'Contact Us' },
   ]
 

@@ -27,6 +27,7 @@ function MyJourney() {
     const [showOnboarding, setShowOnboarding] = useState(false);
     const [editMode, setEditMode] = useState(false);
     const [signingIn, setSigningIn] = useState(false);
+    const [showLogoutConfirm, setShowLogoutConfirm] = useState(false);
 
     const upcomingFeatures = [
         {
@@ -274,8 +275,8 @@ function MyJourney() {
                               <motion.button
                                 whileHover={{ scale: 1.05 }}
                                 whileTap={{ scale: 0.95 }}
-                                onClick={signOut}
-                                className="px-4 py-2 bg-white/15 hover:bg-white/25 text-white text-sm font-semibold rounded-full transition-all flex items-center gap-2 backdrop-blur-sm"
+                                onClick={() => setShowLogoutConfirm(true)}
+                                className="px-4 py-2 bg-red-500/80 hover:bg-red-600 text-white text-sm font-semibold rounded-full transition-all flex items-center gap-2"
                               >
                                 <FiLogOut size={16} /> Sign Out
                               </motion.button>
@@ -372,37 +373,41 @@ function MyJourney() {
 
                         {/* Get Started / Sign-in CTA - only show when NOT logged in */}
                         {!user && (
-                          <motion.div variants={fadeUp} className="bg-orange-50 rounded-2xl p-6 border border-orange-100 inline-block max-w-lg shadow-sm w-full mx-4 sm:w-auto sm:mx-0">
-                              <p className="text-orange-900 font-medium mb-4">
-                                  Create an account with us to be notified when this is available!
-                              </p>
-                              <motion.button 
-                                  whileHover={{ scale: 1.05 }}
-                                  whileTap={{ scale: 0.95 }}
-                                  onClick={handleGetStarted}
-                                  disabled={signingIn || loading}
-                                  className="px-10 py-3 bg-[#F6841F] text-white font-bold rounded-full shadow-lg hover:shadow-xl transition-all duration-300 hover:bg-orange-600 w-full sm:w-auto flex items-center justify-center gap-3 disabled:opacity-60"
-                              >
-                                  {signingIn ? (
-                                    <>
-                                      <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
-                                      Signing in...
-                                    </>
-                                  ) : (
-                                    <>
-                                      <FcGoogle size={22} className="bg-white rounded-full p-0.5" />
-                                      Get Started with Google
-                                    </>
-                                  )}
-                              </motion.button>
-                              <motion.button
-                                  whileHover={{ scale: 1.05 }}
-                                  whileTap={{ scale: 0.95 }}
-                                  onClick={() => navigate('/knowyourbody')}
-                                  className="mt-3 px-10 py-3 border-2 border-blue-500 text-blue-600 font-bold rounded-full hover:bg-blue-50 transition-all duration-300 w-full sm:w-auto flex items-center justify-center gap-2"
-                              >
-                                  Continue as Guest
-                              </motion.button>
+                          <motion.div variants={fadeUp} className="bg-white rounded-2xl p-8 border border-gray-100 shadow-lg max-w-lg w-full mx-auto">
+                              <div className="text-center space-y-5">
+                                <div className="w-14 h-14 bg-gradient-to-br from-green-100 to-emerald-100 rounded-2xl flex items-center justify-center mx-auto">
+                                  <span className="text-2xl">🌿</span>
+                                </div>
+                                <h3 className="text-xl font-bold text-green-800">Join Your Wellness Journey</h3>
+                                <p className="text-gray-500 text-sm leading-relaxed">
+                                  Sign up to save your progress, get personalized recommendations, and be first to access new features.
+                                </p>
+                                <motion.button 
+                                    whileHover={{ scale: 1.03 }}
+                                    whileTap={{ scale: 0.97 }}
+                                    onClick={handleGetStarted}
+                                    disabled={signingIn || loading}
+                                    className="w-full py-3.5 bg-[#F6841F] text-white font-bold rounded-full shadow-md hover:shadow-lg transition-all duration-300 hover:bg-orange-600 flex items-center justify-center gap-3 disabled:opacity-60"
+                                >
+                                    {signingIn ? (
+                                      <>
+                                        <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+                                        Signing in...
+                                      </>
+                                    ) : (
+                                      <>
+                                        <FcGoogle size={22} className="bg-white rounded-full p-0.5" />
+                                        Get Started with Google
+                                      </>
+                                    )}
+                                </motion.button>
+                                <button
+                                    onClick={() => navigate('/knowyourbody')}
+                                    className="text-sm text-gray-400 hover:text-gray-600 font-medium transition-colors"
+                                >
+                                    Continue as guest →
+                                </button>
+                              </div>
                           </motion.div>
                         )}
                     </motion.div>
@@ -514,6 +519,50 @@ function MyJourney() {
                   onClose={() => { setShowOnboarding(false); setEditMode(false); }}
                   initialData={editMode ? userProfile : null}
                 />
+              )}
+            </AnimatePresence>
+
+            {/* Sign-out Confirmation Modal */}
+            <AnimatePresence>
+              {showLogoutConfirm && (
+                <motion.div
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  exit={{ opacity: 0 }}
+                  className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm px-4"
+                  onClick={() => setShowLogoutConfirm(false)}
+                >
+                  <motion.div
+                    initial={{ opacity: 0, scale: 0.9, y: 20 }}
+                    animate={{ opacity: 1, scale: 1, y: 0 }}
+                    exit={{ opacity: 0, scale: 0.9, y: 20 }}
+                    transition={{ duration: 0.2, ease: "easeOut" }}
+                    className="bg-white rounded-2xl shadow-2xl p-6 max-w-sm w-full text-center"
+                    onClick={(e) => e.stopPropagation()}
+                  >
+                    <div className="w-12 h-12 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                      <FiLogOut size={22} className="text-red-500" />
+                    </div>
+                    <h3 className="text-lg font-bold text-gray-800 mb-2">Sign Out?</h3>
+                    <p className="text-gray-500 text-sm mb-6">
+                      Are you sure you want to sign out? Your data is saved and you can sign back in anytime.
+                    </p>
+                    <div className="flex gap-3">
+                      <button
+                        onClick={() => setShowLogoutConfirm(false)}
+                        className="flex-1 py-2.5 bg-gray-100 text-gray-700 font-semibold rounded-full hover:bg-gray-200 transition-colors"
+                      >
+                        Cancel
+                      </button>
+                      <button
+                        onClick={() => { setShowLogoutConfirm(false); signOut(); }}
+                        className="flex-1 py-2.5 bg-red-500 text-white font-semibold rounded-full hover:bg-red-600 transition-colors"
+                      >
+                        Sign Out
+                      </button>
+                    </div>
+                  </motion.div>
+                </motion.div>
               )}
             </AnimatePresence>
         </>
