@@ -176,8 +176,8 @@ function Home() {
                   </motion.button>
                 </motion.div>
 
-                {/* Trust Indicators */}
-                <motion.div variants={fadeUp} className="flex flex-row items-start gap-4 sm:gap-8 pt-8 text-xs text-gray-600">
+                {/* Trust Indicators (Desktop - visible on lg) */}
+                <motion.div variants={fadeUp} className="hidden lg:flex flex-row items-start gap-4 sm:gap-8 pt-8 text-xs text-gray-600">
                   <div className="flex items-start gap-2 max-w-[90px]">
                     <div className="w-3 h-3 bg-green-500 rounded-full mt-0.5 flex-shrink-0"></div>
                     <span className="leading-tight">300+ Success Stories</span>
@@ -214,6 +214,28 @@ function Home() {
                 </div>
               </motion.div>
             </div>
+
+            {/* Trust Indicators (Mobile - visible below the image) */}
+            <motion.div
+              variants={fadeUp}
+              initial="hidden"
+              whileInView="show"
+              viewport={{ once: true }}
+              className="flex lg:hidden flex-row items-center justify-center gap-4 sm:gap-8 text-xs text-gray-600 w-full pt-8"
+            >
+              <div className="flex items-center gap-2">
+                <div className="w-3 h-3 bg-green-500 rounded-full flex-shrink-0"></div>
+                <span className="leading-tight">300+ Success Stories</span>
+              </div>
+              <div className="flex items-center gap-2">
+                <div className="w-3 h-3 bg-emerald-500 rounded-full flex-shrink-0"></div>
+                <span className="leading-tight">Expert Dietitians</span>
+              </div>
+              <div className="flex items-center gap-2">
+                <div className="w-3 h-3 bg-green-400 rounded-full flex-shrink-0"></div>
+                <span className="leading-tight">Personalized Plans</span>
+              </div>
+            </motion.div>
           </div>
 
           {/* About Section */}

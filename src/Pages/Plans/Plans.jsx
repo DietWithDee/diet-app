@@ -160,7 +160,7 @@ function Plans() {
   }, []);
 
   const SkeletonCard = () => (
-    <div className="bg-white rounded-3xl shadow-xl p-6 relative border-l-4 border-l-gray-100 animate-pulse">
+    <div className="bg-white rounded-3xl shadow-xl p-6 relative border border-gray-100 animate-pulse">
       <div className="w-full h-44 bg-gray-200 rounded-2xl mb-6"></div>
       <div className="h-8 bg-gray-200 rounded-lg mb-4 w-3/4"></div>
       <div className="h-4 bg-gray-200 rounded-lg mb-3 w-1/2"></div>
@@ -195,7 +195,7 @@ function Plans() {
             plans.map((plan, index) => (
               <div
                 key={index}
-                className={`bg-white rounded-3xl shadow-xl hover:shadow-2xl transition-transform hover:-translate-y-1 p-6 relative border-l-4 border-l-green-100`}
+                className="bg-white rounded-3xl shadow-xl hover:shadow-2xl transition-transform hover:-translate-y-1 p-6 relative border border-gray-100"
               >
                 <div
                   className={`w-full h-44 bg-gradient-to-br ${plan.gradient} rounded-2xl flex items-center justify-center mb-6`}

@@ -53,18 +53,29 @@ export default function NavBar() {
         </ul>
 
         {/* Icons & Hamburger */}
-        <div className="flex items-center space-x-4 text-orange-400">
+        <div className="flex items-center space-x-4">
           {/* My Journey icon */}
-          <button
-            onClick={() => navigate('/my-journey')}
-            className="relative group"
+          <NavLink
+            to="/my-journey"
+            className={({ isActive }) =>
+              `relative group transition-colors duration-300 ${isActive ? 'text-green-600' : 'text-orange-400'}`
+            }
             title="My Journey"
           >
             <FiUser size={23} className="transition-transform duration-300 group-hover:scale-110" />
-          </button>
-          <button onClick={() => navigate('/plans')} className="relative">
-            <FiShoppingCart size={23} />
-          </button>
+          </NavLink>
+
+          {/* Plans/Cart icon */}
+          <NavLink
+            to="/plans"
+            className={({ isActive }) =>
+              `relative group transition-colors duration-300 ${isActive ? 'text-green-600' : 'text-orange-400'}`
+            }
+            title="Plans"
+          >
+            <FiShoppingCart size={23} className="transition-transform duration-300 group-hover:scale-110" />
+          </NavLink>
+
           <button className="md:hidden text-gray-800" onClick={() => setMenuOpen(true)}>
             <FiMenu size={26} />
           </button>
@@ -73,7 +84,7 @@ export default function NavBar() {
 
       {/* Mobile Backdrop */}
       {menuOpen && (
-        <div 
+        <div
           className="fixed inset-0 bg-black/50 z-40 transition-opacity"
           onClick={() => setMenuOpen(false)}
         />
@@ -111,8 +122,7 @@ export default function NavBar() {
                 <NavLink
                   to={path}
                   className={({ isActive }) =>
-                    `block px-6 py-4 text-lg hover:bg-gray-50 transition-colors ${
-                      isActive ? 'text-green-600 font-bold' : 'text-gray-800'
+                    `block px-6 py-4 text-lg hover:bg-gray-50 transition-colors ${isActive ? 'text-green-600 font-bold' : 'text-gray-800'
                     }`
                   }
                   onClick={() => setMenuOpen(false)}
@@ -126,8 +136,7 @@ export default function NavBar() {
               <NavLink
                 to="/my-journey"
                 className={({ isActive }) =>
-                  `block px-6 py-4 text-lg hover:bg-gray-50 transition-colors ${
-                    isActive ? 'text-green-600 font-bold' : 'text-gray-800'
+                  `block px-6 py-4 text-lg hover:bg-gray-50 transition-colors ${isActive ? 'text-green-600 font-bold' : 'text-gray-800'
                   }`
                 }
                 onClick={() => setMenuOpen(false)}
@@ -139,16 +148,16 @@ export default function NavBar() {
 
           {/* Bottom Links (Terms & Privacy) */}
           <div className="mt-auto p-6 border-t border-gray-100 flex justify-center items-center gap-4">
-            <NavLink 
-              to="/terms" 
+            <NavLink
+              to="/terms"
               className="text-[10px] uppercase tracking-wider font-semibold text-gray-400 hover:text-green-600 transition-colors"
               onClick={() => setMenuOpen(false)}
             >
               Terms
             </NavLink>
             <span className="text-gray-300 text-[10px]">|</span>
-            <NavLink 
-              to="/privacy" 
+            <NavLink
+              to="/privacy"
               className="text-[10px] uppercase tracking-wider font-semibold text-gray-400 hover:text-green-600 transition-colors"
               onClick={() => setMenuOpen(false)}
             >
