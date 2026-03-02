@@ -383,30 +383,44 @@ const ResultsStep = ({ results, formData, navigate }) => (
           📊 <em>This is a general guide based on standard calculations.</em> For a tailored nutrition plan that considers your unique needs, health conditions, and preferences, book a consultation with our expert Dietitians.
         </p>
       </div>
-      <div className="space-y-4">
-        <button
-          onClick={() => navigate('/contactUs', {
-            state: {
-              userResults: {
-                bmi: results.bmi,
-                bmiCategory: results.bmiCategory,
-                dailyCalories: results.tdee,
-                goal: formData.goal,
-                dietaryRestrictions: formData.dietaryRestrictions,
-                macros: results.macros,
-                activityLevel: formData.activityLevel,
-                sleepHours: formData.sleepHours,
-                healthConditions: formData.healthConditions,
-                dislikes: formData.dislikes
+      <div className="space-y-6 flex flex-col items-center">
+        <div className="flex flex-col sm:flex-row gap-4 w-full justify-center items-center">
+          <button
+            onClick={() => navigate('/contactUs', {
+              state: {
+                userResults: {
+                  bmi: results.bmi,
+                  bmiCategory: results.bmiCategory,
+                  dailyCalories: results.tdee,
+                  goal: formData.goal,
+                  dietaryRestrictions: formData.dietaryRestrictions,
+                  macros: results.macros,
+                  activityLevel: formData.activityLevel,
+                  sleepHours: formData.sleepHours,
+                  healthConditions: formData.healthConditions,
+                  dislikes: formData.dislikes
+                }
               }
-            }
-          })}
-          className="px-8 py-4 bg-gradient-to-r from-orange-400 to-orange-400 text-white font-bold rounded-full shadow-lg hover:shadow-xl transform hover:-translate-y-1 transition-all duration-300 flex items-center space-x-2 mx-auto text-lg"
-        >
-          <BookOpen size={24} />
-          <span>Book a Consultation →</span>
-        </button>
-        <div className="flex items-center justify-center space-x-6 text-sm text-gray-600">
+            })}
+            className="w-full sm:flex-1 max-w-sm px-6 py-3 sm:px-8 sm:py-4 bg-gradient-to-r from-orange-400 to-orange-400 text-white font-bold rounded-full shadow-lg hover:shadow-xl transform hover:-translate-y-1 transition-all duration-300 flex items-center justify-center space-x-2 text-base sm:text-lg"
+          >
+            <BookOpen size={21} />
+            <span>Book a Consultation →</span>
+          </button>
+          
+          <button
+            onClick={() => navigate('/my-journey')}
+            className="w-full sm:flex-1 max-w-sm px-6 py-3 sm:px-8 sm:py-4 border-2 border-green-600 text-green-700 font-bold rounded-full hover:bg-green-50 transition-all duration-300 hover:shadow-md text-base sm:text-lg flex items-center justify-center space-x-2"
+          >
+            <span>Go to My Journey</span>
+          </button>
+        </div>
+
+        <p className="text-sm text-gray-500 italic max-w-md mx-auto">
+          Save this information and track your progress automatically in your journey.
+        </p>
+
+        <div className="flex items-center justify-center space-x-6 text-sm text-gray-600 pt-2">
           <div className="flex items-center space-x-1">
             <div className="w-2 h-2 bg-green-500 rounded-full"></div>
             <span>Expert Dietitians</span>

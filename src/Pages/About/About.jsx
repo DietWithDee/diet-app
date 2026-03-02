@@ -128,7 +128,7 @@ function AboutUsSection() {
                     className='px-8 py-4 bg-gradient-to-r from-orange-400 to-orange-500 text-white font-bold rounded-full shadow-lg hover:shadow-xl transition-all duration-300 hover:from-green-700 hover:to-emerald-700'
                     aria-label="Start your nutrition transformation journey"
                   >
-                    Start Your Transformation
+                    Start My Transformation
                   </motion.button>
                 </motion.div>
               </motion.div>

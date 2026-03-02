@@ -292,7 +292,18 @@ function MyJourney() {
           </div>
         )}
 
-        <div className="container mx-auto px-6 lg:px-12 pt-24 pb-20 relative z-20">
+        <div className="container mx-auto px-6 lg:px-12 pt-8 pb-20 relative z-20">
+          {user && (
+            <motion.div
+              initial={{ opacity: 0, y: -10 }}
+              animate={{ opacity: 1, y: 0 }}
+              className="max-w-5xl mx-auto mb-10"
+            >
+              <p className="text-green-600 font-bold uppercase tracking-widest text-xs mb-2">Your Dashboard</p>
+              <h1 className="text-4xl md:text-5xl font-black text-green-700 tracking-tight">My Journey</h1>
+              <div className="w-20 h-1.5 bg-gradient-to-r from-green-500 to-emerald-500 rounded-full mt-3 shadow-sm"></div>
+            </motion.div>
+          )}
 
           {/* ===== LOGGED-IN: Full Dashboard Sections ===== */}
           {hasFullProfile && !loading && (
