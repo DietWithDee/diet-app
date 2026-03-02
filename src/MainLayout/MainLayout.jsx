@@ -9,7 +9,8 @@ import Services from "../Pages/Services/Services";
 import Error from "../Pages/Error/Error";
 import Footer from '../Components/Footer/footer';
 import KnowYourBody from "../Pages/KnowYourBody/KnowYourBody";
-import AdminApp from "../Pages/Admin/admin";
+import AdminApp from "../Pages/Admin/AdminApp";
+
 import Plans from "../Pages/Plans/Plans";
 import Terms from "../Pages/Terms/Terms";
 import Privacy from "../Pages/Privacy/Privacy";

@@ -512,9 +512,11 @@ function ContactUs() {
               </div>
               
               <div className="pt-6 border-t border-gray-200 mt-6">
-                <p className="text-lg font-semibold text-gray-800 mb-1">Hours Available:</p>
-                <p className="text-sm text-gray-500">Fridays-10am-1pm</p>
-                <p className="text-sm text-gray-500">Saturdays-2-6pm</p>
+                <p className="text-lg font-semibold text-gray-800 mb-1">Consultation Hours:</p>
+                <p className="text-sm text-gray-600 font-medium">Tuesday – Sunday, 10 am – 3 pm</p>
+                <p className="text-xs text-gray-500 mt-2 italic">
+                  *Actual session times will be arranged individually with users after a successful booking.
+                </p>
               </div>
             </div>
           </div>
