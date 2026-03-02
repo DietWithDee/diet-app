@@ -287,6 +287,8 @@ function ContactUs() {
     );
   }
 
+  const hasCalculatedResults = !!(location.state?.userResults || computeResultsFromProfile(userProfile));
+
   // Main booking form (before payment)
   return (
     <>
@@ -306,9 +308,11 @@ function ContactUs() {
               <h1 className="text-4xl font-bold text-green-800">
                 Ready to Start Your Nutrition Journey?
               </h1>
-              <p className="text-xl text-gray-600 max-w-2xl mx-auto ">
-                Complete the <a href='/KnowYourBody' className='text-green-800 font-bold underline'>KnowYourBody</a> Test in <a href='/my-journey' className='text-green-800 font-bold underline'>My Journey</a> and fill in the information below to secure your consultation.
-              </p>
+              {!hasCalculatedResults && (
+                <p className="text-xl text-gray-600 max-w-2xl mx-auto ">
+                  Complete the <a href='/KnowYourBody' className='text-green-800 font-bold underline'>KnowYourBody</a> Test in <a href='/my-journey' className='text-green-800 font-bold underline'>My Journey</a> and fill in the information below to secure your consultation.
+                </p>
+              )}
             </div>
           </div>
 

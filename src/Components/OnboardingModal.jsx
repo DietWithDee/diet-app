@@ -6,23 +6,67 @@ import { User, Activity, Moon, Heart, Utensils, Target } from 'lucide-react';
 const OnboardingModal = ({ userName, onSave, onClose, initialData = null }) => {
   const isEditing = !!initialData;
   const [step, setStep] = useState(isEditing ? 1 : 0);
-  const [formData, setFormData] = useState({
-    gender: initialData?.gender || '',
-    age: initialData?.age || '',
-    height: initialData?.height || '',
-    weight: initialData?.weight || '',
-    goal: initialData?.goal || '',
-    activityLevel: initialData?.activityLevel || '',
-    sleepHours: initialData?.sleepHours || '',
-    healthConditions: initialData?.healthConditions || '',
-    dislikes: initialData?.dislikes || '',
-    dietaryRestrictions: initialData?.dietaryRestrictions || '',
+  
+  // Persistence: Hydrate from localStorage if not editing
+  const [formData, setFormData] = useState(() => {
+    if (isEditing) return {
+      gender: initialData?.gender || '',
+      age: initialData?.age || '',
+      height: initialData?.height || '',
+      weight: initialData?.weight || '',
+      goal: initialData?.goal || '',
+      activityLevel: initialData?.activityLevel || '',
+      sleepHours: initialData?.sleepHours || '',
+      healthConditions: initialData?.healthConditions || '',
+      dislikes: initialData?.dislikes || '',
+      dietaryRestrictions: initialData?.dietaryRestrictions || '',
+    };
+    
+    const saved = localStorage.getItem('onboarding_draft');
+    return saved ? JSON.parse(saved) : {
+      gender: '',
+      age: '',
+      height: '',
+      weight: '',
+      goal: '',
+      activityLevel: '',
+      sleepHours: '',
+      healthConditions: '',
+      dislikes: '',
+      dietaryRestrictions: '',
+    };
   });
+
+  // Persistence: Save to localStorage on change
+  React.useEffect(() => {
+    if (!isEditing) {
+      localStorage.setItem('onboarding_draft', JSON.stringify(formData));
+    }
+  }, [formData, isEditing]);
 
   const firstName = userName?.split(' ')[0] || 'there';
 
+  // Live BMI Calculation
+  const calculateBMI = () => {
+    const h = parseFloat(formData.height) / 100;
+    const w = parseFloat(formData.weight);
+    if (!h || !w || h <= 0) return null;
+    const bmi = (w / (h * h)).toFixed(1);
+    
+    let category = '';
+    let color = '';
+    if (bmi < 18.5) { category = 'Underweight'; color = 'text-blue-500'; }
+    else if (bmi < 25) { category = 'Normal'; color = 'text-green-600'; }
+    else if (bmi < 30) { category = 'Overweight'; color = 'text-orange-500'; }
+    else { category = 'Obese'; color = 'text-red-500'; }
+    
+    return { bmi, category, color };
+  };
+
+  const bmiData = calculateBMI();
+
   // Step validation
-  const isStep1Valid = formData.gender && formData.age && formData.height && formData.weight;
+  const isStep1Valid = formData.gender && formData.age && formData.height && formData.weight && formData.height > 50 && formData.weight > 20;
   const isStep2Valid = formData.goal && formData.activityLevel && formData.sleepHours && formData.dietaryRestrictions;
 
   const slideVariants = {
@@ -38,6 +82,7 @@ const OnboardingModal = ({ userName, onSave, onClose, initialData = null }) => {
   const goToStep = (s) => { setDirection(s > step ? 1 : -1); setStep(s); };
 
   const handleSave = () => {
+    localStorage.removeItem('onboarding_draft'); // Clear draft on success
     onSave(formData);
   };
 
@@ -182,16 +227,39 @@ const OnboardingModal = ({ userName, onSave, onClose, initialData = null }) => {
                   </div>
                 </div>
 
-                {/* Age */}
-                <div className="space-y-2">
-                  <label className="block text-sm font-semibold text-gray-700">Age (years)</label>
-                  <input
-                    type="number"
-                    value={formData.age}
-                    onChange={e => setFormData(p => ({ ...p, age: e.target.value }))}
-                    className="w-full py-3 px-4 border-2 border-gray-200 rounded-xl focus:border-green-500 focus:outline-none text-gray-900 placeholder-gray-400"
-                    placeholder="Enter your age"
-                  />
+                {/* Age & BMI Badge row */}
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  {/* Age */}
+                  <div className="space-y-2">
+                    <label className="block text-sm font-semibold text-gray-700">Age (years)</label>
+                    <input
+                      type="number"
+                      min="12"
+                      max="120"
+                      value={formData.age}
+                      onChange={e => setFormData(p => ({ ...p, age: e.target.value }))}
+                      className="w-full py-3 px-4 border-2 border-gray-200 rounded-xl focus:border-green-500 focus:outline-none text-gray-900 placeholder-gray-400"
+                      placeholder="Enter your age"
+                    />
+                  </div>
+
+                  {/* LIVE BMI FEEDBACK */}
+                  {bmiData && (
+                    <motion.div 
+                      initial={{ scale: 0.9, opacity: 0 }}
+                      animate={{ scale: 1, opacity: 1 }}
+                      className="bg-gray-50 rounded-xl p-3 border border-gray-100 flex items-center gap-3"
+                    >
+                      <div className="w-10 h-10 rounded-full bg-white flex items-center justify-center shadow-sm text-lg">⚖️</div>
+                      <div>
+                        <div className="text-[10px] text-gray-400 uppercase font-bold tracking-wider">Current BMI</div>
+                        <div className="flex items-baseline gap-1.5">
+                          <span className="text-xl font-bold text-gray-800">{bmiData.bmi}</span>
+                          <span className={`text-xs font-bold ${bmiData.color}`}>{bmiData.category}</span>
+                        </div>
+                      </div>
+                    </motion.div>
+                  )}
                 </div>
 
                 {/* Height & Weight - side by side */}
@@ -200,6 +268,8 @@ const OnboardingModal = ({ userName, onSave, onClose, initialData = null }) => {
                     <label className="block text-sm font-semibold text-gray-700">Height (cm)</label>
                     <input
                       type="number"
+                      min="50"
+                      max="250"
                       value={formData.height}
                       onChange={e => setFormData(p => ({ ...p, height: e.target.value }))}
                       className="w-full py-3 px-4 border-2 border-gray-200 rounded-xl focus:border-green-500 focus:outline-none text-gray-900 placeholder-gray-400"
@@ -210,6 +280,8 @@ const OnboardingModal = ({ userName, onSave, onClose, initialData = null }) => {
                     <label className="block text-sm font-semibold text-gray-700">Weight (kg)</label>
                     <input
                       type="number"
+                      min="20"
+                      max="500"
                       value={formData.weight}
                       onChange={e => setFormData(p => ({ ...p, weight: e.target.value }))}
                       className="w-full py-3 px-4 border-2 border-gray-200 rounded-xl focus:border-green-500 focus:outline-none text-gray-900 placeholder-gray-400"

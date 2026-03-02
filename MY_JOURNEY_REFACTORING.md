@@ -16,7 +16,7 @@
 ### My Journey Page
 - [x] Hero section with background image
 - [x] "Get Started with Google" button (orange) — triggers sign-in + onboarding
-- [x] "Continue as Guest" button (blue) — navigates to `/knowyourbody`
+- [x] "Continue as Guest" button  — navigates to `/knowyourbody`
 - [x] Profile card (photo, name, email, all health data grid)
 - [x] "Book a Consultation" button — computes BMI/calories → navigates to `/contactUs` with `userResults`
 - [x] "Update My Info" button — reopens onboarding modal pre-filled, logs update for charting
@@ -37,7 +37,7 @@
 
 > Future page layout order (for logged-in users):
 > 1. **BMI / Weight Progress Chart** (first thing the user sees)
-> 2. **Plan Recommendations**
+> 2. **Plan Recommendations** a simple highlighted Link that recommends our weightloss/ weight gain plan depending on the BMI.
 > 3. **Recommended Reads** (curated blog articles)
 > 4. **Achievements & Badges**
 > 5. **Account Settings**
@@ -54,10 +54,10 @@
 - [ ] Link to existing `/plans` page with a personalized callout
 - [ ] Optional: surface a "Your recommended plan" card based on profile data
 
-### 2.3 Recommended Reads
+### 2.3 Recommended Reads (basic implementation for now)
 - [ ] Query `articles` collection from Firestore
 - [ ] Filter or tag articles by relevance to user's goal / dietary restrictions
-- [ ] Show 3-4 article cards with thumbnails, linking to `/blog/{id}`
+- [ ] Show 3 article cards with thumbnails, linking to `/blog/{id}`
 - [ ] "See all articles" link to `/blog`
 
 ### 2.4 Achievements & Badges
@@ -128,8 +128,8 @@ A new tab in the admin dashboard that gives admins full visibility into My Journ
 
 ### 4.1 User Overview Table
 - [ ] Fetch all docs from `users` collection
-- [ ] Sortable table: Name, Email, Sign-up Date, Goal, Last Active, # of Log Entries
-- [ ] Click a row → expand to view full profile + log history
+- [ ] Sortable table: Name, Email, Sign-up Date, Goal, Last Active, # of Log Entries, # of Achievements
+- [ ] Click a row → expand to view full profile + log history + achievements
 - [ ] Search / filter by name, email, goal, date range
 
 ### 4.2 Aggregate Stats (Dashboard Cards)
@@ -137,12 +137,14 @@ A new tab in the admin dashboard that gives admins full visibility into My Journ
 - [ ] **Active users (last 7 days)** (users with a log entry in last 7 days)
 - [ ] **Goal distribution** (pie/donut chart: Lose vs Maintain vs Gain)
 - [ ] **Average BMI** across all users
+- [ ] **Total Achievements Unlocked** (aggregate count across all users)
 - [ ] **New sign-ups this week/month** (based on `updatedAt` or a `createdAt` field)
 
 ### 4.3 User Detail View
 - [ ] Full profile data (same fields as onboarding)
 - [ ] Weight/BMI trend chart (same as user sees, but admin can view any user)
 - [ ] Log history table: date, weight, height, goal at time of log
+- [ ] **Unlocked Achievements list** (with count and names of badges)
 - [ ] Admin notes field (optional: admins can add private notes about a user)
 
 ### 4.4 Export & Actions

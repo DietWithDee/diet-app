@@ -11,6 +11,7 @@ import {
   Timestamp, 
   orderBy, 
   query,
+  where,
   increment,
   limit,
   startAfter
@@ -210,8 +211,18 @@ export const getArticleById = async (articleId) => {
 
 export const saveEmailToFirestore = async (email) => {
   try {
+    const trimmedEmail = email.trim().toLowerCase();
+    
+    // Check if email already exists
+    const q = query(collection(db, "emails"), where("email", "==", trimmedEmail));
+    const querySnapshot = await getDocs(q);
+    
+    if (!querySnapshot.empty) {
+      return { success: true, exists: true };
+    }
+
     const docRef = await addDoc(collection(db, "emails"), {
-      email,
+      email: trimmedEmail,
       createdAt: Timestamp.now()
     });
     return { success: true, id: docRef.id };
