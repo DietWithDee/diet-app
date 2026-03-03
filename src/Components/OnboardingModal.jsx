@@ -83,7 +83,11 @@ const OnboardingModal = ({ userName, onSave, onClose, initialData = null }) => {
 
   const handleSave = () => {
     localStorage.removeItem('onboarding_draft'); // Clear draft on success
-    onSave(formData);
+    const finalData = {
+      ...formData,
+      bmi: bmiData?.bmi || null
+    };
+    onSave(finalData);
   };
 
   return (

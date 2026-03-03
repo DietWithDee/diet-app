@@ -310,3 +310,44 @@ export const markArticleHelpful = async (articleId, isHelpful) => {
     };
   }
 };
+
+// --- ANALYTICS / USER JOURNEY UTILS ---
+
+// Get all users (for admin)
+export const getAllUsers = async (limitCount = 100) => {
+  try {
+    const q = query(
+      collection(db, "users"), 
+      orderBy("updatedAt", "desc"), 
+      limit(limitCount)
+    );
+    const snapshot = await getDocs(q);
+    const users = snapshot.docs.map(doc => ({
+      uid: doc.id,
+      ...doc.data()
+    }));
+    return { success: true, data: users };
+  } catch (error) {
+    console.error("Error fetching all users:", error);
+    return { success: false, error: error.message };
+  }
+};
+
+// Get a specific user's logs
+export const getUserLogs = async (uid) => {
+  try {
+    const q = query(
+      collection(db, "users", uid, "logs"), 
+      orderBy("loggedAt", "desc")
+    );
+    const snapshot = await getDocs(q);
+    const logs = snapshot.docs.map(doc => ({
+      id: doc.id,
+      ...doc.data()
+    }));
+    return { success: true, data: logs };
+  } catch (error) {
+    console.error(`Error fetching logs for user ${uid}:`, error);
+    return { success: false, error: error.message };
+  }
+};

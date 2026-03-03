@@ -94,7 +94,7 @@ function getRecommendedPlan(userProfile) {
     return PLANS[0];
 }
 
-function PlanRecommendation() {
+const PlanRecommendation = React.memo(() => {
     const navigate = useNavigate();
     const { userProfile } = useAuth();
 
@@ -161,6 +161,6 @@ function PlanRecommendation() {
             </motion.div>
         </motion.div>
     );
-}
+});
 
 export default PlanRecommendation;

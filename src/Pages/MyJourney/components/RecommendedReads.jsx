@@ -4,7 +4,7 @@ import { motion } from 'framer-motion';
 import { FiBookOpen, FiArrowRight } from 'react-icons/fi';
 import { getArticlesPaged } from '../../../firebaseUtils';
 
-function RecommendedReads() {
+const RecommendedReads = React.memo(() => {
     const navigate = useNavigate();
     const [articles, setArticles] = useState([]);
     const [loading, setLoading] = useState(true);
@@ -105,6 +105,6 @@ function RecommendedReads() {
             </div>
         </motion.div>
     );
-}
+});
 
 export default RecommendedReads;

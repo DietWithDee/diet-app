@@ -18,7 +18,7 @@ const METRICS = [
   { key: 'bmi', label: 'BMI', unit: '', color: '#f59e0b' },
 ];
 
-function ProgressChart() {
+const ProgressChart = React.memo(() => {
   const { user, userProfile, saveUserProfile } = useAuth();
   const [logs, setLogs] = useState([]);
   const [loadingLogs, setLoadingLogs] = useState(true);
@@ -449,6 +449,6 @@ function ProgressChart() {
       </AnimatePresence>
     </motion.div>
   );
-}
+});
 
 export default ProgressChart;

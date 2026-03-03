@@ -14,6 +14,7 @@ import ProgressChart from './components/ProgressChart';
 import PlanRecommendation from './components/PlanRecommendation';
 import RecommendedReads from './components/RecommendedReads';
 import Achievements from './components/Achievements';
+import SafeImage from '../../Components/SafeImage';
 
 
 function MyJourney() {
@@ -360,11 +361,11 @@ function MyJourney() {
                   {/* Profile header */}
                   <div className="bg-gradient-to-r from-green-600 to-emerald-600 px-8 py-6 flex items-center gap-5">
                     {user.photoURL ? (
-                      <img
+                      <SafeImage
                         src={user.photoURL}
                         alt={user.displayName}
                         className="w-16 h-16 rounded-full border-3 border-white shadow-lg object-cover"
-                        referrerPolicy="no-referrer"
+                        wrapperClassName="w-16 h-16"
                       />
                     ) : (
                       <div className="w-16 h-16 rounded-full bg-white/20 flex items-center justify-center text-white text-2xl font-bold">

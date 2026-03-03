@@ -7,7 +7,7 @@ import BlogImage from '../../assets/Salad.webp'; // Fallback image
 import BlogArticleSEO from '../../Components/BlogArticleSEO';
 import ScrollHideRefreshButton from '../../utils/ScrollHideRefreshButton';
 import NewsletterPopup from '../../Components/NewsletterPopup';
-import { LazyLoadImage } from 'react-lazy-load-image-component';
+import SafeImage from '../../Components/SafeImage';
 import 'react-lazy-load-image-component/src/effects/blur.css';
 
 function Blog() {
@@ -385,15 +385,12 @@ function Blog() {
               {/* Featured Image */}
               {selectedArticle.coverImage && (
                 <div className="h-48 sm:h-64 lg:h-96 overflow-hidden">
-                  <LazyLoadImage
+                  <SafeImage
                     src={selectedArticle.coverImage}
                     alt={selectedArticle.title}
-                    effect="blur"
+                    fallback={BlogImage}
                     className="w-full h-full object-cover"
                     wrapperClassName="w-full h-full"
-                    onError={(e) => {
-                      e.target.src = BlogImage;
-                    }}
                   />
                 </div>
               )}
@@ -533,15 +530,12 @@ function Blog() {
                       <div className="flex gap-3 lg:gap-4">
                         <div className="w-16 h-16 lg:w-20 lg:h-20 bg-gradient-to-br from-green-100 to-emerald-100 rounded-lg flex items-center justify-center overflow-hidden flex-shrink-0">
                           {post.coverImage ? (
-                            <LazyLoadImage
+                            <SafeImage
                               src={post.coverImage}
                               alt={post.title}
-                              effect="blur"
+                              fallback={BlogImage}
                               className="w-full h-full object-cover"
                               wrapperClassName="w-full h-full"
-                              onError={(e) => {
-                                e.target.src = BlogImage;
-                              }}
                             />
                           ) : (
                             <img
@@ -614,15 +608,12 @@ function Blog() {
                 <div className="w-full lg:w-52 flex-shrink-0 order-first lg:order-none">
                   <div className="h-48 sm:h-56 lg:h-32 w-full bg-gradient-to-br from-green-100 to-emerald-100 rounded-xl flex items-center justify-center overflow-hidden">
                     {post.coverImage ? (
-                      <LazyLoadImage
+                      <SafeImage
                         src={post.coverImage}
                         alt={post.title}
-                        effect="blur"
+                        fallback={BlogImage}
                         className="w-full h-full object-cover"
                         wrapperClassName="w-full h-full"
-                        onError={(e) => {
-                          e.target.src = BlogImage; // Fallback to default image
-                        }}
                       />
                     ) : (
                       <img

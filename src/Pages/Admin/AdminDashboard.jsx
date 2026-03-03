@@ -1,10 +1,12 @@
 import React, { useState, useEffect } from 'react';
 import { Loader } from 'lucide-react';
-import { getArticles, getAllEmails } from '../../firebaseUtils';
+import { getArticles, getAllEmails, getAllUsers } from '../../firebaseUtils';
 import { getBookingStatus, setBookingStatus } from '../../firebaseBookingUtils';
 import { useAuth } from '../../AuthContext';
 import Notification from './components/Notification';
 import ArticlesManager from './components/ArticlesManager';
+import UserJourneyPanel from './components/UserJourneyPanel';
+
 
 // Main Admin Dashboard Component
 const AdminDashboard = () => {
@@ -13,6 +15,21 @@ const AdminDashboard = () => {
   const [isLoading, setIsLoading] = useState(true);
   const [isBookingOpen, setIsBookingOpen] = useState(false);
   const [subscriberCount, setSubscriberCount] = useState(0);
+  const [activeTab, setActiveTab] = useState('articles'); // 'articles' or 'journey'
+  const [users, setUsers] = useState([]);
+  const [usersLoading, setUsersLoading] = useState(false);
+  const [usersFetched, setUsersFetched] = useState(false);
+
+
+  const showNotification = React.useCallback((type, message) => {
+    setNotification({ type, message });
+  }, []);
+
+  const closeNotification = React.useCallback(() => {
+    setNotification(null);
+  }, []);
+
+
 
   // Function to fetch booking status
   const fetchBookingStatus = React.useCallback(async () => {
@@ -24,7 +41,8 @@ const AdminDashboard = () => {
       console.error('Error loading booking status:', result.error);
       return false; // Default to closed on error
     }
-  }, []);
+  }, [showNotification]);
+
 
   // Function to update booking status
   const updateBookingStatusInFirestore = async (status) => {
@@ -57,13 +75,6 @@ const AdminDashboard = () => {
     }
   };
 
-  const showNotification = (type, message) => {
-    setNotification({ type, message });
-  };
-
-  const closeNotification = () => {
-    setNotification(null);
-  };
 
   const loadArticles = React.useCallback(async () => {
     setIsLoading(true);
@@ -81,7 +92,8 @@ const AdminDashboard = () => {
     } finally {
       setIsLoading(false);
     }
-  }, []);
+  }, [showNotification]);
+
 
   useEffect(() => {
     loadArticles();
@@ -105,6 +117,33 @@ const AdminDashboard = () => {
   const handleLogout = async () => {
     await signOut();
   };
+
+  const loadUsers = React.useCallback(async (force = false) => {
+    if (usersLoading || (usersFetched && !force)) return;
+    
+    setUsersLoading(true);
+    try {
+      const result = await getAllUsers(200);
+      if (result.success) {
+        setUsers(result.data || []);
+        setUsersFetched(true);
+      } else {
+        showNotification('error', 'Failed to load user data');
+      }
+    } catch (err) {
+      console.error('Error loading users:', err);
+      showNotification('error', 'Failed to load user data');
+    } finally {
+      setUsersLoading(false);
+    }
+  }, [usersLoading, usersFetched, showNotification]);
+
+  // Handle tab switch - pre-fetch users if needed
+  useEffect(() => {
+    if (activeTab === 'journey' && !usersFetched) {
+      loadUsers();
+    }
+  }, [activeTab, usersFetched, loadUsers]);
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-green-50 via-white to-emerald-50">
@@ -153,15 +192,19 @@ const AdminDashboard = () => {
               <p className="text-sm text-gray-500">Articles Published</p>
             </div>
           </div>
-          <div className="bg-white rounded-xl shadow-md p-5 border border-blue-100 flex items-center gap-4 cursor-not-allowed opacity-80">
+          <button 
+            onClick={() => setActiveTab('journey')}
+            className={`bg-white rounded-xl shadow-md p-5 border flex items-center gap-4 transition-all hover:shadow-lg text-left ${activeTab === 'journey' ? 'border-blue-500 ring-2 ring-blue-100' : 'border-blue-100'}`}
+          >
             <div className="w-12 h-12 rounded-full bg-blue-100 flex items-center justify-center text-blue-600 text-xl font-bold flex-shrink-0">
               📊
             </div>
             <div>
-              <p className="text-2xl font-bold text-gray-800">Analytics</p>
-              <p className="text-sm text-gray-500 text-blue-600">Coming Soon</p>
+              <p className="text-2xl font-bold text-gray-800">User Journey</p>
+              <p className="text-sm text-blue-600 font-medium">View Analytics</p>
             </div>
-          </div>
+          </button>
+
         </div>
 
         {/* Booking Toggle UI */}
@@ -189,26 +232,46 @@ const AdminDashboard = () => {
 
         <div className="bg-white rounded-xl shadow-lg overflow-hidden">
           <div className="flex border-b border-gray-200">
-            <div className="flex-1 py-4 px-6 text-center font-medium text-green-600 border-b-2 border-green-600 bg-green-50">
+            <button 
+              onClick={() => setActiveTab('articles')}
+              className={`flex-1 py-4 px-6 text-center font-bold transition-all ${activeTab === 'articles' ? 'text-green-600 border-b-2 border-green-600 bg-green-50' : 'text-gray-400 hover:text-gray-600 hover:bg-gray-50'}`}
+            >
               Articles
-            </div>
+            </button>
+            <button 
+              onClick={() => setActiveTab('journey')}
+              className={`flex-1 py-4 px-6 text-center font-bold transition-all ${activeTab === 'journey' ? 'text-green-600 border-b-2 border-green-600 bg-green-50' : 'text-gray-400 hover:text-gray-600 hover:bg-gray-50'}`}
+            >
+              User Journey Analytics
+            </button>
           </div>
 
+
           <div className="p-6">
-            {isLoading ? (
-              <div className="flex items-center justify-center py-12">
-                <Loader className="animate-spin text-green-600" size={32} />
-                <span className="ml-2 text-gray-600">Loading articles...</span>
-              </div>
+            {activeTab === 'articles' ? (
+              isLoading ? (
+                <div className="flex items-center justify-center py-12">
+                  <Loader className="animate-spin text-green-600" size={32} />
+                  <span className="ml-2 text-gray-600">Loading articles...</span>
+                </div>
+              ) : (
+                <ArticlesManager
+                  articles={articles}
+                  setArticles={setArticles}
+                  showNotification={showNotification}
+                  loadArticles={loadArticles}
+                />
+              )
             ) : (
-              <ArticlesManager
-                articles={articles}
-                setArticles={setArticles}
-                showNotification={showNotification}
-                loadArticles={loadArticles}
+              <UserJourneyPanel 
+                showNotification={showNotification} 
+                users={users}
+                loading={usersLoading}
+                loadUsers={loadUsers}
               />
             )}
           </div>
+
         </div>
       </div>
     </div>

@@ -4,9 +4,10 @@ import { createArticle, deleteArticle } from '../../../firebaseUtils';
 import { sendNewArticleNewsletter } from '../../../EmailTemplateSystem/emailServices';
 import RichTextEditor from './RichTextEditor';
 import ProgressBar from './ProgressBar';
+import SafeImage from '../../../Components/SafeImage';
 
 // Articles Management Component
-const ArticlesManager = ({ articles, setArticles, showNotification, loadArticles }) => {
+const ArticlesManager = React.memo(({ articles, setArticles, showNotification, loadArticles }) => {
   const [isEditing, setIsEditing] = useState(false);
   const [editingId, setEditingId] = useState(null);
   const [formData, setFormData] = useState({
@@ -205,11 +206,11 @@ const ArticlesManager = ({ articles, setArticles, showNotification, loadArticles
                 <div className="mt-3">
                   <p className="text-sm font-medium text-gray-700 mb-2">Preview:</p>
                   <div className="border border-gray-200 rounded-lg p-2 bg-gray-50">
-                    <img
+                    <SafeImage
                       src={imagePreview}
                       alt="Preview"
                       className="max-w-full h-32 object-cover rounded"
-                      onError={() => setImagePreview('')}
+                      wrapperClassName="max-w-full h-32"
                     />
                   </div>
                 </div>
@@ -275,13 +276,11 @@ const ArticlesManager = ({ articles, setArticles, showNotification, loadArticles
                 <div className="flex-1">
                   {article.coverImage && (
                     <div className="mb-3">
-                      <img
+                      <SafeImage
                         src={article.coverImage}
                         alt={article.title}
                         className="w-20 h-16 object-cover rounded-lg"
-                        onError={(e) => {
-                          e.target.style.display = 'none';
-                        }}
+                        wrapperClassName="w-20 h-16"
                       />
                     </div>
                   )}
@@ -322,6 +321,6 @@ const ArticlesManager = ({ articles, setArticles, showNotification, loadArticles
       </div>
     </div>
   );
-};
+});
 
 export default ArticlesManager;

@@ -1,5 +1,6 @@
 import NavBar from "../Components/NavBar/NavBar";
 import SEOProvider from "../Components/SEOProvider";
+import AppErrorBoundary from "../Components/AppErrorBoundary";
 import { BrowserRouter, Route, Routes } from "react-router";
 import Home from "../Pages/Home/Home";
 import About from "../Pages/About/About";
@@ -23,7 +24,8 @@ import { AuthProvider } from "../AuthContext";
 const MainLayout = () => {
   return (
     <AuthProvider>
-      <SEOProvider>
+      <AppErrorBoundary>
+        <SEOProvider>
         <BrowserRouter basename="/">
           <ScrollToTop />
           <NavBar />
@@ -46,7 +48,8 @@ const MainLayout = () => {
           </Routes>
           <Footer />
         </BrowserRouter>
-      </SEOProvider>
+        </SEOProvider>
+      </AppErrorBoundary>
     </AuthProvider>
   );
 };

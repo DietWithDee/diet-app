@@ -8,7 +8,7 @@ import AchievementShareCard from '../../../Components/AchievementShareCard';
 
 import { BADGE_DEFINITIONS } from '../../../constants/badges';
 
-function Achievements() {
+const Achievements = React.memo(() => {
     const { user, userProfile } = useAuth();
     const [logCount, setLogCount] = useState(0);
     const [loading, setLoading] = useState(true);
@@ -136,6 +136,6 @@ function Achievements() {
             )}
         </motion.div>
     );
-}
+});
 
 export default Achievements;
