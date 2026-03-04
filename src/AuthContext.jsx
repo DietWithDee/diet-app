@@ -1,5 +1,5 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
-import { GoogleAuthProvider, signInWithPopup, signInWithRedirect, getRedirectResult, onAuthStateChanged, signOut as firebaseSignOut } from 'firebase/auth';
+import { GoogleAuthProvider, signInWithPopup, signInWithRedirect, getRedirectResult, onAuthStateChanged, signOut as firebaseSignOut, signInWithCredential } from 'firebase/auth';
 import { doc, getDoc, getDocs, setDoc, addDoc, collection, onSnapshot, updateDoc, query, where, Timestamp } from 'firebase/firestore';
 import { auth, db } from './firebaseConfig';
 import { BADGE_DEFINITIONS } from './constants/badges';
@@ -72,6 +72,48 @@ export const AuthProvider = ({ children }) => {
       if (unsubscribeProfile) unsubscribeProfile();
     };
   }, []);
+
+  // Google One Tap
+  useEffect(() => {
+    if (!loading && !user) {
+      const initializeOneTap = () => {
+        if (window.google && window.google.accounts && window.google.accounts.id) {
+          window.google.accounts.id.initialize({
+            client_id: import.meta.env.VITE_GOOGLE_CLIENT_ID,
+            callback: async (response) => {
+              try {
+                const credential = GoogleAuthProvider.credential(response.credential);
+                await signInWithCredential(auth, credential);
+              } catch (err) {
+                console.error('Google One Tap sign-in error:', err);
+              }
+            },
+            auto_select: false,
+            context: 'signin',
+            itp_support: true,
+          });
+          
+          window.google.accounts.id.prompt((notification) => {
+            if (notification.isNotDisplayed() || notification.isSkippedMoment()) {
+              // User dismissed it
+            }
+          });
+        }
+      };
+
+      if (window.google) {
+        initializeOneTap();
+      } else {
+        const checkGoogle = setInterval(() => {
+          if (window.google) {
+            clearInterval(checkGoogle);
+            initializeOneTap();
+          }
+        }, 300);
+        setTimeout(() => clearInterval(checkGoogle), 5000); // Give up after 5s
+      }
+    }
+  }, [loading, user]);
 
   // Handle redirect result (for mobile sign-in)
   useEffect(() => {
