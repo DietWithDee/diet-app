@@ -46,6 +46,7 @@ jobs:
           VITE_EMAILJS_TEMPLATE_ID: ${{ secrets.VITE_EMAILJS_TEMPLATE_ID }}
           VITE_EMAILJS_PUBLIC_KEY: ${{ secrets.VITE_EMAILJS_PUBLIC_KEY }}
           VITE_WEBSITE_URL: ${{ secrets.VITE_WEBSITE_URL }}
+          VITE_EMAIL_PROXY_URL: ${{ secrets.VITE_EMAIL_PROXY_URL }}
         run: npm run build
 
       - name: Ensure Sitemap in Dist

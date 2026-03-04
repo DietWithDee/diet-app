@@ -25,7 +25,8 @@ service cloud.firestore {
 
     match /articles/{articleId} {
       allow read: if true; // public can see articles
-      allow write: if isAdmin(); // only admins can create/edit articles
+      allow create, delete: if isAdmin();
+      allow update: if isAdmin() || request.resource.data.diff(resource.data).affectedKeys().hasOnly(['likesCount', 'helpfulCount', 'notHelpfulCount']);
     }
 
     match /settings/{settingId} {
@@ -34,7 +35,8 @@ service cloud.firestore {
     }
 
     match /emails/{emailId} {
-      allow read, write: if isAdmin(); // only admins can manage collected emails
+      allow create: if true; // public can subscribe
+      allow read, update, delete: if isAdmin(); // only admins can manage collected emails
     }
 
     // Default deny for anything not explicitly specified above

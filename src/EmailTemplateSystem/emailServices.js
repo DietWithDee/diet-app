@@ -5,7 +5,7 @@ import { createEmailTemplate } from './emailTemplate';
 // -------- Configuration ----------
 // In production, this should point to your deployed Cloudflare Worker URL.
 // During development, run the worker locally with `npm run dev` in workers/email-proxy/
-const EMAIL_PROXY_URL = import.meta.env.VITE_EMAIL_PROXY_URL || 'https://dwd-email-proxy.godwinokro2020.workers.dev';
+const EMAIL_PROXY_URL = import.meta.env.VITE_EMAIL_PROXY_URL || 'https://api.dietwithdee.org';
 
 // -------- Runtime lock (same-tab/same-session) ----------
 const sendingLocks = new Set();
