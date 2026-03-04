@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { ChevronRight, Calculator, Target, BookOpen, User, Activity, Moon, Heart, Utensils, Angry } from 'lucide-react';
 import { useNavigate } from 'react-router';
 import { BsQuestion } from 'react-icons/bs';
+import { useWebHaptics } from 'web-haptics/react';
 
 // Progress Bar
 const ProgressBar = ({ step }) => {
@@ -50,7 +51,9 @@ const WelcomeStep = ({ onNext }) => (
       </div>
     </div>
     <button
-      onClick={onNext}
+      onClick={() => {
+        onNext()
+      }}
       className="px-8 py-4 bg-gradient-to-r from-orange-400 to-orange-400 text-white font-bold rounded-full shadow-lg hover:shadow-xl transform hover:-translate-y-1 transition-all duration-300 flex items-center space-x-2 mx-auto"
     >
       <span>Start Now</span>
@@ -112,7 +115,9 @@ const BMIStep = ({ formData, setFormData, units, setUnits, onNext }) => (
           {['male', 'female'].map(gender => (
             <button
               key={gender}
-              onClick={() => setFormData(prev => ({ ...prev, gender }))}
+              onClick={() => {
+                setFormData(prev => ({ ...prev, gender }))
+              }}
               className={`flex-1 py-3 px-6 rounded-xl border-2 font-medium capitalize transition-all ${formData.gender === gender
                   ? 'border-green-500 bg-green-50 text-green-700'
                   : 'border-gray-200 hover:border-green-300'
@@ -163,7 +168,9 @@ const BMIStep = ({ formData, setFormData, units, setUnits, onNext }) => (
       </div>
     </div>
     <button
-      onClick={onNext}
+      onClick={() => {
+        onNext()
+      }}
       disabled={!formData.gender || !formData.age || !formData.height || !formData.weight}
       className="w-full py-4 bg-gradient-to-r from-orange-400 to-orange-400 text-white font-bold rounded-full shadow-lg hover:shadow-xl transform hover:-translate-y-1 transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center space-x-2"
     >
@@ -195,7 +202,9 @@ const CalorieStep = ({ formData, setFormData, onNext }) => (
           ].map(goal => (
             <button
               key={goal.key}
-              onClick={() => setFormData(prev => ({ ...prev, goal: goal.key }))}
+              onClick={() => {
+                setFormData(prev => ({ ...prev, goal: goal.key }))
+              }}
               className={`py-4 px-4 rounded-xl border-2 font-medium transition-all text-center ${formData.goal === goal.key
                   ? 'border-green-500 bg-green-50 text-green-700'
                   : 'border-gray-200 hover:border-green-300'
@@ -221,7 +230,9 @@ const CalorieStep = ({ formData, setFormData, onNext }) => (
           ].map(activity => (
             <button
               key={activity.key}
-              onClick={() => setFormData(prev => ({ ...prev, activityLevel: activity.key }))}
+              onClick={() => {
+                setFormData(prev => ({ ...prev, activityLevel: activity.key }))
+              }}
               className={`py-4 px-4 rounded-xl border-2 font-medium transition-all text-left ${formData.activityLevel === activity.key
                   ? 'border-green-500 bg-green-50 text-green-700'
                   : 'border-gray-200 hover:border-green-300'
@@ -242,7 +253,9 @@ const CalorieStep = ({ formData, setFormData, onNext }) => (
           {['4-5 hours', '6-7 hours', '8+ hours'].map(sleep => (
             <button
               key={sleep}
-              onClick={() => setFormData(prev => ({ ...prev, sleepHours: sleep }))}
+              onClick={() => {
+                setFormData(prev => ({ ...prev, sleepHours: sleep }))
+              }}
               className={`py-3 px-4 rounded-xl border-2 font-medium transition-all ${formData.sleepHours === sleep
                   ? 'border-green-500 bg-green-50 text-green-700'
                   : 'border-gray-200 hover:border-green-300'
@@ -289,7 +302,9 @@ const CalorieStep = ({ formData, setFormData, onNext }) => (
           {['Vegan', 'Vegetarian', 'Gluten-free', 'None'].map(diet => (
             <button
               key={diet}
-              onClick={() => setFormData(prev => ({ ...prev, dietaryRestrictions: diet }))}
+              onClick={() => {
+                setFormData(prev => ({ ...prev, dietaryRestrictions: diet }))
+              }}
               className={`py-3 px-4 rounded-xl border-2 font-medium transition-all ${formData.dietaryRestrictions === diet
                   ? 'border-green-500 bg-green-50 text-green-700'
                   : 'border-gray-200 hover:border-green-300'
@@ -302,7 +317,9 @@ const CalorieStep = ({ formData, setFormData, onNext }) => (
       </div>
     </div>
     <button
-      onClick={onNext}
+      onClick={() => {
+        onNext()
+      }}
       disabled={!formData.goal || !formData.activityLevel || !formData.sleepHours || !formData.dietaryRestrictions}
       className="w-full py-4 bg-gradient-to-r from-orange-400 to-orange-400 text-white font-bold rounded-full shadow-lg hover:shadow-xl transform hover:-translate-y-1 transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center space-x-2"
     >
@@ -313,7 +330,7 @@ const CalorieStep = ({ formData, setFormData, onNext }) => (
 );
 
 // Results Step
-const ResultsStep = ({ results, formData, navigate }) => (
+const ResultsStep = ({ results, formData, navigate, trigger }) => (
   <div className="max-w-4xl mx-auto space-y-8">
     <div className="text-center space-y-4">
       <div className="text-6xl">📊</div>
@@ -386,22 +403,25 @@ const ResultsStep = ({ results, formData, navigate }) => (
       <div className="space-y-6 flex flex-col items-center">
         <div className="flex flex-col sm:flex-row gap-4 w-full justify-center items-center">
           <button
-            onClick={() => navigate('/contactUs', {
-              state: {
-                userResults: {
-                  bmi: results.bmi,
-                  bmiCategory: results.bmiCategory,
-                  dailyCalories: results.tdee,
-                  goal: formData.goal,
-                  dietaryRestrictions: formData.dietaryRestrictions,
-                  macros: results.macros,
-                  activityLevel: formData.activityLevel,
-                  sleepHours: formData.sleepHours,
-                  healthConditions: formData.healthConditions,
-                  dislikes: formData.dislikes
+            onClick={() => {
+              trigger("success")
+              navigate('/contactUs', {
+                state: {
+                  userResults: {
+                    bmi: results.bmi,
+                    bmiCategory: results.bmiCategory,
+                    dailyCalories: results.tdee,
+                    goal: formData.goal,
+                    dietaryRestrictions: formData.dietaryRestrictions,
+                    macros: results.macros,
+                    activityLevel: formData.activityLevel,
+                    sleepHours: formData.sleepHours,
+                    healthConditions: formData.healthConditions,
+                    dislikes: formData.dislikes
+                  }
                 }
-              }
-            })}
+              })
+            }}
             className="w-full sm:flex-1 max-w-sm px-6 py-3 sm:px-8 sm:py-4 bg-gradient-to-r from-orange-400 to-orange-400 text-white font-bold rounded-full shadow-lg hover:shadow-xl transform hover:-translate-y-1 transition-all duration-300 flex items-center justify-center space-x-2 text-base sm:text-lg"
           >
             <BookOpen size={21} />
@@ -409,7 +429,10 @@ const ResultsStep = ({ results, formData, navigate }) => (
           </button>
           
           <button
-            onClick={() => navigate('/my-journey')}
+            onClick={() => {
+              trigger("success")
+              navigate('/my-journey')
+            }}
             className="w-full sm:flex-1 max-w-sm px-6 py-3 sm:px-8 sm:py-4 border-2 border-green-600 text-green-700 font-bold rounded-full hover:bg-green-50 transition-all duration-300 hover:shadow-md text-base sm:text-lg flex items-center justify-center space-x-2"
           >
             <span>Go to My Journey</span>
@@ -443,6 +466,7 @@ const ResultsStep = ({ results, formData, navigate }) => (
 function KnowYourBody() {
   const [step, setStep] = useState(0);
   const navigate = useNavigate();
+  const { trigger } = useWebHaptics();
   const [formData, setFormData] = useState({
     gender: '',
     age: '',
@@ -515,6 +539,7 @@ function KnowYourBody() {
 
   // Next Step Logic
   const handleNext = () => {
+    trigger("success")
     if (step === 1) {
       const bmiResults = calculateBMI();
       setResults(prev => ({ ...prev, ...bmiResults }));
@@ -558,6 +583,7 @@ function KnowYourBody() {
             results={results}
             formData={formData}
             navigate={navigate}
+            trigger={trigger}
           />
         )}
       </div>

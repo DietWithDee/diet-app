@@ -5,6 +5,7 @@ import { useAuth } from '../../../AuthContext';
 import { motion } from 'framer-motion';
 import { FiAward, FiShare2 } from 'react-icons/fi';
 import AchievementShareCard from '../../../Components/AchievementShareCard';
+import { useWebHaptics } from 'web-haptics/react';
 
 import { BADGE_DEFINITIONS } from '../../../constants/badges';
 
@@ -13,9 +14,11 @@ const Achievements = React.memo(() => {
     const [logCount, setLogCount] = useState(0);
     const [loading, setLoading] = useState(true);
     const [sharingBadge, setSharingBadge] = useState(null);
+    const { trigger } = useWebHaptics();
 
     const handleShare = (e, badge) => {
         e.stopPropagation();
+        trigger("success");
         setSharingBadge(badge);
     };
 
@@ -69,8 +72,9 @@ const Achievements = React.memo(() => {
                     : earnedBadges.map((badge) => (
                         <motion.div
                             key={badge.id}
+                            onClick={() => trigger("light")}
                             whileHover={{ y: -4, scale: 1.03 }}
-                            className={`flex-shrink-0 w-32 rounded-2xl p-4 text-center transition-all snap-start ${badge.earned
+                            className={`flex-shrink-0 w-32 rounded-2xl p-4 text-center transition-all snap-start cursor-pointer ${badge.earned
                                     ? 'bg-white shadow-lg border border-green-100'
                                     : 'bg-gray-50 border border-gray-100 opacity-50'
                                 }`}

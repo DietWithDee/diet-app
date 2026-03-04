@@ -8,6 +8,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import JourneyHero from '../../assets/journey_glossy.webp';
 import { useAuth } from '../../AuthContext';
 import OnboardingModal from '../../Components/OnboardingModal';
+import { useWebHaptics } from 'web-haptics/react';
 
 // Part 2 components
 import ProgressChart from './components/ProgressChart';
@@ -23,6 +24,7 @@ function MyJourney() {
   const [showOnboarding, setShowOnboarding] = useState(false);
   const [editMode, setEditMode] = useState(false);
   const [signingIn, setSigningIn] = useState(false);
+  const { trigger } = useWebHaptics();
   const [showLogoutConfirm, setShowLogoutConfirm] = useState(false);
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
   const [deleting, setDeleting] = useState(false);
@@ -87,6 +89,7 @@ function MyJourney() {
   };
 
   const handleGetStarted = async () => {
+    trigger("success");
     setSigningIn(true);
     try {
       const userResult = await signInWithGoogle();
@@ -119,12 +122,14 @@ function MyJourney() {
 
   // Open edit mode (reopen onboarding with existing data)
   const handleUpdateInfo = () => {
+    trigger("light");
     setEditMode(true);
     setShowOnboarding(true);
   };
 
   // Calculate BMI & calories from stored profile, then navigate to booking
   const handleBookConsultation = () => {
+    trigger("success");
     if (!userProfile) return;
     const h = parseFloat(userProfile.height) / 100; // cm → m
     const w = parseFloat(userProfile.weight);
@@ -433,7 +438,10 @@ function MyJourney() {
                       <motion.button
                         whileHover={{ scale: 1.02 }}
                         whileTap={{ scale: 0.98 }}
-                        onClick={() => setShowLogoutConfirm(true)}
+                        onClick={() => {
+                          trigger("light");
+                          setShowLogoutConfirm(true);
+                        }}
                         className="flex-1 px-5 py-2.5 bg-white border-2 border-gray-200 text-gray-600 font-semibold rounded-full hover:border-gray-300 transition-all flex items-center justify-center gap-2 text-sm"
                       >
                         <FiLogOut size={16} /> Sign Out
@@ -441,7 +449,10 @@ function MyJourney() {
                       <motion.button
                         whileHover={{ scale: 1.02 }}
                         whileTap={{ scale: 0.98 }}
-                        onClick={() => setShowDeleteConfirm(true)}
+                        onClick={() => {
+                          trigger("error");
+                          setShowDeleteConfirm(true);
+                        }}
                         className="flex-1 px-5 py-2.5 bg-white border-2 border-red-200 text-red-500 font-semibold rounded-full hover:border-red-300 hover:bg-red-50 transition-all flex items-center justify-center gap-2 text-sm"
                       >
                         <FiTrash2 size={16} /> Delete Account
@@ -471,7 +482,10 @@ function MyJourney() {
               <motion.button
                 whileHover={{ scale: 1.05 }}
                 whileTap={{ scale: 0.95 }}
-                onClick={() => setShowOnboarding(true)}
+                onClick={() => {
+                  trigger("nudge");
+                  setShowOnboarding(true);
+                }}
                 className="px-8 py-4 bg-gradient-to-r from-[#F6841F] to-orange-500 text-white font-bold text-lg rounded-full shadow-lg hover:shadow-xl transition-all"
               >
                 Complete My Profile
@@ -479,7 +493,10 @@ function MyJourney() {
               
               <div className="mt-8 pt-6 border-t border-gray-100 flex justify-center">
                  <button 
-                   onClick={() => setShowLogoutConfirm(true)}
+                   onClick={() => {
+                     trigger("light");
+                     setShowLogoutConfirm(true);
+                   }}
                    className="text-gray-400 hover:text-gray-600 font-medium text-sm flex items-center gap-2 transition-colors"
                  >
                    <FiLogOut size={16} /> Sign out for now
@@ -535,7 +552,10 @@ function MyJourney() {
                       )}
                     </motion.button>
                     <button
-                      onClick={() => navigate('/knowyourbody')}
+                      onClick={() => {
+                        trigger("nudge");
+                        navigate('/knowyourbody')
+                      }}
                       className="text-sm text-gray-400 hover:text-gray-600 font-medium transition-colors"
                     >
                       Continue as guest →
@@ -602,7 +622,10 @@ function MyJourney() {
                   <motion.button
                     whileHover={{ scale: 1.05 }}
                     whileTap={{ scale: 0.95 }}
-                    onClick={() => navigate('/plans')}
+                    onClick={() => {
+                      trigger("success");
+                      navigate('/plans')
+                    }}
                     className="px-8 py-4 bg-gradient-to-r from-[#F6841F] to-[#F6841F] text-white font-bold rounded-full shadow-lg transition-all duration-300 hover:from-orange-600 hover:to-orange-400"
                   >
                     Explore Plans
@@ -610,7 +633,10 @@ function MyJourney() {
                   <motion.button
                     whileHover={{ scale: 1.05 }}
                     whileTap={{ scale: 0.95 }}
-                    onClick={() => navigate('/blog')}
+                    onClick={() => {
+                      trigger("success");
+                      navigate('/blog')
+                    }}
                     className="px-8 py-4 border-2 border-green-600 text-green-700 font-bold rounded-full hover:bg-green-50 transition-all duration-300 hover:shadow-md"
                   >
                     Read the Blog
@@ -657,8 +683,15 @@ function MyJourney() {
               <h3 className="text-lg font-bold text-gray-800 mb-2">Sign Out?</h3>
               <p className="text-gray-500 text-sm mb-6">Your data is saved and you can sign back in anytime.</p>
               <div className="flex gap-3">
-                <button onClick={() => setShowLogoutConfirm(false)} className="flex-1 py-2.5 bg-gray-100 text-gray-700 font-semibold rounded-full hover:bg-gray-200 transition-colors">Cancel</button>
-                <button onClick={() => { setShowLogoutConfirm(false); signOut(); }} className="flex-1 py-2.5 bg-red-500 text-white font-semibold rounded-full hover:bg-red-600 transition-colors">Sign Out</button>
+                <button onClick={() => {
+                  trigger("nudge");
+                  setShowLogoutConfirm(false)
+                }} className="flex-1 py-2.5 bg-gray-100 text-gray-700 font-semibold rounded-full hover:bg-gray-200 transition-colors">Cancel</button>
+                <button onClick={() => { 
+                  trigger("success");
+                  setShowLogoutConfirm(false); 
+                  signOut(); 
+                }} className="flex-1 py-2.5 bg-red-500 text-white font-semibold rounded-full hover:bg-red-600 transition-colors">Sign Out</button>
               </div>
             </motion.div>
           </motion.div>
@@ -688,7 +721,10 @@ function MyJourney() {
               <h3 className="text-lg font-bold text-gray-800 mb-2">Delete Account?</h3>
               <p className="text-gray-500 text-sm mb-6">This will permanently delete your profile, all log history, and achievements. This cannot be undone.</p>
               <div className="flex gap-3">
-                <button onClick={() => setShowDeleteConfirm(false)} className="flex-1 py-2.5 bg-gray-100 text-gray-700 font-semibold rounded-full hover:bg-gray-200 transition-colors">Cancel</button>
+                <button onClick={() => {
+                  trigger("nudge");
+                  setShowDeleteConfirm(false)
+                }} className="flex-1 py-2.5 bg-gray-100 text-gray-700 font-semibold rounded-full hover:bg-gray-200 transition-colors">Cancel</button>
                 <button
                   onClick={async () => {
                     setDeleting(true);

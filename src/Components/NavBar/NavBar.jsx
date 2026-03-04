@@ -1,11 +1,13 @@
 import React, { useState, useEffect } from 'react'
 import { NavLink } from 'react-router-dom'
+import { useWebHaptics } from 'web-haptics/react'
 import { FiShoppingCart, FiMenu, FiX, FiUser } from "react-icons/fi"
 import logo from "../../assets/LOGO.webp"
 import { useNavigate } from 'react-router'
 
 export default function NavBar() {
   const [menuOpen, setMenuOpen] = useState(false)
+  const { trigger } = useWebHaptics()
   const navigate = useNavigate()
 
   // Prevent background scroll when open
@@ -27,7 +29,10 @@ export default function NavBar() {
     <header className="fixed inset-x-0 top-0 z-50 bg-white ">
       <div className="flex items-center justify-between px-4 ">
         {/* Logo */}
-        <div className="flex items-center space-x-2 cursor-pointer" onClick={() => navigate('/')}>
+        <div className="flex items-center space-x-2 cursor-pointer" onClick={() => {
+          trigger("nudge")
+          navigate('/')
+        }}>
           <img src={logo} alt="Logo" className="h-14 w-auto" />
           <span className="text-3xl text-green-800 font-transcity pt-4">
             DietWithDee
@@ -45,6 +50,7 @@ export default function NavBar() {
                   }`
                 }
                 end={path === '/'}
+                onClick={() => trigger("nudge")}
               >
                 {label}
               </NavLink>
@@ -57,6 +63,7 @@ export default function NavBar() {
           {/* My Journey icon */}
           <NavLink
             to="/my-journey"
+            onClick={() => trigger("nudge")}
             className={({ isActive }) =>
               `relative group transition-colors duration-300 ${isActive ? 'text-green-600' : 'text-orange-400'}`
             }
@@ -68,6 +75,7 @@ export default function NavBar() {
           {/* Plans/Cart icon */}
           <NavLink
             to="/plans"
+            onClick={() => trigger("nudge")}
             className={({ isActive }) =>
               `relative group transition-colors duration-300 ${isActive ? 'text-green-600' : 'text-orange-400'}`
             }
@@ -76,7 +84,10 @@ export default function NavBar() {
             <FiShoppingCart size={23} className="transition-transform duration-300 group-hover:scale-110" />
           </NavLink>
 
-          <button className="md:hidden text-gray-800" onClick={() => setMenuOpen(true)}>
+          <button className="md:hidden text-gray-800" onClick={() => {
+            trigger("nudge")
+            setMenuOpen(true)
+          }}>
             <FiMenu size={26} />
           </button>
         </div>
@@ -109,7 +120,10 @@ export default function NavBar() {
             </div>
             <button
               className="text-gray-800 text-3xl"
-              onClick={() => setMenuOpen(false)}
+              onClick={() => {
+                trigger("success")
+                setMenuOpen(false)
+              }}
             >
               <FiX />
             </button>
@@ -125,7 +139,10 @@ export default function NavBar() {
                     `block px-6 py-4 text-lg hover:bg-gray-50 transition-colors ${isActive ? 'text-green-600 font-bold' : 'text-gray-800'
                     }`
                   }
-                  onClick={() => setMenuOpen(false)}
+                  onClick={() => {
+                    trigger("nudge")
+                    setMenuOpen(false)
+                  }}
                   end={path === '/'}
                 >
                   {label}
@@ -139,7 +156,10 @@ export default function NavBar() {
                   `block px-6 py-4 text-lg hover:bg-gray-50 transition-colors ${isActive ? 'text-green-600 font-bold' : 'text-gray-800'
                   }`
                 }
-                onClick={() => setMenuOpen(false)}
+                onClick={() => {
+                  trigger("nudge")
+                  setMenuOpen(false)
+                }}
               >
                 My Journey
               </NavLink>
@@ -151,7 +171,10 @@ export default function NavBar() {
             <NavLink
               to="/terms"
               className="text-[10px] uppercase tracking-wider font-semibold text-gray-400 hover:text-green-600 transition-colors"
-              onClick={() => setMenuOpen(false)}
+              onClick={() => {
+                trigger("light")
+                setMenuOpen(false)
+              }}
             >
               Terms
             </NavLink>
@@ -159,7 +182,10 @@ export default function NavBar() {
             <NavLink
               to="/privacy"
               className="text-[10px] uppercase tracking-wider font-semibold text-gray-400 hover:text-green-600 transition-colors"
-              onClick={() => setMenuOpen(false)}
+              onClick={() => {
+                trigger("light")
+                setMenuOpen(false)
+              }}
             >
               Privacy
             </NavLink>
