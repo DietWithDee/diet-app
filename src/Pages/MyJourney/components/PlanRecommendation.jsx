@@ -20,6 +20,7 @@ const PLANS = [
         img: B2B,
         url: 'https://paystack.shop/pay/backtobasics',
         tags: ['maintain'],
+        isPopular: true,
     },
     {
         id: 'weightloss',
@@ -134,8 +135,15 @@ const PlanRecommendation = React.memo(() => {
 
                     {/* Plan details */}
                     <div className="flex-1 px-6 py-5 flex flex-col justify-center">
-                        <div className="inline-flex items-center gap-1.5 bg-green-100 text-green-700 text-xs font-semibold px-3 py-1 rounded-full w-fit mb-3">
-                            ✨ Recommended based on your {conditionText}
+                        <div className="flex flex-wrap gap-2 mb-3">
+                            <div className="inline-flex items-center gap-1.5 bg-green-100 text-green-700 text-[10px] font-bold px-3 py-1 rounded-full w-fit">
+                                ✨ Recommended based on your {conditionText}
+                            </div>
+                            {plan.isPopular && (
+                                <div className="inline-flex items-center gap-1.5 bg-orange-100 text-orange-700 text-[10px] font-bold px-3 py-1 rounded-full w-fit">
+                                    🔥 MOST POPULAR
+                                </div>
+                            )}
                         </div>
                         <h4 className="text-xl font-bold text-gray-800 mb-1">{plan.title}</h4>
                         <p className="text-gray-500 text-sm mb-3">{plan.subtitle}</p>

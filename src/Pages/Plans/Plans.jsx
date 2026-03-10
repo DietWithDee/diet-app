@@ -29,6 +29,7 @@ function Plans() {
         'Perfect for busy professionals, healthy eating beginners.'
       ],
       gradient: 'from-orange-400 to-orange-500',
+      isPopular: true,
     },
     {
       title: 'Snatched & Nourished',
@@ -197,6 +198,11 @@ function Plans() {
                 key={index}
                 className="bg-white rounded-3xl shadow-xl hover:shadow-2xl transition-transform hover:-translate-y-1 p-6 relative border border-gray-100"
               >
+                {plan.isPopular && (
+                  <div className="absolute -top-3 left-1/2 -translate-x-1/2 bg-gradient-to-r from-orange-400 to-orange-500 text-white text-[10px] font-black px-4 py-1 rounded-full shadow-lg z-10 whitespace-nowrap tracking-widest border-2 border-white">
+                    🔥 MOST POPULAR
+                  </div>
+                )}
                 <div
                   className={`w-full h-44 bg-gradient-to-br ${plan.gradient} rounded-2xl flex items-center justify-center mb-6`}
                 >

@@ -112,7 +112,7 @@ export const sendNewArticleNewsletter = async (articleTitle, articleImageUrl, ar
     console.log(`Unique subscribers: ${uniqueEmails.length}`);
 
     const emailContent = createEmailTemplate(articleTitle, articleImageUrl, articleId);
-    const subject = `New Article from Nana Ama Dwamena: ${articleTitle}`;
+    const subject = `New from Diet With Dee: ${articleTitle}`;
 
     let successCount = 0;
     let failureCount = 0;
@@ -167,7 +167,7 @@ export const sendTestNewsletter = async () => {
   const testArticleId = 'test-article-id';
 
   const emailContent = createEmailTemplate(testTitle, testImageUrl, testArticleId);
-  const subject = `Test: New Article from Nana Ama Dwamena: ${testTitle}`;
+  const subject = `Test: New from Diet With Dee: ${testTitle}`;
 
   try {
     const success = await sendEmailViaResend(testEmail, subject, emailContent);

@@ -77,7 +77,7 @@ export const createEmailTemplate = (title, imageUrl, articleId) => {
                 font-weight: 700;
                 color: #16a34a;
                 margin-bottom: 25px;
-                text-align: center;
+                text-align: left;
             }
             
             .message {
@@ -85,9 +85,9 @@ export const createEmailTemplate = (title, imageUrl, articleId) => {
                 color: #374151;
                 margin-bottom: 35px;
                 line-height: 1.8;
-                text-align: center;
+                text-align: left;
                 max-width: 480px;
-                margin-left: auto;
+                margin-left: 0;
                 margin-right: auto;
             }
             
@@ -330,47 +330,66 @@ export const createEmailTemplate = (title, imageUrl, articleId) => {
             <!-- Header -->
             <div class="header">
                 <img src="https://dietwithdee.org/LOGO.webp" alt="DietWithDee Logo" class="logo-img" />
-                <div class="subtitle">Nana Ama Dwamena</div>
+                <div class="subtitle">New Article from Nana Ama Dwamena</div>
             </div>
             
             <!-- Main Content -->
             <div class="content">
-                <div class="greeting">Hello, Health Enthusiast! </div>
+                <div class="greeting">Hi there,</div>
                 
                 <div class="message">
-                    I'm excited to share my latest article with you, packed with tips and insights for a healthier life.
+                    I just published a new article on Diet With Dee, and I think you’ll find it helpful.<br><br>
+                    Every week I share practical nutrition tips that make healthy living easier — not complicated.<br><br>
+                    If you’re trying to improve your energy, manage your weight, or simply eat better, this one is for you.
                 </div>
                 
-                <div class="divider"></div>
+                <div class="message" style="background-color: #f9fafb; padding: 25px; border-radius: 12px; margin-bottom: 40px; color: #1f2937;">
+                    <div style="font-weight: 700; margin-bottom: 12px; font-size: 18px;">In this article, you’ll learn:</div>
+                    <ul style="padding-left: 20px; margin-bottom: 15px; margin-top: 0;">
+                        <li style="margin-bottom: 8px;">Simple nutrition habits you can start today</li>
+                        <li style="margin-bottom: 8px;">Common mistakes that slow down progress</li>
+                        <li style="margin-bottom: 8px;">Practical tips you can apply immediately</li>
+                    </ul>
+                    No complicated diets. Just realistic guidance that works.
+                </div>
                 
                 <!-- Article Preview -->
-                <div class="article-preview">
+                <div class="article-preview" style="margin-bottom: 40px;">
                     ${imageUrl ? `<img src="${imageUrl}" alt="${title}" class="article-image" />` : ''}
                     <div class="article-content">
                         <h2 class="article-title">${title}</h2>
                         <a href="https://dietwithdee.org/blog/${articleId}" 
                            class="cta-button">
-                            Visit Website →
+                            READ THE ARTICLE →
                         </a>
                     </div>
                 </div>
                 
                 <div class="message">
-                    Don't miss out on this valuable content! Click the button above to read the full article 
-                    and discover actionable tips you can implement today.
+                    If you want more personalized guidance, I also offer:<br><br>
+                    <ul style="padding-left: 20px; margin-bottom: 25px; margin-top: 0;">
+                        <li style="margin-bottom: 8px;">One-on-one diet consultations</li>
+                        <li style="margin-bottom: 8px;">Customized meal plans</li>
+                        <li style="margin-bottom: 8px;">Specialized programs for weight loss, diabetes management, and heart health</li>
+                    </ul>
+                    
+                    <a href="https://dietwithdee.org/services" 
+                       class="cta-button" style="background-color: #16a34a; box-shadow: 0 8px 20px rgba(22, 163, 74, 0.35);">
+                        Explore Nutrition Plans →
+                    </a>
                 </div>
             </div>
             
             <!-- Footer -->
             <div class="footer">
                 <div class="footer-text">
-                    <strong>Diet with Dee</strong><br>
-                    Empowering you to live your healthiest life
+                    <strong>Diet With Dee</strong><br>
+                    Helping you build healthier habits for life.
                 </div>
                 <div class="footer-text">
-                    You're receiving this because you subscribed to our newsletter.
+                    You’re receiving this email because you subscribed to the Diet With Dee newsletter.<br><br>
+                    <a href="#" class="unsubscribe">Unsubscribe anytime.</a>
                 </div>
-                <a href="#" class="unsubscribe">Unsubscribe</a>
             </div>
         </div>
     </body>
