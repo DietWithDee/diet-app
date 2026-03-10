@@ -149,7 +149,9 @@ function MyJourney() {
 
   const handleOnboardingSave = async (formData) => {
     try {
-      await saveUserProfile(formData);
+      // Because saveUserProfile uses { merge: true }, we must proactively overwrite
+      // the onboardingSkipped field if they had previously bailed out.
+      await saveUserProfile({ ...formData, onboardingSkipped: false });
       setShowOnboarding(false);
       setEditMode(false);
     } catch (err) {
