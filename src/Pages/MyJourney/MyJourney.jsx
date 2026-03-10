@@ -203,8 +203,8 @@ function MyJourney() {
     return a;
   };
 
-  // Determine if this is a fully onboarded user (has real profile data, not just skipped)
-  const hasFullProfile = user && userProfile && !userProfile.onboardingSkipped;
+  // Determine if this is a fully onboarded user by checking for essential fields
+  const hasFullProfile = user && userProfile && !userProfile.onboardingSkipped && userProfile.age && userProfile.height && userProfile.weight && userProfile.goal;
 
   // Debugging logs requested by user
   console.log('[MyJourney Debug] User state:', { 
@@ -369,11 +369,11 @@ function MyJourney() {
                       <SafeImage
                         src={user.photoURL}
                         alt={user.displayName}
-                        className="w-16 h-16 rounded-full border-3 border-white shadow-lg object-cover"
-                        wrapperClassName="w-16 h-16"
+                        className="w-14 h-14 rounded-full border-3 border-white shadow-lg object-cover"
+                        wrapperClassName="w-14 h-14"
                       />
                     ) : (
-                      <div className="w-16 h-16 rounded-full bg-white/20 flex items-center justify-center text-white text-2xl font-bold">
+                      <div className="w-14 h-14 rounded-full bg-white/20 flex items-center justify-center text-white text-xl font-bold">
                         {user.displayName?.[0] || '?'}
                       </div>
                     )}

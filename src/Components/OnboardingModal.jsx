@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { FiChevronRight, FiChevronLeft, FiCheck, FiEdit2, FiX } from 'react-icons/fi';
 import { User, Activity, Moon, Heart, Utensils, Target } from 'lucide-react';
@@ -38,11 +38,26 @@ const OnboardingModal = ({ userName, onSave, onClose, initialData = null }) => {
   });
 
   // Persistence: Save to localStorage on change
-  React.useEffect(() => {
+  useEffect(() => {
     if (!isEditing) {
       localStorage.setItem('onboarding_draft', JSON.stringify(formData));
     }
   }, [formData, isEditing]);
+
+  // Auto-scroll logic
+  const scrollRef = useRef(null);
+
+  const scrollDown = (amount = 160) => {
+    if (scrollRef.current) {
+      scrollRef.current.scrollBy({ top: amount, behavior: 'smooth' });
+    }
+  };
+
+  useEffect(() => {
+    if (scrollRef.current) {
+      scrollRef.current.scrollTo({ top: 0, behavior: 'auto' });
+    }
+  }, [step]);
 
   const firstName = userName?.split(' ')[0] || 'there';
 
@@ -108,6 +123,7 @@ const OnboardingModal = ({ userName, onSave, onClose, initialData = null }) => {
         exit={{ opacity: 0, scale: 0.9, y: 30 }}
         transition={{ type: 'spring', stiffness: 300, damping: 30 }}
         className="relative z-10 w-full max-w-2xl mx-4 max-h-[90vh] overflow-y-auto bg-white rounded-3xl shadow-2xl"
+        ref={scrollRef}
       >
         {/* Progress bar */}
         <div className="sticky top-0 z-20 bg-white rounded-t-3xl px-8 pt-6 pb-2">
@@ -219,7 +235,10 @@ const OnboardingModal = ({ userName, onSave, onClose, initialData = null }) => {
                     {['male', 'female'].map(g => (
                       <button
                         key={g}
-                        onClick={() => setFormData(p => ({ ...p, gender: g }))}
+                        onClick={() => {
+                          setFormData(p => ({ ...p, gender: g }));
+                          scrollDown(120);
+                        }}
                         className={`flex-1 py-3 rounded-xl border-2 font-medium capitalize transition-all ${formData.gender === g
                             ? 'border-green-500 bg-green-50 text-green-700'
                             : 'border-gray-200 hover:border-green-300 text-gray-600'
@@ -242,6 +261,7 @@ const OnboardingModal = ({ userName, onSave, onClose, initialData = null }) => {
                       max="120"
                       value={formData.age}
                       onChange={e => setFormData(p => ({ ...p, age: e.target.value }))}
+                      onKeyDown={e => e.key === 'Enter' && scrollDown(180)}
                       className="w-full py-3 px-4 border-2 border-gray-200 rounded-xl focus:border-green-500 focus:outline-none text-gray-900 placeholder-gray-400"
                       placeholder="Enter your age"
                     />
@@ -276,6 +296,7 @@ const OnboardingModal = ({ userName, onSave, onClose, initialData = null }) => {
                       max="250"
                       value={formData.height}
                       onChange={e => setFormData(p => ({ ...p, height: e.target.value }))}
+                      onKeyDown={e => e.key === 'Enter' && scrollDown(120)}
                       className="w-full py-3 px-4 border-2 border-gray-200 rounded-xl focus:border-green-500 focus:outline-none text-gray-900 placeholder-gray-400"
                       placeholder="cm"
                     />
@@ -288,6 +309,7 @@ const OnboardingModal = ({ userName, onSave, onClose, initialData = null }) => {
                       max="500"
                       value={formData.weight}
                       onChange={e => setFormData(p => ({ ...p, weight: e.target.value }))}
+                      onKeyDown={e => e.key === 'Enter' && scrollDown(180)}
                       className="w-full py-3 px-4 border-2 border-gray-200 rounded-xl focus:border-green-500 focus:outline-none text-gray-900 placeholder-gray-400"
                       placeholder="kg"
                     />
@@ -307,7 +329,10 @@ const OnboardingModal = ({ userName, onSave, onClose, initialData = null }) => {
                     ].map(goal => (
                       <button
                         key={goal.key}
-                        onClick={() => setFormData(p => ({ ...p, goal: goal.key }))}
+                        onClick={() => {
+                          setFormData(p => ({ ...p, goal: goal.key }));
+                          scrollDown(180);
+                        }}
                         className={`py-3 px-3 rounded-xl border-2 font-medium transition-all text-center text-sm ${formData.goal === goal.key
                             ? 'border-green-500 bg-green-50 text-green-700'
                             : 'border-gray-200 hover:border-green-300 text-gray-600'
@@ -334,7 +359,10 @@ const OnboardingModal = ({ userName, onSave, onClose, initialData = null }) => {
                     ].map(a => (
                       <button
                         key={a.key}
-                        onClick={() => setFormData(p => ({ ...p, activityLevel: a.key }))}
+                        onClick={() => {
+                          setFormData(p => ({ ...p, activityLevel: a.key }));
+                          scrollDown(180);
+                        }}
                         className={`py-3 px-3 rounded-xl border-2 font-medium transition-all text-left ${formData.activityLevel === a.key
                             ? 'border-green-500 bg-green-50 text-green-700'
                             : 'border-gray-200 hover:border-green-300 text-gray-600'
@@ -356,7 +384,10 @@ const OnboardingModal = ({ userName, onSave, onClose, initialData = null }) => {
                     {['4-5 hours', '6-7 hours', '8+ hours'].map(s => (
                       <button
                         key={s}
-                        onClick={() => setFormData(p => ({ ...p, sleepHours: s }))}
+                        onClick={() => {
+                          setFormData(p => ({ ...p, sleepHours: s }));
+                          scrollDown(180);
+                        }}
                         className={`py-3 rounded-xl border-2 font-medium transition-all text-sm ${formData.sleepHours === s
                             ? 'border-green-500 bg-green-50 text-green-700'
                             : 'border-gray-200 hover:border-green-300 text-gray-600'
@@ -377,6 +408,7 @@ const OnboardingModal = ({ userName, onSave, onClose, initialData = null }) => {
                     type="text"
                     value={formData.healthConditions}
                     onChange={e => setFormData(p => ({ ...p, healthConditions: e.target.value }))}
+                    onKeyDown={e => e.key === 'Enter' && scrollDown(120)}
                     className="w-full py-3 px-4 border-2 border-gray-200 rounded-xl focus:border-green-500 focus:outline-none text-gray-900 placeholder-gray-400"
                     placeholder="e.g., Diabetes, High blood pressure..."
                   />
@@ -391,6 +423,7 @@ const OnboardingModal = ({ userName, onSave, onClose, initialData = null }) => {
                     type="text"
                     value={formData.dislikes}
                     onChange={e => setFormData(p => ({ ...p, dislikes: e.target.value }))}
+                    onKeyDown={e => e.key === 'Enter' && scrollDown(120)}
                     className="w-full py-3 px-4 border-2 border-gray-200 rounded-xl focus:border-green-500 focus:outline-none text-gray-900 placeholder-gray-400"
                     placeholder="e.g., Lactose Intolerance, Gluten..."
                   />
@@ -405,7 +438,10 @@ const OnboardingModal = ({ userName, onSave, onClose, initialData = null }) => {
                     {['Vegan', 'Vegetarian', 'Gluten-free', 'None'].map(d => (
                       <button
                         key={d}
-                        onClick={() => setFormData(p => ({ ...p, dietaryRestrictions: d }))}
+                        onClick={() => {
+                          setFormData(p => ({ ...p, dietaryRestrictions: d }));
+                          scrollDown(200);
+                        }}
                         className={`py-3 rounded-xl border-2 font-medium transition-all text-sm ${formData.dietaryRestrictions === d
                             ? 'border-green-500 bg-green-50 text-green-700'
                             : 'border-gray-200 hover:border-green-300 text-gray-600'
