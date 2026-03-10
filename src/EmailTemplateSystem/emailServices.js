@@ -114,34 +114,26 @@ export const sendNewArticleNewsletter = async (articleTitle, articleImageUrl, ar
     const emailContent = createEmailTemplate(articleTitle, articleImageUrl, articleId);
     const subject = `New Article from Nana Ama Dwamena: ${articleTitle}`;
 
-    const batchSize = 10;
     let successCount = 0;
     let failureCount = 0;
 
-    for (let i = 0; i < uniqueEmails.length; i += batchSize) {
-      const batch = uniqueEmails.slice(i, i + batchSize);
-
-      await Promise.all(
-        batch.map(async (email) => {
-          try {
-            const ok = await sendEmailViaResend(email, subject, emailContent);
-            if (ok) {
-              successCount++;
-              console.log(`Email sent successfully to: ${email}`);
-            } else {
-              failureCount++;
-              console.error(`Failed to send email to: ${email}`);
-            }
-          } catch (err) {
-            failureCount++;
-            console.error(`Error sending email to ${email}:`, err);
-          }
-        })
-      );
-
-      if (i + batchSize < uniqueEmails.length) {
-        await new Promise(r => setTimeout(r, 1000));
+    for (const email of uniqueEmails) {
+      try {
+        const ok = await sendEmailViaResend(email, subject, emailContent);
+        if (ok) {
+          successCount++;
+          // Removed console.log exposing email address
+        } else {
+          failureCount++;
+          console.error(`Failed to send email to a subscriber.`);
+        }
+      } catch (err) {
+        failureCount++;
+        console.error(`Error sending email to a subscriber:`, err);
       }
+      
+      // Explicit 600ms delay per email to prevent Resend "Too many requests" errors (max 2 req/sec)
+      await new Promise(r => setTimeout(r, 600));
     }
 
     // If at least one succeeded, mark idempotency so future calls won't resend
