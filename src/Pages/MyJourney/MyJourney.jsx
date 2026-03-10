@@ -17,6 +17,48 @@ import Achievements from './components/Achievements';
 import SafeImage from '../../Components/SafeImage';
 
 
+const FloatingBackground = () => (
+  <div className="absolute inset-0 overflow-hidden pointer-events-none z-0">
+    <motion.div
+      animate={{
+        x: [0, 40, -20, 0],
+        y: [0, -50, 20, 0],
+      }}
+      transition={{
+        duration: 20,
+        repeat: Infinity,
+        ease: "easeInOut"
+      }}
+      className="absolute top-1/4 -left-20 w-[600px] h-[600px] bg-green-300/40 rounded-full blur-[120px]"
+    />
+    <motion.div
+      animate={{
+        x: [0, -60, 30, 0],
+        y: [0, 40, -40, 0],
+      }}
+      transition={{
+        duration: 25,
+        repeat: Infinity,
+        ease: "easeInOut"
+      }}
+      className="absolute top-1/2 -right-20 w-[700px] h-[700px] bg-emerald-300/40 rounded-full blur-[140px]"
+    />
+    <motion.div
+      animate={{
+        x: [0, 30, -50, 0],
+        y: [0, 60, -30, 0],
+      }}
+      transition={{
+        duration: 22,
+        repeat: Infinity,
+        ease: "easeInOut"
+      }}
+      className="absolute bottom-1/4 left-1/3 w-[500px] h-[500px] bg-lime-300/30 rounded-full blur-[110px]"
+    />
+  </div>
+);
+
+
 function MyJourney() {
   const navigate = useNavigate();
   const { user, userProfile, loading, signInWithGoogle, signOut, saveUserProfile } = useAuth();
@@ -205,13 +247,13 @@ function MyJourney() {
   const hasFullProfile = user && userProfile && !userProfile.onboardingSkipped && userProfile.age && userProfile.height && userProfile.weight && userProfile.goal;
 
   // Debugging logs requested by user
-  console.log('[MyJourney Debug] User state:', { 
-    isLoggedIn: !!user, 
-    uid: user?.uid, 
-    hasProfileDoc: !!userProfile, 
-    onboardingSkipped: userProfile?.onboardingSkipped, 
-    isLoading: loading, 
-    hasFullProfile 
+  console.log('[MyJourney Debug] User state:', {
+    isLoggedIn: !!user,
+    uid: user?.uid,
+    hasProfileDoc: !!userProfile,
+    onboardingSkipped: userProfile?.onboardingSkipped,
+    isLoading: loading,
+    hasFullProfile
   });
 
 
@@ -253,270 +295,46 @@ function MyJourney() {
 
         {/* Hero Section — only shown for guests */}
         {!user && !loading && (
-          <div className="relative w-full py-12 flex items-center justify-center overflow-hidden">
-            <div className="relative z-10 text-center px-4 w-full">
-              <motion.div
-                variants={staggerContainer}
-                initial="hidden"
-                animate="show"
-                className="max-w-4xl mx-auto flex flex-col items-center"
-              >
-                <motion.h1
-                  variants={fadeUp}
-                  className="text-4xl md:text-5xl lg:text-6xl font-black text-green-700 tracking-tight mb-2"
+          <div className="relative">
+            <FloatingBackground />
+            <div className="relative w-full py-8 md:py-14 flex items-center justify-center overflow-hidden">
+              <div className="relative z-10 text-center px-4 w-full">
+                <motion.div
+                  variants={staggerContainer}
+                  initial="hidden"
+                  animate="show"
+                  className="max-w-4xl mx-auto flex flex-col items-center"
                 >
-                  My Journey
-                </motion.h1>
-                <motion.div variants={fadeUp} className="w-16 h-1.5 bg-gradient-to-r from-green-400 to-emerald-400 rounded-full mx-auto mb-4 shadow-sm"></motion.div>
-                <motion.p
-                  variants={fadeUp}
-                  className="text-lg md:text-xl text-gray-700 font-bold max-w-xl px-4 drop-shadow-sm"
-                >
-                  Track your nutrition, improve your health.
-                </motion.p>
-              </motion.div>
+                  <motion.h1
+                    variants={fadeUp}
+                    className="text-4xl md:text-5xl lg:text-6xl font-black text-green-700 tracking-tight mb-4 pt-16 md:pt-18"
+                  >
+                    My Journey
+                  </motion.h1>
+                  <motion.div variants={fadeUp} className="w-16 h-1.5 bg-gradient-to-r from-green-400 to-emerald-400 rounded-full mx-auto mb-4 shadow-sm"></motion.div>
+                  <motion.p
+                    variants={fadeUp}
+                    className="text-lg md:text-xl text-gray-700 font-bold max-w-xl px-4 drop-shadow-sm"
+                  >
+                    Track your nutrition, improve your health.
+                  </motion.p>
+                </motion.div>
+              </div>
             </div>
-          </div>
-        )}
 
-        <div className="container mx-auto px-6 lg:px-12 pt-4 pb-12 relative z-20">
-          {user && (
-            <motion.div
-              initial={{ opacity: 0, y: -10 }}
-              animate={{ opacity: 1, y: 0 }}
-              className="max-w-5xl mx-auto mb-8"
-            >
-              <p className="text-green-600 font-bold uppercase tracking-widest text-xs mb-1">Your Dashboard</p>
-              <h1 className="text-3xl md:text-4xl font-black text-green-700 tracking-tight">My Journey</h1>
-              <div className="w-16 h-1 bg-gradient-to-r from-green-500 to-emerald-500 rounded-full mt-2 shadow-sm"></div>
-            </motion.div>
-          )}
-
-          {/* ===== LOGGED-IN: Full Dashboard Sections ===== */}
-          {hasFullProfile && !loading && (
-            <>
-              <h3 className="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-2 px-1 max-w-5xl mx-auto">
-                📈 Progress Tracker
-              </h3>
-              <div className="max-w-5xl mx-auto">
-                <ProgressChart />
-              </div>
-
-              {/* Consultation Call to Action */}
-              <motion.div 
-                initial={{ opacity: 0, y: 10 }}
-                animate={{ opacity: 1, y: 0 }}
-                className="max-w-2xl mx-auto text-center mt-6 mb-4"
-              >
-                <p className="text-gray-600 font-medium leading-relaxed text-sm">
-                  Submit your latest BMI and Calorie data for a comprehensive consultation session with our experts.
-                </p>
-              </motion.div>
-
-              {/* Book a Consultation — right below progress chart */}
-              <motion.div
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: 0.05 }}
-                className="max-w-3xl mx-auto mb-10 flex justify-center"
-              >
-                <motion.button
-                  whileHover={{ scale: 1.03 }}
-                  whileTap={{ scale: 0.97 }}
-                  onClick={handleBookConsultation}
-                  className="px-6 py-3 bg-gradient-to-r from-[#F6841F] to-orange-500 text-white font-bold rounded-full shadow-lg hover:shadow-xl transition-all flex items-center justify-center gap-2 text-base"
-                >
-                  <Calendar size={18} /> Book a Consultation
-                </motion.button>
-              </motion.div>
-
-              <PlanRecommendation />
-              <RecommendedReads />
-              <Achievements />
-
-              {/* ===== ACCOUNT SETTINGS (wellness profile + actions) ===== */}
-              <h3 className="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-2 px-1 max-w-3xl mx-auto">
-                ⚙️ Account Settings
-              </h3>
-              <motion.div
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                className="max-w-3xl mx-auto mb-10"
-              >
-                <div className="bg-white rounded-3xl shadow-xl border border-green-100 overflow-hidden">
-                  {/* Profile header */}
-                  <div className="bg-gradient-to-r from-green-600 to-emerald-600 px-6 py-4 flex items-center gap-4">
-                    {user.photoURL ? (
-                      <SafeImage
-                        src={user.photoURL}
-                        alt={user.displayName}
-                        className="w-12 h-12 rounded-full border-2 border-white shadow-md object-cover"
-                        wrapperClassName="w-12 h-12"
-                      />
-                    ) : (
-                      <div className="w-12 h-12 rounded-full bg-white/20 flex items-center justify-center text-white text-lg font-bold">
-                        {user.displayName?.[0] || '?'}
-                      </div>
-                    )}
-                    <div className="flex-1">
-                      <h2 className="text-white text-lg font-bold">{user.displayName}</h2>
-                      <p className="text-green-100 text-xs">{user.email}</p>
-                    </div>
-                  </div>
-
-                  {/* Wellness profile grid */}
-                  <div className="px-6 py-5">
-                    <h3 className="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-3">Your Wellness Profile</h3>
-                    <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
-                      {[
-                        { label: 'Gender', value: userProfile.gender, capitalize: true },
-                        { label: 'Age', value: `${userProfile.age} yrs` },
-                        { label: 'Height', value: `${userProfile.height} cm` },
-                        { label: 'Weight', value: `${userProfile.weight} kg` },
-                        { label: 'Goal', value: goalLabel(userProfile.goal) },
-                        { label: 'Activity', value: activityLabel(userProfile.activityLevel) },
-                        { label: 'Sleep', value: userProfile.sleepHours },
-                        { label: 'Diet', value: userProfile.dietaryRestrictions },
-                      ].map((item, i) => (
-                        <div key={i} className="bg-gradient-to-br from-green-50 to-emerald-50 rounded-xl p-2.5">
-                          <div className="text-[10px] text-gray-400 font-medium mb-0.5">{item.label}</div>
-                          <div className={`text-xs font-bold text-gray-800 ${item.capitalize ? 'capitalize' : ''}`}>
-                            {item.value || '—'}
-                          </div>
-                        </div>
-                      ))}
-                    </div>
-
-                    {(userProfile.healthConditions || userProfile.dislikes) && (
-                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mt-3">
-                        {userProfile.healthConditions && (
-                          <div className="bg-gradient-to-br from-green-50 to-emerald-50 rounded-xl p-2.5">
-                            <div className="text-[10px] text-gray-400 font-medium mb-0.5">Health Conditions</div>
-                            <div className="text-xs font-bold text-gray-800">{userProfile.healthConditions}</div>
-                          </div>
-                        )}
-                        {userProfile.dislikes && (
-                          <div className="bg-gradient-to-br from-green-50 to-emerald-50 rounded-xl p-2.5">
-                            <div className="text-[10px] text-gray-400 font-medium mb-0.5">Allergies / Dislikes</div>
-                            <div className="text-xs font-bold text-gray-800">{userProfile.dislikes}</div>
-                          </div>
-                        )}
-                      </div>
-                    )}
-                  </div>
-
-                  {/* Action buttons */}
-                  <div className="px-6 py-4 bg-gray-50 border-t border-gray-100 flex flex-col gap-2">
-                    <motion.button
-                      whileHover={{ scale: 1.02 }}
-                      whileTap={{ scale: 0.98 }}
-                      onClick={handleUpdateInfo}
-                      className="w-full px-4 py-2 bg-white border border-green-600 text-green-700 font-semibold rounded-full hover:bg-green-50 transition-all flex items-center justify-center gap-2 text-xs"
-                    >
-                      <FiEdit2 size={14} /> Update My Info
-                    </motion.button>
-                    <div className="flex gap-2">
-                      <motion.button
-                        whileHover={{ scale: 1.02 }}
-                        whileTap={{ scale: 0.98 }}
-                        onClick={() => {
-                          trigger("light");
-                          setShowLogoutConfirm(true);
-                        }}
-                        className="flex-1 px-4 py-2 bg-white border border-gray-200 text-gray-600 font-semibold rounded-full hover:border-gray-300 transition-all flex items-center justify-center gap-2 text-xs"
-                      >
-                        <FiLogOut size={14} /> Sign Out
-                      </motion.button>
-                      <motion.button
-                        whileHover={{ scale: 1.02 }}
-                        whileTap={{ scale: 0.98 }}
-                        onClick={() => {
-                          trigger("error");
-                          setShowDeleteConfirm(true);
-                        }}
-                        className="flex-1 px-4 py-2 bg-white border border-red-200 text-red-500 font-semibold rounded-full hover:border-red-300 hover:bg-red-50 transition-all flex items-center justify-center gap-2 text-xs"
-                      >
-                        <FiTrash2 size={14} /> Delete Account
-                      </motion.button>
-                    </div>
-                  </div>
-                </div>
-              </motion.div>
-            </>
-          )}
-
-          {/* ===== LOGGED-IN: INCOMPLETE PROFILE FALLBACK ===== */}
-          {user && !hasFullProfile && !loading && (
-            <motion.div
-              initial="hidden"
-              animate="show"
-              variants={staggerContainer}
-              className="text-center max-w-xl mx-auto mt-6 mb-12 bg-white rounded-3xl shadow-xl p-8 border border-green-100"
-            >
-              <div className="w-16 h-16 bg-orange-100 rounded-full flex items-center justify-center mx-auto mb-4 text-3xl">
-                🚀
-              </div>
-              <h2 className="text-2xl font-bold text-green-800 mb-3">{isPendingDeletion ? "Account Deletion Pending" : "You're almost there!"}</h2>
-              <p className="text-gray-600 text-base mb-6">
-                {isPendingDeletion 
-                  ? "You need to confirm your recent login to safely delete your account. Click 'Complete Deletion' below when ready." 
-                  : "Your account is created, but we need a few more details to set up your personalized Dashboard and track your journey."}
-              </p>
-              {isPendingDeletion ? (
-                <motion.button
-                  whileHover={{ scale: 1.05 }}
-                  whileTap={{ scale: 0.95 }}
-                  onClick={() => {
-                    trigger("error");
-                    setShowDeleteConfirm(true);
-                  }}
-                  className="px-6 py-3 bg-red-500 text-white font-bold text-base rounded-full shadow-lg hover:bg-red-600 transition-all flex items-center gap-2 mx-auto"
-                >
-                  <FiTrash2 size={18} /> Complete Deletion
-                </motion.button>
-              ) : (
-                <motion.button
-                  whileHover={{ scale: 1.05 }}
-                  whileTap={{ scale: 0.95 }}
-                  onClick={() => {
-                    trigger("nudge");
-                    setShowOnboarding(true);
-                  }}
-                  className="px-6 py-3 bg-gradient-to-r from-[#F6841F] to-orange-500 text-white font-bold text-base rounded-full shadow-lg hover:shadow-xl transition-all"
-                >
-                  Complete My Profile
-                </motion.button>
-              )}
-              
-              <div className="mt-6 pt-4 border-t border-gray-100 flex justify-center">
-                 <button 
-                   onClick={() => {
-                     trigger("light");
-                     setShowLogoutConfirm(true);
-                   }}
-                   className="text-gray-400 hover:text-gray-600 font-medium text-xs flex items-center gap-2 transition-colors"
-                 >
-                   <FiLogOut size={14} /> Sign out for now
-                 </button>
-              </div>
-            </motion.div>
-          )}
-
-          {/* ===== GUEST / NOT LOGGED IN: Teaser Content ===== */}
-          {!user && !loading && (
-            <>
+            <div className="container mx-auto px-6 lg:px-12 pt-0 pb-12 relative z-20">
               <motion.div
                 initial="hidden"
                 animate="show"
                 variants={staggerContainer}
-                className="text-center max-w-3xl mx-auto mb-10"
+                className="text-justify max-w-3xl mx-auto mb-6"
               >
-                <motion.p variants={fadeUp} className="text-base lg:text-lg text-gray-700 leading-relaxed mb-6 px-2">
-                  Everything you need to stay consistent with your health goals in one place. Create an account to track your BMI and Weight, monitor your progress, and get diet recommendations designed by our registered dietitian. 
+                <motion.p variants={fadeUp} className="text-base lg:text-lg text-gray-700 leading-relaxed mb-4 px-2">
+                  Everything you need to stay consistent with your health goals in one place. Create an account to track your BMI and Weight, monitor your progress, and get diet recommendations designed by our registered dietitian.
                 </motion.p>
 
                 {/* Get Started / Sign-in CTA */}
-                <motion.div variants={fadeUp} className="bg-white rounded-2xl p-6 border border-gray-100 shadow-md max-w-md w-full mx-auto">
+                <motion.div variants={fadeUp} className="bg-white/70 backdrop-blur-md rounded-2xl p-6 border border-white shadow-md max-w-md w-full mx-auto">
                   <div className="text-center space-y-4">
                     <div className="w-12 h-12 bg-gradient-to-br from-green-100 to-emerald-100 rounded-xl flex items-center justify-center mx-auto">
                       <span className="text-xl">🌿</span>
@@ -580,7 +398,7 @@ function MyJourney() {
                       variants={fadeUp}
                       key={idx}
                       whileHover={{ y: -3, scale: 1.01 }}
-                      className="group bg-white rounded-2xl p-5 shadow-sm border border-green-50 transition-all duration-300"
+                      className="group bg-white/60 backdrop-blur-sm rounded-2xl p-5 shadow-sm border border-white transition-all duration-300"
                     >
                       <div className="flex items-start gap-4">
                         <div className="flex-shrink-0 w-10 h-10 rounded-lg bg-gradient-to-br from-green-100 to-emerald-100 flex items-center justify-center text-green-600 group-hover:from-green-500 group-hover:to-emerald-500 group-hover:text-white transition-all duration-300">
@@ -635,9 +453,234 @@ function MyJourney() {
                   </motion.button>
                 </div>
               </motion.div>
-            </>
-          )}
-        </div>
+            </div>
+          </div>
+        )}
+
+        {user && (
+          <div className="container mx-auto px-6 lg:px-12 pt-4 pb-12 relative z-20">
+            <motion.div
+              initial={{ opacity: 0, y: -10 }}
+              animate={{ opacity: 1, y: 0 }}
+              className="max-w-5xl mx-auto mb-8"
+            >
+              <p className="text-green-600 font-bold uppercase tracking-widest text-xs mb-1">Your Dashboard</p>
+              <h1 className="text-3xl md:text-4xl font-black text-green-700 tracking-tight">My Journey</h1>
+              <div className="w-16 h-1 bg-gradient-to-r from-green-500 to-emerald-500 rounded-full mt-2 shadow-sm"></div>
+            </motion.div>
+
+            {/* ===== LOGGED-IN: Full Dashboard Sections ===== */}
+            {hasFullProfile && !loading && (
+              <>
+                <h3 className="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-2 px-1 max-w-5xl mx-auto">
+                  📈 Progress Tracker
+                </h3>
+                <div className="max-w-5xl mx-auto">
+                  <ProgressChart />
+                </div>
+
+                {/* Consultation Call to Action */}
+                <motion.div
+                  initial={{ opacity: 0, y: 10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  className="max-w-2xl mx-auto text-center mt-6 mb-4"
+                >
+                  <p className="text-gray-600 font-medium leading-relaxed text-sm">
+                    Submit your latest BMI and Calorie data for a comprehensive consultation session with our experts.
+                  </p>
+                </motion.div>
+
+                {/* Book a Consultation — right below progress chart */}
+                <motion.div
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ delay: 0.05 }}
+                  className="max-w-3xl mx-auto mb-10 flex justify-center"
+                >
+                  <motion.button
+                    whileHover={{ scale: 1.03 }}
+                    whileTap={{ scale: 0.97 }}
+                    onClick={handleBookConsultation}
+                    className="px-6 py-3 bg-gradient-to-r from-[#F6841F] to-orange-500 text-white font-bold rounded-full shadow-lg hover:shadow-xl transition-all flex items-center justify-center gap-2 text-base"
+                  >
+                    <Calendar size={18} /> Book a Consultation
+                  </motion.button>
+                </motion.div>
+
+                <PlanRecommendation />
+                <RecommendedReads />
+                <Achievements />
+
+                {/* ===== ACCOUNT SETTINGS (wellness profile + actions) ===== */}
+                <h3 className="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-2 px-1 max-w-3xl mx-auto">
+                  ⚙️ Account Settings
+                </h3>
+                <motion.div
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  className="max-w-3xl mx-auto mb-10"
+                >
+                  <div className="bg-white rounded-3xl shadow-xl border border-green-100 overflow-hidden">
+                    {/* Profile header */}
+                    <div className="bg-gradient-to-r from-green-600 to-emerald-600 px-6 py-4 flex items-center gap-4">
+                      {user.photoURL ? (
+                        <SafeImage
+                          src={user.photoURL}
+                          alt={user.displayName}
+                          className="w-12 h-12 rounded-full border-2 border-white shadow-md object-cover"
+                          wrapperClassName="w-12 h-12"
+                        />
+                      ) : (
+                        <div className="w-12 h-12 rounded-full bg-white/20 flex items-center justify-center text-white text-lg font-bold">
+                          {user.displayName?.[0] || '?'}
+                        </div>
+                      )}
+                      <div className="flex-1">
+                        <h2 className="text-white text-lg font-bold">{user.displayName}</h2>
+                        <p className="text-green-100 text-xs">{user.email}</p>
+                      </div>
+                    </div>
+
+                    {/* Wellness profile grid */}
+                    <div className="px-6 py-5">
+                      <h3 className="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-3">Your Wellness Profile</h3>
+                      <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+                        {[
+                          { label: 'Gender', value: userProfile.gender, capitalize: true },
+                          { label: 'Age', value: `${userProfile.age} yrs` },
+                          { label: 'Height', value: `${userProfile.height} cm` },
+                          { label: 'Weight', value: `${userProfile.weight} kg` },
+                          { label: 'Goal', value: goalLabel(userProfile.goal) },
+                          { label: 'Activity', value: activityLabel(userProfile.activityLevel) },
+                          { label: 'Sleep', value: userProfile.sleepHours },
+                          { label: 'Diet', value: userProfile.dietaryRestrictions },
+                        ].map((item, i) => (
+                          <div key={i} className="bg-gradient-to-br from-green-50 to-emerald-50 rounded-xl p-2.5">
+                            <div className="text-[10px] text-gray-400 font-medium mb-0.5">{item.label}</div>
+                            <div className={`text-xs font-bold text-gray-800 ${item.capitalize ? 'capitalize' : ''}`}>
+                              {item.value || '—'}
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+
+                      {(userProfile.healthConditions || userProfile.dislikes) && (
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mt-3">
+                          {userProfile.healthConditions && (
+                            <div className="bg-gradient-to-br from-green-50 to-emerald-50 rounded-xl p-2.5">
+                              <div className="text-[10px] text-gray-400 font-medium mb-0.5">Health Conditions</div>
+                              <div className="text-xs font-bold text-gray-800">{userProfile.healthConditions}</div>
+                            </div>
+                          )}
+                          {userProfile.dislikes && (
+                            <div className="bg-gradient-to-br from-green-50 to-emerald-50 rounded-xl p-2.5">
+                              <div className="text-[10px] text-gray-400 font-medium mb-0.5">Allergies / Dislikes</div>
+                              <div className="text-xs font-bold text-gray-800">{userProfile.dislikes}</div>
+                            </div>
+                          )}
+                        </div>
+                      )}
+                    </div>
+
+                    {/* Action buttons */}
+                    <div className="px-6 py-4 bg-gray-50 border-t border-gray-100 flex flex-col gap-2">
+                      <motion.button
+                        whileHover={{ scale: 1.02 }}
+                        whileTap={{ scale: 0.98 }}
+                        onClick={handleUpdateInfo}
+                        className="w-full px-4 py-2 bg-white border border-green-600 text-green-700 font-semibold rounded-full hover:bg-green-50 transition-all flex items-center justify-center gap-2 text-xs"
+                      >
+                        <FiEdit2 size={14} /> Update My Info
+                      </motion.button>
+                      <div className="flex gap-2">
+                        <motion.button
+                          whileHover={{ scale: 1.02 }}
+                          whileTap={{ scale: 0.98 }}
+                          onClick={() => {
+                            trigger("light");
+                            setShowLogoutConfirm(true);
+                          }}
+                          className="flex-1 px-4 py-2 bg-white border border-gray-200 text-gray-600 font-semibold rounded-full hover:border-gray-300 transition-all flex items-center justify-center gap-2 text-xs"
+                        >
+                          <FiLogOut size={14} /> Sign Out
+                        </motion.button>
+                        <motion.button
+                          whileHover={{ scale: 1.02 }}
+                          whileTap={{ scale: 0.98 }}
+                          onClick={() => {
+                            trigger("error");
+                            setShowDeleteConfirm(true);
+                          }}
+                          className="flex-1 px-4 py-2 bg-white border border-red-200 text-red-500 font-semibold rounded-full hover:border-red-300 hover:bg-red-50 transition-all flex items-center justify-center gap-2 text-xs"
+                        >
+                          <FiTrash2 size={14} /> Delete Account
+                        </motion.button>
+                      </div>
+                    </div>
+                  </div>
+                </motion.div>
+              </>
+            )}
+
+            {/* ===== LOGGED-IN: INCOMPLETE PROFILE FALLBACK ===== */}
+            {user && !hasFullProfile && !loading && (
+              <motion.div
+                initial="hidden"
+                animate="show"
+                variants={staggerContainer}
+                className="text-center max-w-xl mx-auto mt-6 mb-12 bg-white rounded-3xl shadow-xl p-8 border border-green-100"
+              >
+                <div className="w-16 h-16 bg-orange-100 rounded-full flex items-center justify-center mx-auto mb-4 text-3xl">
+                  🚀
+                </div>
+                <h2 className="text-2xl font-bold text-green-800 mb-3">{isPendingDeletion ? "Account Deletion Pending" : "You're almost there!"}</h2>
+                <p className="text-gray-600 text-base mb-6">
+                  {isPendingDeletion
+                    ? "You need to confirm your recent login to safely delete your account. Click 'Complete Deletion' below when ready."
+                    : "Your account is created, but we need a few more details to set up your personalized Dashboard and track your journey."}
+                </p>
+                {isPendingDeletion ? (
+                  <motion.button
+                    whileHover={{ scale: 1.05 }}
+                    whileTap={{ scale: 0.95 }}
+                    onClick={() => {
+                      trigger("error");
+                      setShowDeleteConfirm(true);
+                    }}
+                    className="px-6 py-3 bg-red-500 text-white font-bold text-base rounded-full shadow-lg hover:bg-red-600 transition-all flex items-center gap-2 mx-auto"
+                  >
+                    <FiTrash2 size={18} /> Complete Deletion
+                  </motion.button>
+                ) : (
+                  <motion.button
+                    whileHover={{ scale: 1.05 }}
+                    whileTap={{ scale: 0.95 }}
+                    onClick={() => {
+                      trigger("nudge");
+                      setShowOnboarding(true);
+                    }}
+                    className="px-6 py-3 bg-gradient-to-r from-[#F6841F] to-orange-500 text-white font-bold text-base rounded-full shadow-lg hover:shadow-xl transition-all"
+                  >
+                    Complete My Profile
+                  </motion.button>
+                )}
+
+                <div className="mt-6 pt-4 border-t border-gray-100 flex justify-center">
+                  <button
+                    onClick={() => {
+                      trigger("light");
+                      setShowLogoutConfirm(true);
+                    }}
+                    className="text-gray-400 hover:text-gray-600 font-medium text-xs flex items-center gap-2 transition-colors"
+                  >
+                    <FiLogOut size={14} /> Sign out for now
+                  </button>
+                </div>
+              </motion.div>
+            )}
+          </div>
+        )}
+
       </div>
 
       {/* Onboarding Modal */}
@@ -679,10 +722,10 @@ function MyJourney() {
                   trigger("nudge");
                   setShowLogoutConfirm(false)
                 }} className="flex-1 py-2.5 bg-gray-100 text-gray-700 font-semibold rounded-full hover:bg-gray-200 transition-colors">Cancel</button>
-                <button onClick={() => { 
+                <button onClick={() => {
                   trigger("success");
-                  setShowLogoutConfirm(false); 
-                  signOut(); 
+                  setShowLogoutConfirm(false);
+                  signOut();
                 }} className="flex-1 py-2.5 bg-red-500 text-white font-semibold rounded-full hover:bg-red-600 transition-colors">Sign Out</button>
               </div>
             </motion.div>

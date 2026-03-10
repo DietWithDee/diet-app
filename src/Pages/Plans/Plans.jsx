@@ -179,10 +179,10 @@ function Plans() {
     <>
       <div className='min-h-screen bg-gradient-to-br from-green-50 via-white to-emerald-50 py-20 px-6 lg:px-12'>
         <div className='text-center space-y-4 max-w-3xl mx-auto mb-12'>
-          <h1 className='text-5xl font-black text-transparent bg-clip-text bg-gradient-to-r from-green-700 via-emerald-600 to-green-600'>
+          <h1 className='text-3xl font-black text-transparent bg-clip-text bg-gradient-to-r from-green-700 via-emerald-600 to-green-600'>
             Diet Plans
           </h1>
-          <p className='text-gray-700 text-lg'>
+          <p className='text-gray-700 text-md'>
             Tailored nutrition solutions for every lifestyle and goal. Pick a plan and begin your transformation.
           </p>
           <div className='w-20 h-1 bg-gradient-to-r from-green-500 to-emerald-500 mx-auto rounded-full'></div>
