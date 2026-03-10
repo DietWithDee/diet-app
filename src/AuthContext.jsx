@@ -73,8 +73,11 @@ export const AuthProvider = ({ children }) => {
     };
   }, []);
 
-  // Google One Tap
+  // Google One Tap (disabled by default).
+  // To enable One Tap set VITE_ENABLE_GOOGLE_ONE_TAP=true in your environment.
   useEffect(() => {
+    if (import.meta.env.VITE_ENABLE_GOOGLE_ONE_TAP !== 'true') return; // opt-in only
+
     if (!loading && !user) {
       const initializeOneTap = () => {
         if (window.google && window.google.accounts && window.google.accounts.id) {
@@ -92,11 +95,10 @@ export const AuthProvider = ({ children }) => {
             context: 'signin',
             itp_support: true,
           });
-          
+
+          // Prompt will only run when One Tap is enabled via env flag
           window.google.accounts.id.prompt((notification) => {
-            if (notification.isNotDisplayed() || notification.isSkippedMoment()) {
-              // User dismissed it
-            }
+            // optional: inspect notification for isNotDisplayed/isSkippedMoment
           });
         }
       };
