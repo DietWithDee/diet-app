@@ -69,265 +69,301 @@ const WelcomeStep = ({ onNext }) => (
 );
 
 // BMI Step
-const BMIStep = ({ formData, setFormData, units, setUnits, onNext }) => (
-  <div className="max-w-2xl mx-auto space-y-8">
-    <div className="text-center space-y-4">
-      <Calculator className="mx-auto text-green-600" size={48} />
-      <h2 className="text-3xl font-bold text-green-800">BMI Calculator</h2>
-      <p className="text-gray-600">Let's start with your basic measurements</p>
-    </div>
-    <div className="bg-white rounded-2xl shadow-xl p-8 space-y-6">
-      {/* Units Toggle */}
-      <div className="flex justify-center mb-6">
-        <div className="bg-gray-100 rounded-full p-1 flex items-center space-x-1">
-          <button
-            onClick={() => {
-              setUnits('metric');
-              setFormData(prev => ({ ...prev, height: '', weight: '' }));
-            }}
-            className={`flex items-center space-x-2 px-4 py-2 rounded-full transition-all ${units === 'metric'
-                ? 'bg-white shadow-md text-green-700 font-semibold'
-                : 'text-gray-600'
-              }`}
-          >
-            <span className="text-lg">🇬🇧</span>
-            <span>Metric</span>
-          </button>
-          <button
-            onClick={() => {
-              setUnits('imperial');
-              setFormData(prev => ({ ...prev, height: '', weight: '' }));
-            }}
-            className={`flex items-center space-x-2 px-4 py-2 rounded-full transition-all ${units === 'imperial'
-                ? 'bg-white shadow-md text-green-700 font-semibold'
-                : 'text-gray-600'
-              }`}
-          >
-            <span className="text-lg">🇺🇸</span>
-            <span>Imperial</span>
-          </button>
-        </div>
+const BMIStep = ({ formData, setFormData, units, setUnits, onNext }) => {
+  const ageRef = React.useRef(null);
+  const heightRef = React.useRef(null);
+  const weightRef = React.useRef(null);
+
+  const scrollToNext = (ref) => {
+    setTimeout(() => {
+      ref.current?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    }, 100);
+  };
+
+  return (
+    <div className="max-w-2xl mx-auto space-y-8">
+      <div className="text-center space-y-4">
+        <Calculator className="mx-auto text-green-600" size={48} />
+        <h2 className="text-3xl font-bold text-green-800">BMI Calculator</h2>
+        <p className="text-gray-600">Let's start with your basic measurements</p>
       </div>
-      {/* Gender */}
-      <div className="space-y-3">
-        <label className="block text-lg font-semibold text-gray-700">Gender</label>
-        <div className="flex space-x-4 text-gray-600">
-          {['male', 'female'].map(gender => (
+      <div className="bg-white rounded-2xl shadow-xl p-8 space-y-6">
+        {/* Units Toggle */}
+        <div className="flex justify-center mb-6">
+          <div className="bg-gray-100 rounded-full p-1 flex items-center space-x-1">
             <button
-              key={gender}
               onClick={() => {
-                setFormData(prev => ({ ...prev, gender }))
+                setUnits('metric');
+                setFormData(prev => ({ ...prev, height: '', weight: '' }));
               }}
-              className={`flex-1 py-3 px-6 rounded-xl border-2 font-medium capitalize transition-all ${formData.gender === gender
-                  ? 'border-green-500 bg-green-50 text-green-700'
-                  : 'border-gray-200 hover:border-green-300'
+              className={`flex items-center space-x-2 px-4 py-2 rounded-full transition-all ${units === 'metric'
+                  ? 'bg-white shadow-md text-green-700 font-semibold'
+                  : 'text-gray-600'
                 }`}
             >
-              <User className="inline mr-2" size={18} />
-              {gender}
+              <span className="text-lg">🇬🇧</span>
+              <span>Metric</span>
             </button>
-          ))}
+            <button
+              onClick={() => {
+                setUnits('imperial');
+                setFormData(prev => ({ ...prev, height: '', weight: '' }));
+              }}
+              className={`flex items-center space-x-2 px-4 py-2 rounded-full transition-all ${units === 'imperial'
+                  ? 'bg-white shadow-md text-green-700 font-semibold'
+                  : 'text-gray-600'
+                }`}
+            >
+              <span className="text-lg">🇺🇸</span>
+              <span>Imperial</span>
+            </button>
+          </div>
+        </div>
+        {/* Gender */}
+        <div className="space-y-3">
+          <label className="block text-lg font-semibold text-gray-700">Gender</label>
+          <div className="flex space-x-4 text-gray-600">
+            {['male', 'female'].map(gender => (
+              <button
+                key={gender}
+                onClick={() => {
+                  setFormData(prev => ({ ...prev, gender }));
+                  scrollToNext(ageRef);
+                }}
+                className={`flex-1 py-3 px-6 rounded-xl border-2 font-medium capitalize transition-all ${formData.gender === gender
+                    ? 'border-green-500 bg-green-50 text-green-700'
+                    : 'border-gray-200 hover:border-green-300'
+                  }`}
+              >
+                <User className="inline mr-2" size={18} />
+                {gender}
+              </button>
+            ))}
+          </div>
+        </div>
+        {/* Age */}
+        <div ref={ageRef} className="space-y-3 pt-4">
+          <label className="block text-lg font-semibold text-gray-700">Age (years)</label>
+          <input
+            type="number"
+            value={formData.age}
+            onChange={e => {
+              setFormData(prev => ({ ...prev, age: e.target.value }));
+              if (e.target.value.length >= 2) scrollToNext(heightRef);
+            }}
+            className="w-full py-3 px-4 border-2 border-gray-200 rounded-xl focus:border-green-500 focus:outline-none text-lg text-gray-900 placeholder-gray-500"
+            placeholder="Enter your age"
+          />
+        </div>
+        {/* Height */}
+        <div ref={heightRef} className="space-y-3 pt-4">
+          <label className="block text-lg font-semibold text-gray-700">
+            Height ({units === 'metric' ? 'cm' : 'inches'})
+          </label>
+          <input
+            type="number"
+            value={formData.height}
+            onChange={e => {
+              setFormData(prev => ({ ...prev, height: e.target.value }));
+              if (e.target.value.length >= 2) scrollToNext(weightRef);
+            }}
+            className="w-full py-3 px-4 border-2 border-gray-200 rounded-xl focus:border-green-500 focus:outline-none text-lg text-gray-900 placeholder-gray-500"
+            placeholder={units === 'metric' ? 'Enter height in cm' : 'Enter height in inches'}
+          />
+        </div>
+        {/* Weight */}
+        <div ref={weightRef} className="space-y-3 pt-4">
+          <label className="text-lg font-semibold text-gray-700">
+            Weight ({units === 'metric' ? 'kg' : 'lbs'})
+          </label>
+          <input
+            type="number"
+            value={formData.weight}
+            onChange={e => setFormData(prev => ({ ...prev, weight: e.target.value }))}
+            className="w-full py-3 px-4 border-2 border-gray-200 rounded-xl focus:border-green-500 focus:outline-none text-lg text-gray-900 placeholder-gray-500"
+            placeholder={units === 'metric' ? 'Enter weight in kg' : 'Enter weight in lbs'}
+          />
         </div>
       </div>
-      {/* Age */}
-      <div className="space-y-3">
-        <label className="block text-lg font-semibold text-gray-700">Age (years)</label>
-        <input
-          type="number"
-          value={formData.age}
-          onChange={e => setFormData(prev => ({ ...prev, age: e.target.value }))}
-          className="w-full py-3 px-4 border-2 border-gray-200 rounded-xl focus:border-green-500 focus:outline-none text-lg text-gray-900 placeholder-gray-500"
-          placeholder="Enter your age"
-        />
-      </div>
-      {/* Height */}
-      <div className="space-y-3">
-        <label className="block text-lg font-semibold text-gray-700">
-          Height ({units === 'metric' ? 'cm' : 'inches'})
-        </label>
-        <input
-          type="number"
-          value={formData.height}
-          onChange={e => setFormData(prev => ({ ...prev, height: e.target.value }))}
-          className="w-full py-3 px-4 border-2 border-gray-200 rounded-xl focus:border-green-500 focus:outline-none text-lg text-gray-900 placeholder-gray-500"
-          placeholder={units === 'metric' ? 'Enter height in cm' : 'Enter height in inches'}
-        />
-      </div>
-      {/* Weight */}
-      <div className="space-y-3">
-        <label className="text-lg font-semibold text-gray-700">
-          Weight ({units === 'metric' ? 'kg' : 'lbs'})
-        </label>
-        <input
-          type="number"
-          value={formData.weight}
-          onChange={e => setFormData(prev => ({ ...prev, weight: e.target.value }))}
-          className="w-full py-3 px-4 border-2 border-gray-200 rounded-xl focus:border-green-500 focus:outline-none text-lg text-gray-900 placeholder-gray-500"
-          placeholder={units === 'metric' ? 'Enter weight in kg' : 'Enter weight in lbs'}
-        />
-      </div>
+      <button
+        onClick={() => {
+          onNext()
+        }}
+        disabled={!formData.gender || !formData.age || !formData.height || !formData.weight}
+        className="w-full py-4 bg-gradient-to-r from-orange-400 to-orange-400 text-white font-bold rounded-full shadow-lg hover:shadow-xl transform hover:-translate-y-1 transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center space-x-2"
+      >
+        <span>Next Step</span>
+        <ChevronRight size={20} />
+      </button>
     </div>
-    <button
-      onClick={() => {
-        onNext()
-      }}
-      disabled={!formData.gender || !formData.age || !formData.height || !formData.weight}
-      className="w-full py-4 bg-gradient-to-r from-orange-400 to-orange-400 text-white font-bold rounded-full shadow-lg hover:shadow-xl transform hover:-translate-y-1 transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center space-x-2"
-    >
-      <span>Next Step</span>
-      <ChevronRight size={20} />
-    </button>
-  </div>
-);
+  );
+};
 
 // Calorie Step
-const CalorieStep = ({ formData, setFormData, onNext }) => (
-  <div className="max-w-2xl mx-auto space-y-8">
-    <div className="text-center space-y-4">
-      <Target className="mx-auto text-emerald-600" size={48} />
-      <h2 className="text-3xl font-bold text-green-800">Let's get to know your body a bit more…</h2>
-      <p className="text-gray-600">This helps us calculate your daily calorie needs</p>
-    </div>
-    <div className="bg-white rounded-2xl shadow-xl p-8 space-y-8">
-      {/* Goal */}
-      <div className="space-y-4">
-        <label className="text-lg font-semibold text-gray-700 flex items-center">
-          <Target className="mr-2" size={20} /> What's your goal?
-        </label>
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-3 text-gray-600">
-          {[
-            { key: 'lose', label: 'Lose Weight', icon: '📉' },
-            { key: 'maintain', label: 'Maintain Weight', icon: '⚖️' },
-            { key: 'gain', label: 'Gain Weight', icon: '📈' }
-          ].map(goal => (
-            <button
-              key={goal.key}
-              onClick={() => {
-                setFormData(prev => ({ ...prev, goal: goal.key }))
-              }}
-              className={`py-4 px-4 rounded-xl border-2 font-medium transition-all text-center ${formData.goal === goal.key
-                  ? 'border-green-500 bg-green-50 text-green-700'
-                  : 'border-gray-200 hover:border-green-300'
-                }`}
-            >
-              <div className="text-2xl mb-2">{goal.icon}</div>
-              {goal.label}
-            </button>
-          ))}
-        </div>
-      </div>
-      {/* Activity */}
-      <div className="space-y-4">
-        <label className="text-lg font-semibold text-gray-700 flex items-center">
-          <Activity className="mr-2" size={20} /> What's your daily activity level?
-        </label>
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-3 text-green-600">
-          {[
-            { key: 'sedentary', label: 'Sedentary', desc: 'Little to no exercise' },
-            { key: 'light', label: 'Light', desc: 'Light exercise 1-3 days/week' },
-            { key: 'moderate', label: 'Moderate', desc: 'Moderate exercise 3-5 days/week' },
-            { key: 'active', label: 'Very Active', desc: 'Heavy exercise 6-7 days/week' }
-          ].map(activity => (
-            <button
-              key={activity.key}
-              onClick={() => {
-                setFormData(prev => ({ ...prev, activityLevel: activity.key }))
-              }}
-              className={`py-4 px-4 rounded-xl border-2 font-medium transition-all text-left ${formData.activityLevel === activity.key
-                  ? 'border-green-500 bg-green-50 text-green-700'
-                  : 'border-gray-200 hover:border-green-300'
-                }`}
-            >
-              <div className="font-semibold">{activity.label}</div>
-              <div className="text-sm text-gray-600">{activity.desc}</div>
-            </button>
-          ))}
-        </div>
-      </div>
-      {/* Sleep */}
-      <div className="space-y-4">
-        <label className="text-lg font-semibold text-gray-700 flex items-center">
-          <Moon className="mr-2" size={20} /> How many hours of sleep do you get?
-        </label>
-        <div className="grid grid-cols-3 gap-3 text-gray-400">
-          {['4-5 hours', '6-7 hours', '8+ hours'].map(sleep => (
-            <button
-              key={sleep}
-              onClick={() => {
-                setFormData(prev => ({ ...prev, sleepHours: sleep }))
-              }}
-              className={`py-3 px-4 rounded-xl border-2 font-medium transition-all ${formData.sleepHours === sleep
-                  ? 'border-green-500 bg-green-50 text-green-700'
-                  : 'border-gray-200 hover:border-green-300'
-                }`}
-            >
-              {sleep}
-            </button>
-          ))}
-        </div>
-      </div>
-      {/* Health Conditions */}
-      <div className="space-y-3">
-        <label className="text-lg font-semibold text-gray-700 flex items-center">
-          <Heart className="mr-2" size={20} /> Any health conditions? (Optional)
-        </label>
-        <input
-          type="text"
-          value={formData.healthConditions}
-          onChange={e => setFormData(prev => ({ ...prev, healthConditions: e.target.value }))}
-          className="w-full py-3 px-4 border-2 border-gray-200 rounded-xl focus:border-green-500 focus:outline-none text-gray-900 placeholder-gray-500"
-          placeholder="e.g., Diabetes, High blood pressure..."
-        />
-      </div>
-      {/* Food Allergies */}
-      <div className="space-y-3">
-        <label className="text-lg font-semibold text-gray-700 flex items-center">
-          <Angry className="mr-2" size={30} /> Do you have any Food Allergies or Dislikes? (Optional)
-        </label>
-        <input
-          type="text"
-          value={formData.dislikes}
-          onChange={e => setFormData(prev => ({ ...prev, dislikes: e.target.value }))}
-          className="w-full py-3 px-4 border-2 border-gray-200 rounded-xl focus:border-green-500 focus:outline-none text-gray-900 placeholder-gray-500"
-          placeholder="e.g., Lactose Intolerance, Gluten Insensitivity..."
-        />
-      </div>
+const CalorieStep = ({ formData, setFormData, onNext }) => {
+  const activityRef = React.useRef(null);
+  const sleepRef = React.useRef(null);
+  const healthRef = React.useRef(null);
+  const dietRef = React.useRef(null);
 
-      {/* Dietary Restrictions */}
-      <div className="space-y-4">
-        <label className="text-lg font-semibold text-gray-700 flex items-center">
-          <Utensils className="mr-2" size={20} /> Dietary restrictions/preferences?
-        </label>
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-3 text-gray-400">
-          {['Vegan', 'Vegetarian', 'Gluten-free', 'None'].map(diet => (
-            <button
-              key={diet}
-              onClick={() => {
-                setFormData(prev => ({ ...prev, dietaryRestrictions: diet }))
-              }}
-              className={`py-3 px-4 rounded-xl border-2 font-medium transition-all ${formData.dietaryRestrictions === diet
-                  ? 'border-green-500 bg-green-50 text-green-700'
-                  : 'border-gray-200 hover:border-green-300'
-                }`}
-            >
-              {diet}
-            </button>
-          ))}
+  const scrollToNext = (ref) => {
+    setTimeout(() => {
+      ref.current?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    }, 100);
+  };
+
+  return (
+    <div className="max-w-2xl mx-auto space-y-8">
+      <div className="text-center space-y-4">
+        <Target className="mx-auto text-emerald-600" size={48} />
+        <h2 className="text-3xl font-bold text-green-800">Let's get to know your body a bit more…</h2>
+        <p className="text-gray-600">This helps us calculate your daily calorie needs</p>
+      </div>
+      <div className="bg-white rounded-2xl shadow-xl p-8 space-y-8">
+        {/* Goal */}
+        <div className="space-y-4">
+          <label className="text-lg font-semibold text-gray-700 flex items-center">
+            <Target className="mr-2" size={20} /> What's your goal?
+          </label>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-3 text-gray-600">
+            {[
+              { key: 'lose', label: 'Lose Weight', icon: '📉' },
+              { key: 'maintain', label: 'Maintain Weight', icon: '⚖️' },
+              { key: 'gain', label: 'Gain Weight', icon: '📈' }
+            ].map(goal => (
+              <button
+                key={goal.key}
+                onClick={() => {
+                  setFormData(prev => ({ ...prev, goal: goal.key }));
+                  scrollToNext(activityRef);
+                }}
+                className={`py-4 px-4 rounded-xl border-2 font-medium transition-all text-center ${formData.goal === goal.key
+                    ? 'border-green-500 bg-green-50 text-green-700'
+                    : 'border-gray-200 hover:border-green-300'
+                  }`}
+              >
+                <div className="text-2xl mb-2">{goal.icon}</div>
+                {goal.label}
+              </button>
+            ))}
+          </div>
+        </div>
+        {/* Activity */}
+        <div ref={activityRef} className="space-y-4 pt-4">
+          <label className="text-lg font-semibold text-gray-700 flex items-center">
+            <Activity className="mr-2" size={20} /> What's your daily activity level?
+          </label>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-3 text-green-600">
+            {[
+              { key: 'sedentary', label: 'Sedentary', desc: 'Little to no exercise' },
+              { key: 'light', label: 'Light', desc: 'Light exercise 1-3 days/week' },
+              { key: 'moderate', label: 'Moderate', desc: 'Moderate exercise 3-5 days/week' },
+              { key: 'active', label: 'Very Active', desc: 'Heavy exercise 6-7 days/week' }
+            ].map(activity => (
+              <button
+                key={activity.key}
+                onClick={() => {
+                  setFormData(prev => ({ ...prev, activityLevel: activity.key }));
+                  scrollToNext(sleepRef);
+                }}
+                className={`py-4 px-4 rounded-xl border-2 font-medium transition-all text-left ${formData.activityLevel === activity.key
+                    ? 'border-green-500 bg-green-50 text-green-700'
+                    : 'border-gray-200 hover:border-green-300'
+                  }`}
+              >
+                <div className="font-semibold">{activity.label}</div>
+                <div className="text-sm text-gray-600">{activity.desc}</div>
+              </button>
+            ))}
+          </div>
+        </div>
+        {/* Sleep */}
+        <div ref={sleepRef} className="space-y-4 pt-4">
+          <label className="text-lg font-semibold text-gray-700 flex items-center">
+            <Moon className="mr-2" size={20} /> How many hours of sleep do you get?
+          </label>
+          <div className="grid grid-cols-3 gap-3 text-gray-400">
+            {['4-5 hours', '6-7 hours', '8+ hours'].map(sleep => (
+              <button
+                key={sleep}
+                onClick={() => {
+                  setFormData(prev => ({ ...prev, sleepHours: sleep }));
+                  scrollToNext(healthRef);
+                }}
+                className={`py-3 px-4 rounded-xl border-2 font-medium transition-all ${formData.sleepHours === sleep
+                    ? 'border-green-500 bg-green-50 text-green-700'
+                    : 'border-gray-200 hover:border-green-300'
+                  }`}
+              >
+                {sleep}
+              </button>
+            ))}
+          </div>
+        </div>
+        {/* Health Conditions */}
+        <div ref={healthRef} className="space-y-3 pt-4">
+          <label className="text-lg font-semibold text-gray-700 flex items-center">
+            <Heart className="mr-2" size={20} /> Any health conditions? (Optional)
+          </label>
+          <input
+            type="text"
+            value={formData.healthConditions}
+            onChange={e => setFormData(prev => ({ ...prev, healthConditions: e.target.value }))}
+            onBlur={() => scrollToNext(dietRef)}
+            className="w-full py-3 px-4 border-2 border-gray-200 rounded-xl focus:border-green-500 focus:outline-none text-gray-900 placeholder-gray-500"
+            placeholder="e.g., Diabetes, High blood pressure..."
+          />
+        </div>
+        {/* Food Allergies */}
+        <div className="space-y-3 pt-4">
+          <label className="text-lg font-semibold text-gray-700 flex items-center">
+            <Angry className="mr-2" size={30} /> Do you have any Food Allergies or Dislikes? (Optional)
+          </label>
+          <input
+            type="text"
+            value={formData.dislikes}
+            onChange={e => setFormData(prev => ({ ...prev, dislikes: e.target.value }))}
+            className="w-full py-3 px-4 border-2 border-gray-200 rounded-xl focus:border-green-500 focus:outline-none text-gray-900 placeholder-gray-500"
+            placeholder="e.g., Lactose Intolerance, Gluten Insensitivity..."
+          />
+        </div>
+
+        {/* Dietary Restrictions */}
+        <div ref={dietRef} className="space-y-4 pt-4">
+          <label className="text-lg font-semibold text-gray-700 flex items-center">
+            <Utensils className="mr-2" size={20} /> Dietary restrictions/preferences?
+          </label>
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-3 text-gray-400">
+            {['Vegan', 'Vegetarian', 'Gluten-free', 'None'].map(diet => (
+              <button
+                key={diet}
+                onClick={() => {
+                  setFormData(prev => ({ ...prev, dietaryRestrictions: diet }))
+                }}
+                className={`py-3 px-4 rounded-xl border-2 font-medium transition-all ${formData.dietaryRestrictions === diet
+                    ? 'border-green-500 bg-green-50 text-green-700'
+                    : 'border-gray-200 hover:border-green-300'
+                  }`}
+              >
+                {diet}
+              </button>
+            ))}
+          </div>
         </div>
       </div>
+      <button
+        onClick={() => {
+          onNext()
+        }}
+        disabled={!formData.goal || !formData.activityLevel || !formData.sleepHours || !formData.dietaryRestrictions}
+        className="w-full py-4 bg-gradient-to-r from-orange-400 to-orange-400 text-white font-bold rounded-full shadow-lg hover:shadow-xl transform hover:-translate-y-1 transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center space-x-2"
+      >
+        <span>See Results</span>
+        <ChevronRight size={20} />
+      </button>
     </div>
-    <button
-      onClick={() => {
-        onNext()
-      }}
-      disabled={!formData.goal || !formData.activityLevel || !formData.sleepHours || !formData.dietaryRestrictions}
-      className="w-full py-4 bg-gradient-to-r from-orange-400 to-orange-400 text-white font-bold rounded-full shadow-lg hover:shadow-xl transform hover:-translate-y-1 transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center space-x-2"
-    >
-      <span>See Results</span>
-      <ChevronRight size={20} />
-    </button>
-  </div>
-);
+  );
+};
 
 // Results Step
 const ResultsStep = ({ results, formData, navigate, trigger }) => (

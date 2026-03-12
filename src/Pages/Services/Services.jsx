@@ -231,18 +231,16 @@ function ServicesContactSection() {
 
                 {/* Main image container */}
                 <motion.div 
-                  className='relative z-10 p-3 sm:p-6 lg:p-7'
+                  className='relative z-10'
                   variants={floatingImage}
                   initial="hidden"
                   animate={["show", "float"]}
                 >
-                  <div className='bg-white rounded-2xl sm:rounded-3xl shadow-xl lg:shadow-2xl p-3 sm:p-4 hover:shadow-2xl lg:hover:shadow-3xl transition-all duration-500 hover:scale-[1.02]'>
-                    <img
-                      src={Food}
-                      alt="Health and nutrition consultation"
-                      className='h-115 w-90 max-h-74 sm:max-h-80 lg:max-h-96 object-cover rounded-xl'
-                    />
-                  </div>
+                  <img
+                    src={Food}
+                    alt="Health and nutrition consultation"
+                    className='w-full max-w-sm sm:max-w-md lg:max-w-lg mx-auto mix-blend-multiply'
+                  />
                 </motion.div>
               </div>
 

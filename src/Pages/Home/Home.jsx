@@ -254,21 +254,21 @@ function Home() {
                   <div className="absolute -bottom-4 -right-4 w-64 h-64 bg-gradient-to-tr from-green-300 to-emerald-300 rounded-full opacity-15 blur-2xl"></div>
 
                   <div className="relative z-10 p-1 lg:p-3">
-                    <div className="bg-white rounded-3xl shadow-2xl overflow-hidden hover:shadow-3xl transition-all duration-500 hover:scale-105">
+                    <div className="bg-white rounded-3xl shadow-xl overflow-hidden transition-all duration-500 hover:shadow-2xl">
                       <div className="relative">
-                        <div className="absolute inset-0 bg-gradient-to-t from-green-900/20 via-transparent to-transparent z-10"></div>
-                        <div className="aspect-square w-full overflow-hidden">
+                        <div className="absolute inset-0 bg-gradient-to-t from-green-900/10 via-transparent to-transparent z-10"></div>
+                        <div className="w-full overflow-hidden">
                           <img
-                            className="w-full h-full object-cover object-center transition-transform duration-700 hover:scale-110"
+                            className="w-full h-full object-cover object-top transition-transform duration-1000 hover:scale-[1.03]"
                             src={Dee}
                             alt="Dee - Professional Nutritionist"
                           />
                         </div>
-                        <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-white via-white/95 to-transparent p-7 z-20">
+                        <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-white via-white/80 to-transparent p-6 z-20">
                           <div className="text-center">
                             <p className="text-base text-gray-800 font-medium">Nana Ama Dwamena, RD.</p>
-                            <div className="flex items-center justify-center gap-3 pt-2">
-                              <span className="text-sm text-gray-600">Founder, DietWithDee</span>
+                            <div className="flex items-center justify-center gap-3 pt-1">
+                              <span className="text-sm text-gray-500">Founder, DietWithDee</span>
                             </div>
                           </div>
                         </div>

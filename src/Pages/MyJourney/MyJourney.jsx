@@ -18,43 +18,10 @@ import SafeImage from '../../Components/SafeImage';
 
 
 const FloatingBackground = () => (
-  <div className="absolute inset-0 overflow-hidden pointer-events-none z-0">
-    <motion.div
-      animate={{
-        x: [0, 40, -20, 0],
-        y: [0, -50, 20, 0],
-      }}
-      transition={{
-        duration: 20,
-        repeat: Infinity,
-        ease: "easeInOut"
-      }}
-      className="absolute top-1/4 -left-20 w-[600px] h-[600px] bg-green-300/40 rounded-full blur-[120px]"
-    />
-    <motion.div
-      animate={{
-        x: [0, -60, 30, 0],
-        y: [0, 40, -40, 0],
-      }}
-      transition={{
-        duration: 25,
-        repeat: Infinity,
-        ease: "easeInOut"
-      }}
-      className="absolute top-1/2 -right-20 w-[700px] h-[700px] bg-emerald-300/40 rounded-full blur-[140px]"
-    />
-    <motion.div
-      animate={{
-        x: [0, 30, -50, 0],
-        y: [0, 60, -30, 0],
-      }}
-      transition={{
-        duration: 22,
-        repeat: Infinity,
-        ease: "easeInOut"
-      }}
-      className="absolute bottom-1/4 left-1/3 w-[500px] h-[500px] bg-lime-300/30 rounded-full blur-[110px]"
-    />
+  <div className="absolute inset-0 overflow-hidden pointer-events-none z-0" aria-hidden="true">
+    <div className="absolute top-1/4 -left-16 w-80 h-80 bg-green-300/30 rounded-full blur-[80px]" />
+    <div className="absolute top-1/2 -right-16 w-96 h-96 bg-emerald-300/30 rounded-full blur-[90px]" />
+    <div className="absolute bottom-1/4 left-1/3 w-72 h-72 bg-lime-200/25 rounded-full blur-[70px]" />
   </div>
 );
 
@@ -113,15 +80,6 @@ function MyJourney() {
       opacity: 1,
       y: 0,
       transition: { type: "spring", stiffness: 50, damping: 15 }
-    }
-  };
-
-  const subtleZoom = {
-    hidden: { scale: 1, opacity: 0 },
-    show: {
-      scale: 1,
-      opacity: 1,
-      transition: { duration: 1.5, ease: "easeOut" }
     }
   };
 
@@ -336,7 +294,7 @@ function MyJourney() {
                 </motion.p>
 
                 {/* Get Started / Sign-in CTA */}
-                <motion.div variants={fadeUp} className="bg-white/70 backdrop-blur-md rounded-2xl p-6 border border-white shadow-md max-w-md w-full mx-auto">
+                <motion.div variants={fadeUp} className="bg-white/90 rounded-2xl p-6 border border-white/80 shadow-md max-w-md w-full mx-auto">
                   <div className="text-center space-y-4">
                     <div className="w-12 h-12 bg-gradient-to-br from-green-100 to-emerald-100 rounded-xl flex items-center justify-center mx-auto">
                       <span className="text-xl">🌿</span>
