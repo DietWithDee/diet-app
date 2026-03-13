@@ -2,6 +2,8 @@ import React, { useState, useEffect, useRef } from 'react';
 import SEO from '../../Components/SEO';
 import { useNavigate } from 'react-router';
 import { motion } from 'framer-motion';
+import { logEvent } from 'firebase/analytics';
+import { analytics } from '../../firebaseConfig';
 import Avocado from '../../assets/avocado_journey.webp';
 import Dee from '../../assets/images/Dee1.webp';
 import InstallPrompt from '../../Components/InstallPrompt';
@@ -161,7 +163,13 @@ function Home() {
                   <motion.button
                     whileHover={{ scale: 1.05, y: -2 }}
                     whileTap={{ scale: 0.95 }}
-                    onClick={() => navigate('/my-journey')}
+                    onClick={() => {
+                      logEvent(analytics, 'select_content', {
+                        content_type: 'Button',
+                        item_id: 'hero_start_my_journey'
+                      });
+                      navigate('/my-journey');
+                    }}
                     className="px-8 py-4 bg-gradient-to-r from-[#F6841F] to-[#F6841F] text-white font-bold rounded-full shadow-lg hover:shadow-xl transition-all duration-300 hover:from-orange-600 hover:to-orange-400"
                   >
                     Start My Journey

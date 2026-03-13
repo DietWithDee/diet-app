@@ -79,7 +79,7 @@ const AdminDashboard = () => {
   const loadArticles = React.useCallback(async () => {
     setIsLoading(true);
     try {
-      const result = await getArticles();
+      const result = await getArticles(true); // Pass true to include drafts and scheduled
       if (result.success) {
         setArticles(result.data || []);
       } else {

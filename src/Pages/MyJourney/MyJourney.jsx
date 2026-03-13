@@ -15,6 +15,8 @@ import PlanRecommendation from './components/PlanRecommendation';
 import RecommendedReads from './components/RecommendedReads';
 import Achievements from './components/Achievements';
 import SafeImage from '../../Components/SafeImage';
+import { logEvent } from 'firebase/analytics';
+import { analytics } from '../../firebaseConfig';
 
 
 const FloatingBackground = () => (
@@ -89,6 +91,7 @@ function MyJourney() {
     try {
       const userResult = await signInWithGoogle();
       if (userResult) {
+        logEvent(analytics, 'login', { method: 'Google' });
         setSigningIn(false);
       } else {
         setSigningIn(false);
@@ -150,6 +153,12 @@ function MyJourney() {
       carbs: Math.round((goalCalories * 0.4) / 4),
       fats: Math.round((goalCalories * 0.3) / 9),
     };
+
+    logEvent(analytics, 'begin_checkout', {
+      item_name: 'Consultation Session',
+      value: 800,
+      currency: 'GHS'
+    });
 
     navigate('/contactUs', {
       state: {

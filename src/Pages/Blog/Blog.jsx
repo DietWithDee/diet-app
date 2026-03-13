@@ -9,6 +9,8 @@ import ScrollHideRefreshButton from '../../utils/ScrollHideRefreshButton';
 import NewsletterPopup from '../../Components/NewsletterPopup';
 import SafeImage from '../../Components/SafeImage';
 import 'react-lazy-load-image-component/src/effects/blur.css';
+import { logEvent } from 'firebase/analytics';
+import { analytics } from '../../firebaseConfig';
 
 function Blog() {
   const navigate = useNavigate();
@@ -62,6 +64,11 @@ function Blog() {
         if (res?.success) {
           setSelectedArticle(res.data);
           setViewMode('article');
+          logEvent(analytics, 'view_item', {
+            item_id: res.data.id,
+            item_name: res.data.title,
+            item_category: 'Blog Article'
+          });
         } else {
           setError('Article not found');
         }
@@ -251,6 +258,12 @@ function Blog() {
     navigate(`/blog/${article.id}`);
     // Scroll to top when opening article
     window.scrollTo({ top: 0, behavior: 'smooth' });
+    
+    logEvent(analytics, 'view_item', {
+      item_id: article.id,
+      item_name: article.title,
+      item_category: 'Blog Article'
+    });
   };
 
   const handleBackToList = () => {
@@ -692,7 +705,7 @@ function Blog() {
       </div>
 
       {/* Refresh button for development */}
-      {process.env.NODE_ENV === 'development' && (
+      {import.meta.env.DEV && (
         <ScrollHideRefreshButton
           loadArticles={loadArticles}
           isLoading={isLoadingArticles}

@@ -3,6 +3,8 @@ import { ChevronRight, Calculator, Target, BookOpen, User, Activity, Moon, Heart
 import { useNavigate } from 'react-router';
 import { BsQuestion } from 'react-icons/bs';
 import { useWebHaptics } from 'web-haptics/react';
+import { logEvent } from 'firebase/analytics';
+import { analytics } from '../../firebaseConfig';
 
 // Progress Bar
 const ProgressBar = ({ step }) => {
@@ -33,7 +35,7 @@ const WelcomeStep = ({ onNext }) => (
         Let's personalize your nutrition journey
       </h1>
       <p className="text-xl text-gray-600 max-w-2xl mx-auto leading-relaxed">
-        Track your daily calories with our easy-to-use tool and stay on top of your health goals. Get expert guidance and book a session with our dietitians when you're ready.
+        Track your daily calories with our easy-to-use tool and stay on top of your health goals. Get expert guidance and book a session with our dietitians when you're ready.
       </p>
     </div>
     <div className="flex justify-center space-x-4">
@@ -582,6 +584,11 @@ function KnowYourBody() {
     } else if (step === 2) {
       const calorieResults = calculateCalories();
       setResults(prev => ({ ...prev, ...calorieResults }));
+      
+      logEvent(analytics, 'generate_lead', {
+        goal: formData.goal,
+        bmi_category: results.bmiCategory
+      });
     }
 
     setStep(prev => prev + 1);

@@ -19,7 +19,7 @@ import {
 import { ref, uploadBytes, getDownloadURL, deleteObject } from "firebase/storage";
 
 // CREATE article - FIXED to handle both File objects and URL strings
-export const createArticle = async (title, content, imageInput) => {
+export const createArticle = async (title, content, imageInput, status = 'published', scheduledPublishDate = null) => {
   try {
     let imageUrl = "";
 
@@ -41,6 +41,8 @@ export const createArticle = async (title, content, imageInput) => {
       title,
       content,
       coverImage: imageUrl,
+      status,
+      scheduledPublishDate: scheduledPublishDate ? Timestamp.fromDate(new Date(scheduledPublishDate)) : null,
       likesCount: 0, // Initialize likes count
       helpfulCount: 0, // Initialize helpful count
       notHelpfulCount: 0, // Initialize not helpful count
@@ -56,10 +58,14 @@ export const createArticle = async (title, content, imageInput) => {
 };
 
 // GET all articles
-export const getArticles = async () => {
+export const getArticles = async (includeUnpublished = false) => {
   try {
-    // Query articles ordered by creation date (newest first)
-    const q = query(collection(db, "articles"), orderBy("createdAt", "desc"));
+    let q;
+    if (includeUnpublished) {
+      q = query(collection(db, "articles"), orderBy("createdAt", "desc"));
+    } else {
+      q = query(collection(db, "articles"), where("status", "==", "published"), orderBy("createdAt", "desc"));
+    }
     const snapshot = await getDocs(q);
     
     const articles = snapshot.docs.map(doc => ({
@@ -78,20 +84,26 @@ export const getArticles = async () => {
 };
 
 // GET articles with pagination
-export const getArticlesPaged = async (pageSize = 6, lastVisibleDoc = null) => {
+export const getArticlesPaged = async (pageSize = 6, lastVisibleDoc = null, includeUnpublished = false) => {
   try {
     let q;
+    let baseConstraints = [];
+    if (!includeUnpublished) {
+      baseConstraints.push(where("status", "==", "published"));
+    }
+    baseConstraints.push(orderBy("createdAt", "desc"));
+
     if (lastVisibleDoc) {
       q = query(
         collection(db, "articles"), 
-        orderBy("createdAt", "desc"), 
+        ...baseConstraints,
         startAfter(lastVisibleDoc),
         limit(pageSize)
       );
     } else {
       q = query(
         collection(db, "articles"), 
-        orderBy("createdAt", "desc"), 
+        ...baseConstraints,
         limit(pageSize)
       );
     }
@@ -120,11 +132,13 @@ export const getArticlesPaged = async (pageSize = 6, lastVisibleDoc = null) => {
 };
 
 // UPDATE article - FIXED to handle both File objects and URL strings
-export const updateArticle = async (articleId, title, content, imageInput) => {
+export const updateArticle = async (articleId, title, content, imageInput, status = 'published', scheduledPublishDate = null) => {
   try {
     let updateData = {
       title,
       content,
+      status,
+      scheduledPublishDate: scheduledPublishDate ? Timestamp.fromDate(new Date(scheduledPublishDate)) : null,
       updatedAt: Timestamp.now()
     };
 
@@ -153,27 +167,36 @@ export const updateArticle = async (articleId, title, content, imageInput) => {
 };
 
 // DELETE article
-export const deleteArticle = async (articleId) => {
+export const deleteArticle = async (articleId, coverImageUrl, articleContent) => {
   try {
-    // Get article data first to delete associated image
-    const articleDoc = await getDoc(doc(db, "articles", articleId));
-    const articleData = articleDoc.data();
-
-    // Delete associated image if exists and it's a Firebase Storage URL
-    if (articleData && articleData.coverImage) {
+    // 1. Delete cover image if it exists in Firebase Storage
+    if (coverImageUrl && typeof coverImageUrl === 'string' && coverImageUrl.includes("firebasestorage.googleapis.com")) {
+      const imageRef = ref(storage, coverImageUrl);
       try {
-        // Only try to delete if it's a Firebase Storage URL
-        if (articleData.coverImage.includes('firebase')) {
-          const imageRef = ref(storage, articleData.coverImage);
-          await deleteObject(imageRef);
-        }
-      } catch (imageError) {
-        console.warn("Error deleting associated image:", imageError);
-        // Continue with article deletion even if image deletion fails
+        await deleteObject(imageRef);
+      } catch (e) {
+        console.error("Error deleting old cover image: ", e);
       }
     }
 
-    // Delete article from Firestore
+    // 2. Extract and delete all inline images from the content HTML
+    if (articleContent && typeof articleContent === 'string') {
+        const imgRegex = /<img[^>]+src="([^">]+)"/g;
+        let match;
+        while ((match = imgRegex.exec(articleContent)) !== null) {
+            const inlineUrl = match[1];
+            if (inlineUrl.includes("firebasestorage.googleapis.com")) {
+                const inlineImageRef = ref(storage, inlineUrl);
+                try {
+                    await deleteObject(inlineImageRef);
+                } catch (e) {
+                    console.error("Error deleting inline image: ", e);
+                }
+            }
+        }
+    }
+
+    // 3. Delete article from Firestore
     await deleteDoc(doc(db, "articles", articleId));
 
     return { success: true };
@@ -184,12 +207,17 @@ export const deleteArticle = async (articleId) => {
 };
 
 // GET single article by ID
-export const getArticleById = async (articleId) => {
+export const getArticleById = async (articleId, includeUnpublished = false) => {
   try {
     const docSnap = await getDoc(doc(db, "articles", articleId));
     
     if (docSnap.exists()) {
       const data = docSnap.data();
+      
+      if (!includeUnpublished && data.status && data.status !== 'published') {
+        return { success: false, error: "Article not found or not published" };
+      }
+
       return { 
         success: true, 
         data: { 

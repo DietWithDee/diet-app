@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { Bold, Italic, Underline, List, ListOrdered, Link, Quote, Type } from 'lucide-react';
+import { Bold, Italic, Underline, List, ListOrdered, Link, Quote, Type, Image as ImageIcon, Loader } from 'lucide-react';
 
 /* ============================
    Rich Text Editor (re-built)
@@ -9,8 +9,9 @@ const RichTextEditor = ({ value, onChange, disabled = false }) => {
   const savedRangeRef = useRef(null);
   const internalChangeRef = useRef(false);
 
-  const [isActive, setIsActive] = useState({ bold: false, italic: false, underline: false });
+  const [isActive, setIsActive] = useState({ bold: false, italic: false, underline: false, ul: false, ol: false, quote: false });
   const [fontPx, setFontPx] = useState(14);
+  const [isUploadingImage, setIsUploadingImage] = useState(false);
 
   // -------- Utilities --------
   const clamp = (v, min = 12, max = 36) => Math.max(min, Math.min(max, v));
@@ -82,23 +83,25 @@ const RichTextEditor = ({ value, onChange, disabled = false }) => {
       a.rel = "noopener noreferrer nofollow";
       const style = a.getAttribute("style") || "";
       if (!/color\s*:/i.test(style) || !/text-decoration\s*:/i.test(style)) {
-        a.setAttribute(
-          "style",
-          `${style}${/color\s*:/i.test(style) ? "" : "color:#059669;"}${/text-decoration\s*:/i.test(style) ? "" : "text-decoration:underline;"}`
-        );
+        let newStyle = style.trim();
+        if (newStyle && !newStyle.endsWith(';')) newStyle += ';';
+        if (!/color\s*:/i.test(newStyle)) newStyle += "color:#059669;";
+        if (!/text-decoration\s*:/i.test(newStyle)) newStyle += "text-decoration:underline;";
+        a.setAttribute("style", newStyle);
       }
     });
   };
 
   const sanitizeHTML = (dirty) => {
-    const ALLOWED_TAGS = new Set(["b", "strong", "i", "em", "u", "a", "ul", "ol", "li", "blockquote", "span", "br", "p", "div"]);
+    const ALLOWED_TAGS = new Set(["b", "strong", "i", "em", "u", "a", "ul", "ol", "li", "blockquote", "span", "br", "p", "div", "img"]);
     const ALLOWED_ATTRS = {
       a: new Set(["href", "rel", "target", "style"]),
       span: new Set(["style"]),
       p: new Set(["style"]),
       div: new Set(["style"]),
       blockquote: new Set(["style"]),
-      li: new Set(["style"])
+      li: new Set(["style"]),
+      img: new Set(["src", "alt", "style", "class", "width", "height"])
     };
     const parser = document.createElement("div");
     parser.innerHTML = dirty;
@@ -122,13 +125,23 @@ const RichTextEditor = ({ value, onChange, disabled = false }) => {
         if (!allowed?.has(name)) node.removeAttribute(attr.name);
       });
 
-      // Style allowlist: only font-size, text-decoration, color for spans/paragraph-ish
+      // Style allowlist: text and image properties
       const style = node.getAttribute?.("style") || "";
       if (style) {
         const safe = style
           .split(";")
           .map(s => s.trim())
-          .filter(s => /^font-size\s*:\s*\d+(\.\d+)?px$/i.test(s) || /^text-decoration\s*:\s*\w+/i.test(s) || /^color\s*:\s*#[0-9a-f]{3,8}$/i.test(s))
+          .filter(s => {
+            if (/^font-size\s*:\s*\d+(\.\d+)?px$/i.test(s)) return true;
+            if (/^text-decoration\s*:\s*\w+/i.test(s)) return true;
+            if (/^color\s*:/i.test(s)) return true;
+            if (/^(max-)?width\s*:/i.test(s)) return true;
+            if (/^height\s*:/i.test(s)) return true;
+            if (/^border(-radius)?\s*:/i.test(s)) return true;
+            if (/^margin\s*:/i.test(s)) return true;
+            if (/^display\s*:/i.test(s)) return true;
+            return false;
+          })
           .join(";");
         if (safe) node.setAttribute("style", safe);
         else node.removeAttribute("style");
@@ -164,10 +177,17 @@ const RichTextEditor = ({ value, onChange, disabled = false }) => {
 
   const updateToolbarState = () => {
     try {
+      const root = editorRef.current;
+      const node = getSelectionRootNode();
+      const isQuote = node ? !!closest(node, "blockquote", root) : false;
+
       setIsActive({
         bold: document.queryCommandState("bold"),
         italic: document.queryCommandState("italic"),
         underline: document.queryCommandState("underline"),
+        ul: document.queryCommandState("insertUnorderedList"),
+        ol: document.queryCommandState("insertOrderedList"),
+        quote: isQuote
       });
     } catch (err) {
       console.warn("Failed to update toolbar state:", err);
@@ -324,6 +344,65 @@ const RichTextEditor = ({ value, onChange, disabled = false }) => {
     saveSelection();
   };
 
+  // -------- Image Upload (Firebase Storage) --------
+  const handleImageUpload = async (e) => {
+    if (disabled || isUploadingImage) return;
+    const file = e.target.files[0];
+    if (!file) return;
+
+    if (file.size > 5 * 1024 * 1024) {
+      alert("Image file size must be less than 5MB.");
+      e.target.value = '';
+      return;
+    }
+
+    // Reset input
+    e.target.value = '';
+
+    restoreSelection();
+    focusEditor();
+    
+    // Save the exact range prior to the async delay
+    const currentRange = savedRangeRef.current;
+    setIsUploadingImage(true);
+
+    try {
+      const { storage } = await import('../../../firebaseConfig');
+      const { ref, uploadBytes, getDownloadURL } = await import('firebase/storage');
+      
+      const storageRef = ref(storage, `articleContentImages/${Date.now()}_${file.name}`);
+      const snapshot = await uploadBytes(storageRef, file);
+      const url = await getDownloadURL(snapshot.ref);
+
+      // Restore exactly where the cursor was before the upload started
+      const s = sel();
+      if (s && currentRange) {
+         s.removeAllRanges();
+         s.addRange(currentRange);
+      } else {
+         restoreSelection();
+      }
+      focusEditor();
+
+      document.execCommand("insertImage", false, url);
+      
+      // Select the image and style it to be responsive
+      const root = editorRef.current;
+      const imgs = root.querySelectorAll(`img[src="${CSS.escape(url)}"]`);
+      imgs.forEach(img => {
+        img.setAttribute("style", "max-width: 100%; height: auto; border-radius: 8px; margin: 16px 0;");
+      });
+      
+      emitChange();
+      saveSelection();
+    } catch (err) {
+      console.error("Image upload failed", err);
+      alert("Failed to upload image.");
+    } finally {
+      setIsUploadingImage(false);
+    }
+  };
+
   // -------- Keyboard shortcuts --------
   const handleKeyDown = (e) => {
     if (disabled) return;
@@ -409,21 +488,26 @@ const RichTextEditor = ({ value, onChange, disabled = false }) => {
 
         <div className="w-px h-6 bg-gray-300 mx-1" />
 
-        <ToolbarButton onClick={() => exec("insertUnorderedList")} title="Bullet List">
+        <ToolbarButton onClick={() => exec("insertUnorderedList")} active={isActive.ul} title="Bullet List">
           <List size={16} />
         </ToolbarButton>
-        <ToolbarButton onClick={() => exec("insertOrderedList")} title="Numbered List">
+        <ToolbarButton onClick={() => exec("insertOrderedList")} active={isActive.ol} title="Numbered List">
           <ListOrdered size={16} />
         </ToolbarButton>
 
         <div className="w-px h-6 bg-gray-300 mx-1" />
 
-        <ToolbarButton onClick={toggleBlockquote} title="Toggle Quote">
+        <ToolbarButton onClick={toggleBlockquote} active={isActive.quote} title="Toggle Quote">
           <Quote size={16} />
         </ToolbarButton>
         <ToolbarButton onClick={insertLink} title="Insert Link">
           <Link size={16} />
         </ToolbarButton>
+        
+        <label className={`p-2 rounded hover:bg-gray-100 transition-colors cursor-pointer flex items-center justify-center ${(disabled || isUploadingImage) ? "opacity-50 cursor-not-allowed text-gray-400" : "text-gray-600"}`} title="Insert Image">
+          {isUploadingImage ? <Loader size={16} className="animate-spin" /> : <ImageIcon size={16} />}
+          <input type="file" accept="image/*" className="hidden" onChange={handleImageUpload} disabled={disabled || isUploadingImage} />
+        </label>
 
         <div className="w-px h-6 bg-gray-300 mx-1" />
 

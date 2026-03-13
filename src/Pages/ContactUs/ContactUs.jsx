@@ -7,6 +7,8 @@ import { getBookingStatus } from '../../firebaseBookingUtils';
 import { isValidEmail } from '../../utils/validation';
 import { useAuth } from '../../AuthContext';
 import WhatsAppPopup from '../../Components/WhatsAppPopup';
+import { logEvent } from 'firebase/analytics';
+import { analytics } from '../../firebaseConfig';
 
 // Compute BMI/calories from a stored profile (reusable helper)
 const computeResultsFromProfile = (profile) => {
@@ -86,7 +88,12 @@ function ContactUs() {
   // Check booking status on mount to prevent async blocking later
   useEffect(() => {
     const checkAvailability = async () => {
-      try {
+      logEvent(analytics, 'add_shipping_info', {
+      value: 800,
+      currency: 'GHS'
+    });
+
+    try {
         const result = await getBookingStatus();
         if (!result.success || !result.isOpen) {
           setIsFullyBooked(true);
@@ -632,6 +639,7 @@ function ContactUs() {
         isOpen={showWhatsAppPopup}
         onClose={() => setShowWhatsAppPopup(false)}
         onConfirm={() => {
+          logEvent(analytics, 'contact', { method: 'WhatsApp' });
           window.open('https://wa.me/233592330870?text=Hello%2C%20I%E2%80%99d%20like%20to%20book%20a%20session%20with%20Diet%20with%20Dee', '_blank', 'noopener,noreferrer');
           setShowWhatsAppPopup(false);
         }}

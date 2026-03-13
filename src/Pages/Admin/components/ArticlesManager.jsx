@@ -1,7 +1,6 @@
 import React, { useState } from 'react';
 import { Plus, Edit2, Trash2, Save, X, Loader } from 'lucide-react';
-import { createArticle, deleteArticle } from '../../../firebaseUtils';
-import { sendNewArticleNewsletter } from '../../../EmailTemplateSystem/emailServices';
+import { createArticle, updateArticle, deleteArticle } from '../../../firebaseUtils';
 import RichTextEditor from './RichTextEditor';
 import ProgressBar from './ProgressBar';
 import SafeImage from '../../../Components/SafeImage';
@@ -13,25 +12,29 @@ const ArticlesManager = React.memo(({ articles, setArticles, showNotification, l
   const [formData, setFormData] = useState({
     title: '',
     content: '',
-    imageUrl: ''
+    imageUrl: '',
+    status: 'published',
+    scheduledPublishDate: ''
   });
   const [uploadProgress, setUploadProgress] = useState(0);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [imagePreview, setImagePreview] = useState('');
 
-  // Validate and preview image URL
-  const handleImageUrlChange = (url) => {
-    setFormData({ ...formData, imageUrl: url });
-
-    if (url) {
-      try {
-        new URL(url);
-        setImagePreview(url);
-      } catch {
-        setImagePreview('');
+  // Validate and preview image file or URL
+  const handleImageFileChange = (e) => {
+    const file = e.target.files[0];
+    if (file) {
+      if (file.size > 5 * 1024 * 1024) {
+        showNotification('error', 'Image file size must be less than 5MB');
+        e.target.value = ''; // clear selection
+        return;
       }
-    } else {
-      setImagePreview('');
+      setFormData({ ...formData, imageUrl: file });
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        setImagePreview(reader.result);
+      };
+      reader.readAsDataURL(file);
     }
   };
 
@@ -51,33 +54,24 @@ const ArticlesManager = React.memo(({ articles, setArticles, showNotification, l
         });
       }, 100);
 
-      const result = await createArticle(formData.title, formData.content, formData.imageUrl);
+      let result;
+      const finalStatus = formData.status;
+      const finalDate = finalStatus === 'scheduled' ? formData.scheduledPublishDate : null;
+
+      if (editingId) {
+        result = await updateArticle(editingId, formData.title, formData.content, formData.imageUrl, finalStatus, finalDate);
+      } else {
+        result = await createArticle(formData.title, formData.content, formData.imageUrl, finalStatus, finalDate);
+      }
 
       clearInterval(interval);
       setUploadProgress(100);
 
       if (result.success) {
-        showNotification('success', 'Article created successfully!');
+        showNotification('success', editingId ? 'Article updated successfully!' : 'Article created successfully!');
         await loadArticles();
 
-        try {
-          const newsletterResult = await sendNewArticleNewsletter(
-            formData.title,
-            formData.imageUrl,
-            result.id
-          );
-
-          if (newsletterResult.success) {
-            showNotification('success', `Newsletter sent to ${newsletterResult.sent} subscribers!`);
-          } else {
-            showNotification('error', 'Article created but newsletter failed to send');
-          }
-        } catch (error) {
-          console.error('Newsletter error:', error);
-          showNotification('error', 'Article created but newsletter failed to send');
-        }
-
-        setFormData({ title: '', content: '', imageUrl: '' });
+        setFormData({ title: '', content: '', imageUrl: '', status: 'published', scheduledPublishDate: '' });
         setImagePreview('');
         setIsEditing(false);
         setEditingId(null);
@@ -101,17 +95,21 @@ const ArticlesManager = React.memo(({ articles, setArticles, showNotification, l
     setFormData({
       title: article.title,
       content: article.content,
-      imageUrl: article.coverImage || ''
+      imageUrl: article.coverImage || '',
+      status: article.status || 'published',
+      scheduledPublishDate: article.scheduledPublishDate && article.scheduledPublishDate.toDate
+        ? article.scheduledPublishDate.toDate().toISOString().slice(0, 16)
+        : ''
     });
     setImagePreview(article.coverImage || '');
     setEditingId(article.id);
     setIsEditing(true);
   };
 
-  const handleDelete = (id) => {
+  const handleDelete = (article) => {
     if (window.confirm('Are you sure you want to delete this article?')) {
-      setArticles(articles.filter(a => a.id !== id));
-      deleteArticle(id);
+      setArticles(articles.filter(a => a.id !== article.id));
+      deleteArticle(article.id, article.coverImage, article.content);
       showNotification('success', 'Article deleted successfully!');
     }
   };
@@ -145,7 +143,7 @@ const ArticlesManager = React.memo(({ articles, setArticles, showNotification, l
               onClick={() => {
                 setIsEditing(false);
                 setEditingId(null);
-                setFormData({ title: '', content: '', imageUrl: '' });
+                setFormData({ title: '', content: '', imageUrl: '', status: 'published', scheduledPublishDate: '' });
                 setImagePreview('');
                 setUploadProgress(0);
               }}
@@ -187,19 +185,52 @@ const ArticlesManager = React.memo(({ articles, setArticles, showNotification, l
 
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">
-                Featured Image URL
+                Featured Image
               </label>
               <input
-                type="url"
-                value={formData.imageUrl}
-                onChange={(e) => handleImageUrlChange(e.target.value)}
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent text-gray-800"
-                placeholder="https://example.com/image.jpg"
+                type="file"
+                accept="image/*"
+                onChange={handleImageFileChange}
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent text-gray-800 bg-white"
                 disabled={isSubmitting}
               />
               <p className="text-xs text-gray-500 mt-1">
-                Enter a valid image URL (jpg, png, gif, webp)
+                Upload a valid image file (jpg, png, gif, webp)
               </p>
+
+              {/* Status and Scheduling */}
+              <div className="mt-4 flex gap-4">
+                <div className="flex-1">
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Status
+                  </label>
+                  <select
+                    value={formData.status}
+                    onChange={(e) => setFormData({ ...formData, status: e.target.value })}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent text-gray-800 bg-white"
+                    disabled={isSubmitting}
+                  >
+                    <option value="draft">Draft</option>
+                    <option value="published">Published</option>
+                    <option value="scheduled">Scheduled</option>
+                  </select>
+                </div>
+                {formData.status === 'scheduled' && (
+                  <div className="flex-1">
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      Publish Date & Time
+                    </label>
+                    <input
+                      type="datetime-local"
+                      value={formData.scheduledPublishDate}
+                      onChange={(e) => setFormData({ ...formData, scheduledPublishDate: e.target.value })}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent text-gray-800"
+                      disabled={isSubmitting}
+                      required={formData.status === 'scheduled'}
+                    />
+                  </div>
+                )}
+              </div>
 
               {/* Image Preview */}
               {imagePreview && (
@@ -251,7 +282,7 @@ const ArticlesManager = React.memo(({ articles, setArticles, showNotification, l
                 onClick={() => {
                   setIsEditing(false);
                   setEditingId(null);
-                  setFormData({ title: '', content: '', imageUrl: '' });
+                  setFormData({ title: '', content: '', imageUrl: '', status: 'published', scheduledPublishDate: '' });
                   setImagePreview('');
                 }}
                 disabled={isSubmitting}
@@ -295,8 +326,14 @@ const ArticlesManager = React.memo(({ articles, setArticles, showNotification, l
                   />
                   <div className="flex items-center gap-4 text-xs text-gray-500">
                     <span>Created: {formatDate(article.createdAt)}</span>
+                    <span className={`font-medium px-2 py-0.5 rounded-full ${article.status === 'published' ? 'bg-green-100 text-green-700' : article.status === 'scheduled' ? 'bg-blue-100 text-blue-700' : 'bg-gray-100 text-gray-700'}`}>
+                      {article.status ? article.status.charAt(0).toUpperCase() + article.status.slice(1) : 'Published'}
+                    </span>
+                    {article.status === 'scheduled' && article.scheduledPublishDate && (
+                       <span>Scheduled: {formatDate(article.scheduledPublishDate)}</span>
+                    )}
                     {article.coverImage && (
-                      <span className="text-blue-600">🖼️ Has Image</span>
+                      <span className="text-gray-600 border border-gray-200 px-2 py-0.5 rounded-full bg-gray-50">🖼️ Image</span>
                     )}
                   </div>
                 </div>
@@ -308,7 +345,7 @@ const ArticlesManager = React.memo(({ articles, setArticles, showNotification, l
                     <Edit2 size={16} />
                   </button>
                   <button
-                    onClick={() => handleDelete(article.id)}
+                    onClick={() => handleDelete(article)}
                     className="p-2 text-red-600 hover:bg-red-50 rounded-lg transition-colors"
                   >
                     <Trash2 size={16} />

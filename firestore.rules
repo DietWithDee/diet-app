@@ -24,7 +24,7 @@ service cloud.firestore {
     }
 
     match /articles/{articleId} {
-      allow read: if true; // public can see articles
+      allow read: if isAdmin() || !("status" in resource.data) || resource.data.status == 'published'; // public can only see published
       allow create, delete: if isAdmin();
       allow update: if isAdmin() || request.resource.data.diff(resource.data).affectedKeys().hasOnly(['likesCount', 'helpfulCount', 'notHelpfulCount']);
     }

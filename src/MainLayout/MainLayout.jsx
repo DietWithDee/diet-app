@@ -11,7 +11,6 @@ import Error from "../Pages/Error/Error";
 import Footer from '../Components/Footer/footer';
 import KnowYourBody from "../Pages/KnowYourBody/KnowYourBody";
 import AdminApp from "../Pages/Admin/AdminApp";
-
 import Plans from "../Pages/Plans/Plans";
 import Terms from "../Pages/Terms/Terms";
 import Privacy from "../Pages/Privacy/Privacy";
@@ -20,34 +19,45 @@ import PaymentSuccess from "../Pages/ContactUs/PaymentSuccess";
 import MyJourney from "../Pages/MyJourney/MyJourney";
 import TestEmails from "../Components/TestEmails";
 import { AuthProvider } from "../AuthContext";
+import { usePageTracking } from "../hooks/usePageTracking";
+
+// Inner component so usePageTracking can access the router context
+const AppRoutes = () => {
+  usePageTracking();
+  return (
+    <>
+      <ScrollToTop />
+      <NavBar />
+      <Routes>
+        <Route path="/" element={<Home />} />
+        <Route path="/about" element={<About />} />
+        <Route path="/blog" element={<Blog />} />
+        <Route path="/blog/:id" element={<Blog />} />
+        <Route path="/contactUs" element={<ContactUs />} />
+        <Route path="/services" element={<Services />} />
+        <Route path="/knowYourBody" element={<KnowYourBody />} />
+        <Route path="/my-journey" element={<MyJourney />} />
+        <Route path="/admin" element={<AdminApp />} />
+        <Route path="/plans" element={<Plans />} />
+        <Route path="/terms" element={<Terms />} />
+        <Route path="/privacy" element={<Privacy />} />
+        <Route path="/paymentSuccess" element={<PaymentSuccess />} />
+        <Route path="/test" element={<TestEmails />} />
+        <Route path="*" element={<Error />} />
+      </Routes>
+      <Footer />
+    </>
+  );
+};
 
 const MainLayout = () => {
   return (
     <AuthProvider>
       <AppErrorBoundary>
         <SEOProvider>
-        <BrowserRouter basename="/">
-          <ScrollToTop />
-          <NavBar />
-          <Routes>
-            <Route path="/" element={<Home />} />
-            <Route path="/about" element={<About />} />
-            <Route path="/blog" element={<Blog />} />
-            <Route path="/blog/:id" element={<Blog />} />
-            <Route path="/contactUs" element={<ContactUs />} />
-            <Route path="/services" element={<Services />} />
-            <Route path="/knowYourBody" element={<KnowYourBody />} />
-            <Route path="/my-journey" element={<MyJourney />} />
-            <Route path="/admin" element={<AdminApp />} />
-            <Route path="/plans" element={<Plans />} />
-            <Route path="/terms" element={<Terms />} />
-            <Route path="/privacy" element={<Privacy />} />
-            <Route path="/paymentSuccess" element={<PaymentSuccess />} />
-            <Route path="/test" element={<TestEmails />} />
-            <Route path="*" element={<Error />} />
-          </Routes>
-          <Footer />
-        </BrowserRouter>
+          <BrowserRouter basename="/">
+            <AppRoutes />
+          </BrowserRouter>
         </SEOProvider>
       </AppErrorBoundary>
     </AuthProvider>
