@@ -249,4 +249,97 @@ const createEmailTemplate = (title, coverImage, articleId) => {
   `;
 };
 
-module.exports = { createEmailTemplate };
+const createWelcomeTemplate = () => {
+    return `
+      <!DOCTYPE html>
+      <html lang="en">
+      <head>
+          <meta charset="UTF-8">
+          <meta name="viewport" content="width=device-width, initial-scale=1.0">
+          <title>Welcome to Diet With Dee</title>
+          <style>
+              body {
+                  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+                  line-height: 1.6;
+                  color: #1f2937;
+                  background-color: #f0fdf4;
+                  padding: 20px 0;
+                  margin: 0;
+              }
+              .container {
+                  max-width: 600px;
+                  margin: 0 auto;
+                  background-color: #ffffff;
+                  border-radius: 24px;
+                  overflow: hidden;
+                  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+                  border: 1px solid #e5e7eb;
+              }
+              .header {
+                  background-color: #16a34a;
+                  padding: 40px 20px;
+                  text-align: center;
+                  color: white;
+              }
+              .content {
+                  padding: 40px;
+              }
+              .footer {
+                  background-color: #f8fafc;
+                  padding: 30px;
+                  text-align: center;
+                  font-size: 14px;
+                  color: #64748b;
+                  border-top: 1px solid #e2e8f0;
+              }
+              .button {
+                  display: inline-block;
+                  background-color: #f97316;
+                  color: #ffffff;
+                  text-decoration: none;
+                  font-weight: 700;
+                  padding: 16px 32px;
+                  border-radius: 12px;
+                  margin-top: 20px;
+                  text-transform: uppercase;
+                  letter-spacing: 0.5px;
+              }
+              .logo {
+                  width: 140px;
+                  margin-bottom: 20px;
+              }
+          </style>
+      </head>
+      <body>
+          <div class="container">
+              <div class="header">
+                  <img src="https://dietwithdee.org/LOGO.png" alt="DietWithDee Logo" class="logo" />
+                  <h1>Welcome to the Family! 🌿</h1>
+              </div>
+              <div class="content">
+                  <p>Hi there,</p>
+                  <p>I'm so glad you've decided to join the <strong>Diet With Dee</strong> community! You've taken a wonderful step toward a more nourished and balanced lifestyle.</p>
+                  <p>Here’s what you can expect from our newsletter:</p>
+                  <ul>
+                      <li>Healthy recipes that actually taste good.</li>
+                      <li>Practical nutrition tips you can use every day.</li>
+                      <li>Updates on new blog posts and wellness insights.</li>
+                      <li>Priority access to my nutrition programs.</li>
+                  </ul>
+                  <p>While you wait for the first update, why not explore some of our latest articles?</p>
+                  <div style="text-align: center;">
+                      <a href="https://dietwithdee.org/blog" class="button">Explore the Blog</a>
+                  </div>
+                  <p style="margin-top: 30px;">To your health,<br><strong>Nana Ama Dwamena</strong><br>Founder, Diet With Dee</p>
+              </div>
+              <div class="footer">
+                  <p>&copy; ${new Date().getFullYear()} Diet With Dee. All rights reserved.</p>
+                  <p>Helping you build healthier habits for life.</p>
+              </div>
+          </div>
+      </body>
+      </html>
+    `;
+};
+
+module.exports = { createEmailTemplate, createWelcomeTemplate };

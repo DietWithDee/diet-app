@@ -1,9 +1,9 @@
 const { onSchedule } = require("firebase-functions/v2/scheduler");
-const { onDocumentUpdated } = require("firebase-functions/v2/firestore");
+const { onDocumentUpdated, onDocumentCreated } = require("firebase-functions/v2/firestore");
 const { setGlobalOptions } = require("firebase-functions/v2");
 const admin = require("firebase-admin");
 const { Resend } = require("resend");
-const { createEmailTemplate } = require("./emailTemplate");
+const { createEmailTemplate, createWelcomeTemplate } = require("./emailTemplate");
 
 admin.initializeApp();
 const db = admin.firestore();
@@ -102,7 +102,7 @@ exports.onArticlePublished = onDocumentUpdated(
       const uniqueEmails = new Set();
       emailsQuery.forEach(doc => {
         const email = doc.data().email?.trim()?.toLowerCase();
-        if (email && /\\S+@\\S+\\.\\S+/.test(email)) {
+        if (email && /^\S+@\S+\.\S+$/.test(email)) {
           uniqueEmails.add(email);
         }
       });
@@ -122,22 +122,18 @@ exports.onArticlePublished = onDocumentUpdated(
       let failCount = 0;
 
       // Resend allows up to 10 emails per second and batched sends of up to 100 per request
-      // Let's use batched sending for efficiency and PRIVACY (individual emails)
-      
       const batchSize = 50;
       for (let i = 0; i < subscriberEmails.length; i += batchSize) {
         const batchEmails = subscriberEmails.slice(i, i + batchSize);
         
-        // Map the batch of emails to individual email objects for Resend's batch API
         const batchedPayloads = batchEmails.map(email => ({
              from: 'Diet With Dee <newsletter@dietwithdee.org>',
-             to: [email], // Send individually so subscribers don't see each other
+             to: [email],
              subject: subject,
              html: emailContent
         }));
 
         try {
-            // Send the batch securely
             const { data, error } = await resend.batch.send(batchedPayloads);
             
             if (error) {
@@ -151,13 +147,11 @@ exports.onArticlePublished = onDocumentUpdated(
             failCount += batchEmails.length;
         }
         
-        // Moderate delay between batches
         await new Promise(r => setTimeout(r, 500));
       }
 
       console.log(`Newsletter sending task complete! Attempted: ${subscriberEmails.length}, Successful: ${sentCount}, Failed: ${failCount}`);
 
-      // Mark the article as having its newsletter sent so we don't spam if toggled
       if (sentCount > 0) {
           await db.collection("articles").doc(articleId).update({
               newsletterSent: true
@@ -167,4 +161,51 @@ exports.onArticlePublished = onDocumentUpdated(
       console.error("Error in onArticlePublished email logic:", error);
     }
   }
+);
+
+// 3. Trigger Function for New Subscribers to Send Welcome Email
+exports.onNewSubscriber = onDocumentCreated(
+    { document: "emails/{emailId}", secrets: ["RESEND_API_KEY"] },
+    async (event) => {
+        const snapshot = event.data;
+        if (!snapshot) {
+            console.log("No snapshot data found for new subscriber.");
+            return;
+        }
+
+        const data = snapshot.data();
+        const email = data.email?.trim()?.toLowerCase();
+
+        if (!email) {
+            console.warn("New subscription document lacks an email address. Skipping welcome email.");
+            return;
+        }
+
+        console.log(`New subscriber detected: ${email}. Sending welcome email...`);
+
+        try {
+            const resendApiKey = process.env.RESEND_API_KEY;
+            if (!resendApiKey) {
+                throw new Error("RESEND_API_KEY is not set.");
+            }
+            const resend = new Resend(resendApiKey);
+
+            const welcomeContent = createWelcomeTemplate();
+            
+            const { data: result, error } = await resend.emails.send({
+                from: 'Diet With Dee <newsletter@dietwithdee.org>',
+                to: [email],
+                subject: 'Welcome to Diet With Dee! 🌿',
+                html: welcomeContent
+            });
+
+            if (error) {
+                console.error(`Error sending welcome email to ${email}:`, error);
+            } else {
+                console.log(`Welcome email successfully sent to ${email}. ID: ${result.id}`);
+            }
+        } catch (error) {
+            console.error("Error in onNewSubscriber welcome email logic:", error);
+        }
+    }
 );
