@@ -6,6 +6,7 @@ import { useAuth } from '../../AuthContext';
 import Notification from './components/Notification';
 import ArticlesManager from './components/ArticlesManager';
 import UserJourneyPanel from './components/UserJourneyPanel';
+import { deduplicateNewsletterEmails } from '../../utils/newsletterMaintenance';
 
 
 // Main Admin Dashboard Component
@@ -19,6 +20,8 @@ const AdminDashboard = () => {
   const [users, setUsers] = useState([]);
   const [usersLoading, setUsersLoading] = useState(false);
   const [usersFetched, setUsersFetched] = useState(false);
+  const [isMaintenanceMode, setIsMaintenanceMode] = useState(false);
+  const [maintenanceLoading, setMaintenanceLoading] = useState(false);
 
 
   const showNotification = React.useCallback((type, message) => {
@@ -137,6 +140,30 @@ const AdminDashboard = () => {
       setUsersLoading(false);
     }
   }, [usersLoading, usersFetched, showNotification]);
+  
+  const handleDeduplication = async () => {
+    if (!window.confirm('Are you sure you want to deduplicate newsletter subscribers? This will migrate existing entries to use email as ID.')) return;
+    
+    setMaintenanceLoading(true);
+    try {
+      const result = await deduplicateNewsletterEmails();
+      if (result.success) {
+        showNotification('success', `Deduplication complete! Migrated: ${result.migrated}, Deleted: ${result.deleted}`);
+        // Refresh count
+        const countResult = await getAllEmails();
+        if (countResult.success) {
+          setSubscriberCount(countResult.data?.length || 0);
+        }
+      } else {
+        showNotification('error', `Deduplication failed: ${result.error}`);
+      }
+    } catch (err) {
+      console.error('Deduplication error:', err);
+      showNotification('error', 'An error occurred during deduplication.');
+    } finally {
+      setMaintenanceLoading(false);
+    }
+  };
 
   // Handle tab switch - pre-fetch users if needed
   useEffect(() => {
@@ -229,6 +256,32 @@ const AdminDashboard = () => {
             </div>
           </label>
         </div>
+
+        {/* Maintenance Tools */}
+        <div className="bg-white rounded-xl shadow-lg p-6 mb-8 border border-amber-100">
+           <div className="flex items-center justify-between mb-4">
+              <h2 className="text-xl font-bold text-amber-700">Maintenance Tools</h2>
+              <button 
+                onClick={() => setIsMaintenanceMode(!isMaintenanceMode)}
+                className="text-amber-600 hover:text-amber-800 text-sm font-semibold"
+              >
+                {isMaintenanceMode ? 'Hide Tools' : 'Show Tools'}
+              </button>
+           </div>
+           
+           {isMaintenanceMode && (
+             <div className="flex flex-wrap gap-4">
+                <button
+                  onClick={handleDeduplication}
+                  disabled={maintenanceLoading}
+                  className="px-4 py-2 bg-amber-500 hover:bg-amber-600 text-white rounded-lg font-bold text-sm shadow-sm transition-all flex items-center gap-2 disabled:opacity-50"
+                >
+                  {maintenanceLoading ? <Loader size={16} className="animate-spin" /> : '✨'} Deduplicate Newsletter
+                </button>
+             </div>
+           )}
+        </div>
+
 
 
         <div className="bg-white rounded-xl shadow-lg overflow-hidden">

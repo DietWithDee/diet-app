@@ -3,6 +3,7 @@ import { db, storage } from "./firebaseConfig";
 import { 
   collection, 
   addDoc, 
+  setDoc,
   getDocs, 
   getDoc,
   doc, 
@@ -240,20 +241,21 @@ export const getArticleById = async (articleId, includeUnpublished = false) => {
 export const saveEmailToFirestore = async (email) => {
   try {
     const trimmedEmail = email.trim().toLowerCase();
+    const docRef = doc(db, "emails", trimmedEmail);
     
     // Check if email already exists
-    const q = query(collection(db, "emails"), where("email", "==", trimmedEmail));
-    const querySnapshot = await getDocs(q);
+    const docSnap = await getDoc(docRef);
     
-    if (!querySnapshot.empty) {
+    if (docSnap.exists()) {
       return { success: true, exists: true };
     }
 
-    const docRef = await addDoc(collection(db, "emails"), {
+    await setDoc(docRef, {
       email: trimmedEmail,
       createdAt: Timestamp.now()
     });
-    return { success: true, id: docRef.id };
+    
+    return { success: true, id: trimmedEmail };
   } catch (error) {
     console.error("Error saving email:", error);
     return { success: false, error: error.message };
