@@ -275,9 +275,6 @@ export const getAllEmails = async()=>{
       ...doc.data(),
     }));
 
-    console.log("Emails fetched successfully:", emails);
-    console.log("Total emails:", emails.length);
-
     return { success: true, data: emails };
   } catch (error) {
     console.error("error fetching emails:", error); 

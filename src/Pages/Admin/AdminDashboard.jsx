@@ -1,6 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { Loader } from 'lucide-react';
 import { getArticles, getAllEmails, getAllUsers } from '../../firebaseUtils';
+import { updateDoc, doc, collection, getDocs, query } from 'firebase/firestore';
+import { db } from '../../firebaseConfig';
 import { getBookingStatus, setBookingStatus } from '../../firebaseBookingUtils';
 import { useAuth } from '../../AuthContext';
 import Notification from './components/Notification';
@@ -228,6 +230,38 @@ const AdminDashboard = () => {
               {isBookingOpen ? 'Bookings Open' : 'Bookings Closed'}
             </div>
           </label>
+        </div>
+
+        {/* Emergency Data Migration button */}
+        <div className="bg-orange-50 rounded-xl shadow p-4 mb-8 border border-orange-200">
+           <div className="flex justify-between items-center">
+             <div>
+               <h3 className="font-bold text-orange-800">Missing Article Statuses Fix</h3>
+               <p className="text-sm text-orange-600">Click this to fix older articles that are missing a status and not showing on the public blog.</p>
+             </div>
+             <button
+               onClick={async () => {
+                 try {
+                    const q = query(collection(db, "articles"));
+                    const snap = await getDocs(q);
+                    let count = 0;
+                    for (const rawDoc of snap.docs) {
+                       if (!rawDoc.data().status) {
+                         await updateDoc(doc(db, "articles", rawDoc.id), { status: 'published' });
+                         count++;
+                       }
+                    }
+                    alert(`Fixed ${count} articles!`);
+                    loadArticles();
+                 } catch(e) {
+                    alert("Error: " + e.message);
+                 }
+               }}
+               className="px-4 py-2 bg-orange-600 font-bold text-white rounded hover:bg-orange-700 transition"
+             >
+               Run Status Fix
+             </button>
+           </div>
         </div>
 
         <div className="bg-white rounded-xl shadow-lg overflow-hidden">
