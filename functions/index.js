@@ -114,8 +114,8 @@ exports.onArticlePublished = onDocumentUpdated(
 
       // Prepare Email Template
       const subject = `New from Diet With Dee: ${afterData.title}`;
-      const imageUrl = afterData.coverImage || "";
-      const emailContent = createEmailTemplate(afterData.title, imageUrl, articleId);
+      const coverImage = afterData.coverImage || "";
+      const emailContent = createEmailTemplate(afterData.title, coverImage, articleId);
 
       // Batch send via Resend
       let sentCount = 0;

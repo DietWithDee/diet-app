@@ -1,4 +1,4 @@
-const createEmailTemplate = (title, imageUrl, articleId) => {
+const createEmailTemplate = (title, coverImage, articleId) => {
   return `
     <!DOCTYPE html>
     <html lang="en" xmlns="http://www.w3.org/1999/xhtml">
@@ -208,7 +208,7 @@ const createEmailTemplate = (title, imageUrl, articleId) => {
                 </div>
                 
                 <div class="article-preview" style="margin-bottom: 40px;">
-                    ${imageUrl ? `<img src="${imageUrl}" alt="${title}" class="article-image" />` : ''}
+                    ${coverImage ? `<img src="${coverImage}" alt="${title}" class="article-image" />` : ''}
                     <div class="article-content">
                         <h2 class="article-title">${title}</h2>
                         <a href="https://dietwithdee.org/blog/${articleId}" 
