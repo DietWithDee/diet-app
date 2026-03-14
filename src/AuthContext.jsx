@@ -43,16 +43,6 @@ export const AuthProvider = ({ children }) => {
       }
 
       if (firebaseUser) {
-        // Silent newsletter sync
-        const emailSyncKey = `newsletter_synced_${firebaseUser.uid}`;
-        if (!localStorage.getItem(emailSyncKey) && firebaseUser.email) {
-          import('./firebaseUtils').then(({ saveEmailToFirestore }) => {
-            saveEmailToFirestore(firebaseUser.email)
-              .then(() => localStorage.setItem(emailSyncKey, 'true'))
-              .catch(() => {});
-          });
-        }
-
         // Real-time profile listener
         unsubscribeProfile = onSnapshot(doc(db, 'users', firebaseUser.uid), (doc) => {
           setUserProfile(doc.exists() ? doc.data() : null);

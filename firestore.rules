@@ -35,8 +35,8 @@ service cloud.firestore {
     }
 
     match /emails/{emailId} {
-      allow create: if true; // public can subscribe
-      allow read, update, delete: if isAdmin(); // only admins can manage collected emails
+      allow create, get: if true; // public can subscribe and check existence
+      allow list, update, delete: if isAdmin(); // only admins can list or manage collected emails
     }
 
     // Default deny for anything not explicitly specified above

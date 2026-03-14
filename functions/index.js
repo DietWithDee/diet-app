@@ -209,3 +209,48 @@ exports.onNewSubscriber = onDocumentCreated(
         }
     }
 );
+
+// 4. Trigger Function on New User Creation to Add to Email List
+exports.onUserCreated = onDocumentCreated(
+    { document: "users/{userId}" },
+    async (event) => {
+        const snapshot = event.data;
+        if (!snapshot) {
+            console.log("No snapshot data found for new user.");
+            return;
+        }
+
+        const data = snapshot.data();
+        const email = data.email?.trim()?.toLowerCase();
+
+        if (!email) {
+            console.warn(`New user profile ${event.params.userId} lacks an email address.`);
+            return;
+        }
+
+        console.log(`New user detected: ${email} (${event.params.userId}). Adding to emails list...`);
+
+        try {
+            const db = admin.firestore();
+            const emailDocRef = db.collection("emails").doc(email);
+            
+            // Check if already exists to avoid unnecessary writes
+            const emailDoc = await emailDocRef.get();
+            if (emailDoc.exists) {
+                console.log(`Email ${email} is already in the subscriber list.`);
+                return;
+            }
+
+            await emailDocRef.set({
+                email: email,
+                createdAt: admin.firestore.Timestamp.now(),
+                source: "registration"
+            });
+
+            console.log(`Successfully added ${email} to the emails collection via user registration.`);
+            // This write will trigger onNewSubscriber to send the welcome email automatically.
+        } catch (error) {
+            console.error(`Error adding user ${email} to emails collection:`, error);
+        }
+    }
+);
