@@ -12,7 +12,7 @@ const db = admin.firestore();
 setGlobalOptions({ maxInstances: 10 });
 
 // 1. Scheduled Function to Publish Articles
-exports.publishScheduledArticles = onSchedule("every 1 hours", async (event) => {
+exports.publishScheduledArticles = onSchedule("every 10 minutes", async (event) => {
   const now = admin.firestore.Timestamp.now();
   console.log(`Running scheduled check at ${now.toDate().toISOString()}`);
 

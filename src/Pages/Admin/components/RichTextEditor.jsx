@@ -210,7 +210,14 @@ const RichTextEditor = ({ value, onChange, disabled = false }) => {
     if (disabled) return;
     restoreSelection();
     focusEditor();
-    document.execCommand(command, false, val);
+    
+    try {
+      document.execCommand("styleWithCSS", false, false);
+      document.execCommand(command, false, val);
+    } catch (err) {
+      console.warn("execCommand failed:", err);
+    }
+
     normalizeLinks(editorRef.current);
     emitChange();
     updateToolbarState();
@@ -292,25 +299,43 @@ const RichTextEditor = ({ value, onChange, disabled = false }) => {
     saveSelection();
   };
 
-  // -------- Link insert --------
+  // -------- Link insert (Improved) --------
   const insertLink = () => {
     if (disabled) return;
-    const raw = prompt("Enter URL:");
-    if (!raw) return;
+    
+    // Save selection BEFORE prompt (prompt causes focus loss)
+    saveSelection();
+    
+    const s = sel();
+    let selectedText = "";
+    if (s && s.rangeCount > 0) {
+      selectedText = s.toString();
+    }
+
+    const raw = prompt("Enter URL:", "https://");
+    if (!raw || raw === "https://") return;
     const url = ensureAbsoluteUrl(raw);
 
     restoreSelection();
     focusEditor();
-    document.execCommand("createLink", false, url);
 
-    const root = editorRef.current;
-    const n = getSelectionRootNode();
-    const a = (n && closest(n, "a", root)) || root?.querySelector(`a[href="${CSS.escape(url)}"]`);
-    if (a) {
-      a.target = "_blank";
-      a.rel = "noopener noreferrer nofollow";
-      const style = a.getAttribute("style") || "";
-      a.setAttribute("style", `${style}color:#059669;text-decoration:underline;`);
+    // If no text is selected, we should insert the link text itself
+    if (!selectedText) {
+      const linkText = prompt("Enter text for the link (optional):", url);
+      const html = `<a href="${url}" target="_blank" rel="noopener noreferrer nofollow" style="color:#16a34a;text-decoration:underline;">${linkText || url}</a>`;
+      document.execCommand("insertHTML", false, html);
+    } else {
+      document.execCommand("createLink", false, url);
+      // Post-process the newly created link to add styles
+      const root = editorRef.current;
+      const n = getSelectionRootNode();
+      const a = (n && closest(n, "a", root)) || root?.querySelector(`a[href="${CSS.escape(url)}"]`);
+      if (a) {
+        a.target = "_blank";
+        a.rel = "noopener noreferrer nofollow";
+        a.style.color = "#16a34a";
+        a.style.textDecoration = "underline";
+      }
     }
 
     emitChange();

@@ -43,7 +43,9 @@ export const createArticle = async (title, content, imageInput, status = 'publis
       content,
       coverImage: imageUrl,
       status,
-      scheduledPublishDate: scheduledPublishDate ? Timestamp.fromDate(new Date(scheduledPublishDate)) : null,
+      scheduledPublishDate: (scheduledPublishDate && !isNaN(new Date(scheduledPublishDate).getTime())) 
+        ? Timestamp.fromDate(new Date(scheduledPublishDate)) 
+        : null,
       likesCount: 0, // Initialize likes count
       helpfulCount: 0, // Initialize helpful count
       notHelpfulCount: 0, // Initialize not helpful count
@@ -139,7 +141,9 @@ export const updateArticle = async (articleId, title, content, imageInput, statu
       title,
       content,
       status,
-      scheduledPublishDate: scheduledPublishDate ? Timestamp.fromDate(new Date(scheduledPublishDate)) : null,
+      scheduledPublishDate: (scheduledPublishDate && !isNaN(new Date(scheduledPublishDate).getTime())) 
+        ? Timestamp.fromDate(new Date(scheduledPublishDate)) 
+        : null,
       updatedAt: Timestamp.now()
     };
 
