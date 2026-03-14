@@ -298,9 +298,6 @@ function MyJourney() {
                 variants={staggerContainer}
                 className="text-justify max-w-3xl mx-auto mb-6"
               >
-                <motion.p variants={fadeUp} className="text-base lg:text-lg text-gray-700 leading-relaxed mb-4 px-2">
-                  Everything you need to stay consistent with your health goals in one place. Create an account to track your BMI and Weight, monitor your progress, and get diet recommendations designed by our registered dietitian.
-                </motion.p>
 
                 {/* Get Started / Sign-in CTA */}
                 <motion.div variants={fadeUp} className="bg-white/90 rounded-2xl p-6 border border-white/80 shadow-md max-w-md w-full mx-auto">
