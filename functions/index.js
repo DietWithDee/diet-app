@@ -1,5 +1,5 @@
 const { onSchedule } = require("firebase-functions/v2/scheduler");
-const { onDocumentUpdated, onDocumentCreated } = require("firebase-functions/v2/firestore");
+const { onDocumentUpdated, onDocumentCreated, onDocumentWritten } = require("firebase-functions/v2/firestore");
 const { setGlobalOptions } = require("firebase-functions/v2");
 const admin = require("firebase-admin");
 const { Resend } = require("resend");
@@ -47,7 +47,7 @@ exports.publishScheduledArticles = onSchedule("every 10 minutes", async (event) 
 });
 
 // 2. Trigger Function on Article Publish to Send Newsletters
-exports.onArticlePublished = onDocumentUpdated(
+exports.onArticlePublished = onDocumentWritten(
   { document: "articles/{articleId}", secrets: ["RESEND_API_KEY"] },
   async (event) => {
     const articleId = event.params.articleId;
@@ -56,15 +56,17 @@ exports.onArticlePublished = onDocumentUpdated(
         return;
     }
 
-    const beforeData = event.data.before.data();
-    const afterData = event.data.after.data();
+    const beforeData = event.data.before ? event.data.before.data() : null;
+    const afterData = event.data.after ? event.data.after.data() : null;
 
-    if (!beforeData || !afterData) {
-        return;
+    if (!afterData) {
+        return; // Document was deleted
     }
 
-    // Check if status changed from something else to 'published'
-    const wasPublished = beforeData.status === "published";
+    // Check if status transitioned to 'published'
+    // 1. If it was created as 'published' (beforeData is null)
+    // 2. If it was updated from something else to 'published' (beforeData is not null)
+    const wasPublished = beforeData ? beforeData.status === "published" : false;
     const isNowPublished = afterData.status === "published";
 
     if (wasPublished || !isNowPublished) {
@@ -193,7 +195,7 @@ exports.onNewSubscriber = onDocumentCreated(
             const welcomeContent = createWelcomeTemplate();
             
             const { data: result, error } = await resend.emails.send({
-                from: 'Diet With Dee <newsletter@dietwithdee.org>',
+                from: 'Nana Ama from Diet With Dee <hello@dietwithdee.org>',
                 to: [email],
                 subject: 'Welcome to Diet With Dee! 🌿',
                 html: welcomeContent
