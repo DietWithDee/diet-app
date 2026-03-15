@@ -276,10 +276,14 @@ const createWelcomeTemplate = () => {
                   border: 1px solid #e5e7eb;
               }
               .header {
-                  background-color: #16a34a;
+                  background-color: #ffffff;
                   padding: 40px 20px;
                   text-align: center;
-                  color: white;
+              }
+              .header h1 {
+                  color: #16a34a;
+                  margin: 20px 0 0;
+                  font-size: 28px;
               }
               .content {
                   padding: 40px;
@@ -305,8 +309,10 @@ const createWelcomeTemplate = () => {
                   letter-spacing: 0.5px;
               }
               .logo {
-                  width: 140px;
-                  margin-bottom: 20px;
+                  width: 160px;
+                  max-width: 80%;
+                  margin: 0 auto;
+                  display: block;
               }
           </style>
       </head>

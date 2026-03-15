@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import SEO from '../../Components/SEO';
 import { useNavigate, useParams } from 'react-router-dom';
-import { Loader, Calendar, User, ArrowRight, ArrowLeft, Share2, Heart, MessageCircle } from 'lucide-react';
+import { Loader, Calendar, User, ArrowRight, ArrowLeft, Share2, Heart, MessageCircle, Tag } from 'lucide-react';
 import { getArticlesPaged, getArticleById, likeNews, markArticleHelpful } from '../../firebaseUtils';
 import BlogImage from '../../assets/Salad.webp'; // Fallback image
 import BlogArticleSEO from '../../Components/BlogArticleSEO';
@@ -466,6 +466,18 @@ function Blog() {
                   dangerouslySetInnerHTML={{ __html: selectedArticle.content }}
                 />
 
+                {/* Tags */}
+                {selectedArticle.tags && selectedArticle.tags.length > 0 && (
+                  <div className="flex flex-wrap gap-2 mb-8">
+                    {selectedArticle.tags.map(tag => (
+                      <span key={tag} className="inline-flex items-center gap-1.5 bg-green-50 text-green-700 px-3 py-1.5 rounded-full text-sm font-medium border border-green-100">
+                        <Tag size={14} />
+                        {tag}
+                      </span>
+                    ))}
+                  </div>
+                )}
+
                 {/* Article Footer */}
                 <div className="mt-8 lg:mt-12 pt-6 lg:pt-8 border-t border-gray-200">
                   <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
@@ -532,7 +544,18 @@ function Blog() {
               <div className="grid sm:grid-cols-2 gap-4 lg:gap-6">
                 {[...blogPosts]
                   .filter(post => post.id !== selectedArticle.id)
-                  .sort((a, b) => (b.likesCount || 0) - (a.likesCount || 0))
+                  .sort((a, b) => {
+                    // Prioritize articles with matching tags
+                    const aMatchingTags = a.tags ? a.tags.filter(tag => selectedArticle.tags?.includes(tag)).length : 0;
+                    const bMatchingTags = b.tags ? b.tags.filter(tag => selectedArticle.tags?.includes(tag)).length : 0;
+                    
+                    if (bMatchingTags !== aMatchingTags) {
+                      return bMatchingTags - aMatchingTags;
+                    }
+                    
+                    // Secondary sort by likes
+                    return (b.likesCount || 0) - (a.likesCount || 0);
+                  })
                   .slice(0, 4)
                   .map((post) => (
                     <div
@@ -565,6 +588,13 @@ function Blog() {
                           <p className="text-xs lg:text-sm text-gray-600 mb-2 line-clamp-2">
                             {createSummary(post.content, 80)}
                           </p>
+                          <div className="mb-2 flex flex-wrap gap-1">
+                            {post.tags?.slice(0, 2).map(tag => (
+                              <span key={tag} className="inline-flex items-center gap-1 bg-gray-50 text-gray-500 px-1.5 py-0.5 rounded text-[10px] font-medium border border-gray-100">
+                                {tag}
+                              </span>
+                            ))}
+                          </div>
                           <div className="flex items-center justify-between text-xs text-gray-500">
                             <span>{formatDate(post.createdAt)}</span>
                             <div className="flex items-center gap-1">

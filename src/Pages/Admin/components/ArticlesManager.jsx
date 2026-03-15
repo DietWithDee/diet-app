@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
-import { Plus, Edit2, Trash2, Save, X, Loader } from 'lucide-react';
-import { createArticle, updateArticle, deleteArticle } from '../../../firebaseUtils';
+import { Plus, Edit2, Trash2, Save, X, Loader, Tag } from 'lucide-react';
+import { createArticle, updateArticle, deleteArticle, getArticleTags } from '../../../firebaseUtils';
 import RichTextEditor from './RichTextEditor';
 import ProgressBar from './ProgressBar';
 import SafeImage from '../../../Components/SafeImage';
@@ -14,11 +14,23 @@ const ArticlesManager = React.memo(({ articles, setArticles, showNotification, l
     content: '',
     imageUrl: '',
     status: 'published',
-    scheduledPublishDate: ''
+    scheduledPublishDate: '',
+    tags: []
   });
+  const [tagInput, setTagInput] = useState('');
+  const [allTags, setAllTags] = useState([]);
   const [uploadProgress, setUploadProgress] = useState(0);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [imagePreview, setImagePreview] = useState('');
+
+  // Fetch tags for suggestions
+  React.useEffect(() => {
+    const fetchTags = async () => {
+      const res = await getArticleTags();
+      if (res.success) setAllTags(res.data);
+    };
+    fetchTags();
+  }, []);
 
   // Validate and preview image file or URL
   const handleImageFileChange = (e) => {
@@ -59,9 +71,9 @@ const ArticlesManager = React.memo(({ articles, setArticles, showNotification, l
       const finalDate = finalStatus === 'scheduled' ? formData.scheduledPublishDate : null;
 
       if (editingId) {
-        result = await updateArticle(editingId, formData.title, formData.content, formData.imageUrl, finalStatus, finalDate);
+        result = await updateArticle(editingId, formData.title, formData.content, formData.imageUrl, finalStatus, finalDate, formData.tags);
       } else {
-        result = await createArticle(formData.title, formData.content, formData.imageUrl, finalStatus, finalDate);
+        result = await createArticle(formData.title, formData.content, formData.imageUrl, finalStatus, finalDate, formData.tags);
       }
 
       clearInterval(interval);
@@ -71,10 +83,11 @@ const ArticlesManager = React.memo(({ articles, setArticles, showNotification, l
         showNotification('success', editingId ? 'Article updated successfully!' : 'Article created successfully!');
         await loadArticles();
 
-        setFormData({ title: '', content: '', imageUrl: '', status: 'published', scheduledPublishDate: '' });
+        setFormData({ title: '', content: '', imageUrl: '', status: 'published', scheduledPublishDate: '', tags: [] });
         setImagePreview('');
         setIsEditing(false);
         setEditingId(null);
+        setTagInput('');
       } else {
         showNotification('error', 'Failed to create article. Please try again.');
       }
@@ -99,7 +112,8 @@ const ArticlesManager = React.memo(({ articles, setArticles, showNotification, l
       status: article.status || 'published',
       scheduledPublishDate: article.scheduledPublishDate && article.scheduledPublishDate.toDate
         ? article.scheduledPublishDate.toDate().toISOString().slice(0, 16)
-        : ''
+        : '',
+      tags: article.tags || []
     });
     setImagePreview(article.coverImage || '');
     setEditingId(article.id);
@@ -143,9 +157,10 @@ const ArticlesManager = React.memo(({ articles, setArticles, showNotification, l
               onClick={() => {
                 setIsEditing(false);
                 setEditingId(null);
-                setFormData({ title: '', content: '', imageUrl: '', status: 'published', scheduledPublishDate: '' });
+                setFormData({ title: '', content: '', imageUrl: '', status: 'published', scheduledPublishDate: '', tags: [] });
                 setImagePreview('');
                 setUploadProgress(0);
+                setTagInput('');
               }}
               className="text-gray-500 hover:text-gray-700"
             >
@@ -180,6 +195,84 @@ const ArticlesManager = React.memo(({ articles, setArticles, showNotification, l
               />
               <p className="text-xs text-gray-500 mt-2">
                 Use the toolbar to format your text. Keyboard shortcuts: Ctrl+B (bold), Ctrl+I (italic), Ctrl+U (underline)
+              </p>
+            </div>
+
+            {/* Tags Management */}
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                Tags
+              </label>
+              <div className="flex flex-wrap gap-2 mb-3">
+                {formData.tags.map(tag => (
+                  <span key={tag} className="inline-flex items-center gap-1 bg-green-100 text-green-700 px-3 py-1 rounded-full text-sm font-medium">
+                    {tag}
+                    <button
+                      type="button"
+                      onClick={() => setFormData(prev => ({ ...prev, tags: prev.tags.filter(t => t !== tag) }))}
+                      className="hover:text-green-900"
+                    >
+                      <X size={14} />
+                    </button>
+                  </span>
+                ))}
+              </div>
+              <div className="flex gap-2">
+                <div className="relative flex-1">
+                  <input
+                    type="text"
+                    value={tagInput}
+                    onChange={(e) => setTagInput(e.target.value)}
+                    onKeyDown={(e) => {
+                      if (e.key === 'Enter') {
+                        e.preventDefault();
+                        const tag = tagInput.trim().toLowerCase();
+                        if (tag && !formData.tags.includes(tag)) {
+                          setFormData(prev => ({ ...prev, tags: [...prev.tags, tag] }));
+                          setTagInput('');
+                        }
+                      }
+                    }}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent text-gray-800"
+                    placeholder="Type a tag and press Enter"
+                    disabled={isSubmitting}
+                  />
+                  {tagInput && allTags.filter(t => t.startsWith(tagInput.toLowerCase()) && !formData.tags.includes(t)).length > 0 && (
+                    <div className="absolute z-10 w-full mt-1 bg-white border border-gray-200 rounded-lg shadow-lg max-h-40 overflow-y-auto">
+                      {allTags
+                        .filter(t => t.startsWith(tagInput.toLowerCase()) && !formData.tags.includes(t))
+                        .map(tag => (
+                          <button
+                            key={tag}
+                            type="button"
+                            onClick={() => {
+                              setFormData(prev => ({ ...prev, tags: [...prev.tags, tag] }));
+                              setTagInput('');
+                            }}
+                            className="w-full text-left px-4 py-2 hover:bg-green-50 text-gray-700 text-sm"
+                          >
+                            {tag}
+                          </button>
+                        ))}
+                    </div>
+                  )}
+                </div>
+                <button
+                  type="button"
+                  onClick={() => {
+                    const tag = tagInput.trim().toLowerCase();
+                    if (tag && !formData.tags.includes(tag)) {
+                      setFormData(prev => ({ ...prev, tags: [...prev.tags, tag] }));
+                      setTagInput('');
+                    }
+                  }}
+                  className="px-4 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200"
+                >
+                  Add
+                </button>
+              </div>
+              <p className="text-xs text-gray-500 mt-2">
+                Tags help with article recommendations. Suggested: {allTags.slice(0, 5).join(', ')}
               </p>
             </div>
 
@@ -282,8 +375,9 @@ const ArticlesManager = React.memo(({ articles, setArticles, showNotification, l
                 onClick={() => {
                   setIsEditing(false);
                   setEditingId(null);
-                  setFormData({ title: '', content: '', imageUrl: '', status: 'published', scheduledPublishDate: '' });
+                  setFormData({ title: '', content: '', imageUrl: '', status: 'published', scheduledPublishDate: '', tags: [] });
                   setImagePreview('');
+                  setTagInput('');
                 }}
                 disabled={isSubmitting}
                 className="px-4 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors disabled:opacity-50"
@@ -324,6 +418,16 @@ const ArticlesManager = React.memo(({ articles, setArticles, showNotification, l
                         : article.content
                     }}
                   />
+                  {article.tags && article.tags.length > 0 && (
+                    <div className="flex flex-wrap gap-2 mb-3">
+                      {article.tags.map(tag => (
+                        <span key={tag} className="inline-flex items-center gap-1 bg-gray-100 text-gray-600 px-2 py-0.5 rounded-full text-[10px] font-medium border border-gray-200">
+                          <Tag size={10} />
+                          {tag}
+                        </span>
+                      ))}
+                    </div>
+                  )}
                   <div className="flex items-center gap-4 text-xs text-gray-500">
                     <span>Created: {formatDate(article.createdAt)}</span>
                     <span className={`font-medium px-2 py-0.5 rounded-full ${article.status === 'published' ? 'bg-green-100 text-green-700' : article.status === 'scheduled' ? 'bg-blue-100 text-blue-700' : 'bg-gray-100 text-gray-700'}`}>

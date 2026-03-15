@@ -20,7 +20,7 @@ import {
 import { ref, uploadBytes, getDownloadURL, deleteObject } from "firebase/storage";
 
 // CREATE article - FIXED to handle both File objects and URL strings
-export const createArticle = async (title, content, imageInput, status = 'published', scheduledPublishDate = null) => {
+export const createArticle = async (title, content, imageInput, status = 'published', scheduledPublishDate = null, tags = []) => {
   try {
     let imageUrl = "";
 
@@ -43,6 +43,7 @@ export const createArticle = async (title, content, imageInput, status = 'publis
       content,
       coverImage: imageUrl,
       status,
+      tags: Array.isArray(tags) ? tags : [],
       scheduledPublishDate: (scheduledPublishDate && !isNaN(new Date(scheduledPublishDate).getTime())) 
         ? Timestamp.fromDate(new Date(scheduledPublishDate)) 
         : null,
@@ -52,6 +53,11 @@ export const createArticle = async (title, content, imageInput, status = 'publis
       createdAt: Timestamp.now(),
       updatedAt: Timestamp.now()
     });
+
+    // Update global tags collection
+    if (tags && tags.length > 0) {
+      await syncTags(tags);
+    }
 
     return { success: true, id: docRef.id };
   } catch (error) {
@@ -135,12 +141,13 @@ export const getArticlesPaged = async (pageSize = 6, lastVisibleDoc = null, incl
 };
 
 // UPDATE article - FIXED to handle both File objects and URL strings
-export const updateArticle = async (articleId, title, content, imageInput, status = 'published', scheduledPublishDate = null) => {
+export const updateArticle = async (articleId, title, content, imageInput, status = 'published', scheduledPublishDate = null, tags = []) => {
   try {
     let updateData = {
       title,
       content,
       status,
+      tags: Array.isArray(tags) ? tags : [],
       scheduledPublishDate: (scheduledPublishDate && !isNaN(new Date(scheduledPublishDate).getTime())) 
         ? Timestamp.fromDate(new Date(scheduledPublishDate)) 
         : null,
@@ -163,6 +170,11 @@ export const updateArticle = async (articleId, title, content, imageInput, statu
 
     // Update article in Firestore
     await updateDoc(doc(db, "articles", articleId), updateData);
+
+    // Update global tags collection
+    if (tags && tags.length > 0) {
+      await syncTags(tags);
+    }
 
     return { success: true };
   } catch (error) {
@@ -381,4 +393,49 @@ export const getUserLogs = async (uid) => {
     console.error(`Error fetching logs for user ${uid}:`, error);
     return { success: false, error: error.message };
   }
-};
+};
+
+// --- TAGS UTILS ---
+
+// Sync tags to global articleTags collection
+export const syncTags = async (tags) => {
+  try {
+    for (const tag of tags) {
+      const tagLower = tag.toLowerCase().trim();
+      if (!tagLower) continue;
+      
+      const tagRef = doc(db, "articleTags", tagLower);
+      const tagSnap = await getDoc(tagRef);
+      
+      if (tagSnap.exists()) {
+        await updateDoc(tagRef, {
+          useCount: increment(1),
+          lastUsed: Timestamp.now()
+        });
+      } else {
+        await setDoc(tagRef, {
+          name: tagLower,
+          useCount: 1,
+          createdAt: Timestamp.now(),
+          lastUsed: Timestamp.now()
+        });
+      }
+    }
+  } catch (error) {
+    console.error("Error syncing tags:", error);
+  }
+};
+
+// Get all tags for admin suggestions
+export const getArticleTags = async () => {
+  try {
+    const q = query(collection(db, "articleTags"), orderBy("useCount", "desc"));
+    const snapshot = await getDocs(q);
+    const tags = snapshot.docs.map(doc => doc.data().name);
+    return { success: true, data: tags };
+  } catch (error) {
+    console.error("Error fetching tags:", error);
+    return { success: false, error: error.message };
+  }
+};
+
