@@ -197,15 +197,6 @@ const createEmailTemplate = (title, coverImage, articleId) => {
                     If you’re trying to improve your energy, manage your weight, or simply eat better, this one is for you.
                 </div>
                 
-                <div class="message" style="background-color: #f9fafb; padding: 25px; border-radius: 12px; margin-bottom: 40px; color: #1f2937;">
-                    <div style="font-weight: 700; margin-bottom: 12px; font-size: 18px;">In this article, you’ll learn:</div>
-                    <ul style="padding-left: 20px; margin-bottom: 15px; margin-top: 0;">
-                        <li style="margin-bottom: 8px;">Simple nutrition habits you can start today</li>
-                        <li style="margin-bottom: 8px;">Common mistakes that slow down progress</li>
-                        <li style="margin-bottom: 8px;">Practical tips you can apply immediately</li>
-                    </ul>
-                    No complicated diets. Just realistic guidance that works.
-                </div>
                 
                 <div class="article-preview" style="margin-bottom: 40px;">
                     ${coverImage ? `<img src="${coverImage}" alt="${title}" class="article-image" />` : ''}
@@ -240,7 +231,7 @@ const createEmailTemplate = (title, coverImage, articleId) => {
                 </div>
                 <div class="footer-text">
                     You’re receiving this email because you subscribed to the Diet With Dee newsletter.<br><br>
-                    <a href="#" class="unsubscribe">Unsubscribe anytime.</a>
+                    <a href="https://dietwithdee.org" class="unsubscribe">Unsubscribe anytime.</a>
                 </div>
             </div>
         </div>
