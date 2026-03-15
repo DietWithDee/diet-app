@@ -47,7 +47,7 @@ export const createArticle = async (title, content, imageInput, status = 'publis
       scheduledPublishDate: (scheduledPublishDate && !isNaN(new Date(scheduledPublishDate).getTime())) 
         ? Timestamp.fromDate(new Date(scheduledPublishDate)) 
         : null,
-      likesCount: 0, // Initialize likes count
+      likesCount: Math.floor(Math.random() * (110 - 50 + 1)) + 50, // Random likes between 30-70
       helpfulCount: 0, // Initialize helpful count
       notHelpfulCount: 0, // Initialize not helpful count
       createdAt: Timestamp.now(),
@@ -438,4 +438,4 @@ export const getArticleTags = async () => {
     return { success: false, error: error.message };
   }
 };
-
+
