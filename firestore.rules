@@ -39,6 +39,10 @@ service cloud.firestore {
       allow list, update, delete: if isAdmin(); // only admins can list or manage collected emails
     }
 
+    match /articleTags/{tagId} {
+      allow read, write: if isAdmin();
+    }
+
     // Default deny for anything not explicitly specified above
     match /{document=**} {
       allow read, write: if false;

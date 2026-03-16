@@ -24,13 +24,14 @@ const ArticlesManager = React.memo(({ articles, setArticles, showNotification, l
   const [imagePreview, setImagePreview] = useState('');
 
   // Fetch tags for suggestions
-  React.useEffect(() => {
-    const fetchTags = async () => {
-      const res = await getArticleTags();
-      if (res.success) setAllTags(res.data);
-    };
-    fetchTags();
+  const fetchTags = React.useCallback(async () => {
+    const res = await getArticleTags();
+    if (res.success) setAllTags(res.data);
   }, []);
+
+  React.useEffect(() => {
+    fetchTags();
+  }, [fetchTags]);
 
   // Validate and preview image file or URL
   const handleImageFileChange = (e) => {
@@ -82,6 +83,7 @@ const ArticlesManager = React.memo(({ articles, setArticles, showNotification, l
       if (result.success) {
         showNotification('success', editingId ? 'Article updated successfully!' : 'Article created successfully!');
         await loadArticles();
+        await fetchTags(); // Refresh suggestions with new tags
 
         setFormData({ title: '', content: '', imageUrl: '', status: 'published', scheduledPublishDate: '', tags: [] });
         setImagePreview('');
