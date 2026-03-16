@@ -282,6 +282,20 @@ function Home() {
                         </div>
                       </div>
                     </div>
+
+                    <div className="mt-8 space-y-6 px-1 text-center lg:text-left">
+                      <p className="text-gray-700 leading-relaxed font-medium">
+                        Beyond individual consultations, we believe in the power of collective change. We are actively involved in community programs and health outreaches across Ghana to make nutrition education practical and fun.
+                      </p>
+                      <motion.button
+                        whileHover={{ scale: 1.05 }}
+                        whileTap={{ scale: 0.95 }}
+                        onClick={() => navigate('/services#events-gallery')}
+                        className="px-8 py-3 bg-gradient-to-r from-orange-400 to-orange-400 text-white font-bold rounded-full shadow-lg hover:shadow-xl transition-all duration-300 hover:from-green-700 hover:to-emerald-700 text-sm"
+                      >
+                        View Events Gallery
+                      </motion.button>
+                    </div>
                   </div>
                 </motion.div>
 
