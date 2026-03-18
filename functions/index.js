@@ -1,3 +1,4 @@
+const { onCall, HttpsError } = require("firebase-functions/v2/https");
 const { onSchedule } = require("firebase-functions/v2/scheduler");
 const { onDocumentUpdated, onDocumentCreated, onDocumentWritten } = require("firebase-functions/v2/firestore");
 const { setGlobalOptions } = require("firebase-functions/v2");
@@ -253,6 +254,57 @@ exports.onUserCreated = onDocumentCreated(
             // This write will trigger onNewSubscriber to send the welcome email automatically.
         } catch (error) {
             console.error(`Error adding user ${email} to emails collection:`, error);
+        }
+    }
+);
+
+// 5. Securely Verify Paystack Transaction
+exports.verifyPaystackTransaction = onCall(
+    { secrets: ["PAYSTACK_SECRET_KEY"] },
+    async (request) => {
+        const reference = request.data.reference;
+
+        if (!reference) {
+            throw new HttpsError("invalid-argument", "The function must be called with a transaction reference.");
+        }
+
+        const secretKey = process.env.PAYSTACK_SECRET_KEY;
+        if (!secretKey) {
+            throw new HttpsError("internal", "Paystack secret key is not configured.");
+        }
+
+        console.log(`Verifying transaction: ${reference}`);
+
+        try {
+            const response = await fetch(`https://api.paystack.co/transaction/verify/${encodeURIComponent(reference)}`, {
+                method: 'GET',
+                headers: {
+                    Authorization: `Bearer ${secretKey}`,
+                    'Content-Type': 'application/json',
+                },
+            });
+
+            const data = await response.json();
+
+            if (data.status && data.data.status === 'success') {
+                console.log(`Transaction ${reference} verified successfully for ${data.data.customer.email}`);
+                return {
+                    success: true,
+                    amount: data.data.amount,
+                    customerEmail: data.data.customer.email,
+                    channel: data.data.channel,
+                    paidAt: data.data.paid_at
+                };
+            } else {
+                console.warn(`Transaction verification failed for ${reference}: ${data.message}`);
+                return {
+                    success: false,
+                    message: data.message || "Verification failed."
+                };
+            }
+        } catch (error) {
+            console.error(`Error verifying transaction ${reference}:`, error);
+            throw new HttpsError("internal", "An error occurred while verifying the transaction.");
         }
     }
 );

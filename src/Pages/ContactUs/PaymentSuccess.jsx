@@ -1,14 +1,63 @@
-// PaymentSuccess.jsx
-import React, { useMemo, useState } from 'react';
-import { CheckCircle, Send, Copy, ExternalLink, Mail } from 'lucide-react';
-import { useNavigate } from 'react-router-dom';
+import React, { useMemo, useState, useEffect } from 'react';
+import { CheckCircle, Send, Copy, ExternalLink, Mail, ShieldAlert, ArrowLeft } from 'lucide-react';
+import { useNavigate, useLocation } from 'react-router-dom';
+import { httpsCallable } from 'firebase/functions';
+import { functions } from '../../firebaseConfig';
+import SEO from '../../Components/SEO';
 
 function PaymentSuccess() {
   const navigate = useNavigate();
-
+  const location = useLocation();
+  const [isValidating, setIsValidating] = useState(true);
+  const [hasAccess, setHasAccess] = useState(false);
+  const [verificationError, setVerificationError] = useState(null);
   const [isSubmitted, setIsSubmitted] = useState(false);
   const [showEmailPreview, setShowEmailPreview] = useState(false);
   const [copied, setCopied] = useState(false);
+
+  // Security Verification
+  useEffect(() => {
+    const verifyPayment = async () => {
+      const searchParams = new URLSearchParams(location.search);
+      const reference = searchParams.get('reference') || searchParams.get('trxref');
+      
+      if (!reference) {
+        // No reference found - check if we already have valid data in localStorage
+        // but strictly enforce reference if we want to prevent abuse.
+        // For now, let's allow localStorage but log a warning or require reference for new sessions.
+        const storedData = localStorage.getItem('consultationFormData');
+        if (storedData && JSON.parse(storedData).email) {
+          setHasAccess(true);
+          setIsValidating(false);
+        } else {
+          setHasAccess(false);
+          setIsValidating(false);
+        }
+        return;
+      }
+
+      try {
+        setIsValidating(true);
+        const verifyFn = httpsCallable(functions, 'verifyPaystackTransaction');
+        const result = await verifyFn({ reference });
+        
+        if (result.data.success) {
+          setHasAccess(true);
+        } else {
+          setHasAccess(false);
+          setVerificationError(result.data.message || 'Payment verification failed.');
+        }
+      } catch (error) {
+        console.error('Error calling verifyPaystackTransaction:', error);
+        setHasAccess(false);
+        setVerificationError('A system error occurred during verification.');
+      } finally {
+        setIsValidating(false);
+      }
+    };
+
+    verifyPayment();
+  }, [location]);
 
   // Pull saved data from localStorage (set on the booking page before Paystack)
   const formData = useMemo(
@@ -110,7 +159,7 @@ Date: ${new Date().toLocaleDateString('en-US', {
 
     const { subject, body } = generateEmailContent();
     // NOTE: per your requirement, we send to dietwdee@gmail.com
-    const mailtoLink = `mailto:princetetteh963@gmail.com?subject=${encodeURIComponent(
+    const mailtoLink = `mailto:dietwdee@gmail.com?subject=${encodeURIComponent(
       subject
     )}&body=${encodeURIComponent(body)}`;
 
@@ -126,7 +175,7 @@ Date: ${new Date().toLocaleDateString('en-US', {
 
   const handleCopyEmail = async () => {
     const { subject, body } = generateEmailContent();
-    const emailText = `To: princetetteh963@gmail.com\nSubject: ${subject}\n\n${body}`;
+    const emailText = `To: dietwdee@gmail.com\nSubject: ${subject}\n\n${body}`;
 
     try {
       await navigator.clipboard.writeText(emailText);
@@ -170,6 +219,43 @@ Date: ${new Date().toLocaleDateString('en-US', {
     window.open(webmailUrl, '_blank');
     setIsSubmitted(true);
   };
+
+  // Loading / Validation state
+  if (isValidating) {
+    return (
+      <div className="min-h-screen bg-white flex items-center justify-center">
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-green-600"></div>
+      </div>
+    );
+  }
+
+  // Denial state: If validation fails
+  if (!hasAccess) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-red-50 to-white flex items-center justify-center p-6">
+        <div className="max-w-md w-full bg-white rounded-3xl shadow-2xl p-8 border border-red-100 text-center space-y-6">
+          <div className="w-20 h-20 bg-red-100 rounded-full flex items-center justify-center mx-auto">
+            <ShieldAlert className="text-red-600" size={40} />
+          </div>
+          <div className="space-y-2">
+            <h1 className="text-2xl font-bold text-gray-900">Access Restricted</h1>
+            <p className="text-gray-600">
+              {verificationError || 'This page is only accessible after a successful payment session.'}
+            </p>
+          </div>
+          <div className="pt-4">
+            <button
+              onClick={() => navigate('/plans')}
+              className="w-full flex items-center justify-center gap-2 py-3 bg-red-600 text-white font-bold rounded-xl hover:bg-red-700 transition-colors"
+            >
+              <ArrowLeft size={18} />
+              Return to Plans
+            </button>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   // Email preview UI
   if (showEmailPreview) {
@@ -328,7 +414,7 @@ Date: ${new Date().toLocaleDateString('en-US', {
             <div className="pt-4 border-t border-gray-200 mt-4 text-sm text-gray-600 flex flex-col items-center gap-2">
               <div className="flex items-center gap-2">
                 <Mail size={16} />
-                <span>Recipient: <strong>princetetteh963@gmail.com</strong></span>
+                <span>Recipient: <strong>dietwdee@gmail.com</strong></span>
               </div>
             </div>
           </div>
