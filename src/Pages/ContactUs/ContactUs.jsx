@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import SEO from '../../Components/SEO';
 import { ArrowLeft, User, Mail, Calculator, Target, Heart, Utensils, MessageCircle, Phone, CheckCircle, CreditCard, Lock, Shield, Calendar, Clock } from 'lucide-react';
 import { useLocation } from 'react-router-dom';
@@ -52,6 +52,8 @@ function ContactUs() {
 
   const { user, userProfile } = useAuth();
 
+  const formRef = useRef(null);
+
   const [formData, setFormData] = useState({
     name: '',
     email: '',
@@ -60,6 +62,7 @@ function ContactUs() {
   });
 
   const [paymentStep, setPaymentStep] = useState('form');
+  const [selectedType, setSelectedType] = useState('initial');
 
   // Use router state first, then Firestore profile as fallback, then defaults
   const location = useLocation();
@@ -114,10 +117,11 @@ function ContactUs() {
     }));
   };
 
-  const handlePaymentRedirect = () => {
+  const handlePaymentRedirect = (type = 'initial') => {
     // 1. Validate required fields
     if (!formData.name || !formData.email) {
       alert('Please fill in all required fields (Name and Email) before proceeding to payment');
+      formRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
       return;
     }
 
@@ -126,18 +130,18 @@ function ContactUs() {
       return;
     }
 
-    // Note: We removed the async getBookingStatus check here. 
-    // Since we checked on mount, if the user is still on this screen, 
-    // we assume bookings are open. This ensures window.open fires synchronously.
-
-    // 2. Store form data in localStorage
-    localStorage.setItem('consultationFormData', JSON.stringify(formData));
+    // 2. Store form data and consultation type in localStorage
+    localStorage.setItem('consultationFormData', JSON.stringify({ ...formData, consultationType: type }));
     localStorage.setItem('userResults', JSON.stringify(userResults));
 
-    // 3. Redirect to Paystack (Now Synchronous - Browser will allow this)
-    window.open('https://paystack.shop/pay/bookdee', '_blank');
+    // 3. Redirect to the correct Paystack link based on type
+    const paymentUrl = type === 'followup'
+      ? 'https://paystack.shop/pay/follow-up'
+      : 'https://paystack.shop/pay/bookdee';
+    window.open(paymentUrl, '_blank');
 
     // 4. Show payment instructions
+    setSelectedType(type);
     setPaymentStep('payment');
   };
 
@@ -172,7 +176,11 @@ function ContactUs() {
                 <h2 className="text-3xl font-bold text-green-800">Complete Your Payment</h2>
                 
                 <div className="bg-green-50 border border-green-200 rounded-xl p-6">
-                  <h3 className="text-lg font-semibold text-green-800 mb-4">What's Included in Your ₵800 Package:</h3>
+                <h3 className="text-lg font-semibold text-green-800 mb-4">
+                  {selectedType === 'followup'
+                    ? "What's Included in Your ₵400 Package:"
+                    : "What's Included in Your ₵800 Package:"}
+                </h3>
                   <div className="space-y-3 text-left">
                     <div className="flex items-center space-x-3">
                       <CheckCircle className="text-green-600" size={20} />
@@ -221,7 +229,12 @@ function ContactUs() {
                     </button>
                     
                     <button
-                      onClick={() => window.open('https://paystack.shop/pay/bookdee', '_blank')}
+                      onClick={() => window.open(
+                        selectedType === 'followup'
+                          ? 'https://paystack.shop/pay/follow-up'
+                          : 'https://paystack.shop/pay/bookdee',
+                        '_blank'
+                      )}
                       className="flex-1 py-3 bg-blue-600 text-white font-semibold rounded-xl hover:bg-blue-700 transition-colors"
                     >
                       Open Payment Page Again
@@ -417,51 +430,66 @@ function ContactUs() {
             {/* Main Booking Section - Centered and Wider */}
             <div className="max-w-4xl mx-auto w-full px-4 sm:px-0 space-y-6">
 
-              {/* Standalone Green Pricing Card */}
-              <div className="bg-gradient-to-br from-green-500 via-green-600 to-emerald-700 rounded-3xl p-8 text-white shadow-2xl shadow-green-500/30 border border-green-400/20">
-                <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-8">
-                  {/* What's Included */}
+              {/* Two Consultation Cards */}
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+
+                {/* Initial Consultation Card */}
+                <div className="bg-gradient-to-br from-green-500 via-green-600 to-emerald-700 rounded-3xl p-7 text-white shadow-2xl shadow-green-500/30 border border-green-400/20 flex flex-col">
                   <div className="flex-1">
-                    <h2 className="text-xl font-bold mb-5 text-white">What's Included</h2>
-                    <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-                      {[
-                        { icon: Calendar, title: 'Professional Session', desc: 'One-on-one consultation with Nana Ama.' },
-                        { icon: Calculator, title: 'Custom Meal Plan', desc: 'Based on your unique body metrics.' },
-                        { icon: CheckCircle, title: 'Ongoing Support', desc: 'Optional follow-up guidance to stay on track.' }
-                      ].map((item, idx) => (
-                        <div key={idx} className="flex items-start space-x-3">
-                          <div className="bg-white/15 p-2 rounded-xl mt-0.5 shrink-0">
-                            <item.icon size={18} className="text-white" />
-                          </div>
-                          <div>
-                            <p className="font-bold text-sm leading-tight mb-0.5">{item.title}</p>
-                            <p className="text-green-100/70 text-xs leading-tight">{item.desc}</p>
-                          </div>
+                    <div className="flex items-center gap-2 mb-1">
+                      <span className="bg-white/20 text-white text-[10px] font-black px-3 py-1 rounded-full tracking-widest uppercase">Most Popular</span>
+                    </div>
+                    <h2 className="text-xl font-bold mt-3 mb-1">Initial Consultation</h2>
+                    <p className="text-green-100/70 text-sm mb-4">45 mins</p>
+                    <p className="text-4xl font-extrabold text-white tracking-tight mb-5">₵800</p>
+                    <div className="space-y-2.5 text-sm">
+                      {['Full assessment of your health goals', 'Personalised diet plan', 'Food diary setup'].map((item, i) => (
+                        <div key={i} className="flex items-start gap-2.5">
+                          <CheckCircle size={16} className="text-white/80 mt-0.5 shrink-0" />
+                          <span className="text-green-100/80">{item}</span>
                         </div>
                       ))}
                     </div>
                   </div>
+                  <button
+                    onClick={() => handlePaymentRedirect('initial')}
+                    className="mt-6 w-full py-3.5 bg-white text-green-700 font-bold rounded-xl shadow hover:bg-green-50 transition-colors flex items-center justify-center gap-2"
+                  >
+                    <Lock size={16} />
+                    Pay now — ₵800
+                  </button>
+                </div>
 
-                  {/* Divider */}
-                  <div className="hidden md:block w-px h-24 bg-white/20 self-center"></div>
-
-                  {/* Fee + Schedule */}
-                  <div className="md:text-right shrink-0">
-                    <p className="text-green-200 text-xs font-semibold uppercase tracking-widest mb-1">Consultation Fee</p>
-                    <p className="text-4xl font-extrabold text-white tracking-tight mb-2">₵800</p>
-                    <div className="flex items-center md:justify-end space-x-2 text-xs text-green-100/60 mb-1">
-                      <Clock size={12} />
-                      <span>Tue – Sun, 10 am – 3 pm</span>
+                {/* Follow-up Consultation Card */}
+                <div className="bg-white rounded-3xl p-7 shadow-xl border border-gray-100 flex flex-col">
+                  <div className="flex-1">
+                    <div className="flex items-center gap-2 mb-1">
+                      <span className="bg-emerald-100 text-emerald-700 text-[10px] font-black px-3 py-1 rounded-full tracking-widest uppercase">Returning Clients</span>
                     </div>
-                    <p className="text-[10px] text-green-200/50 italic max-w-[180px] md:ml-auto">
-                      * Times arranged after payment confirmation.
-                    </p>
+                    <h2 className="text-xl font-bold text-gray-800 mt-3 mb-1">Follow Up / One Time Consultation</h2>
+                    <p className="text-gray-400 text-sm mb-4">25 mins</p>
+                    <p className="text-4xl font-extrabold text-green-600 tracking-tight mb-5">₵400</p>
+                    <div className="space-y-2.5 text-sm">
+                      {['Progress review', 'Plan adjustments', 'Personalised counselling'].map((item, i) => (
+                        <div key={i} className="flex items-start gap-2.5">
+                          <CheckCircle size={16} className="text-green-500 mt-0.5 shrink-0" />
+                          <span className="text-gray-600">{item}</span>
+                        </div>
+                      ))}
+                    </div>
                   </div>
+                  <button
+                    onClick={() => handlePaymentRedirect('followup')}
+                    className="mt-6 w-full py-3.5 bg-gradient-to-r from-green-500 to-emerald-600 text-white font-bold rounded-xl shadow hover:shadow-md transition-all flex items-center justify-center gap-2"
+                  >
+                    <Lock size={16} />
+                    Pay now — ₵400
+                  </button>
                 </div>
               </div>
 
               {/* Form Card */}
-              <div className="bg-white shadow-xl rounded-3xl overflow-hidden border border-gray-100">
+              <div ref={formRef} className="bg-white shadow-xl rounded-3xl overflow-hidden border border-gray-100">
                 <div>
 
                   {/* Right Side: Form */}
@@ -502,7 +530,7 @@ function ContactUs() {
                               onChange={handleInputChange}
                               required
                               className="w-full pl-11 pr-4 py-3.5 bg-gray-50 border border-gray-100 rounded-xl focus:bg-white focus:border-green-500 focus:ring-4 focus:ring-green-500/5 transition-all outline-none text-sm"
-                              placeholder="john@example.com"
+                              placeholder="johndoe@gmail.com"
                             />
                           </div>
                         </div>
@@ -540,16 +568,8 @@ function ContactUs() {
                         </div>
                       </div>
 
-                      {/* Payment Button */}
-                      <div className="pt-3 space-y-4">
-                        <button
-                          onClick={handlePaymentRedirect}
-                          className="w-full py-4 bg-[#F6841F] text-white font-bold rounded-xl shadow-lg hover:shadow-xl hover:translate-y-[-1px] active:translate-y-[0px] transition-all duration-200 flex items-center justify-center gap-2 tracking-wide"
-                        >
-                          <Lock size={18} />
-                          <span>Secure Payment — ₵800</span>
-                        </button>
-                        
+                      {/* Booking Note */}
+                      <div className="pt-3">
                         <div className="flex items-center justify-center space-x-4 text-[10px] text-gray-400 font-bold tracking-widest">
                           <div className="flex items-center space-x-1.5">
                             <Shield size={12} className="text-green-600" />
@@ -557,7 +577,7 @@ function ContactUs() {
                           </div>
                           <div className="flex items-center space-x-1.5">
                             <CheckCircle size={12} className="text-green-600" />
-                            <span>Instant Booking</span>
+                            <span>Choose your consultation above to pay</span>
                           </div>
                         </div>
                       </div>

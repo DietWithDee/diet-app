@@ -18,29 +18,27 @@ function PaymentSuccess() {
   // Security Verification
   useEffect(() => {
     const verifyPayment = async () => {
-      const searchParams = new URLSearchParams(location.search);
-      const reference = searchParams.get('reference') || searchParams.get('trxref');
-      
-      if (!reference) {
-        // No reference found - check if we already have valid data in localStorage
-        // but strictly enforce reference if we want to prevent abuse.
-        // For now, let's allow localStorage but log a warning or require reference for new sessions.
-        const storedData = localStorage.getItem('consultationFormData');
-        if (storedData && JSON.parse(storedData).email) {
-          setHasAccess(true);
-          setIsValidating(false);
-        } else {
-          setHasAccess(false);
-          setIsValidating(false);
-        }
-        return;
-      }
-
       try {
+        const searchParams = new URLSearchParams(location.search);
+        const reference = searchParams.get('reference') || searchParams.get('trxref');
+
+        if (!reference) {
+          let stored = null;
+          try {
+            const raw = localStorage.getItem('consultationFormData');
+            if (raw) stored = JSON.parse(raw);
+          } catch {
+            // Malformed localStorage — treat as no data
+          }
+          setHasAccess(!!(stored?.email));
+          setIsValidating(false);
+          return;
+        }
+
         setIsValidating(true);
         const verifyFn = httpsCallable(functions, 'verifyPaystackTransaction');
         const result = await verifyFn({ reference });
-        
+
         if (result.data.success) {
           setHasAccess(true);
         } else {
@@ -48,9 +46,9 @@ function PaymentSuccess() {
           setVerificationError(result.data.message || 'Payment verification failed.');
         }
       } catch (error) {
-        console.error('Error calling verifyPaystackTransaction:', error);
+        console.error('Payment verification error:', error);
         setHasAccess(false);
-        setVerificationError('A system error occurred during verification.');
+        setVerificationError('Verification failed. Please complete payment to access this page.');
       } finally {
         setIsValidating(false);
       }
@@ -59,31 +57,28 @@ function PaymentSuccess() {
     verifyPayment();
   }, [location]);
 
-  // Pull saved data from localStorage (set on the booking page before Paystack)
-  const formData = useMemo(
-    () =>
-      JSON.parse(
-        localStorage.getItem('consultationFormData') ||
-          JSON.stringify({ name: '', email: '', phone: '', message: '' })
-      ),
-    []
-  );
+  // Pull saved data from localStorage safely
+  const formData = useMemo(() => {
+    try {
+      const raw = localStorage.getItem('consultationFormData');
+      return raw ? JSON.parse(raw) : { name: '', email: '', phone: '', message: '' };
+    } catch {
+      return { name: '', email: '', phone: '', message: '' };
+    }
+  }, []);
 
-  const userResults = useMemo(
-    () =>
-      JSON.parse(
-        localStorage.getItem('userResults') ||
-          JSON.stringify({
-            bmi: 0,
-            bmiCategory: 'Unknown',
-            dailyCalories: 0,
-            goal: 'Not specified',
-            dietaryRestrictions: 'None',
-            macros: { protein: 0, carbs: 0, fats: 0 }
-          })
-      ),
-    []
-  );
+  const userResults = useMemo(() => {
+    try {
+      const raw = localStorage.getItem('userResults');
+      return raw ? JSON.parse(raw) : {
+        bmi: 0, bmiCategory: 'Unknown', dailyCalories: 0,
+        goal: 'Not specified', dietaryRestrictions: 'None',
+        macros: { protein: 0, carbs: 0, fats: 0 }
+      };
+    } catch {
+      return { bmi: 0, bmiCategory: 'Unknown', dailyCalories: 0, goal: 'Not specified', dietaryRestrictions: 'None', macros: { protein: 0, carbs: 0, fats: 0 } };
+    }
+  }, []);
 
   const safePct = (grams = 0, kcalPerGram = 0, total = 0) => {
     if (!total) return 0;
@@ -91,9 +86,43 @@ function PaymentSuccess() {
     return Math.round((kcal / total) * 100);
   };
 
-  const generateEmailContent = () => {
-    const subject = `Professional Nutrition Consultation Request - ${formData.name || 'Client'} [PAID]`;
+  const isFollowUp = formData.consultationType === 'followup';
 
+  const generateEmailContent = () => {
+    const date = new Date().toLocaleDateString('en-US', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
+
+    if (isFollowUp) {
+      const subject = `Follow-Up / One Time Consultation Request - ${formData.name || 'Client'} [PAID]`;
+      const body = `Dear Diet with Dee Team,
+
+I have completed payment for a Follow-Up / One Time Consultation and would like to schedule my session.
+
+💳 PAYMENT STATUS: COMPLETED ✅
+💰 Amount Paid: ₵400 (Follow-Up Consultation)
+
+═══════════════════════════════════════════════════════════════════════════════════════
+📋 CLIENT INFORMATION
+═══════════════════════════════════════════════════════════════════════════════════════
+
+👤 Full Name: ${formData.name || '-'}
+📧 Email Address: ${formData.email || '-'}
+📞 Phone Number: ${formData.phone || 'Not provided'}
+
+═══════════════════════════════════════════════════════════════════════════════════════
+💬 NOTES / QUESTIONS FOR THIS SESSION
+═══════════════════════════════════════════════════════════════════════════════════════
+
+${formData.message ? `"${formData.message}"` : 'No additional notes provided.'}
+
+---
+This email was generated through the Diet with Dee Assessment Portal
+Payment completed via Paystack
+Date: ${date}`;
+      return { subject, body };
+    }
+
+    // Default: Initial Consultation email
+    const subject = `Professional Nutrition Consultation Request - ${formData.name || 'Client'} [PAID]`;
     const body = `Dear Diet with Dee Team,
 
 I hope this email finds you well. I have completed payment for a professional nutrition consultation and am writing to schedule my session based on my recent comprehensive health assessment.
@@ -140,12 +169,7 @@ ${formData.phone ? `📞 ${formData.phone}` : ''}
 ---
 This email was generated through the Diet with Dee Assessment Portal
 Payment completed via Paystack
-Date: ${new Date().toLocaleDateString('en-US', { 
-  weekday: 'long', 
-  year: 'numeric', 
-  month: 'long', 
-  day: 'numeric' 
-})}`;
+Date: ${date}`;
 
     return { subject, body };
   };
@@ -245,7 +269,7 @@ Date: ${new Date().toLocaleDateString('en-US', {
           </div>
           <div className="pt-4">
             <button
-              onClick={() => navigate('/plans')}
+              onClick={() => navigate('/contactUs')}
               className="w-full flex items-center justify-center gap-2 py-3 bg-red-600 text-white font-bold rounded-xl hover:bg-red-700 transition-colors"
             >
               <ArrowLeft size={18} />
@@ -389,10 +413,23 @@ Date: ${new Date().toLocaleDateString('en-US', {
             <div className="w-20 h-20 bg-green-100 rounded-full flex items-center justify-center mx-auto">
               <CheckCircle className="text-green-600" size={48} />
             </div>
-            <h2 className="text-3xl font-bold text-green-800">Payment Confirmed!</h2>
-            <p className="text-lg text-gray-600">
-              Thanks for your payment. Please send your consultation request so we can schedule your session.
-            </p>
+            {isFollowUp ? (
+              <>
+                <div className="inline-block bg-emerald-100 text-emerald-700 text-xs font-bold px-4 py-1 rounded-full tracking-widest uppercase">Follow-Up / One Time Consultation</div>
+                <h2 className="text-3xl font-bold text-green-800">Payment Confirmed!</h2>
+                <p className="text-lg text-gray-600">
+                  Thanks for booking a follow-up. Please send your request so we can schedule your session.
+                </p>
+              </>
+            ) : (
+              <>
+                <div className="inline-block bg-green-100 text-green-700 text-xs font-bold px-4 py-1 rounded-full tracking-widest uppercase">Initial Consultation</div>
+                <h2 className="text-3xl font-bold text-green-800">Payment Confirmed!</h2>
+                <p className="text-lg text-gray-600">
+                  Thanks for your payment. Please send your consultation request so we can schedule your session.
+                </p>
+              </>
+            )}
           </div>
 
           <div className="space-y-3">
