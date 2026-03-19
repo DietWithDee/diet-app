@@ -276,13 +276,36 @@ exports.verifyPaystackTransaction = onCall(
         console.log(`Verifying transaction: ${reference}`);
 
         try {
-            const response = await fetch(`https://api.paystack.co/transaction/verify/${encodeURIComponent(reference)}`, {
-                method: 'GET',
-                headers: {
-                    Authorization: `Bearer ${secretKey}`,
-                    'Content-Type': 'application/json',
-                },
-            });
+            const response = await fetch(
+                `https://api.paystack.co/transaction/verify/${encodeURIComponent(reference)}`,
+                {
+                    method: 'GET',
+                    headers: {
+                        Authorization: `Bearer ${secretKey}`,
+                        'Content-Type': 'application/json',
+                    },
+                }
+            );
+
+            // Handle HTTP-level errors before attempting to parse JSON
+            if (!response.ok) {
+                if (response.status >= 500) {
+                    console.error(`Paystack server error: ${response.status} for reference ${reference}`);
+                    throw new HttpsError(
+                        "unavailable",
+                        "Paystack is temporarily unavailable. Please wait a few minutes and try again."
+                    );
+                }
+                if (response.status === 404) {
+                    return { success: false, message: "Transaction not found. Please ensure payment was completed." };
+                }
+                if (response.status === 401) {
+                    console.error("Paystack authentication failed — check secret key configuration.");
+                    throw new HttpsError("internal", "Payment verification is misconfigured. Please contact support.");
+                }
+                // Any other 4xx
+                return { success: false, message: "Payment verification could not be completed. Please contact support." };
+            }
 
             const data = await response.json();
 
@@ -303,8 +326,15 @@ exports.verifyPaystackTransaction = onCall(
                 };
             }
         } catch (error) {
-            console.error(`Error verifying transaction ${reference}:`, error);
-            throw new HttpsError("internal", "An error occurred while verifying the transaction.");
+            // Re-throw HttpsErrors as-is (they carry specific user-facing messages)
+            if (error instanceof HttpsError) throw error;
+
+            // Network-level failure (DNS, timeout, connection refused)
+            console.error(`Network error verifying transaction ${reference}:`, error);
+            throw new HttpsError(
+                "unavailable",
+                "Could not reach Paystack to verify your payment. Please check your connection and try again."
+            );
         }
     }
 );
