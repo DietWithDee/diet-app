@@ -273,7 +273,7 @@ Date: ${date}`;
               className="w-full flex items-center justify-center gap-2 py-3 bg-red-600 text-white font-bold rounded-xl hover:bg-red-700 transition-colors"
             >
               <ArrowLeft size={18} />
-              Return to Plans
+              Return to Booking
             </button>
           </div>
         </div>

@@ -466,7 +466,7 @@ function ContactUs() {
                     <div className="flex items-center gap-2 mb-1">
                       <span className="bg-emerald-100 text-emerald-700 text-[10px] font-black px-3 py-1 rounded-full tracking-widest uppercase">Returning Clients</span>
                     </div>
-                    <h2 className="text-xl font-bold text-gray-800 mt-3 mb-1">Follow Up / One Time Consultation</h2>
+                    <h2 className="text-xl font-bold text-gray-800 mt-3 mb-1">Follow Up Consultation</h2>
                     <p className="text-gray-400 text-sm mb-4">25 mins</p>
                     <p className="text-4xl font-extrabold text-green-600 tracking-tight mb-5">₵400</p>
                     <div className="space-y-2.5 text-sm">

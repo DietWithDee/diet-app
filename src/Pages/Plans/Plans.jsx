@@ -1,5 +1,7 @@
-import React from 'react';
-import { useNavigate } from 'react-router-dom';
+import React, { useState, useEffect } from 'react';
+import { useNavigate, useLocation } from 'react-router-dom';
+import { Share2, Check } from 'lucide-react';
+import { Helmet } from 'react-helmet-async';
 import PlanImg from '../../assets/Salad.webp'; // you can replace this with actual plan images
 import B2B from '../../assets/images/B2B.webp'; // example image for Back to Basics plan
 import Gain from '../../assets/images/Gain.webp'; // example image for Weight Gain plan
@@ -10,6 +12,8 @@ import ScrollToTop from "../../utils/ScrollToTop";
 
 function Plans() {
   const navigate = useNavigate();
+  const location = useLocation();
+  const [shareToast, setShareToast] = useState(null);
   const scrollUp = () => {
     setTimeout(() => {
       window.scrollTo({ top: 0, behavior: 'smooth' });
@@ -18,6 +22,7 @@ function Plans() {
 
   const plans = [
     {
+      id: 'back-to-basics',
       title: 'Back to Basics',
       Subtitle: 'A 5-Day Healthy Eating Reset',
       price: '₵349',
@@ -32,6 +37,7 @@ function Plans() {
       isPopular: true,
     },
     {
+      id: 'snatched-nourished',
       title: 'Snatched & Nourished',
       Subtitle: 'Gentle Weight Loss Guide',
       price: '₵249',
@@ -45,6 +51,7 @@ function Plans() {
       gradient: 'from-orange-400 to-orange-500',
     },
     {
+      id: 'blood-sugar-balance',
       title: 'Blood Sugar Balance',
       Subtitle: 'A Type 2 Diabetes-Friendly Guide',
       price: '₵299',
@@ -58,6 +65,7 @@ function Plans() {
       gradient: 'from-orange-400 to-orange-500',
     },
     {
+      id: 'pressure-no-dey-catch-me',
       title: 'Pressure No Dey Catch Me',
       Subtitle: 'A Hypertension-Friendly Plan',
       price: '₵299',
@@ -71,6 +79,7 @@ function Plans() {
       gradient: 'from-orange-400 to-orange-500',
     },
     {
+      id: 'weight-gain',
       title: 'The Weight Gain',
       Subtitle: 'Wahala-Free Plan',
       price: '₵249',
@@ -151,14 +160,52 @@ function Plans() {
     );
   };
 
-  const [loading, setLoading] = React.useState(true);
+  const [loading, setLoading] = useState(true);
 
-  React.useEffect(() => {
+  useEffect(() => {
     const timer = setTimeout(() => {
       setLoading(false);
     }, 1500);
     return () => clearTimeout(timer);
   }, []);
+
+  // Handle hash scrolling on initial load
+  useEffect(() => {
+    if (!loading && location.hash) {
+      const id = location.hash.replace('#', '');
+      const element = document.getElementById(id);
+      if (element) {
+        setTimeout(() => {
+          element.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        }, 100);
+      }
+    }
+  }, [loading, location.hash]);
+
+  const handleShare = async (plan) => {
+    const shareUrl = `${window.location.origin}${window.location.pathname}#${plan.id}`;
+    const shareData = {
+      title: `Diet Plan: ${plan.title}`,
+      text: `Check out the ${plan.title} plan on DietWithDee! ${plan.Subtitle}`,
+      url: shareUrl,
+    };
+
+    if (navigator.share) {
+      try {
+        await navigator.share(shareData);
+      } catch (err) {
+        console.error('Error sharing:', err);
+      }
+    } else {
+      try {
+        await navigator.clipboard.writeText(shareUrl);
+        setShareToast(plan.id);
+        setTimeout(() => setShareToast(null), 3000);
+      } catch (err) {
+        console.error('Error copying to clipboard:', err);
+      }
+    }
+  };
 
   const SkeletonCard = () => (
     <div className="bg-white rounded-3xl shadow-xl p-6 relative border border-gray-100 animate-pulse">
@@ -177,6 +224,17 @@ function Plans() {
 
   return (
     <>
+      {location.hash && !loading && (
+        <Helmet>
+          {plans.find(p => p.id === location.hash.replace('#', '')) && (
+            <>
+              <title>{plans.find(p => p.id === location.hash.replace('#', '')).title} | DietWithDee</title>
+              <meta property="og:title" content={`${plans.find(p => p.id === location.hash.replace('#', '')).title} | DietWithDee`} />
+              <meta property="og:description" content={plans.find(p => p.id === location.hash.replace('#', '')).Subtitle} />
+            </>
+          )}
+        </Helmet>
+      )}
       <div className='min-h-screen bg-gradient-to-br from-green-50 via-white to-emerald-50 py-20 px-6 lg:px-12'>
         <div className='text-center space-y-4 max-w-3xl mx-auto mb-12'>
           <h1 className='text-3xl font-black text-transparent bg-clip-text bg-gradient-to-r from-green-700 via-emerald-600 to-green-600'>
@@ -196,7 +254,8 @@ function Plans() {
             plans.map((plan, index) => (
               <div
                 key={index}
-                className="bg-white rounded-3xl shadow-xl hover:shadow-2xl transition-transform hover:-translate-y-1 p-6 relative border border-gray-100"
+                id={plan.id}
+                className="bg-white rounded-3xl shadow-xl hover:shadow-2xl transition-transform hover:-translate-y-1 p-6 relative border border-gray-100 scroll-mt-24"
               >
                 {plan.isPopular && (
                   <div className="absolute -top-3 left-1/2 -translate-x-1/2 bg-gradient-to-r from-orange-400 to-orange-500 text-white text-[10px] font-black px-4 py-1 rounded-full shadow-lg z-10 whitespace-nowrap tracking-widest border-2 border-white">
@@ -222,13 +281,31 @@ function Plans() {
                   ))}
                 </ul>
 
-                <a href={plan.Url} target="_blank" rel="noopener noreferrer">
+                <div className="flex gap-3">
+                  <a href={plan.Url} target="_blank" rel="noopener noreferrer" className="flex-1">
+                    <button
+                      className={`w-full px-6 py-3 bg-gradient-to-r ${plan.gradient} text-white font-bold rounded-full transition-all hover:shadow-lg`}
+                    >
+                      Buy Now
+                    </button>
+                  </a>
                   <button
-                    className={`w-full px-6 py-3 bg-gradient-to-r ${plan.gradient} text-white font-bold rounded-full transition-all hover:shadow-lg`}
+                    onClick={() => handleShare(plan)}
+                    className="p-3 bg-gray-50 text-gray-600 rounded-full hover:bg-gray-100 transition-all border border-gray-200 flex items-center justify-center relative group"
+                    title="Share this plan"
                   >
-                    Buy Now
+                    {shareToast === plan.id ? (
+                      <Check size={20} className="text-green-600" />
+                    ) : (
+                      <Share2 size={20} className="group-hover:scale-110 transition-transform" />
+                    )}
+                    {shareToast === plan.id && (
+                      <span className="absolute -top-10 left-1/2 -translate-x-1/2 bg-gray-800 text-white text-[10px] px-2 py-1 rounded shadow-lg whitespace-nowrap animate-bounce">
+                        Link Copied!
+                      </span >
+                    )}
                   </button>
-                </a>
+                </div>
               </div>
             ))
           )}

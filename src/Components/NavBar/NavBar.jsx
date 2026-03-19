@@ -22,7 +22,7 @@ export default function NavBar() {
     { path: '/plans', label: 'Plans' },
     { path: '/blog', label: 'Blog' },
     { path: '/services', label: 'Services' },
-    { path: '/contactus', label: 'Contact Us' },
+    { path: '/contactus', label: 'Book a Session' },
   ]
 
   return (
