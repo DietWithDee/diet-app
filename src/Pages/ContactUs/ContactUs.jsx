@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import SEO from '../../Components/SEO';
-import { ArrowLeft, User, Mail, Calculator, Target, Heart, Utensils, MessageCircle, Phone, CheckCircle, CreditCard, Lock, Shield, Calendar, Clock } from 'lucide-react';
+import { ArrowLeft, User, Mail, Calculator, Target, Heart, Utensils, MessageCircle, Phone, CheckCircle, CreditCard, Lock, Shield, Calendar, Clock, Banknote } from 'lucide-react';
 import { useLocation } from 'react-router-dom';
 import FullyBooked from '../FullyBooked/FullyBooked';
 import { getBookingStatus } from '../../firebaseBookingUtils';
@@ -119,8 +119,8 @@ function ContactUs() {
 
   const handlePaymentRedirect = (type = 'initial') => {
     // 1. Validate required fields
-    if (!formData.name || !formData.email) {
-      alert('Please fill in all required fields (Name and Email) before proceeding to payment');
+    if (!formData.name || !formData.email || !formData.phone) {
+      alert('Please fill in all required fields (Name, Email and Phone Number) before proceeding to payment');
       formRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
       return;
     }
@@ -182,26 +182,15 @@ function ContactUs() {
                     : "What's Included in Your ₵800 Package:"}
                 </h3>
                   <div className="space-y-3 text-left">
-                    <div className="flex items-center space-x-3">
-                      <CheckCircle className="text-green-600" size={20} />
-                      <span className="text-gray-700">One-on-one nutrition consultation (45-60 minutes)</span>
-                    </div>
-                    <div className="flex items-center space-x-3">
-                      <CheckCircle className="text-green-600" size={20} />
-                      <span className="text-gray-700">Personalized meal plan based on your assessment</span>
-                    </div>
-                    <div className="flex items-center space-x-3">
-                      <CheckCircle className="text-green-600" size={20} />
-                      <span className="text-gray-700">Custom macronutrient breakdown</span>
-                    </div>
-                    <div className="flex items-center space-x-3">
-                      <CheckCircle className="text-green-600" size={20} />
-                      <span className="text-gray-700">Goal-specific dietary recommendations</span>
-                    </div>
-                    <div className="flex items-center space-x-3">
-                      <CheckCircle className="text-green-600" size={20} />
-                      <span className="text-gray-700">Follow-up support and guidance</span>
-                    </div>
+                    {(selectedType === 'followup' 
+                      ? ['Progress review', 'Plan adjustments', 'Personalised counselling', 'Follow-up support and guidance']
+                      : ['Full assessment of your health goals', 'Personalised diet plan', 'Food diary setup', 'Custom macronutrient breakdown', 'Goal-specific dietary recommendations']
+                    ).map((item, i) => (
+                      <div key={i} className="flex items-center space-x-3">
+                        <CheckCircle className="text-green-600" size={20} />
+                        <span className="text-gray-700">{item}</span>
+                      </div>
+                    ))}
                   </div>
                 </div>
 
@@ -358,7 +347,7 @@ function ContactUs() {
                     <div className="space-y-6">
                       <div>
                         <div className="text-3xl font-bold text-[#4CAF50]">
-                          {userResults.bmi} <span className="text-lg text-gray-500 font-normal">kg/m²</span>
+                          {userResults.bmi} <span className="text-lg text-gray-700 font-normal">kg/m²</span>
                         </div>
                       </div>
                       <div className="space-y-1">
@@ -370,7 +359,7 @@ function ContactUs() {
                         }`}>
                           {userResults.bmiCategory}
                         </p>
-                        <p className="text-sm text-gray-500 font-medium">Weight Status</p>
+                        <p className="text-sm text-gray-700 font-medium">Weight Status</p>
                       </div>
                     </div>
                   </div>
@@ -381,23 +370,23 @@ function ContactUs() {
                     <div className="space-y-4">
                       <div className="mb-4">
                         <div className="text-3xl font-bold text-[#4CAF50]">
-                          {userResults.dailyCalories} <span className="text-lg text-gray-500 font-normal">calories</span>
+                          {userResults.dailyCalories} <span className="text-lg text-gray-700 font-normal">calories</span>
                         </div>
                       </div>
                       <div className="flex items-start space-x-6 pt-2">
                          <div className="space-y-0.5">
                             <p className="text-lg font-bold text-[#002B49]">{userResults.macros.protein}g</p>
-                            <p className="text-sm text-gray-500 font-medium">Protein</p>
+                            <p className="text-sm text-gray-700 font-medium">Protein</p>
                          </div>
                          <div className="w-px h-10 bg-gray-100 self-center"></div>
                          <div className="space-y-0.5">
                             <p className="text-lg font-bold text-[#002B49]">{userResults.macros.carbs}g</p>
-                            <p className="text-sm text-gray-500 font-medium">Carbs</p>
+                            <p className="text-sm text-gray-700 font-medium">Carbs</p>
                          </div>
                          <div className="w-px h-10 bg-gray-100 self-center"></div>
                          <div className="space-y-0.5">
                             <p className="text-lg font-bold text-[#002B49]">{userResults.macros.fats}g</p>
-                            <p className="text-sm text-gray-500 font-medium">Fats</p>
+                            <p className="text-sm text-gray-700 font-medium">Fats</p>
                          </div>
                       </div>
                     </div>
@@ -440,13 +429,13 @@ function ContactUs() {
                       <span className="bg-white/20 text-white text-[10px] font-black px-3 py-1 rounded-full tracking-widest uppercase">Most Popular</span>
                     </div>
                     <h2 className="text-xl font-bold mt-3 mb-1">Initial Consultation</h2>
-                    <p className="text-green-100/70 text-sm mb-4">45 mins</p>
+                    <p className="text-white/90 text-sm mb-4">45 mins</p>
                     <p className="text-4xl font-extrabold text-white tracking-tight mb-5">₵800</p>
                     <div className="space-y-2.5 text-sm">
                       {['Full assessment of your health goals', 'Personalised diet plan', 'Food diary setup'].map((item, i) => (
                         <div key={i} className="flex items-start gap-2.5">
-                          <CheckCircle size={16} className="text-white/80 mt-0.5 shrink-0" />
-                          <span className="text-green-100/80">{item}</span>
+                          <CheckCircle size={16} className="text-white mt-0.5 shrink-0" />
+                          <span className="text-white/100">{item}</span>
                         </div>
                       ))}
                     </div>
@@ -455,7 +444,7 @@ function ContactUs() {
                     onClick={() => handlePaymentRedirect('initial')}
                     className="mt-6 w-full py-3.5 bg-white text-green-700 font-bold rounded-xl shadow hover:bg-green-50 transition-colors flex items-center justify-center gap-2"
                   >
-                    <Lock size={16} />
+                    <Banknote size={16} />
                     Pay now — ₵800
                   </button>
                 </div>
@@ -467,7 +456,7 @@ function ContactUs() {
                       <span className="bg-emerald-100 text-emerald-700 text-[10px] font-black px-3 py-1 rounded-full tracking-widest uppercase">Returning Clients</span>
                     </div>
                     <h2 className="text-xl font-bold text-gray-800 mt-3 mb-1">Follow Up Consultation</h2>
-                    <p className="text-gray-400 text-sm mb-4">25 mins</p>
+                    <p className="text-gray-600 text-sm mb-4">25 mins</p>
                     <p className="text-4xl font-extrabold text-green-600 tracking-tight mb-5">₵400</p>
                     <div className="space-y-2.5 text-sm">
                       {['Progress review', 'Plan adjustments', 'Personalised counselling'].map((item, i) => (
@@ -482,10 +471,19 @@ function ContactUs() {
                     onClick={() => handlePaymentRedirect('followup')}
                     className="mt-6 w-full py-3.5 bg-gradient-to-r from-green-500 to-emerald-600 text-white font-bold rounded-xl shadow hover:shadow-md transition-all flex items-center justify-center gap-2"
                   >
-                    <Lock size={16} />
+                    <Banknote size={16} />
                     Pay now — ₵400
                   </button>
                 </div>
+              </div>
+
+              <div className="flex flex-col md:flex-row items-center justify-center gap-4 py-4 px-6 bg-blue-50/50 border border-blue-100 rounded-2xl text-blue-800 text-sm font-medium">
+                <Clock size={20} className="text-blue-600 shrink-0 animate-pulse" />
+                <p className="text-center md:text-left">
+                  <span className="font-bold underline decoration-blue-200 decoration-2 underline-offset-4">Consultation Hours:</span> Tuesday – Sunday, 10:00 AM – 3:00 PM. 
+                  <span className="hidden md:inline mx-2 text-blue-300">|</span>
+                  <span className="block md:inline mt-1 md:mt-0 opacity-80 italic">Actual session times will be arranged personally after payment is confirmed.</span>
+                </p>
               </div>
 
               {/* Form Card */}
@@ -496,15 +494,15 @@ function ContactUs() {
                   <div className="p-8 lg:p-10">
                     <div className="mb-8">
                       <h2 className="text-xl font-bold text-gray-800">Your Information</h2>
-                      <p className="text-sm text-gray-500 mt-1">Complete your details to book</p>
+                      <p className="text-sm text-gray-600 mt-1">Complete your details to book</p>
                     </div>
                     
                     <div className="space-y-5">
                       {/* Name */}
                       <div className="space-y-1.5">
-                        <label className="block text-xs font-bold text-gray-500 tracking-wider">Full Name *</label>
+                        <label className="block text-xs font-bold text-gray-700 tracking-wider">Full Name *</label>
                         <div className="relative group">
-                          <User className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400 group-focus-within:text-green-600 transition-colors" size={18} />
+                          <User className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-600 group-focus-within:text-green-600 transition-colors" size={18} />
                           <input
                             type="text"
                             name="name"
@@ -520,9 +518,9 @@ function ContactUs() {
                       <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
                         {/* Email */}
                         <div className="space-y-1.5">
-                          <label className="block text-xs font-bold text-gray-500 tracking-wider">Email Address *</label>
+                          <label className="block text-xs font-bold text-gray-700 tracking-wider">Email Address *</label>
                           <div className="relative group">
-                            <Mail className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400 group-focus-within:text-green-600 transition-colors" size={18} />
+                            <Mail className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-600 group-focus-within:text-green-600 transition-colors" size={18} />
                             <input
                               type="email"
                               name="email"
@@ -537,14 +535,15 @@ function ContactUs() {
 
                         {/* Phone */}
                         <div className="space-y-1.5">
-                          <label className="block text-xs font-bold text-gray-500 tracking-wider">Phone Number</label>
+                          <label className="block text-xs font-bold text-gray-700 tracking-wider">Phone Number *</label>
                           <div className="relative group">
-                            <Phone className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400 group-focus-within:text-green-600 transition-colors" size={18} />
+                            <Phone className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-600 group-focus-within:text-green-600 transition-colors" size={18} />
                             <input
                               type="tel"
                               name="phone"
                               value={formData.phone}
                               onChange={handleInputChange}
+                              required
                               className="w-full pl-11 pr-4 py-3.5 bg-gray-50 border border-gray-100 rounded-xl focus:bg-white focus:border-green-500 focus:ring-4 focus:ring-green-500/5 transition-all outline-none text-sm"
                               placeholder="+233..."
                             />
@@ -554,9 +553,9 @@ function ContactUs() {
 
                       {/* Message */}
                       <div className="space-y-1.5">
-                        <label className="block text-xs font-bold text-gray-500 tracking-wider">Additional Info</label>
+                        <label className="block text-xs font-bold text-gray-700 tracking-wider">Additional Info</label>
                         <div className="relative group">
-                          <MessageCircle className="absolute left-4 top-4 text-gray-400 group-focus-within:text-green-600 transition-colors" size={18} />
+                          <MessageCircle className="absolute left-4 top-4 text-gray-600 group-focus-within:text-green-600 transition-colors" size={18} />
                           <textarea
                             name="message"
                             value={formData.message}
@@ -570,7 +569,7 @@ function ContactUs() {
 
                       {/* Booking Note */}
                       <div className="pt-3">
-                        <div className="flex items-center justify-center space-x-4 text-[10px] text-gray-400 font-bold tracking-widest">
+                        <div className="flex items-center justify-center space-x-4 text-[10px] text-gray-600 font-bold tracking-widest">
                           <div className="flex items-center space-x-1.5">
                             <Shield size={12} className="text-green-600" />
                             <span>Secured by Paystack</span>
