@@ -324,7 +324,7 @@ function MyJourney() {
                       ) : (
                         <>
                           <FcGoogle size={20} className="bg-white rounded-full p-0.5" />
-                          Create my account
+                          Enter my account
                         </>
                       )}
                     </motion.button>
