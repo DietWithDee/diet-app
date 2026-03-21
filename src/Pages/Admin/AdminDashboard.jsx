@@ -282,7 +282,12 @@ const AdminDashboard = () => {
             >
               Bookings Manager
               {pendingBookings > 0 && (
-                <span className="px-2 py-0.5 bg-red-500 text-white text-xs rounded-full">{pendingBookings} New</span>
+                <div className="relative">
+                  <span className="flex items-center justify-center px-1.5 py-0.5 bg-red-500 text-white text-[10px] rounded-full min-w-[20px] leading-tight">
+                    {pendingBookings}
+                  </span>
+                  <span className="absolute inset-0 rounded-full bg-red-500 animate-ping opacity-25"></span>
+                </div>
               )}
             </button>
           </div>

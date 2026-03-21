@@ -62,7 +62,16 @@ function ContactUs() {
   });
 
   const [selectedType, setSelectedType] = useState('initial');
+  const [paymentStep, setPaymentStep] = useState('form'); // 'form' or 'payment'
 
+  const handleProceedToPayment = (type) => {
+    setSelectedType(type);
+    setPaymentStep('payment');
+  };
+
+  const handleTypeSelect = (type) => {
+    setSelectedType(type);
+  };
   // Use router state first, then Firestore profile as fallback, then defaults
   const location = useLocation();
   const userResults = location.state?.userResults
@@ -118,6 +127,9 @@ function ContactUs() {
   };
 
   const handlePaymentRedirect = (type = 'initial') => {
+    // Sync state in case this was called from the top cards
+    setSelectedType(type);
+
     // 1. Validate required fields
     if (!formData.name || !formData.email || !formData.phone) {
       alert('Please fill in all required fields (Name, Email and Phone Number) before proceeding to payment');
@@ -382,6 +394,37 @@ function ContactUs() {
                           </div>
                         </div>
 
+                        {/* Consultation Type Selector */}
+                        <div className="space-y-3 pt-2">
+                          <label className="block text-xs font-bold text-gray-700 tracking-wider">Select Consultation Type *</label>
+                          <div className="grid grid-cols-2 gap-3">
+                            <button
+                              type="button"
+                              onClick={() => handleTypeSelect('initial')}
+                              className={`py-3 px-4 rounded-xl border-2 transition-all flex flex-col items-center justify-center gap-1 ${
+                                selectedType === 'initial'
+                                  ? 'border-green-500 bg-green-50 text-green-700'
+                                  : 'border-gray-100 bg-gray-50 text-gray-500 hover:border-gray-200'
+                              }`}
+                            >
+                              <span className="font-bold text-sm text-center">Initial</span>
+                              <span className="text-[10px] opacity-80 italic">₵800</span>
+                            </button>
+                            <button
+                              type="button"
+                              onClick={() => handleTypeSelect('followup')}
+                              className={`py-3 px-4 rounded-xl border-2 transition-all flex flex-col items-center justify-center gap-1 ${
+                                selectedType === 'followup'
+                                  ? 'border-green-500 bg-green-50 text-green-700'
+                                  : 'border-gray-100 bg-gray-50 text-gray-500 hover:border-gray-200'
+                              }`}
+                            >
+                              <span className="font-bold text-sm text-center">Follow-up</span>
+                              <span className="text-[10px] opacity-80 italic">₵400</span>
+                            </button>
+                          </div>
+                        </div>
+
                         {/* Phone */}
                         <div className="space-y-1.5">
                           <label className="block text-xs font-bold text-gray-700 tracking-wider">Phone Number *</label>
@@ -416,16 +459,31 @@ function ContactUs() {
                         </div>
                       </div>
 
+                      {/* Pay Now Button */}
+                      <div className="pt-4">
+                        <button
+                          type="button"
+                          onClick={() => handlePaymentRedirect(selectedType)}
+                          className="w-full py-4 bg-gradient-to-r from-[#F6841F] to-[#F6841F] text-white font-black rounded-2xl shadow-lg hover:shadow-xl transform hover:-translate-y-1 transition-all duration-300 flex items-center justify-center gap-3 relative overflow-hidden group"
+                        >
+                          <div className="absolute inset-0 bg-white/10 translate-y-full group-hover:translate-y-0 transition-transform duration-300"></div>
+                          <Banknote size={22} className="relative z-10" />
+                          <span className="relative z-10 uppercase tracking-wider">
+                            Pay now — ₵{selectedType === 'followup' ? '400' : '800'}
+                          </span>
+                        </button>
+                      </div>
+
                       {/* Booking Note */}
-                      <div className="pt-3">
-                        <div className="flex items-center justify-center space-x-4 text-[10px] text-gray-600 font-bold tracking-widest">
+                      <div className="pt-2">
+                        <div className="flex items-center justify-center space-x-4 text-[10px] text-gray-400 font-bold tracking-widest">
                           <div className="flex items-center space-x-1.5">
-                            <Shield size={12} className="text-green-600" />
+                            <Shield size={12} className="text-gray-400" />
                             <span>Secured by Paystack</span>
                           </div>
                           <div className="flex items-center space-x-1.5">
-                            <CheckCircle size={12} className="text-green-600" />
-                            <span>Choose your consultation above to pay</span>
+                            <CheckCircle size={12} className="text-gray-400" />
+                            <span>Instant Confirmation</span>
                           </div>
                         </div>
                       </div>

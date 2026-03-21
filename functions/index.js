@@ -356,11 +356,15 @@ exports.verifyPaystackTransaction = onCall(
 exports.processBooking = onCall(
     { secrets: ["RESEND_API_KEY"] },
     async (request) => {
-        const { formData, userResults, reference, amount, consultationType } = request.data;
+        const { formData, userResults, reference, amount } = request.data;
 
         if (!reference || !formData?.email) {
             throw new HttpsError("invalid-argument", "Missing required booking data.");
         }
+        
+        // Derive actual type from amount as the source of truth
+        const actualAmount = Number(amount);
+        const actualType = actualAmount < 600 ? 'followup' : 'initial';
 
         const db = admin.firestore();
         const bookingRef = db.collection("bookings").doc(reference);
@@ -375,8 +379,8 @@ exports.processBooking = onCall(
         // 1. Save to Firestore
         const bookingData = {
             ...formData,
-            consultationType,
-            amount: Number(amount),
+            consultationType: actualType,
+            amount: actualAmount,
             paystackReference: reference,
             status: 'pending',
             createdAt: admin.firestore.FieldValue.serverTimestamp(),
@@ -406,12 +410,12 @@ exports.processBooking = onCall(
             await resend.emails.send({
                 from: 'Diet With Dee Bookings <bookings@dietwithdee.org>',
                 to: ['dietwdee@gmail.com'],
-                subject: `New Booking: ${formData.name} (${consultationType === 'followup' ? 'Follow-Up' : 'Initial'})`,
+                subject: `New Booking: ${formData.name} (${actualType === 'followup' ? 'Follow-Up' : 'Initial'})`,
                 html: adminHtml
             });
 
             // Email 2: To Client
-            const clientHtml = createClientConfirmationEmail(formData.name, consultationType);
+            const clientHtml = createClientConfirmationEmail(formData.name, actualType);
             await resend.emails.send({
                 from: 'Diet With Dee <hello@dietwithdee.org>',
                 to: [formData.email],

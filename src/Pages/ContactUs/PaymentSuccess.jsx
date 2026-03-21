@@ -11,6 +11,7 @@ function PaymentSuccess() {
 
   const [status, setStatus] = useState('verifying'); // verifying, processing, confirmed, error
   const [errorMessage, setErrorMessage] = useState('');
+  const [verifiedConsultationType, setVerifiedConsultationType] = useState(null);
 
   // Pull saved data from localStorage safely
   const formData = useMemo(() => {
@@ -59,12 +60,17 @@ function PaymentSuccess() {
       setStatus('processing');
       const processBookingFn = httpsCallable(functions, 'processBooking');
       
+      // Derive type from amount to be robust against extra charges/fees
+      const actualAmount = verifyResult.data.amount / 100;
+      const verifiedType = actualAmount < 600 ? 'followup' : 'initial';
+      setVerifiedConsultationType(verifiedType);
+
       const payload = {
           formData,
           userResults,
           reference,
-          amount: verifyResult.data.amount / 100, // Paystack returns smallest currency unit (e.g. pesewas)
-          consultationType: formData.consultationType || 'initial'
+          amount: actualAmount,
+          consultationType: verifiedType
       };
 
       const processResult = await processBookingFn(payload);
@@ -91,7 +97,7 @@ function PaymentSuccess() {
     processPaymentSequence();
   }, [processPaymentSequence]);
 
-  const isFollowUp = formData.consultationType === 'followup';
+  const isFollowUp = (verifiedConsultationType || formData.consultationType) === 'followup';
 
   if (status === 'verifying' || status === 'processing') {
     return (
@@ -210,7 +216,7 @@ function PaymentSuccess() {
                <div className="flex flex-col sm:flex-row gap-4 w-full justify-center">
                  <button
                    onClick={() => navigate('/my-journey')}
-                   className="px-10 py-4 bg-gray-900 text-white font-bold rounded-xl shadow-lg hover:bg-gray-800 hover:shadow-xl transform hover:-translate-y-0.5 transition-all duration-300"
+                   className="px-10 py-4 bg-orange-500 text-white font-bold rounded-xl shadow-lg hover:bg-orange-700 hover:shadow-xl transform hover:-translate-y-0.5 transition-all duration-300"
                  >
                    Go to My Journey
                  </button>
