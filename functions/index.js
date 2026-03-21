@@ -23,7 +23,7 @@ const isAuthorizedAdmin = (auth) => {
 };
 
 // Set global options to max instances to avoid cold start issues if desired
-setGlobalOptions({ maxInstances: 10 });
+setGlobalOptions({ maxInstances: 3 });
 
 // 1. Scheduled Function to Publish Articles
 exports.publishScheduledArticles = onSchedule("every 10 minutes", async (event) => {
