@@ -61,7 +61,6 @@ function ContactUs() {
     message: ''
   });
 
-  const [paymentStep, setPaymentStep] = useState('form');
   const [selectedType, setSelectedType] = useState('initial');
 
   // Use router state first, then Firestore profile as fallback, then defaults
@@ -138,169 +137,18 @@ function ContactUs() {
     const paymentUrl = type === 'followup'
       ? 'https://paystack.shop/pay/follow-up'
       : 'https://paystack.shop/pay/bookdee';
-    window.open(paymentUrl, '_blank');
-
-    // 4. Show payment instructions
-    setSelectedType(type);
-    setPaymentStep('payment');
-  };
-
-  const handlePaymentCompleted = () => {
-    setPaymentStep('completed');
-    window.scrollTo({ top: 0, behavior: 'smooth' });
+    
+    // Use the same tab for seamless redirection back to /paymentSuccess
+    window.location.href = paymentUrl;
   };
 
   if (isFullyBooked) {
     return <FullyBooked />;
   }
 
-  // Payment Instructions Screen
-  if (paymentStep === 'payment') {
-    return (
-      <>
-        <SEO
-          title="Contact DietWithDee | Book a Consultation with Nana Ama Dwamena"
-          description="Book your personalized diet consultation with Nana Ama Dwamena, Ghana's leading dietitian. Get expert nutrition advice and start your wellness journey today."
-          keywords="Contact DietWithDee, Book Consultation, Ghana Dietitian, Nana Ama Dwamena, Nutrition Advice"
-          image="https://dietwithdee.org/src/assets/LOGO.webp"
-          url="https://dietwithdee.org/contactUs"
-        />
-        <div className="min-h-screen bg-gradient-to-br from-green-50 via-white to-emerald-50 py-12">
-          <div className="container mx-auto px-6 lg:px-12 max-w-2xl">
-            <div className="bg-white rounded-2xl shadow-xl p-8">
-              <div className="text-center space-y-6">
-                <div className="w-20 h-20 bg-blue-100 rounded-full flex items-center justify-center mx-auto">
-                  <CreditCard className="text-blue-600" size={48} />
-                </div>
-                
-                <h2 className="text-3xl font-bold text-green-800">Complete Your Payment</h2>
-                
-                <div className="bg-green-50 border border-green-200 rounded-xl p-6">
-                <h3 className="text-lg font-semibold text-green-800 mb-4">
-                  {selectedType === 'followup'
-                    ? "What's Included in Your ₵400 Package:"
-                    : "What's Included in Your ₵800 Package:"}
-                </h3>
-                  <div className="space-y-3 text-left">
-                    {(selectedType === 'followup' 
-                      ? ['Progress review', 'Plan adjustments', 'Personalised counselling', 'Follow-up support and guidance']
-                      : ['Full assessment of your health goals', 'Personalised diet plan', 'Food diary setup', 'Custom macronutrient breakdown', 'Goal-specific dietary recommendations']
-                    ).map((item, i) => (
-                      <div key={i} className="flex items-center space-x-3">
-                        <CheckCircle className="text-green-600" size={20} />
-                        <span className="text-gray-700">{item}</span>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-
-                <div className="bg-blue-50 border border-blue-200 rounded-xl p-6">
-                  <div className="flex items-center justify-center space-x-2 mb-4">
-                    <Shield className="text-blue-600" size={24} />
-                    <h3 className="text-lg font-semibold text-blue-800">Secure Payment with Paystack</h3>
-                  </div>
-                  <p className="text-gray-600 text-sm">
-                    Your payment is processed securely through Paystack. We don't store your payment information.
-                  </p>
-                </div>
-
-                <div className="space-y-4">
-                  <p className="text-gray-600">
-                    A new tab has opened with the payment page. Complete your payment and return here to schedule your consultation.
-                  </p>
-                  
-                  <div className="flex space-x-4">
-                    <button
-                      onClick={handlePaymentCompleted}
-                      className="flex-1 py-3 bg-green-600 text-white font-semibold rounded-xl hover:bg-green-700 transition-colors"
-                    >
-                      I've Completed Payment
-                    </button>
-                    
-                    <button
-                      onClick={() => window.open(
-                        selectedType === 'followup'
-                          ? 'https://paystack.shop/pay/follow-up'
-                          : 'https://paystack.shop/pay/bookdee',
-                        '_blank'
-                      )}
-                      className="flex-1 py-3 bg-blue-600 text-white font-semibold rounded-xl hover:bg-blue-700 transition-colors"
-                    >
-                      Open Payment Page Again
-                    </button>
-                  </div>
-                  
-                  <button
-                    onClick={() => setPaymentStep('form')}
-                    className="w-full py-3 bg-gray-200 text-gray-700 font-semibold rounded-xl hover:bg-gray-300 transition-colors"
-                  >
-                    Back to Form
-                  </button>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-      </>
-    );
-  }
-
-  // Payment Completed - Confirmation (email sending removed)
-  if (paymentStep === 'completed') {
-    return (
-      <>
-        <SEO
-          title="Contact DietWithDee | Book a Consultation with Nana Ama Dwamena"
-          description="Book your personalized diet consultation with Nana Ama Dwamena, Ghana's leading dietitian. Get expert nutrition advice and start your wellness journey today."
-          keywords="Contact DietWithDee, Book Consultation, Ghana Dietitian, Nana Ama Dwamena, Nutrition Advice"
-          image="https://dietwithdee.org/src/assets/LOGO.webp"
-          url="https://dietwithdee.org/contactUs"
-        />
-        <div className="min-h-screen bg-gradient-to-br from-green-50 via-white to-emerald-50 py-12">
-          <div className="container mx-auto px-6 lg:px-12 max-w-2xl">
-            <div className="bg-white rounded-2xl shadow-xl p-8">
-              <div className="text-center space-y-6 mb-8">
-                <div className="w-20 h-20 bg-green-100 rounded-full flex items-center justify-center mx-auto">
-                  <CheckCircle className="text-green-600" size={48} />
-                </div>
-                <h2 className="text-3xl font-bold text-green-800">Payment Confirmed!</h2>
-                <p className="text-lg text-gray-600">
-                  Thank you for your payment. We've saved your details. You'll receive follow-up to schedule your consultation.
-                </p>
-              </div>
-
-              <div className="space-y-6">
-                <div className="bg-green-50 border border-green-200 rounded-xl p-4">
-                  <p className="text-green-800 font-medium">✅ Payment Status: Completed</p>
-                  <p className="text-green-700">Amount: ₵800 (Consultation + Custom Plan)</p>
-                </div>
-
-                <div className="bg-blue-50 border border-blue-200 rounded-xl p-4">
-                  <h4 className="font-semibold text-blue-800 mb-2">What happens next?</h4>
-                  <div className="space-y-2 text-sm text-blue-700">
-                    <p>• We'll review your information and results</p>
-                    <p>• You'll get a response within 24 hours to schedule</p>
-                    <p>• Your consultation session will be booked</p>
-                  </div>
-                </div>
-
-                <button
-                  onClick={() => setPaymentStep('form')}
-                  className="w-full py-3 bg-gray-200 text-gray-700 font-semibold rounded-xl hover:bg-gray-300 transition-colors"
-                >
-                  Back to Booking
-                </button>
-              </div>
-            </div>
-          </div>
-        </div>
-      </>
-    );
-  }
-
   const hasCalculatedResults = !!(location.state?.userResults || computeResultsFromProfile(userProfile));
 
-  // Main booking form (before payment)
+  // Main booking form
   return (
     <>
       <SEO

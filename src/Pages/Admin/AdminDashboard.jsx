@@ -6,7 +6,9 @@ import { useAuth } from '../../AuthContext';
 import Notification from './components/Notification';
 import ArticlesManager from './components/ArticlesManager';
 import UserJourneyPanel from './components/UserJourneyPanel';
-
+import BookingsPanel from './components/BookingsPanel';
+import { collection, query, where, onSnapshot } from 'firebase/firestore';
+import { db } from '../../firebaseConfig';
 
 // Main Admin Dashboard Component
 const AdminDashboard = () => {
@@ -15,11 +17,19 @@ const AdminDashboard = () => {
   const [isLoading, setIsLoading] = useState(true);
   const [isBookingOpen, setIsBookingOpen] = useState(false);
   const [subscriberCount, setSubscriberCount] = useState(0);
-  const [activeTab, setActiveTab] = useState('articles'); // 'articles' or 'journey'
+  const [activeTab, setActiveTab] = useState('articles'); // 'articles' | 'journey' | 'bookings'
   const [users, setUsers] = useState([]);
   const [usersLoading, setUsersLoading] = useState(false);
   const [usersFetched, setUsersFetched] = useState(false);
+  const [pendingBookings, setPendingBookings] = useState(0);
 
+  useEffect(() => {
+    const q = query(collection(db, 'bookings'), where('status', '==', 'pending'));
+    const unsubscribe = onSnapshot(q, (snapshot) => {
+      setPendingBookings(snapshot.docs.length);
+    });
+    return () => unsubscribe();
+  }, []);
 
   const showNotification = React.useCallback((type, message) => {
     setNotification({ type, message });
@@ -205,6 +215,24 @@ const AdminDashboard = () => {
               <p className="text-sm text-blue-600 font-medium">View Analytics</p>
             </div>
           </button>
+          
+          <button 
+            onClick={() => setActiveTab('bookings')}
+            className={`bg-white rounded-xl shadow-md p-5 border flex items-center gap-4 transition-all hover:shadow-lg text-left ${activeTab === 'bookings' ? 'border-amber-500 ring-2 ring-amber-100' : 'border-amber-100'}`}
+          >
+            <div className="w-12 h-12 rounded-full bg-amber-100 flex items-center justify-center text-amber-600 text-xl font-bold flex-shrink-0">
+              📅
+            </div>
+            <div>
+              <div className="flex items-center gap-2">
+                <p className="text-2xl font-bold text-gray-800">{pendingBookings}</p>
+                {pendingBookings > 0 && (
+                  <span className="w-3 h-3 bg-red-500 rounded-full animate-pulse"></span>
+                )}
+              </div>
+              <p className="text-sm text-amber-600 font-medium">Pending Bookings</p>
+            </div>
+          </button>
 
         </div>
 
@@ -248,6 +276,15 @@ const AdminDashboard = () => {
             >
               User Journey Analytics
             </button>
+            <button 
+              onClick={() => setActiveTab('bookings')}
+              className={`flex-1 flex justify-center items-center gap-2 py-4 px-6 text-center font-bold transition-all ${activeTab === 'bookings' ? 'text-amber-600 border-b-2 border-amber-600 bg-amber-50' : 'text-gray-400 hover:text-gray-600 hover:bg-gray-50'}`}
+            >
+              Bookings Manager
+              {pendingBookings > 0 && (
+                <span className="px-2 py-0.5 bg-red-500 text-white text-xs rounded-full">{pendingBookings} New</span>
+              )}
+            </button>
           </div>
 
 
@@ -266,13 +303,15 @@ const AdminDashboard = () => {
                   loadArticles={loadArticles}
                 />
               )
-            ) : (
+            ) : activeTab === 'journey' ? (
               <UserJourneyPanel 
                 showNotification={showNotification} 
                 users={users}
                 loading={usersLoading}
                 loadUsers={loadUsers}
               />
+            ) : (
+              <BookingsPanel showNotification={showNotification} />
             )}
           </div>
 

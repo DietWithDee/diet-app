@@ -5,6 +5,10 @@ const { setGlobalOptions } = require("firebase-functions/v2");
 const admin = require("firebase-admin");
 const { Resend } = require("resend");
 const { createEmailTemplate, createWelcomeTemplate } = require("./emailTemplate");
+const { createAdminBookingEmail, createClientConfirmationEmail } = require("./bookingEmailTemplates");
+
+const { createAdminBookingEmail, createClientConfirmationEmail } = require("./bookingEmailTemplates");
+
 
 admin.initializeApp();
 const db = admin.firestore();
@@ -335,6 +339,84 @@ exports.verifyPaystackTransaction = onCall(
                 "unavailable",
                 "Could not reach Paystack to verify your payment. Please check your connection and try again."
             );
+        }
+    }
+);
+
+// 6. Process Booking after Paystack Verification
+exports.processBooking = onCall(
+    { secrets: ["RESEND_API_KEY"] },
+    async (request) => {
+        const { formData, userResults, reference, amount, consultationType } = request.data;
+
+        if (!reference || !formData?.email) {
+            throw new HttpsError("invalid-argument", "Missing required booking data.");
+        }
+
+        const db = admin.firestore();
+        const bookingRef = db.collection("bookings").doc(reference);
+
+        // Idempotency check: see if this reference was already processed
+        const existingDoc = await bookingRef.get();
+        if (existingDoc.exists) {
+            console.log(`Booking for reference ${reference} already processed.`);
+            return { success: true, message: "Already processed", bookingId: reference };
+        }
+
+        // 1. Save to Firestore
+        const bookingData = {
+            ...formData,
+            consultationType,
+            amount: Number(amount),
+            paystackReference: reference,
+            status: 'pending',
+            createdAt: admin.firestore.FieldValue.serverTimestamp(),
+            userResults: userResults || {}
+        };
+
+        try {
+            await bookingRef.set(bookingData);
+            console.log(`Booking saved to Firestore: ${reference}`);
+        } catch (error) {
+            console.error("Error saving booking:", error);
+            throw new HttpsError("internal", "Failed to save booking. Please contact support.");
+        }
+
+        // 2. Send Emails via Resend
+        const resendApiKey = process.env.RESEND_API_KEY;
+        if (!resendApiKey) {
+            console.error("RESEND_API_KEY is missing. Skipping emails.");
+            return { success: true, warning: "Saved, but emails not sent." };
+        }
+        
+        const resend = new Resend(resendApiKey);
+
+        try {
+            // Email 1: To Admin
+            const adminHtml = createAdminBookingEmail(bookingData);
+            await resend.emails.send({
+                from: 'Diet With Dee Bookings <bookings@dietwithdee.org>',
+                to: ['dietwdee@gmail.com'],
+                subject: `New Booking: ${formData.name} (${consultationType === 'followup' ? 'Follow-Up' : 'Initial'})`,
+                html: adminHtml
+            });
+
+            // Email 2: To Client
+            const clientHtml = createClientConfirmationEmail(formData.name, consultationType);
+            await resend.emails.send({
+                from: 'Diet With Dee <hello@dietwithdee.org>',
+                to: [formData.email],
+                subject: 'Booking Confirmed! ✅',
+                html: clientHtml
+            });
+
+            console.log(`Confirmation emails sent for ${reference}.`);
+            return { success: true, bookingId: reference };
+
+        } catch (emailError) {
+            console.error("Error sending booking emails:", emailError);
+            // Don't fail the whole function if emails fail, data is safely in Firestore
+            return { success: true, warning: "Saved, but failed to send confirmation emails." };
         }
     }
 );

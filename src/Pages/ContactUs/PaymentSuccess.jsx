@@ -1,5 +1,5 @@
-import React, { useMemo, useState, useEffect } from 'react';
-import { CheckCircle, Send, Copy, ExternalLink, Mail, ShieldAlert, ArrowLeft } from 'lucide-react';
+import React, { useMemo, useState, useEffect, useCallback } from 'react';
+import { CheckCircle, ShieldAlert, ArrowLeft, Loader2, RefreshCw } from 'lucide-react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { httpsCallable } from 'firebase/functions';
 import { functions } from '../../firebaseConfig';
@@ -8,253 +8,112 @@ import SEO from '../../Components/SEO';
 function PaymentSuccess() {
   const navigate = useNavigate();
   const location = useLocation();
-  const [isValidating, setIsValidating] = useState(true);
-  const [hasAccess, setHasAccess] = useState(false);
-  const [verificationError, setVerificationError] = useState(null);
-  const [isSubmitted, setIsSubmitted] = useState(false);
-  const [showEmailPreview, setShowEmailPreview] = useState(false);
-  const [copied, setCopied] = useState(false);
 
-  // Security Verification
-  useEffect(() => {
-    const verifyPayment = async () => {
-      try {
-        const searchParams = new URLSearchParams(location.search);
-        const reference = searchParams.get('reference') || searchParams.get('trxref');
-
-        if (!reference) {
-          let stored = null;
-          try {
-            const raw = localStorage.getItem('consultationFormData');
-            if (raw) stored = JSON.parse(raw);
-          } catch {
-            // Malformed localStorage — treat as no data
-          }
-          setHasAccess(!!(stored?.email));
-          setIsValidating(false);
-          return;
-        }
-
-        setIsValidating(true);
-        const verifyFn = httpsCallable(functions, 'verifyPaystackTransaction');
-        const result = await verifyFn({ reference });
-
-        if (result.data.success) {
-          setHasAccess(true);
-        } else {
-          setHasAccess(false);
-          setVerificationError(result.data.message || 'Payment verification failed.');
-        }
-      } catch (error) {
-        console.error('Payment verification error:', error);
-        setHasAccess(false);
-        setVerificationError('Verification failed. Please complete payment to access this page.');
-      } finally {
-        setIsValidating(false);
-      }
-    };
-
-    verifyPayment();
-  }, [location]);
+  const [status, setStatus] = useState('verifying'); // verifying, processing, confirmed, error
+  const [errorMessage, setErrorMessage] = useState('');
 
   // Pull saved data from localStorage safely
   const formData = useMemo(() => {
     try {
       const raw = localStorage.getItem('consultationFormData');
-      return raw ? JSON.parse(raw) : { name: '', email: '', phone: '', message: '' };
+      return raw ? JSON.parse(raw) : { name: '', email: '', phone: '', message: '', consultationType: 'initial' };
     } catch {
-      return { name: '', email: '', phone: '', message: '' };
+      return { name: '', email: '', phone: '', message: '', consultationType: 'initial' };
     }
   }, []);
 
   const userResults = useMemo(() => {
     try {
       const raw = localStorage.getItem('userResults');
-      return raw ? JSON.parse(raw) : {
-        bmi: 0, bmiCategory: 'Unknown', dailyCalories: 0,
-        goal: 'Not specified', dietaryRestrictions: 'None',
-        macros: { protein: 0, carbs: 0, fats: 0 }
-      };
+      return raw ? JSON.parse(raw) : {};
     } catch {
-      return { bmi: 0, bmiCategory: 'Unknown', dailyCalories: 0, goal: 'Not specified', dietaryRestrictions: 'None', macros: { protein: 0, carbs: 0, fats: 0 } };
+      return {};
     }
   }, []);
 
-  const safePct = (grams = 0, kcalPerGram = 0, total = 0) => {
-    if (!total) return 0;
-    const kcal = Number(grams || 0) * kcalPerGram;
-    return Math.round((kcal / total) * 100);
-  };
+  const processPaymentSequence = useCallback(async () => {
+    try {
+      setStatus('verifying');
+      setErrorMessage('');
+
+      const searchParams = new URLSearchParams(location.search);
+      const reference = searchParams.get('reference') || searchParams.get('trxref');
+
+      if (!reference) {
+          setStatus('error');
+          setErrorMessage('No payment reference found. Please return to the booking page.');
+          return;
+      }
+
+      // Step 1: Verify Transaction
+      const verifyFn = httpsCallable(functions, 'verifyPaystackTransaction');
+      const verifyResult = await verifyFn({ reference });
+
+      if (!verifyResult.data.success) {
+        setStatus('error');
+        setErrorMessage(verifyResult.data.message || 'Payment verification failed.');
+        return;
+      }
+
+      // Step 2: Process Booking (Save to Firestore & Send Emails)
+      setStatus('processing');
+      const processBookingFn = httpsCallable(functions, 'processBooking');
+      
+      const payload = {
+          formData,
+          userResults,
+          reference,
+          amount: verifyResult.data.amount / 100, // Paystack returns smallest currency unit (e.g. pesewas)
+          consultationType: formData.consultationType || 'initial'
+      };
+
+      const processResult = await processBookingFn(payload);
+
+      if (processResult.data.success) {
+        // Clear sensitive local storage
+        try {
+            localStorage.removeItem('consultationFormData');
+        } catch(e){}
+        setStatus('confirmed');
+      } else {
+         setStatus('error');
+         setErrorMessage('We verified your payment but hit an issue finalizing the booking. Please contact support.');
+      }
+
+    } catch (error) {
+      console.error('Payment sequence error:', error);
+      setStatus('error');
+      setErrorMessage('A network error occurred while verifying your payment. Please try again.');
+    }
+  }, [location, formData, userResults]);
+
+  useEffect(() => {
+    processPaymentSequence();
+  }, [processPaymentSequence]);
 
   const isFollowUp = formData.consultationType === 'followup';
 
-  const generateEmailContent = () => {
-    const date = new Date().toLocaleDateString('en-US', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
-
-    if (isFollowUp) {
-      const subject = `Follow-Up / One Time Consultation Request - ${formData.name || 'Client'} [PAID]`;
-      const body = `Dear Diet with Dee Team,
-
-I have completed payment for a Follow-Up / One Time Consultation and would like to schedule my session.
-
-💳 PAYMENT STATUS: COMPLETED ✅
-💰 Amount Paid: ₵400 (Follow-Up Consultation)
-
-═══════════════════════════════════════════════════════════════════════════════════════
-📋 CLIENT INFORMATION
-═══════════════════════════════════════════════════════════════════════════════════════
-
-👤 Full Name: ${formData.name || '-'}
-📧 Email Address: ${formData.email || '-'}
-📞 Phone Number: ${formData.phone || 'Not provided'}
-
-═══════════════════════════════════════════════════════════════════════════════════════
-💬 NOTES / QUESTIONS FOR THIS SESSION
-═══════════════════════════════════════════════════════════════════════════════════════
-
-${formData.message ? `"${formData.message}"` : 'No additional notes provided.'}
-
----
-This email was generated through the Diet with Dee Assessment Portal
-Payment completed via Paystack
-Date: ${date}`;
-      return { subject, body };
-    }
-
-    // Default: Initial Consultation email
-    const subject = `Professional Nutrition Consultation Request - ${formData.name || 'Client'} [PAID]`;
-    const body = `Dear Diet with Dee Team,
-
-I hope this email finds you well. I have completed payment for a professional nutrition consultation and am writing to schedule my session based on my recent comprehensive health assessment.
-
-💳 PAYMENT STATUS: COMPLETED ✅
-💰 Amount Paid: ₵800 (Consultation + Custom Plan)
-
-═══════════════════════════════════════════════════════════════════════════════════════
-📋 CLIENT INFORMATION
-═══════════════════════════════════════════════════════════════════════════════════════
-
-👤 Full Name: ${formData.name || '-'}
-📧 Email Address: ${formData.email || '-'}
-📞 Phone Number: ${formData.phone || 'Not provided'}
-
-═══════════════════════════════════════════════════════════════════════════════════════
-📊 HEALTH ASSESSMENT RESULTS
-═══════════════════════════════════════════════════════════════════════════════════════
-
-🏥 Body Mass Index (BMI): ${userResults.bmi ?? '-'} - ${userResults.bmiCategory ?? '-'}
-🔥 Daily Caloric Requirement: ${userResults.dailyCalories ?? 0} calories per day
-
-📈 MACRONUTRIENT BREAKDOWN:
-    • Protein: ${userResults?.macros?.protein ?? 0}g daily (${safePct(userResults?.macros?.protein, 4, userResults?.dailyCalories)}% of total calories)
-    • Carbohydrates: ${userResults?.macros?.carbs ?? 0}g daily (${safePct(userResults?.macros?.carbs, 4, userResults?.dailyCalories)}% of total calories)
-    • Fats: ${userResults?.macros?.fats ?? 0}g daily (${safePct(userResults?.macros?.fats, 9, userResults?.dailyCalories)}% of total calories)
-
-═══════════════════════════════════════════════════════════════════════════════════════
-🎯 PERSONAL GOALS & PREFERENCES
-═══════════════════════════════════════════════════════════════════════════════════════
-
-🎯 Primary Health Goal: ${userResults.goal ?? '-'}
-🍽️ Dietary Restrictions/Preferences: ${userResults.dietaryRestrictions ?? '-'}
-
-═══════════════════════════════════════════════════════════════════════════════════════
-💬 ADDITIONAL INFORMATION
-═══════════════════════════════════════════════════════════════════════════════════════
-
-${formData.message ? `"${formData.message}"` : 'No additional information provided at this time.'}
-${formData.name || ''}
-📧 ${formData.email || ''}
-${formData.phone ? `📞 ${formData.phone}` : ''}
-
----
-This email was generated through the Diet with Dee Assessment Portal
-Payment completed via Paystack
-Date: ${date}`;
-
-    return { subject, body };
-  };
-
-  const handleMailtoSubmit = () => {
-    // Validate minimal required fields before opening mail client
-    if (!formData?.name || !formData?.email) {
-      alert('Please ensure your Name and Email are available.');
-      return;
-    }
-
-    const { subject, body } = generateEmailContent();
-    // NOTE: per your requirement, we send to dietwdee@gmail.com
-    const mailtoLink = `mailto:dietwdee@gmail.com?subject=${encodeURIComponent(
-      subject
-    )}&body=${encodeURIComponent(body)}`;
-
-    try {
-      window.location.href = mailtoLink;
-      setIsSubmitted(true);
-      window.scrollTo({ top: 0, behavior: 'smooth' });
-    } catch (error) {
-      console.error('Error opening email client:', error);
-      setShowEmailPreview(true);
-    }
-  };
-
-  const handleCopyEmail = async () => {
-    const { subject, body } = generateEmailContent();
-    const emailText = `To: dietwdee@gmail.com\nSubject: ${subject}\n\n${body}`;
-
-    try {
-      await navigator.clipboard.writeText(emailText);
-      setCopied(true);
-      setTimeout(() => setCopied(false), 2000);
-    } catch {
-      // Fallback for older browsers
-      const textArea = document.createElement('textarea');
-      textArea.value = emailText;
-      document.body.appendChild(textArea);
-      textArea.select();
-      document.execCommand('copy');
-      document.body.removeChild(textArea);
-      setCopied(true);
-      setTimeout(() => setCopied(false), 2000);
-    }
-  };
-
-  const handleOpenWebmail = (provider) => {
-    const { subject, body } = generateEmailContent();
-    const to = 'dietwdee@gmail.com';
-
-    const encodedSubject = encodeURIComponent(subject);
-    const encodedBody = encodeURIComponent(body);
-    const encodedTo = encodeURIComponent(to);
-
-    let webmailUrl = '';
-    switch (provider) {
-      case 'gmail':
-        webmailUrl = `https://mail.google.com/mail/?view=cm&fs=1&to=${encodedTo}&su=${encodedSubject}&body=${encodedBody}`;
-        break;
-      case 'outlook':
-        webmailUrl = `https://outlook.live.com/mail/0/deeplink/compose?to=${encodedTo}&subject=${encodedSubject}&body=${encodedBody}`;
-        break;
-      case 'yahoo':
-        webmailUrl = `https://compose.mail.yahoo.com/?to=${encodedTo}&subject=${encodedSubject}&body=${encodedBody}`;
-        break;
-      default:
-        return;
-    }
-    window.open(webmailUrl, '_blank');
-    setIsSubmitted(true);
-  };
-
-  // Loading / Validation state
-  if (isValidating) {
+  if (status === 'verifying' || status === 'processing') {
     return (
-      <div className="min-h-screen bg-white flex items-center justify-center">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-green-600"></div>
+      <div className="min-h-screen bg-gradient-to-br from-green-50 via-white to-emerald-50 flex items-center justify-center p-6">
+        <div className="bg-white rounded-3xl shadow-xl p-10 text-center max-w-md w-full border border-green-100 space-y-6">
+          <Loader2 className="w-16 h-16 text-green-600 animate-spin mx-auto" />
+          <div>
+            <h2 className="text-2xl font-bold text-gray-800">
+              {status === 'verifying' ? 'Verifying Payment...' : 'Finalising Booking...'}
+            </h2>
+            <p className="text-gray-600 mt-2">
+              {status === 'verifying' 
+                ? 'Please wait, securely connecting to Paystack.' 
+                : 'Payment received. Generating your booking confirmation...'}
+            </p>
+          </div>
+        </div>
       </div>
     );
   }
 
-  // Denial state: If validation fails
-  if (!hasAccess) {
+  if (status === 'error') {
     return (
       <div className="min-h-screen bg-gradient-to-br from-red-50 to-white flex items-center justify-center p-6">
         <div className="max-w-md w-full bg-white rounded-3xl shadow-2xl p-8 border border-red-100 text-center space-y-6">
@@ -262,15 +121,22 @@ Date: ${date}`;
             <ShieldAlert className="text-red-600" size={40} />
           </div>
           <div className="space-y-2">
-            <h1 className="text-2xl font-bold text-gray-900">Access Restricted</h1>
+            <h1 className="text-2xl font-bold text-gray-900">Verification Failed</h1>
             <p className="text-gray-600">
-              {verificationError || 'This page is only accessible after a successful payment session.'}
+              {errorMessage}
             </p>
           </div>
-          <div className="pt-4">
+          <div className="pt-4 space-y-3">
+            <button
+              onClick={processPaymentSequence}
+              className="w-full flex items-center justify-center gap-2 py-3 bg-red-600 text-white font-bold rounded-xl hover:bg-red-700 transition-colors"
+            >
+              <RefreshCw size={18} />
+              Try Again
+            </button>
             <button
               onClick={() => navigate('/contactUs')}
-              className="w-full flex items-center justify-center gap-2 py-3 bg-red-600 text-white font-bold rounded-xl hover:bg-red-700 transition-colors"
+              className="w-full flex items-center justify-center gap-2 py-3 bg-red-50 text-red-700 font-bold rounded-xl hover:bg-red-100 transition-colors"
             >
               <ArrowLeft size={18} />
               Return to Booking
@@ -281,199 +147,87 @@ Date: ${date}`;
     );
   }
 
-  // Email preview UI
-  if (showEmailPreview) {
-    const { subject, body } = generateEmailContent();
-
-    return (
-      <div className="min-h-screen bg-gradient-to-br from-green-50 via-white to-emerald-50 py-12">
-        <div className="container mx-auto px-6 lg:px-12 max-w-4xl">
-          <div className="bg-white rounded-2xl shadow-xl p-8">
-            <h2 className="text-2xl font-bold text-green-800 mb-6">Email Preview</h2>
-
-            <div className="space-y-4 mb-8">
-              <div className="flex items-center space-x-4 p-4 bg-gray-50 rounded-lg">
-                <strong className="text-gray-700">To:</strong>
-                <span className="text-gray-900">dietwdee@gmail.com</span>
-              </div>
-
-              <div className="flex items-center space-x-4 p-4 bg-gray-50 rounded-lg">
-                <strong className="text-gray-700">Subject:</strong>
-                <span className="text-gray-900">{subject}</span>
-              </div>
-
-              <div className="p-4 bg-gray-50 rounded-lg">
-                <strong className="text-gray-700 block mb-2">Message:</strong>
-                <pre className="text-gray-900 whitespace-pre-wrap font-sans text-sm">{body}</pre>
-              </div>
-            </div>
-
-            <div className="space-y-4">
-              <h3 className="text-lg font-semibold text-gray-800">Send this email using:</h3>
-
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                <button
-                  onClick={handleCopyEmail}
-                  className="flex items-center justify-center space-x-2 p-4 bg-blue-100 text-blue-700 rounded-lg hover:bg-blue-200 transition-colors"
-                >
-                  <Copy size={20} />
-                  <span>{copied ? 'Copied!' : 'Copy Email Text'}</span>
-                </button>
-
-                <button
-                  onClick={() => handleOpenWebmail('gmail')}
-                  className="flex items-center justify-center space-x-2 p-4 bg-red-100 text-red-700 rounded-lg hover:bg-red-200 transition-colors"
-                >
-                  <ExternalLink size={20} />
-                  <span>Open in Gmail</span>
-                </button>
-
-                <button
-                  onClick={() => handleOpenWebmail('outlook')}
-                  className="flex items-center justify-center space-x-2 p-4 bg-blue-100 text-blue-700 rounded-lg hover:bg-blue-200 transition-colors"
-                >
-                  <ExternalLink size={20} />
-                  <span>Open in Outlook</span>
-                </button>
-              </div>
-
-              <div className="flex space-x-4">
-                <button
-                  onClick={handleMailtoSubmit}
-                  className="flex-1 py-3 bg-green-600 text-white font-semibold rounded-xl hover:bg-green-700 transition-colors"
-                >
-                  Try Email Client Again
-                </button>
-
-                <button
-                  onClick={() => setShowEmailPreview(false)}
-                  className="flex-1 py-3 bg-gray-200 text-gray-700 font-semibold rounded-xl hover:bg-gray-300 transition-colors"
-                >
-                  Back
-                </button>
-              </div>
-            </div>
+  // status === 'confirmed'
+  return (
+    <><SEO title="Booking Confirmed" description="Thank you for booking with Diet With Dee!" url="/paymentSuccess" noindex />
+    <div className="min-h-screen bg-gradient-to-br from-green-50 via-white to-emerald-50 py-12 flex items-center justify-center p-6">
+      <div className="container mx-auto max-w-2xl">
+        <div className="bg-white rounded-3xl shadow-2xl border border-green-50 overflow-hidden">
+          
+          {/* Header Section */}
+          <div className="bg-green-600 p-8 text-center relative overflow-hidden">
+             {/* Decorative circles */}
+             <div className="absolute top-0 right-0 -mr-8 -mt-8 w-32 h-32 rounded-full bg-green-500 opacity-50"></div>
+             <div className="absolute bottom-0 left-0 -ml-8 -mb-8 w-24 h-24 rounded-full bg-green-700 opacity-50"></div>
+             
+             <div className="relative z-10">
+                <div className="w-20 h-20 bg-white rounded-full flex items-center justify-center mx-auto mb-6 shadow-lg">
+                  <CheckCircle className="text-green-600" size={48} />
+                </div>
+                {isFollowUp ? (
+                  <div className="inline-block bg-green-800 text-green-100 text-xs font-bold px-4 py-1.5 rounded-full tracking-widest uppercase mb-3 shadow-sm border border-green-500/30">Follow-Up Consultation</div>
+                ) : (
+                  <div className="inline-block bg-green-800 text-green-100 text-xs font-bold px-4 py-1.5 rounded-full tracking-widest uppercase mb-3 shadow-sm border border-green-500/30">Initial Consultation</div>
+                )}
+                <h1 className="text-3xl md:text-4xl font-bold text-white mb-2">Booking Confirmed!</h1>
+                <p className="text-green-50 text-lg font-medium">Thank you, {formData?.name?.split(' ')[0] || 'friend'}. We've received your payment safely.</p>
+             </div>
           </div>
-        </div>
-      </div>
-    );
-  }
 
-  // Success state after email client opened
-  if (isSubmitted) {
-    return (
-      <div className="min-h-screen bg-gradient-to-br from-green-50 via-white to-emerald-50 py-12">
-        <div className="container mx-auto px-6 lg:px-12 max-w-2xl">
-          <div className="text-center space-y-8">
-            <div className="space-y-4">
-              <div className="w-20 h-20 bg-green-100 rounded-full flex items-center justify-center mx-auto">
-                <CheckCircle className="text-green-600" size={48} />
+          {/* Body Section */}
+          <div className="p-8 md:p-10 text-center space-y-8 relative">
+            
+            {/* What's next box */}
+            <div className="bg-blue-50/50 border border-blue-100 rounded-2xl p-6 relative">
+              <div className="absolute -top-3 left-1/2 transform -translate-x-1/2 bg-blue-100 text-blue-800 text-xs font-bold px-3 py-1 rounded-full uppercase tracking-wider">
+                 What's Next?
               </div>
-              <h1 className="text-3xl font-bold text-green-800">Email Ready to Send</h1>
-              <p className="text-lg text-gray-600">
-                Your email client opened with your consultation request. Please click **Send** in your email app to complete your booking.
+              <p className="text-gray-700 text-lg leading-relaxed mt-2">
+                My team will reach out to you directly via phone or email within the next <strong>24 hours</strong> to schedule the exact date and time for our session.
               </p>
             </div>
 
-            <div className="bg-white rounded-2xl shadow-xl p-8">
-              <h3 className="text-xl font-semibold text-green-800 mb-4">What's Next?</h3>
-              <div className="space-y-4 text-left">
-                <p className="text-gray-700">• Send the email from your mail app</p>
-                <p className="text-gray-700">• We’ll review your information</p>
-                <p className="text-gray-700">• You’ll receive a response within 24 hours to schedule</p>
-              </div>
+            <div className="flex flex-col md:flex-row justify-center items-center gap-6 text-sm text-gray-600 bg-gray-50 rounded-xl p-4">
+               <div>
+                  <span className="block font-bold text-gray-900 mb-1">Consultation Hours</span>
+                  Tuesday – Sunday<br/>10:00 AM – 3:00 PM
+               </div>
+               <div className="hidden md:block w-px h-12 bg-gray-200"></div>
+               <div>
+                  <span className="block font-bold text-gray-900 mb-1">Confirmation Email</span>
+                  Sent to:<br/><span className="bg-white px-2 py-0.5 rounded border border-gray-200 font-medium">{formData?.email || 'your email'}</span>
+               </div>
             </div>
 
-            <div className="flex flex-col sm:flex-row gap-4">
-              <button
-                onClick={() => setShowEmailPreview(true)}
-                className="flex-1 px-6 py-3 bg-gray-200 text-gray-700 font-semibold rounded-xl hover:bg-gray-300 transition-colors"
-              >
-                Preview Again
-              </button>
-              <button
-                onClick={() => navigate('/')}
-                className="flex-1 px-6 py-3 bg-green-600 text-white font-semibold rounded-xl hover:bg-green-700 transition-colors"
-              >
-                Back to Home
-              </button>
+            <div className="pt-4 border-t border-gray-100 flex flex-col items-center">
+               <div className="max-w-md bg-green-50 rounded-2xl p-6 mb-8 border border-green-100 shadow-sm">
+                 <h3 className="font-bold text-green-800 mb-2">💡 Pro Tip for Your Journey</h3>
+                 <p className="text-gray-700 text-sm leading-relaxed">
+                   While waiting for our session, we highly recommend <strong>creating an account</strong> in our <strong>My Journey</strong> portal. It makes it much easier to track your progress, save your assessment results, and access personalised nutrition content tailored just for you!
+                 </p>
+               </div>
+               
+               <div className="flex flex-col sm:flex-row gap-4 w-full justify-center">
+                 <button
+                   onClick={() => navigate('/my-journey')}
+                   className="px-10 py-4 bg-gray-900 text-white font-bold rounded-xl shadow-lg hover:bg-gray-800 hover:shadow-xl transform hover:-translate-y-0.5 transition-all duration-300"
+                 >
+                   Go to My Journey
+                 </button>
+                 <button
+                   onClick={() => navigate('/')}
+                   className="px-10 py-4 bg-gray-200 text-gray-700 font-bold rounded-xl hover:bg-gray-300 transition-all duration-300"
+                 >
+                   Back to Homepage
+                 </button>
+               </div>
             </div>
+
           </div>
         </div>
       </div>
-    );
-  }
-
-  // Default Payment Success screen with "Send Email" button
-  return (
-    <><SEO title="Payment Successful" description="Thank you!" url="/paymentSuccess" noindex /><div className="min-h-screen bg-gradient-to-br from-green-50 via-white to-emerald-50 py-12">
-      <div className="container mx-auto px-6 lg:px-12 max-w-2xl">
-        <div className="bg-white rounded-2xl shadow-xl p-8">
-          <div className="text-center space-y-6 mb-8">
-            <div className="w-20 h-20 bg-green-100 rounded-full flex items-center justify-center mx-auto">
-              <CheckCircle className="text-green-600" size={48} />
-            </div>
-            {isFollowUp ? (
-              <>
-                <div className="inline-block bg-emerald-100 text-emerald-700 text-xs font-bold px-4 py-1 rounded-full tracking-widest uppercase">Follow-Up / One Time Consultation</div>
-                <h2 className="text-3xl font-bold text-green-800">Payment Confirmed!</h2>
-                <p className="text-lg text-gray-600">
-                  Thanks for booking a follow-up. Please send your request so we can schedule your session.
-                </p>
-              </>
-            ) : (
-              <>
-                <div className="inline-block bg-green-100 text-green-700 text-xs font-bold px-4 py-1 rounded-full tracking-widest uppercase">Initial Consultation</div>
-                <h2 className="text-3xl font-bold text-green-800">Payment Confirmed!</h2>
-                <p className="text-lg text-gray-600">
-                  Thanks for your payment. Please send your consultation request so we can schedule your session.
-                </p>
-              </>
-            )}
-          </div>
-
-          <div className="space-y-3">
-            <button
-              onClick={handleMailtoSubmit}
-              className="w-full py-4 bg-gradient-to-r from-green-600 to-emerald-500 text-white font-bold rounded-xl shadow-lg hover:shadow-xl transform hover:-translate-y-1 transition-all duration-300 flex items-center justify-center space-x-2"
-            >
-              <Send size={20} />
-              <span>Send Consultation Request</span>
-            </button>
-
-            <button
-              onClick={() => setShowEmailPreview(true)}
-              className="w-full py-3 bg-gray-200 text-gray-700 font-semibold rounded-xl hover:bg-gray-300 transition-colors"
-            >
-              Preview Email / Other Options
-            </button>
-
-            <div className="pt-4 border-t border-gray-200 mt-4 text-sm text-gray-600 flex flex-col items-center gap-2">
-              <div className="flex items-center gap-2">
-                <Mail size={16} />
-                <span>Recipient: <strong>dietwdee@gmail.com</strong></span>
-              </div>
-            </div>
-          </div>
-
-          <div className="mt-8">
-            <button
-              onClick={() => navigate('/')}
-              className="w-full py-3 bg-gray-200 text-gray-700 font-semibold rounded-xl hover:bg-gray-300 transition-colors"
-            >
-              Back to Home
-            </button>
-          </div>
-
-          {/* Optional tiny recap */}
-          <div className="mt-8 text-sm text-gray-600 space-y-1">
-            <div><strong>Name:</strong> {formData?.name || '-'}</div>
-            <div><strong>Email:</strong> {formData?.email || '-'}</div>
-            <div><strong>Phone:</strong> {formData?.phone || '-'}</div>
-          </div>
-        </div>
-      </div>
-    </div></>
+    </div>
+    </>
   );
 }
 
