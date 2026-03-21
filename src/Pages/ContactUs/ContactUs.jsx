@@ -83,9 +83,10 @@ function ContactUs() {
         ...prev,
         name: user.displayName || '',
         email: user.email || '',
+        phone: prev.phone || userProfile?.phone || '',
       }));
     }
-  }, [user]);
+  }, [user, userProfile]);
 
   // Check booking status on mount to prevent async blocking later
   useEffect(() => {

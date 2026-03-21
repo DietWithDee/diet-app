@@ -1,7 +1,7 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { FiChevronRight, FiChevronLeft, FiCheck, FiEdit2, FiX } from 'react-icons/fi';
-import { User, Activity, Moon, Heart, Utensils, Target } from 'lucide-react';
+import { User, Activity, Moon, Heart, Utensils, Target, Phone } from 'lucide-react';
 
 const OnboardingModal = ({ userName, onSave, onClose, initialData = null }) => {
   const isEditing = !!initialData;
@@ -20,6 +20,7 @@ const OnboardingModal = ({ userName, onSave, onClose, initialData = null }) => {
       healthConditions: initialData?.healthConditions || '',
       dislikes: initialData?.dislikes || '',
       dietaryRestrictions: initialData?.dietaryRestrictions || '',
+      phone: initialData?.phone || '',
     };
     
     const saved = localStorage.getItem('onboarding_draft');
@@ -34,6 +35,7 @@ const OnboardingModal = ({ userName, onSave, onClose, initialData = null }) => {
       healthConditions: '',
       dislikes: '',
       dietaryRestrictions: '',
+      phone: '',
     };
   });
 
@@ -81,7 +83,7 @@ const OnboardingModal = ({ userName, onSave, onClose, initialData = null }) => {
   const bmiData = calculateBMI();
 
   // Step validation
-  const isStep1Valid = formData.gender && formData.age && formData.height && formData.weight && formData.height > 50 && formData.weight > 20;
+  const isStep1Valid = formData.gender && formData.age && formData.height && formData.weight && formData.height > 50 && formData.weight > 20 && formData.phone;
   const isStep2Valid = formData.goal && formData.activityLevel && formData.sleepHours && formData.dietaryRestrictions;
 
   const slideVariants = {
@@ -248,6 +250,21 @@ const OnboardingModal = ({ userName, onSave, onClose, initialData = null }) => {
                       </button>
                     ))}
                   </div>
+                </div>
+                
+                {/* Phone Number */}
+                <div className="space-y-2">
+                  <label className="block text-sm font-semibold text-gray-700 flex items-center gap-2">
+                    <Phone size={16} className="text-green-600" /> Phone Number
+                  </label>
+                  <input
+                    type="tel"
+                    value={formData.phone}
+                    onChange={e => setFormData(p => ({ ...p, phone: e.target.value }))}
+                    onKeyDown={e => e.key === 'Enter' && scrollDown(120)}
+                    className="w-full py-3 px-4 border-2 border-gray-200 rounded-xl focus:border-green-500 focus:outline-none text-gray-900 placeholder-gray-400"
+                    placeholder="e.g., +233..."
+                  />
                 </div>
 
                 {/* Age & BMI Badge row */}
@@ -515,6 +532,7 @@ const OnboardingModal = ({ userName, onSave, onClose, initialData = null }) => {
                       { label: 'Activity', value: formData.activityLevel === 'sedentary' ? 'Sedentary' : formData.activityLevel === 'light' ? 'Light' : formData.activityLevel === 'moderate' ? 'Moderate' : 'Very Active' },
                       { label: 'Sleep', value: formData.sleepHours },
                       { label: 'Diet', value: formData.dietaryRestrictions },
+                      { label: 'Phone', value: formData.phone },
                     ].map((item, i) => (
                       <div key={i} className="bg-white rounded-xl p-3 shadow-sm">
                         <div className="text-xs text-gray-400 font-medium mb-1">{item.label}</div>
