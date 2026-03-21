@@ -7,8 +7,6 @@ const { Resend } = require("resend");
 const { createEmailTemplate, createWelcomeTemplate } = require("./emailTemplate");
 const { createAdminBookingEmail, createClientConfirmationEmail } = require("./bookingEmailTemplates");
 
-const { createAdminBookingEmail, createClientConfirmationEmail } = require("./bookingEmailTemplates");
-
 
 admin.initializeApp();
 const db = admin.firestore();
