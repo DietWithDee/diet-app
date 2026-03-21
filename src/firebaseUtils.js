@@ -17,6 +17,7 @@ import {
   limit,
   startAfter
 } from "firebase/firestore";
+import { getFunctions, httpsCallable } from "firebase/functions";
 import { ref, uploadBytes, getDownloadURL, deleteObject } from "firebase/storage";
 
 // CREATE article - FIXED to handle both File objects and URL strings
@@ -435,6 +436,19 @@ export const getArticleTags = async () => {
     return { success: true, data: tags };
   } catch (error) {
     console.error("Error fetching tags:", error);
+    return { success: false, error: error.message };
+  }
+};
+
+// Admin: Delete user account and associated data
+export const deleteUserAccount = async (uid, email) => {
+  try {
+    const functions = getFunctions();
+    const adminDeleteUser = httpsCallable(functions, 'adminDeleteUser');
+    const result = await adminDeleteUser({ uid, email });
+    return result.data;
+  } catch (error) {
+    console.error("Error calling adminDeleteUser:", error);
     return { success: false, error: error.message };
   }
 };

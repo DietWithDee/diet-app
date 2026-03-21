@@ -13,6 +13,17 @@ const { createAdminBookingEmail, createClientConfirmationEmail } = require("./bo
 admin.initializeApp();
 const db = admin.firestore();
 
+// Admin Authorization Helper
+const ADMIN_EMAILS = [
+  'nanaamadwamena4@gmail.com',
+  'princetetteh963@gmail.com',
+  'godwinokro2020@gmail.com'
+];
+
+const isAuthorizedAdmin = (auth) => {
+  return auth && auth.token && ADMIN_EMAILS.includes(auth.token.email);
+};
+
 // Set global options to max instances to avoid cold start issues if desired
 setGlobalOptions({ maxInstances: 10 });
 
@@ -420,3 +431,64 @@ exports.processBooking = onCall(
         }
     }
 );
+
+// 7. Admin: Delete User Account and Data
+exports.adminDeleteUser = onCall(async (request) => {
+    // 1. Check authorization
+    if (!isAuthorizedAdmin(request.auth)) {
+        throw new HttpsError("permission-denied", "Only authorized admins can delete users.");
+    }
+
+    const { uid, email } = request.data;
+    if (!uid) {
+        throw new HttpsError("invalid-argument", "The function must be called with a user UID.");
+    }
+
+    console.log(`Admin ${request.auth.token.email} is deleting user ${uid} (${email || 'no email'})`);
+
+    try {
+        // 1. Delete from Firebase Auth
+        try {
+            await admin.auth().deleteUser(uid);
+            console.log(`Successfully deleted user ${uid} from Auth.`);
+        } catch (authError) {
+            // If user doesn't exist in Auth, we still want to clean up Firestore
+            if (authError.code === 'auth/user-not-found') {
+                console.warn(`User ${uid} not found in Auth, proceeding with Firestore cleanup.`);
+            } else {
+                console.error(`Error deleting user ${uid} from Auth:`, authError);
+                throw authError;
+            }
+        }
+
+        const db = admin.firestore();
+
+        // 2. Delete user's logs subcollection
+        const logsSnapshot = await db.collection("users").doc(uid).collection("logs").get();
+        if (!logsSnapshot.empty) {
+            const batch = db.batch();
+            logsSnapshot.forEach(doc => batch.delete(doc.ref));
+            await batch.commit();
+            console.log(`Deleted ${logsSnapshot.size} logs for user ${uid}.`);
+        }
+
+        // 3. Delete user document from Firestore
+        await db.collection("users").doc(uid).delete();
+        console.log(`Deleted Firestore document for user ${uid}.`);
+
+        // 4. Delete from emails collection if email is provided
+        if (email) {
+            await db.collection("emails").doc(email.toLowerCase()).delete();
+            console.log(`Deleted email ${email} from emails collection.`);
+        }
+
+        // 5. Delete bookings? 
+        // We'll leave bookings as historical financial records for now, 
+        // but they could be deleted here if needed by querying by email.
+
+        return { success: true, message: `User ${uid} and associated data deleted successfully.` };
+    } catch (error) {
+        console.error("Error in adminDeleteUser:", error);
+        throw new HttpsError("internal", error.message || "An error occurred during deletion.");
+    }
+});

@@ -14,7 +14,8 @@ import {
   Filter,
   Download,
   RotateCcw,
-  Heart
+  Heart,
+  Trash2
 } from 'lucide-react';
 import SafeImage from '../../../Components/SafeImage';
 import { 
@@ -34,7 +35,7 @@ import {
   AreaChart,
   Area
 } from 'recharts';
-import { getAllUsers, getUserLogs } from '../../../firebaseUtils';
+import { getAllUsers, getUserLogs, deleteUserAccount } from '../../../firebaseUtils';
 
 const COLORS = ['#10b981', '#3b82f6', '#f59e0b', '#ef4444', '#8b5cf6', '#ec4899'];
 
@@ -51,6 +52,7 @@ const UserJourneyPanel = React.memo(({ users, loading, showNotification, loadUse
   const [userLogs, setUserLogs] = useState([]);
   const [loadingLogs, setLoadingLogs] = useState(false);
   const [filterGoal, setFilterGoal] = useState('all');
+  const [isDeleting, setIsDeleting] = useState(false);
 
   const handleUserClick = async (user) => {
     setSelectedUser(user);
@@ -62,6 +64,31 @@ const UserJourneyPanel = React.memo(({ users, loading, showNotification, loadUse
       showNotification('error', 'Failed to load user logs');
     }
     setLoadingLogs(false);
+  };
+
+  const handleDeleteUser = async () => {
+    if (!selectedUser) return;
+    
+    const confirmDelete = window.confirm(`Are you absolutely sure you want to delete ${selectedUser.displayName || 'this user'}? This will permanently remove their account, logs, and subscription. This action cannot be undone.`);
+    
+    if (!confirmDelete) return;
+    
+    setIsDeleting(true);
+    try {
+      const result = await deleteUserAccount(selectedUser.uid, selectedUser.email);
+      if (result.success) {
+        showNotification('success', 'User and all associated data deleted successfully.');
+        setSelectedUser(null);
+        loadUsers(true); // Refresh the list
+      } else {
+        showNotification('error', result.error || 'Failed to delete user.');
+      }
+    } catch (err) {
+      console.error('Error deleting user:', err);
+      showNotification('error', 'An unexpected error occurred.');
+    } finally {
+      setIsDeleting(false);
+    }
   };
 
   // --- Analytics Computations ---
@@ -274,6 +301,20 @@ const UserJourneyPanel = React.memo(({ users, loading, showNotification, loadUse
               <div>
                 <h2 className="text-2xl font-bold">{selectedUser.displayName}</h2>
                 <p className="text-green-50 opacity-90">{selectedUser.email}</p>
+              </div>
+              <div className="ml-auto">
+                <button
+                  onClick={handleDeleteUser}
+                  disabled={isDeleting}
+                  className="flex items-center gap-2 px-4 py-2 bg-red-500 hover:bg-red-600 text-white rounded-xl font-bold text-sm transition-all shadow-lg active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  {isDeleting ? (
+                    <Loader size={18} className="animate-spin" />
+                  ) : (
+                    <Trash2 size={18} />
+                  )}
+                  {isDeleting ? 'Deleting...' : 'Remove User'}
+                </button>
               </div>
             </div>
           </div>
