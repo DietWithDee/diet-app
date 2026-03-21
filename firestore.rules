@@ -29,6 +29,10 @@ service cloud.firestore {
       allow update: if isAdmin() || request.resource.data.diff(resource.data).affectedKeys().hasOnly(['likesCount', 'helpfulCount', 'notHelpfulCount']);
     }
 
+    match /bookings/{bookingId} {
+      allow read, write: if isAdmin();
+    }
+
     match /settings/{settingId} {
       allow read: if true; // public can read settings (like booking status)
       allow write: if isAdmin(); // only admins can change settings
