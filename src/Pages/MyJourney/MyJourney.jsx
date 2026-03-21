@@ -306,8 +306,8 @@ function MyJourney() {
                       <span className="text-xl">🌿</span>
                     </div>
                     <h3 className="text-lg font-bold text-green-800">Start Your Wellness Journey</h3>
-                    <p className="text-gray-500 text-xs leading-relaxed">
-                      Sign up to save your progress, get personalized recommendations, and be first to access new features.
+                    <p className="text-gray-500 text-sm leading-relaxed">
+                      Get started to save your progress, get personalized recommendations, and access our best features. We’ll log you in if you already have an account. Hit continue as guest to try it first, no signup required.  
                     </p>
                     <motion.button
                       whileHover={{ scale: 1.03 }}
@@ -324,7 +324,7 @@ function MyJourney() {
                       ) : (
                         <>
                           <FcGoogle size={20} className="bg-white rounded-full p-0.5" />
-                          Create my account
+                          Get started
                         </>
                       )}
                     </motion.button>
@@ -333,7 +333,7 @@ function MyJourney() {
                         trigger("nudge");
                         navigate('/knowyourbody')
                       }}
-                      className="text-xs text-gray-400 hover:text-gray-600 font-medium transition-colors"
+                      className="text-sm text-gray-400 hover:text-gray-600 font-medium transition-colors"
                     >
                       Continue as guest →
                     </button>
