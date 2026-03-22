@@ -257,33 +257,94 @@ function Blog() {
     try {
       const parser = new DOMParser();
       const doc = parser.parseFromString(html, 'text/html');
-      const links = doc.querySelectorAll('a');
       
+      // Helper to generate the card safely
+      const createPlanCard = (url, linkText) => {
+        let displayTitle = linkText;
+        
+        // If it's a raw URL with no text (or identical text), format the URL explicitly into a readable title
+        if (!displayTitle || displayTitle.trim() === url.trim() || displayTitle.startsWith('http') || displayTitle.startsWith('/plans')) {
+           const match = url.match(/\/pay\/([a-zA-Z0-9_-]+)/);
+           if (match && match[1]) {
+             displayTitle = match[1].replace(/-/g, ' ');
+             displayTitle = displayTitle.split(' ').map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(' ') + " Plan";
+           } else if (url.includes('/plans')) {
+             displayTitle = 'View All Plans';
+           } else {
+             displayTitle = 'Premium Plan';
+           }
+        }
+        
+        const wrapper = doc.createElement('div');
+        wrapper.className = "my-8 p-5 sm:p-6 bg-gradient-to-br from-green-50 to-emerald-50 rounded-2xl border border-green-100 shadow-md flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 not-prose hover:shadow-lg transition-all duration-300";
+        wrapper.innerHTML = `
+          <div class="flex-1 min-w-0">
+            <div class="text-[10px] sm:text-xs font-bold text-green-600 uppercase tracking-wider mb-1.5 flex items-center gap-1.5">
+              <span>✨</span> Recommended Plan
+            </div>
+            <h4 class="text-lg sm:text-xl font-bold text-gray-800 m-0 leading-tight truncate-whitespace">${displayTitle}</h4>
+          </div>
+          <a href="${url}" target="_blank" rel="noopener noreferrer" class="w-full sm:w-auto shrink-0 inline-flex items-center justify-center px-6 py-2.5 sm:py-3 bg-gradient-to-r from-[#F6841F] to-orange-500 text-white text-sm font-bold rounded-full shadow-md hover:shadow-lg hover:-translate-y-0.5 transition-all no-underline gap-2">
+            View Plan
+            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14"/><path d="m12 5 7 7-7 7"/></svg>
+          </a>
+        `;
+        return wrapper;
+      };
+
+      // 1. Process explicit <a> tags
+      const links = Array.from(doc.querySelectorAll('a'));
       links.forEach(a => {
         const href = a.getAttribute('href') || '';
-        
         const isPaystack = href.includes('paystack.shop/pay/') || href.includes('paystack.com/pay/');
         const isPlans = href.includes('/plans');
         
         if (isPaystack || isPlans) {
-          const linkText = a.innerHTML;
+          const wrapper = createPlanCard(href, a.textContent);
+          if (a.parentNode) a.parentNode.replaceChild(wrapper, a);
+        }
+      });
+      
+      // 2. Process raw text nodes for unlinked plain-text URLs
+      const walker = doc.createTreeWalker(doc.body, NodeFilter.SHOW_TEXT, null, false);
+      const textNodes = [];
+      let node;
+      while (node = walker.nextNode()) {
+        textNodes.push(node);
+      }
+      
+      // Regex for matching raw text URLs
+      const planRegex = /(https?:\/\/(?:www\.)?(?:paystack\.shop|paystack\.com)\/pay\/[a-zA-Z0-9_-]+|https?:\/\/(?:www\.)?dietwithdee\.org\/plans|\/plans)/g;
+
+      textNodes.forEach(textNode => {
+        // Skip if it's already inside our newly created plan card or inside an anchor tag
+        if (textNode.parentNode && textNode.parentNode.closest('a, .not-prose')) return;
+        
+        const text = textNode.nodeValue;
+        if (planRegex.test(text)) {
+          const fragment = doc.createDocumentFragment();
+          let lastIndex = 0;
+          planRegex.lastIndex = 0; // reset
+          let match;
           
-          const wrapper = doc.createElement('div');
-          wrapper.className = "my-8 p-5 sm:p-6 bg-gradient-to-br from-green-50 to-emerald-50 rounded-2xl border border-green-100 shadow-md flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 not-prose hover:shadow-lg transition-all duration-300";
-          wrapper.innerHTML = `
-            <div class="flex-1 min-w-0">
-              <div class="text-[10px] sm:text-xs font-bold text-green-600 uppercase tracking-wider mb-1.5 flex items-center gap-1.5">
-                <span>✨</span> Recommended Plan
-              </div>
-              <h4 class="text-lg sm:text-xl font-bold text-gray-800 m-0 leading-tight truncate-whitespace">${linkText}</h4>
-            </div>
-            <a href="${href}" target="_blank" rel="noopener noreferrer" class="w-full sm:w-auto shrink-0 inline-flex items-center justify-center px-6 py-2.5 sm:py-3 bg-gradient-to-r from-[#F6841F] to-orange-500 text-white text-sm font-bold rounded-full shadow-md hover:shadow-lg hover:-translate-y-0.5 transition-all no-underline gap-2">
-              View Plan
-              <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14"/><path d="m12 5 7 7-7 7"/></svg>
-            </a>
-          `;
+          while ((match = planRegex.exec(text)) !== null) {
+            const matchedUrl = match[1];
+            const beforeText = text.substring(lastIndex, match.index);
+            if (beforeText) {
+              fragment.appendChild(doc.createTextNode(beforeText));
+            }
+            
+            const wrapper = createPlanCard(matchedUrl, matchedUrl);
+            fragment.appendChild(wrapper);
+            lastIndex = planRegex.lastIndex;
+          }
           
-          a.parentNode.replaceChild(wrapper, a);
+          const afterText = text.substring(lastIndex);
+          if (afterText) {
+            fragment.appendChild(doc.createTextNode(afterText));
+          }
+          
+          if (textNode.parentNode) textNode.parentNode.replaceChild(fragment, textNode);
         }
       });
       
