@@ -252,6 +252,29 @@ function Blog() {
       : plainText;
   };
 
+  const transformArticleContent = (html) => {
+    if (!html) return '';
+    // Regex matches <a> tags whose href points to Paystack or /plans
+    const regex = /<a\s+(?:[^>]*?\s+)?href=(["'])(.*?paystack\.shop\/pay\/.*?|.*?\/plans(?:#.*?)?)\1[^>]*>(.*?)<\/a>/gi;
+    return html.replace(regex, (match, quote, url, linkText) => {
+      // Replaces the matched <a> tag with a styling matching that of the My Journey Plan Recommendation
+      return `
+        <div class="my-8 p-5 sm:p-6 bg-gradient-to-br from-green-50 to-emerald-50 rounded-2xl border border-green-100 shadow-md flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 not-prose hover:shadow-lg transition-all duration-300">
+          <div class="flex-1">
+            <div class="text-[10px] sm:text-xs font-bold text-green-600 uppercase tracking-wider mb-1.5 flex items-center gap-1.5">
+              <span>✨</span> Recommended Plan
+            </div>
+            <h4 class="text-lg sm:text-xl font-bold text-gray-800 m-0 leading-tight">${linkText}</h4>
+          </div>
+          <a href="${url}" target="_blank" rel="noopener noreferrer" class="w-full sm:w-auto shrink-0 inline-flex items-center justify-center px-6 py-2.5 sm:py-3 bg-gradient-to-r from-[#F6841F] to-orange-500 text-white text-sm font-bold rounded-full shadow-md hover:shadow-lg hover:-translate-y-0.5 transition-all no-underline gap-2">
+            View Plan
+            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14"/><path d="m12 5 7 7-7 7"/></svg>
+          </a>
+        </div>
+      `;
+    });
+  };
+
   const handleReadMore = (article) => {
     setSelectedArticle(article);
     setViewMode('article');
@@ -463,7 +486,7 @@ function Blog() {
                     fontSize: '18px',
                     lineHeight: '1.8'
                   }}
-                  dangerouslySetInnerHTML={{ __html: selectedArticle.content }}
+                  dangerouslySetInnerHTML={{ __html: transformArticleContent(selectedArticle.content) }}
                 />
 
                 {/* Tags */}
