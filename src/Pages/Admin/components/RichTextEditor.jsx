@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { Bold, Italic, Underline, List, ListOrdered, Link, Quote, Type, Image as ImageIcon, Loader } from 'lucide-react';
+import { Bold, Italic, Underline, List, ListOrdered, Link, Quote, Type, Image as ImageIcon, Loader, Heading2, Heading3 } from 'lucide-react';
 
 /* ============================
    Rich Text Editor (re-built)
@@ -9,7 +9,7 @@ const RichTextEditor = ({ value, onChange, disabled = false }) => {
   const savedRangeRef = useRef(null);
   const internalChangeRef = useRef(false);
 
-  const [isActive, setIsActive] = useState({ bold: false, italic: false, underline: false, ul: false, ol: false, quote: false });
+  const [isActive, setIsActive] = useState({ bold: false, italic: false, underline: false, ul: false, ol: false, quote: false, h2: false, h3: false });
   const [fontPx, setFontPx] = useState(14);
   const [isUploadingImage, setIsUploadingImage] = useState(false);
 
@@ -64,11 +64,12 @@ const RichTextEditor = ({ value, onChange, disabled = false }) => {
   };
 
   const ensureAbsoluteUrl = (raw) => {
+    if (!raw) return "";
+    if (raw.startsWith("/") || raw.startsWith("#") || raw.startsWith("mailto:") || raw.startsWith("tel:")) return raw;
     try {
       const u = new URL(raw);
       return u.href;
     } catch {
-      if (!raw) return "";
       if (/^(https?:)?\/\//i.test(raw)) {
         return raw.startsWith("//") ? `https:${raw}` : raw;
       }
@@ -93,7 +94,7 @@ const RichTextEditor = ({ value, onChange, disabled = false }) => {
   };
 
   const sanitizeHTML = (dirty) => {
-    const ALLOWED_TAGS = new Set(["b", "strong", "i", "em", "u", "a", "ul", "ol", "li", "blockquote", "span", "br", "p", "div", "img"]);
+    const ALLOWED_TAGS = new Set(["b", "strong", "i", "em", "u", "a", "ul", "ol", "li", "blockquote", "span", "br", "p", "div", "img", "h1", "h2", "h3", "h4", "h5", "h6"]);
     const ALLOWED_ATTRS = {
       a: new Set(["href", "rel", "target", "style"]),
       span: new Set(["style"]),
@@ -101,7 +102,9 @@ const RichTextEditor = ({ value, onChange, disabled = false }) => {
       div: new Set(["style"]),
       blockquote: new Set(["style"]),
       li: new Set(["style"]),
-      img: new Set(["src", "alt", "style", "class", "width", "height"])
+      img: new Set(["src", "alt", "style", "class", "width", "height"]),
+      h1: new Set(["style", "id"]), h2: new Set(["style", "id"]), h3: new Set(["style", "id"]),
+      h4: new Set(["style", "id"]), h5: new Set(["style", "id"]), h6: new Set(["style", "id"])
     };
     const parser = document.createElement("div");
     parser.innerHTML = dirty;
@@ -136,10 +139,11 @@ const RichTextEditor = ({ value, onChange, disabled = false }) => {
             if (/^text-decoration\s*:\s*\w+/i.test(s)) return true;
             if (/^color\s*:/i.test(s)) return true;
             if (/^(max-)?width\s*:/i.test(s)) return true;
-            if (/^height\s*:/i.test(s)) return true;
+            if (/^(max-)?height\s*:/i.test(s)) return true;
             if (/^border(-radius)?\s*:/i.test(s)) return true;
             if (/^margin\s*:/i.test(s)) return true;
             if (/^display\s*:/i.test(s)) return true;
+            if (/^object-fit\s*:/i.test(s)) return true;
             return false;
           })
           .join(";");
@@ -187,7 +191,9 @@ const RichTextEditor = ({ value, onChange, disabled = false }) => {
         underline: document.queryCommandState("underline"),
         ul: document.queryCommandState("insertUnorderedList"),
         ol: document.queryCommandState("insertOrderedList"),
-        quote: isQuote
+        quote: isQuote,
+        h2: node ? !!closest(node, "h2", root) : false,
+        h3: node ? !!closest(node, "h3", root) : false
       });
     } catch (err) {
       console.warn("Failed to update toolbar state:", err);
@@ -299,6 +305,36 @@ const RichTextEditor = ({ value, onChange, disabled = false }) => {
     saveSelection();
   };
 
+  const toggleH2 = () => {
+    if (disabled) return;
+    restoreSelection();
+    focusEditor();
+    const root = editorRef.current;
+    if (!root) return;
+    const node = getSelectionRootNode();
+    const existing = node ? closest(node, "h2", root) : null;
+    if (existing) document.execCommand("formatBlock", false, "p");
+    else document.execCommand("formatBlock", false, "H2");
+    emitChange();
+    updateToolbarState();
+    saveSelection();
+  };
+
+  const toggleH3 = () => {
+    if (disabled) return;
+    restoreSelection();
+    focusEditor();
+    const root = editorRef.current;
+    if (!root) return;
+    const node = getSelectionRootNode();
+    const existing = node ? closest(node, "h3", root) : null;
+    if (existing) document.execCommand("formatBlock", false, "p");
+    else document.execCommand("formatBlock", false, "H3");
+    emitChange();
+    updateToolbarState();
+    saveSelection();
+  };
+
   // -------- Link insert (Improved) --------
   const insertLink = () => {
     if (disabled) return;
@@ -345,8 +381,22 @@ const RichTextEditor = ({ value, onChange, disabled = false }) => {
   // -------- Paste handling: strip unsafe markup/styles --------
   const handlePaste = (e) => {
     if (disabled) return;
-    e.preventDefault();
     const clipboard = e.clipboardData;
+
+    if (clipboard.items) {
+      for (let i = 0; i < clipboard.items.length; i++) {
+        if (clipboard.items[i].type.indexOf("image") !== -1) {
+          const file = clipboard.items[i].getAsFile();
+          if (file) {
+            e.preventDefault();
+            uploadImageFile(file);
+            return;
+          }
+        }
+      }
+    }
+
+    e.preventDefault();
     const html = clipboard.getData("text/html");
     const text = clipboard.getData("text/plain");
 
@@ -370,19 +420,14 @@ const RichTextEditor = ({ value, onChange, disabled = false }) => {
   };
 
   // -------- Image Upload (Firebase Storage) --------
-  const handleImageUpload = async (e) => {
+  const uploadImageFile = async (file) => {
     if (disabled || isUploadingImage) return;
-    const file = e.target.files[0];
     if (!file) return;
 
     if (file.size > 5 * 1024 * 1024) {
       alert("Image file size must be less than 5MB.");
-      e.target.value = '';
       return;
     }
-
-    // Reset input
-    e.target.value = '';
 
     restoreSelection();
     focusEditor();
@@ -409,14 +454,8 @@ const RichTextEditor = ({ value, onChange, disabled = false }) => {
       }
       focusEditor();
 
-      document.execCommand("insertImage", false, url);
-      
-      // Select the image and style it to be responsive
-      const root = editorRef.current;
-      const imgs = root.querySelectorAll(`img[src="${CSS.escape(url)}"]`);
-      imgs.forEach(img => {
-        img.setAttribute("style", "max-width: 100%; height: auto; border-radius: 8px; margin: 16px 0;");
-      });
+      const imgHtml = `<img src="${url}" style="max-width: 100%; max-height: 400px; width: auto; height: auto; object-fit: contain; border-radius: 8px; margin: 16px auto; display: block;" alt="Uploaded Image" />`;
+      document.execCommand("insertHTML", false, imgHtml);
       
       emitChange();
       saveSelection();
@@ -426,6 +465,14 @@ const RichTextEditor = ({ value, onChange, disabled = false }) => {
     } finally {
       setIsUploadingImage(false);
     }
+  };
+
+  const handleImageUpload = async (e) => {
+    const file = e.target.files[0];
+    if (file) {
+      await uploadImageFile(file);
+    }
+    e.target.value = '';
   };
 
   // -------- Keyboard shortcuts --------
@@ -522,6 +569,13 @@ const RichTextEditor = ({ value, onChange, disabled = false }) => {
 
         <div className="w-px h-6 bg-gray-300 mx-1" />
 
+        <ToolbarButton onClick={toggleH2} active={isActive.h2} title="Heading 2">
+          <Heading2 size={16} />
+        </ToolbarButton>
+        <ToolbarButton onClick={toggleH3} active={isActive.h3} title="Heading 3">
+          <Heading3 size={16} />
+        </ToolbarButton>
+
         <ToolbarButton onClick={toggleBlockquote} active={isActive.quote} title="Toggle Quote">
           <Quote size={16} />
         </ToolbarButton>
@@ -564,7 +618,7 @@ const RichTextEditor = ({ value, onChange, disabled = false }) => {
       <div
         ref={editorRef}
         contentEditable={!disabled}
-        className={`p-3 min-h-[200px] focus:outline-none relative ${disabled ? "bg-gray-50 cursor-not-allowed" : "bg-white text-gray-800"
+        className={`p-3 min-h-[200px] focus:outline-none relative prose prose-sm sm:prose-base max-w-none ${disabled ? "bg-gray-50 cursor-not-allowed" : "bg-white text-gray-800"
           }`}
         style={{
           fontSize: "14px",
@@ -600,10 +654,6 @@ const RichTextEditor = ({ value, onChange, disabled = false }) => {
           pointer-events: none;
           color: #9CA3AF;
         }
-         /* 🔥 Make all bold text green */
-  b, strong {
-    color: #059669 !important;
-  }
       `}
       </style>
     </div>
