@@ -330,8 +330,22 @@ function Plans() {
           </div>
         </div>
 
+        {/* Did You Know? CTA Section moved up */}
+        <div className='text-center mt-20 mb-8'>
+          <div className="text-center mb-8 lg:mb-12 space-y-8 max-w-3xl mx-auto">
+            <h1 className="text-3xl sm:text-4xl lg:text-5xl font-black text-transparent bg-clip-text bg-gradient-to-r from-green-700 via-emerald-600 to-green-600">
+             Did you Know?
+            </h1>
+          </div>
+          <p className='text-gray-600 text-lg mb-6'>You can Book a Consultation session that comes with a free, custom Diet Plan from our Dietitian. Book a session to start now!</p>
+          <button onClick={() => navigate('/contactus')}
+            className='px-8 py-3 bg-gradient-to-r from-[#F6841F] to-[#F6841F] text-white font-bold rounded-full hover:shadow-lg transition-all hover:scale-105'>
+            Book a Session
+          </button>
+        </div>
+
         {/* Improved Testimonials Section */}
-        <div id="success-stories" className='mt-20 mb-12'>
+        <div id="success-stories" className='mt-12 mb-12'>
           <div className='text-center space-y-4 max-w-3xl mx-auto mb-12'>
             <h2 className='text-4xl font-black text-transparent bg-clip-text bg-gradient-to-r from-green-700 via-emerald-600 to-green-600'>
               Success Stories
@@ -391,6 +405,7 @@ function Plans() {
           </div>
 
           {/* Call to Action */}
+          {/* Plan Selection CTA */}
           <div className='text-center mt-12'>
             <p className='text-gray-600 text-lg mb-6'>Ready to start your transformation?</p>
             <button onClick={() => { scrollUp() }}

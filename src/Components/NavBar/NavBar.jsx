@@ -84,7 +84,7 @@ export default function NavBar() {
             <FiShoppingCart size={23} className="transition-transform duration-300 group-hover:scale-110" />
           </NavLink>
 
-          <button className="md:hidden text-gray-800" onClick={() => {
+          <button className="md:hidden text-orange-600" onClick={() => {
             trigger("nudge")
             setMenuOpen(true)
           }}>
