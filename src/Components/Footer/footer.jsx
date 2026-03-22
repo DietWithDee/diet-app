@@ -4,6 +4,7 @@ import { saveEmailToFirestore } from '../../firebaseUtils';
 import { Link } from 'react-router-dom';
 import { isValidEmail } from '../../utils/validation';
 import WhatsAppPopup from '../WhatsAppPopup';
+import SocialRedirectPopup from '../SocialRedirectPopup';
 
 const Footer = () => {
   const [email, setEmail] = useState('');
@@ -12,6 +13,7 @@ const Footer = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [message, setMessage] = useState({ type: '', text: '' });
   const [showWhatsAppPopup, setShowWhatsAppPopup] = useState(false);
+  const [socialPopup, setSocialPopup] = useState({ isOpen: false, platform: '', url: '', icon: null, color: '' });
   const [isWhatsAppVisible, setIsWhatsAppVisible] = useState(true);
   const [enableScrollBehavior, setEnableScrollBehavior] = useState(false);
   const lastScrollY = useRef(0);
@@ -114,6 +116,18 @@ const Footer = () => {
   const handleConfirmWhatsApp = () => {
     window.open(Url, "_blank", "noopener,noreferrer");
     setShowWhatsAppPopup(false);
+  };
+
+  const handleSocialClick = (e, platform, url, icon, color) => {
+    e.preventDefault();
+    setSocialPopup({ isOpen: true, platform, url, icon, color });
+  };
+
+  const handleConfirmSocial = () => {
+    if (socialPopup.url) {
+      window.open(socialPopup.url, "_blank", "noopener,noreferrer");
+    }
+    setSocialPopup(prev => ({ ...prev, isOpen: false }));
   };
 
   const getMessageIcon = () => {
@@ -242,8 +256,7 @@ const Footer = () => {
               <div className="flex items-center gap-6">
                 <a
                   href="https://www.instagram.com/diet.withdee?igsh=MW03bXpwMjhyZWEyNA%3D%3D&utm_source=qr"
-                  target="_blank"
-                  rel="noopener noreferrer"
+                  onClick={(e) => handleSocialClick(e, 'Instagram', 'https://www.instagram.com/diet.withdee?igsh=MW03bXpwMjhyZWEyNA%3D%3D&utm_source=qr', <Instagram size={24} />, 'from-pink-500 to-purple-600')}
                   className="text-green-100 hover:text-pink-400 transition-colors hover:scale-110 transform"
                 >
                   <Instagram size={20} />
@@ -251,8 +264,7 @@ const Footer = () => {
 
                 <a
                   href="https://www.linkedin.com/company/dietwithdee/"
-                  target="_blank"
-                  rel="noopener noreferrer"
+                  onClick={(e) => handleSocialClick(e, 'LinkedIn', 'https://www.linkedin.com/company/dietwithdee/', <Linkedin size={24} />, 'from-blue-600 to-cyan-500')}
                   className="text-green-100 hover:text-blue-400 transition-colors hover:scale-110 transform"
                 >
                   <Linkedin size={20} />
@@ -260,8 +272,7 @@ const Footer = () => {
 
                 <a
                   href="https://www.tiktok.com/@dietwithdee?_t=ZM-8yWNZKQGM8G&_r=1"
-                  target="_blank"
-                  rel="noopener noreferrer"
+                  onClick={(e) => handleSocialClick(e, 'TikTok', 'https://www.tiktok.com/@dietwithdee?_t=ZM-8yWNZKQGM8G&_r=1', <Music2 size={24} />, 'from-gray-900 to-gray-700')}
                   className="text-green-100 hover:text-gray-200 transition-colors hover:scale-110 transform"
                 >
                   <Music2 size={20} />
@@ -320,6 +331,16 @@ const Footer = () => {
         isOpen={showWhatsAppPopup}
         onClose={() => setShowWhatsAppPopup(false)}
         onConfirm={handleConfirmWhatsApp}
+      />
+
+      {/* Social Redirect Confirmation Popup */}
+      <SocialRedirectPopup
+        isOpen={socialPopup.isOpen}
+        platformName={socialPopup.platform}
+        icon={socialPopup.icon}
+        colorClass={socialPopup.color}
+        onClose={() => setSocialPopup(prev => ({ ...prev, isOpen: false }))}
+        onConfirm={handleConfirmSocial}
       />
     </footer>
   );
