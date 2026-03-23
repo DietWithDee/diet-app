@@ -1,7 +1,8 @@
 import React, { useState, useEffect } from 'react'
 import { NavLink } from 'react-router-dom'
 import { useWebHaptics } from 'web-haptics/react'
-import { FiShoppingCart, FiMenu, FiX, FiUser } from "react-icons/fi"
+import { FiShoppingCart, FiMenu, FiX, FiCompass } from "react-icons/fi"
+import { motion } from 'framer-motion'
 import logo from "../../assets/LOGO.webp"
 import { useNavigate } from 'react-router'
 
@@ -69,7 +70,24 @@ export default function NavBar() {
             }
             title="My Journey"
           >
-            <FiUser size={23} className="transition-transform duration-300 group-hover:scale-110" />
+            <motion.div
+              animate={{
+                rotate: [0, -3, 3, -3, 0],
+              }}
+              transition={{
+                duration: 3,
+                repeat: Infinity,
+                ease: "easeInOut"
+              }}
+              whileHover={{ 
+                rotate: [0, -15, 15, -15, 15, -15, 15, 0],
+                scale: 1.2,
+                transition: { duration: 0.5 }
+              }}
+              className="flex items-center justify-center"
+            >
+              <FiCompass size={23} className="transition-transform duration-300" />
+            </motion.div>
           </NavLink>
 
           {/* Plans/Cart icon */}

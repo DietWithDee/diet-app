@@ -654,6 +654,26 @@ const RichTextEditor = ({ value, onChange, disabled = false }) => {
           pointer-events: none;
           color: #9CA3AF;
         }
+        /* Ensure lists are visible in the editor */
+        .prose ul {
+          list-style-type: disc !important;
+          padding-left: 1.5rem !important;
+        }
+        .prose ol {
+          list-style-type: decimal !important;
+          padding-left: 1.5rem !important;
+        }
+        .prose li {
+          display: list-item !important;
+        }
+        /* Bold and Italic Styling */
+        .prose b, .prose strong {
+          color: #059669 !important;
+          font-weight: 700;
+        }
+        .prose i, .prose em {
+          color: #059669 !important;
+        }
       `}
       </style>
     </div>

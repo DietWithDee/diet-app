@@ -269,7 +269,13 @@ function Blog() {
              displayTitle = match[1].replace(/-/g, ' ');
              displayTitle = displayTitle.split(' ').map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(' ') + " Plan";
            } else if (url.includes('/plans')) {
-             displayTitle = 'View All Plans';
+             const hashMatch = url.match(/#([a-zA-Z0-9_-]+)/);
+             if (hashMatch && hashMatch[1]) {
+               displayTitle = hashMatch[1].replace(/-/g, ' ');
+               displayTitle = displayTitle.split(' ').map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(' ') + " Plan";
+             } else {
+               displayTitle = 'View All Plans';
+             }
            } else {
              displayTitle = 'Premium Plan';
            }
@@ -313,8 +319,8 @@ function Blog() {
         textNodes.push(node);
       }
       
-      // Regex for matching raw text URLs
-      const planRegex = /(https?:\/\/(?:www\.)?(?:paystack\.shop|paystack\.com)\/pay\/[a-zA-Z0-9_-]+|https?:\/\/(?:www\.)?dietwithdee\.org\/plans|\/plans)/g;
+      // Regex for matching raw text URLs (including hashes for internal plans)
+      const planRegex = /(https?:\/\/(?:www\.)?(?:paystack\.shop|paystack\.com)\/pay\/[a-zA-Z0-9_-]+|https?:\/\/(?:www\.)?dietwithdee\.org\/plans(?:#[a-zA-Z0-9_-]+)?|\/plans(?:#[a-zA-Z0-9_-]+)?)/g;
 
       textNodes.forEach(textNode => {
         // Skip if it's already inside our newly created plan card or inside an anchor tag
@@ -482,6 +488,30 @@ function Blog() {
           datePublished={articleDate}
         />
         <div className="min-h-screen bg-gradient-to-br from-green-50 via-white to-emerald-50">
+          <style>{`
+            .prose b, .prose strong {
+              color: #059669 !important;
+              font-weight: 700;
+            }
+            .prose i, .prose em {
+              color: #059669 !important;
+            }
+            /* Force list visibility in case of global resets */
+            .prose ul {
+              list-style-type: disc !important;
+              padding-left: 1.5rem !important;
+              margin-bottom: 1rem !important;
+            }
+            .prose ol {
+              list-style-type: decimal !important;
+              padding-left: 1.5rem !important;
+              margin-bottom: 1rem !important;
+            }
+            .prose li {
+              display: list-item !important;
+              margin-bottom: 0.5rem !important;
+            }
+          `}</style>
           {/* Article Header */}
           <div className="bg-white shadow-sm border-b border-green-100">
             <div className="max-w-4xl mx-auto px-4 sm:px-6 py-4">
