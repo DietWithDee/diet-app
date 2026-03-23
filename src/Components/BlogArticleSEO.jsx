@@ -29,10 +29,14 @@ export default function BlogArticleSEO({ title, description, keywords, image, ur
       "name": "Diet With Dee",
       "logo": {
         "@type": "ImageObject",
-        "url": "https://dietwithdee.org/src/assets/LOGO.webp"
+        "url": "https://dietwithdee.org/LOGO.webp"
       }
     }
   };
+
+  const defaultImage = "https://dietwithdee.org/LOGO.webp";
+  const finalImage = image || defaultImage;
+
   return (
     <Helmet>
       {title && <title>{title}</title>}
@@ -43,12 +47,12 @@ export default function BlogArticleSEO({ title, description, keywords, image, ur
       {title && <meta property="og:title" content={title} />}
       {description && <meta property="og:description" content={description} />}
       {url && <meta property="og:url" content={url} />}
-      {image && <meta property="og:image" content={image} />}
+      <meta property="og:image" content={finalImage} />
       {/* Twitter Card */}
       <meta name="twitter:card" content="summary_large_image" />
       {title && <meta name="twitter:title" content={title} />}
       {description && <meta name="twitter:description" content={description} />}
-      {image && <meta name="twitter:image" content={image} />}
+      <meta name="twitter:image" content={finalImage} />
       {/* BlogPosting Schema */}
       <script type="application/ld+json">{JSON.stringify(schema)}</script>
     </Helmet>

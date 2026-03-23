@@ -19,6 +19,8 @@ import {
 } from "firebase/firestore";
 import { getFunctions, httpsCallable } from "firebase/functions";
 import { ref, uploadBytes, getDownloadURL, deleteObject } from "firebase/storage";
+import { slugify } from "./utils/slugify";
+
 
 // CREATE article - FIXED to handle both File objects and URL strings
 export const createArticle = async (title, content, imageInput, status = 'published', scheduledPublishDate = null, tags = []) => {
@@ -41,6 +43,7 @@ export const createArticle = async (title, content, imageInput, status = 'publis
     // Add article to Firestore
     const docRef = await addDoc(collection(db, "articles"), {
       title,
+      slug: slugify(title),
       content,
       coverImage: imageUrl,
       status,
@@ -146,6 +149,7 @@ export const updateArticle = async (articleId, title, content, imageInput, statu
   try {
     let updateData = {
       title,
+      slug: slugify(title),
       content,
       status,
       tags: Array.isArray(tags) ? tags : [],
@@ -251,6 +255,47 @@ export const getArticleById = async (articleId, includeUnpublished = false) => {
     }
   } catch (error) {
     console.error("Error fetching article:", error);
+    return { success: false, error: error.message };
+  }
+};
+
+// GET single article by Slug or ID (fallback)
+export const getArticleBySlugOrId = async (slugOrId, includeUnpublished = false) => {
+  try {
+    // 1. Try fetching by slug field
+    let q;
+    if (includeUnpublished) {
+      q = query(collection(db, "articles"), where("slug", "==", slugOrId));
+    } else {
+      q = query(collection(db, "articles"), where("slug", "==", slugOrId), where("status", "==", "published"));
+    }
+    
+    const querySnapshot = await getDocs(q);
+
+    if (!querySnapshot.empty) {
+      const docSnap = querySnapshot.docs[0];
+      const data = docSnap.data();
+
+      if (!includeUnpublished && data.status && data.status !== 'published') {
+        return { success: false, error: "Article not found or not published" };
+      }
+
+      return {
+        success: true,
+        data: {
+          id: docSnap.id,
+          ...data,
+          likesCount: data.likesCount || 0,
+          helpfulCount: data.helpfulCount || 0,
+          notHelpfulCount: data.notHelpfulCount || 0
+        }
+      };
+    }
+
+    // 2. Fallback to fetching by ID
+    return await getArticleById(slugOrId, includeUnpublished);
+  } catch (error) {
+    console.error("Error fetching article by slug/id:", error);
     return { success: false, error: error.message };
   }
 };

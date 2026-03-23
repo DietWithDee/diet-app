@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Plus, Edit2, Trash2, Save, X, Loader, Tag } from 'lucide-react';
+import { Plus, Edit2, Trash2, Save, X, Loader, Tag, Eye, Calendar, Clock, Image as ImageIcon } from 'lucide-react';
 import { createArticle, updateArticle, deleteArticle, getArticleTags } from '../../../firebaseUtils';
 import RichTextEditor from './RichTextEditor';
 import ProgressBar from './ProgressBar';
@@ -444,6 +444,14 @@ const ArticlesManager = React.memo(({ articles, setArticles, showNotification, l
                   </div>
                 </div>
                 <div className="flex gap-2">
+                  <a
+                    href={`/blog/${article.slug || article.id}`}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="p-2 text-green-600 hover:bg-green-50 rounded-lg transition-colors"
+                  >
+                    <Eye size={16} />
+                  </a>
                   <button
                     onClick={() => handleEdit(article)}
                     className="p-2 text-blue-600 hover:bg-blue-50 rounded-lg transition-colors"

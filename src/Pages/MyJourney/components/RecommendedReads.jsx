@@ -79,13 +79,13 @@ const RecommendedReads = React.memo(() => {
                         <motion.div
                             key={article.id}
                             whileHover={{ y: -4, scale: 1.02 }}
-                            onClick={() => navigate(`/blog/${article.id}`)}
+                            onClick={() => navigate(`/blog/${article.slug || article.id}`)}
                             className="bg-white rounded-2xl shadow-md border border-green-50 overflow-hidden cursor-pointer group transition-all"
                         >
-                            {article.imageUrl && (
+                            {(article.coverImage || article.imageUrl) && (
                                 <div className="w-full h-32 overflow-hidden">
                                     <img
-                                        src={article.imageUrl}
+                                        src={article.coverImage || article.imageUrl}
                                         alt={article.title}
                                         className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-300"
                                     />

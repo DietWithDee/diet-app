@@ -2,8 +2,8 @@ import React, { useState, useEffect } from 'react';
 import SEO from '../../Components/SEO';
 import { useNavigate, useParams } from 'react-router-dom';
 import { Loader, Calendar, User, ArrowRight, ArrowLeft, Share2, Heart, MessageCircle, Tag } from 'lucide-react';
-import { getArticlesPaged, getArticleById, likeNews, markArticleHelpful } from '../../firebaseUtils';
-import BlogImage from '../../assets/Salad.webp'; // Fallback image
+import { getArticlesPaged, getArticleBySlugOrId, likeNews, markArticleHelpful } from '../../firebaseUtils';
+import BlogImage from '../../assets/LOGO.webp'; // Fallback image (Logo)
 import BlogArticleSEO from '../../Components/BlogArticleSEO';
 import ScrollHideRefreshButton from '../../utils/ScrollHideRefreshButton';
 import NewsletterPopup from '../../Components/NewsletterPopup';
@@ -14,7 +14,7 @@ import { analytics } from '../../firebaseConfig';
 
 function Blog() {
   const navigate = useNavigate();
-  const { id: routeId } = useParams();
+  const { slugOrId: routeId } = useParams();
   const [blogPosts, setBlogPosts] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -60,7 +60,7 @@ function Blog() {
     const fetchSingleArticle = async () => {
       setIsInitialLoadingArticle(true);
       try {
-        const res = await getArticleById(routeId);
+        const res = await getArticleBySlugOrId(routeId);
         if (res?.success) {
           setSelectedArticle(res.data);
           setViewMode('article');
@@ -364,7 +364,7 @@ function Blog() {
   const handleReadMore = (article) => {
     setSelectedArticle(article);
     setViewMode('article');
-    navigate(`/blog/${article.id}`);
+    navigate(`/blog/${article.slug || article.id}`);
     // Scroll to top when opening article
     window.scrollTo({ top: 0, behavior: 'smooth' });
     
@@ -384,7 +384,7 @@ function Blog() {
   };
 
   const handleShare = async (article) => {
-    const articleUrl = `https://dietwithdee.org/blog/${article.id}`;
+    const articleUrl = `https://dietwithdee.org/blog/${article.slug || article.id}`;
     if (navigator.share) {
       try {
         await navigator.share({
@@ -472,7 +472,7 @@ function Blog() {
     const articleTitle = selectedArticle.title;
     const articleDescription = createSummary(selectedArticle.content, 160);
     const articleImage = selectedArticle.coverImage || 'https://dietwithdee.org/LOGO.webp';
-    const articleUrl = `https://dietwithdee.org/blog/${selectedArticle.id}`;
+    const articleUrl = `https://dietwithdee.org/blog/${selectedArticle.slug || selectedArticle.id}`;
     const articleAuthor = selectedArticle.author || 'Nana Ama Dwamena';
     const articleDate = selectedArticle.createdAt && selectedArticle.createdAt.toDate ? selectedArticle.createdAt.toDate().toISOString() : new Date(selectedArticle.createdAt).toISOString();
 
