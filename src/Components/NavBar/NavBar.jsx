@@ -1,10 +1,42 @@
 import React, { useState, useEffect } from 'react'
 import { NavLink } from 'react-router-dom'
 import { useWebHaptics } from 'web-haptics/react'
-import { FiShoppingCart, FiMenu, FiX, FiCompass } from "react-icons/fi"
+import { FiShoppingCart, FiMenu, FiX } from "react-icons/fi"
 import { motion } from 'framer-motion'
 import logo from "../../assets/LOGO.webp"
 import { useNavigate } from 'react-router'
+
+const CompassIcon = () => {
+  return (
+    <svg
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="2"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      className="w-[23px] h-[23px]"
+    >
+      <circle cx="12" cy="12" r="10" />
+      <motion.polygon
+        points="16.24 7.76 14.12 14.12 7.76 16.24 9.88 9.88 16.24 7.76"
+        style={{ originX: "12px", originY: "12px" }}
+        animate={{
+          rotate: [0, 45, -45, 30, -30, 0],
+        }}
+        transition={{
+          duration: 3,
+          repeat: Infinity,
+          ease: "easeInOut",
+        }}
+        whileHover={{ 
+          rotate: [0, 360, 720],
+          transition: { duration: 1.5, ease: "anticipate" }
+        }}
+      />
+    </svg>
+  );
+};
 
 export default function NavBar() {
   const [menuOpen, setMenuOpen] = useState(false)
@@ -75,18 +107,18 @@ export default function NavBar() {
                 rotate: [0, -3, 3, -3, 0],
               }}
               transition={{
-                duration: 3,
+                duration: 4,
                 repeat: Infinity,
                 ease: "easeInOut"
               }}
               whileHover={{ 
-                rotate: [0, -15, 15, -15, 15, -15, 15, 0],
+                rotate: [0, -10, 10, -10, 10, 0],
                 scale: 1.2,
                 transition: { duration: 0.5 }
               }}
               className="flex items-center justify-center"
             >
-              <FiCompass size={23} className="transition-transform duration-300" />
+              <CompassIcon />
             </motion.div>
           </NavLink>
 
