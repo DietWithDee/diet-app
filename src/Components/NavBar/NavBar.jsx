@@ -1,42 +1,10 @@
 import React, { useState, useEffect } from 'react'
 import { NavLink } from 'react-router-dom'
 import { useWebHaptics } from 'web-haptics/react'
-import { FiShoppingCart, FiMenu, FiX } from "react-icons/fi"
+import { FiShoppingCart, FiMenu, FiX, FiCompass } from "react-icons/fi"
 import { motion } from 'framer-motion'
 import logo from "../../assets/LOGO.webp"
 import { useNavigate } from 'react-router'
-
-const CompassIcon = () => {
-  return (
-    <svg
-      viewBox="0 0 24 24"
-      fill="none"
-      stroke="currentColor"
-      strokeWidth="2"
-      strokeLinecap="round"
-      strokeLinejoin="round"
-      className="w-[23px] h-[23px]"
-    >
-      <circle cx="12" cy="12" r="10" />
-      <motion.polygon
-        points="16.24 7.76 14.12 14.12 7.76 16.24 9.88 9.88 16.24 7.76"
-        style={{ originX: "12px", originY: "12px" }}
-        animate={{
-          rotate: [0, 45, -45, 30, -30, 0],
-        }}
-        transition={{
-          duration: 3,
-          repeat: Infinity,
-          ease: "easeInOut",
-        }}
-        whileHover={{ 
-          rotate: [0, 360, 720],
-          transition: { duration: 1.5, ease: "anticipate" }
-        }}
-      />
-    </svg>
-  );
-};
 
 export default function NavBar() {
   const [menuOpen, setMenuOpen] = useState(false)
@@ -62,7 +30,7 @@ export default function NavBar() {
     <header className="fixed inset-x-0 top-0 z-50 bg-white ">
       <div className="flex items-center justify-between px-4 ">
         {/* Logo */}
-        <div className="flex items-center space-x-2 cursor-pointer" onClick={() => {
+        <div className="flex-shrink-0 flex items-center space-x-2 cursor-pointer" onClick={() => {
           trigger("nudge")
           navigate('/')
         }}>
@@ -92,34 +60,48 @@ export default function NavBar() {
         </ul>
 
         {/* Icons & Hamburger */}
-        <div className="flex items-center space-x-4">
+        <div className="flex-shrink-0 flex items-center space-x-2 md:space-x-4">
           {/* My Journey icon */}
           <NavLink
             to="/my-journey"
             onClick={() => trigger("nudge")}
             className={({ isActive }) =>
-              `relative group transition-colors duration-300 ${isActive ? 'text-green-600' : 'text-orange-400'}`
+              `relative flex items-center justify-center w-10 h-10 transition-colors duration-300 ${isActive ? 'text-orange-600' : 'text-orange-400'}`
             }
             title="My Journey"
           >
-            <motion.div
-              animate={{
-                rotate: [0, -3, 3, -3, 0],
-              }}
-              transition={{
-                duration: 4,
-                repeat: Infinity,
-                ease: "easeInOut"
-              }}
-              whileHover={{ 
-                rotate: [0, -10, 10, -10, 10, 0],
-                scale: 1.2,
-                transition: { duration: 0.5 }
-              }}
-              className="flex items-center justify-center"
-            >
-              <CompassIcon />
-            </motion.div>
+            {({ isActive }) => (
+              <>
+                {isActive && (
+                  <motion.div
+                    className="absolute inset-0 bg-orange-100 rounded-full"
+                    initial={{ scale: 0, opacity: 0 }}
+                    animate={{ scale: 1, opacity: 1 }}
+                    exit={{ scale: 0, opacity: 0 }}
+                    transition={{ type: "spring", stiffness: 300, damping: 25 }}
+                  />
+                )}
+                <motion.div
+                  animate={isActive ? { rotate: 0 } : {
+                    rotate: [0, -6, 6, -6, 6, 0],
+                  }}
+                  transition={{
+                    duration: 3,
+                    repeat: Infinity,
+                    ease: "easeInOut"
+                  }}
+                  whileHover={isActive ? {} : {
+                    rotate: [0, -15, 15, -15, 15, -15, 15, 0],
+                    scale: 1.2,
+                    transition: { duration: 0.5 }
+                  }}
+                  whileTap={{ scale: 0.9 }}
+                  className="relative z-10 flex items-center justify-center"
+                >
+                  <FiCompass size={23} className="transition-transform duration-300" />
+                </motion.div>
+              </>
+            )}
           </NavLink>
 
           {/* Plans/Cart icon */}
@@ -127,11 +109,30 @@ export default function NavBar() {
             to="/plans"
             onClick={() => trigger("nudge")}
             className={({ isActive }) =>
-              `relative group transition-colors duration-300 ${isActive ? 'text-green-600' : 'text-orange-400'}`
+              `relative flex items-center justify-center w-10 h-10 transition-colors duration-300 ${isActive ? 'text-orange-600' : 'text-orange-400'}`
             }
             title="Plans"
           >
-            <FiShoppingCart size={23} className="transition-transform duration-300 group-hover:scale-110" />
+            {({ isActive }) => (
+              <>
+                {isActive && (
+                  <motion.div
+                    className="absolute inset-0 bg-orange-100 rounded-full"
+                    initial={{ scale: 0, opacity: 0 }}
+                    animate={{ scale: 1, opacity: 1 }}
+                    exit={{ scale: 0, opacity: 0 }}
+                    transition={{ type: "spring", stiffness: 300, damping: 25 }}
+                  />
+                )}
+                <motion.div
+                  whileHover={{ scale: 1.1 }}
+                  whileTap={{ scale: 0.9 }}
+                  className="relative z-10 flex items-center justify-center"
+                >
+                  <FiShoppingCart size={23} className="transition-transform duration-300" />
+                </motion.div>
+              </>
+            )}
           </NavLink>
 
           <button className="md:hidden text-orange-600" onClick={() => {

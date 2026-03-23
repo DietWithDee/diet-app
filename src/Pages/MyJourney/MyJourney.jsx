@@ -278,7 +278,7 @@ function MyJourney() {
                     variants={fadeUp}
                     className="text-4xl md:text-5xl lg:text-6xl font-black text-green-700 tracking-tight mb-4 pt-16 md:pt-18"
                   >
-                    My Journey
+                    My Journey 
                   </motion.h1>
                   <motion.div variants={fadeUp} className="w-16 h-1.5 bg-gradient-to-r from-green-400 to-emerald-400 rounded-full mx-auto mb-4 shadow-sm"></motion.div>
                   <motion.p
@@ -349,7 +349,7 @@ function MyJourney() {
                   viewport={{ once: true }}
                   className="text-center text-xl lg:text-2xl font-bold text-green-800 mb-6"
                 >
-                  What You Get
+                  What You Get 🧭
                 </motion.h3>
 
                 <motion.div
