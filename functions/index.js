@@ -146,7 +146,7 @@ exports.onArticlePublished = onDocumentWritten(
              from: 'Diet With Dee <newsletter@dietwithdee.org>',
              to: [email],
              subject: subject,
-             html: emailContent
+             html: emailContent.split('https://dietwithdee.org/unsubscribe').join(`https://dietwithdee.org/unsubscribe?email=${encodeURIComponent(email)}`)
         }));
 
         try {
@@ -212,7 +212,7 @@ exports.onNewSubscriber = onDocumentCreated(
                 from: 'Nana Ama from Diet With Dee <hello@dietwithdee.org>',
                 to: [email],
                 subject: 'Welcome to Diet With Dee! 🌿',
-                html: welcomeContent
+                html: welcomeContent.split('https://dietwithdee.org/unsubscribe').join(`https://dietwithdee.org/unsubscribe?email=${encodeURIComponent(email)}`)
             });
 
             if (error) {
@@ -492,5 +492,23 @@ exports.adminDeleteUser = onCall(async (request) => {
     } catch (error) {
         console.error("Error in adminDeleteUser:", error);
         throw new HttpsError("internal", error.message || "An error occurred during deletion.");
+    }
+});
+
+// 8. Public: User unsubscription
+exports.unsubscribeUser = onCall(async (request) => {
+    const email = request.data.email?.trim()?.toLowerCase();
+    if (!email) {
+        throw new HttpsError("invalid-argument", "Missing email address.");
+    }
+
+    try {
+        const db = admin.firestore();
+        await db.collection("emails").doc(email).delete();
+        console.log(`Successfully unsubscribed: ${email}`);
+        return { success: true };
+    } catch (error) {
+        console.error("Unsubscribe error:", error);
+        throw new HttpsError("internal", "Failed to unsubscribe.");
     }
 });

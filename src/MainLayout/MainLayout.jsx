@@ -18,6 +18,7 @@ import ScrollToTop from "../utils/ScrollToTop";
 import PaymentSuccess from "../Pages/ContactUs/PaymentSuccess";
 import MyJourney from "../Pages/MyJourney/MyJourney";
 import TestEmails from "../Components/TestEmails";
+import Unsubscribe from "../Pages/Unsubscribe/Unsubscribe";
 import { AuthProvider } from "../AuthContext";
 import { usePageTracking } from "../hooks/usePageTracking";
 
@@ -44,6 +45,7 @@ const AppRoutes = () => {
         <Route path="/paymentSuccess" element={<PaymentSuccess />} />
         <Route path="/PaymentSuccess" element={<PaymentSuccess />} />
         <Route path="/test" element={<TestEmails />} />
+        <Route path="/unsubscribe" element={<Unsubscribe />} />
         <Route path="*" element={<Error />} />
       </Routes>
       <Footer />
