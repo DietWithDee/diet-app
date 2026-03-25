@@ -83,8 +83,12 @@ const BookingsPanel = ({ showNotification }) => {
               onClick={() => setFilter(f)}
               className={`px-4 py-2 rounded-lg text-sm font-bold capitalize transition-all ${filter === f ? 'bg-white text-green-700 shadow shadow-sm' : 'text-gray-500 hover:text-gray-700'}`}
             >
-              {f} {f === 'pending' && bookings.filter(b => b.status === 'pending').length > 0 && (
-                <span className="ml-1 px-1.5 py-0.5 bg-red-100 text-red-600 rounded-md text-xs">{bookings.filter(b => b.status === 'pending').length}</span>
+              {f} 
+              {f === 'pending' && bookings.filter(b => b.status === 'pending').length > 0 && (
+                <span className="ml-1 px-1.5 py-0.5 bg-red-100 text-red-600 rounded-md text-[10px]">{bookings.filter(b => b.status === 'pending').length}</span>
+              )}
+              {f === 'contacted' && bookings.filter(b => b.status === 'contacted').length > 0 && (
+                <span className="ml-1 px-1.5 py-0.5 bg-yellow-100 text-yellow-700 rounded-md text-[10px]">{bookings.filter(b => b.status === 'contacted').length}</span>
               )}
             </button>
           ))}

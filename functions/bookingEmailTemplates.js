@@ -94,6 +94,8 @@ const createClientConfirmationEmail = (name, consultationType) => {
             </div>
             <div class="footer">
                 <p>&copy; ${new Date().getFullYear()} Diet With Dee. All rights reserved.</p>
+                <p>Accra, Ghana</p>
+                <p>Helping you build healthier habits for life.</p>
             </div>
         </div>
     </body>

@@ -22,13 +22,25 @@ const AdminDashboard = () => {
   const [usersLoading, setUsersLoading] = useState(false);
   const [usersFetched, setUsersFetched] = useState(false);
   const [pendingBookings, setPendingBookings] = useState(0);
+  const [contactedBookings, setContactedBookings] = useState(0);
 
   useEffect(() => {
-    const q = query(collection(db, 'bookings'), where('status', '==', 'pending'));
-    const unsubscribe = onSnapshot(q, (snapshot) => {
+    // Listener for pending bookings
+    const qPending = query(collection(db, 'bookings'), where('status', '==', 'pending'));
+    const unsubscribePending = onSnapshot(qPending, (snapshot) => {
       setPendingBookings(snapshot.docs.length);
     });
-    return () => unsubscribe();
+
+    // Listener for contacted bookings
+    const qContacted = query(collection(db, 'bookings'), where('status', '==', 'contacted'));
+    const unsubscribeContacted = onSnapshot(qContacted, (snapshot) => {
+      setContactedBookings(snapshot.docs.length);
+    });
+
+    return () => {
+      unsubscribePending();
+      unsubscribeContacted();
+    };
   }, []);
 
   const showNotification = React.useCallback((type, message) => {
@@ -225,10 +237,19 @@ const AdminDashboard = () => {
             </div>
             <div>
               <div className="flex items-center gap-2">
-                <p className="text-2xl font-bold text-gray-800">{pendingBookings}</p>
-                {pendingBookings > 0 && (
-                  <span className="w-3 h-3 bg-red-500 rounded-full animate-pulse"></span>
-                )}
+                <div className="flex items-center gap-1">
+                  <p className="text-2xl font-bold text-gray-800">{pendingBookings}</p>
+                  {pendingBookings > 0 && (
+                    <span className="w-3 h-3 bg-red-500 rounded-full animate-pulse" title="Pending Contact"></span>
+                  )}
+                </div>
+                <span className="text-gray-300">|</span>
+                <div className="flex items-center gap-1">
+                  <p className="text-2xl font-bold text-gray-800">{contactedBookings}</p>
+                  {contactedBookings > 0 && (
+                    <span className="w-3 h-3 bg-yellow-400 rounded-full animate-pulse" title="Contacted / In Progress"></span>
+                  )}
+                </div>
               </div>
               <p className="text-sm text-amber-600 font-medium">Pending Bookings</p>
             </div>
@@ -287,6 +308,14 @@ const AdminDashboard = () => {
                     {pendingBookings}
                   </span>
                   <span className="absolute inset-0 rounded-full bg-red-500 animate-ping opacity-25"></span>
+                </div>
+              )}
+              {contactedBookings > 0 && (
+                <div className="relative">
+                  <span className="flex items-center justify-center px-1.5 py-0.5 bg-yellow-400 text-yellow-900 text-[10px] rounded-full min-w-[20px] leading-tight font-black">
+                    {contactedBookings}
+                  </span>
+                  <span className="absolute inset-0 rounded-full bg-yellow-400 animate-ping opacity-25"></span>
                 </div>
               )}
             </button>

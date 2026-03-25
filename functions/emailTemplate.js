@@ -227,11 +227,14 @@ const createEmailTemplate = (title, coverImage, articleId) => {
             <div class="footer">
                 <div class="footer-text">
                     <strong>Diet With Dee</strong><br>
-                    Helping you build healthier habits for life.
+                    Accra, Ghana
                 </div>
                 <div class="footer-text">
+                    Helping you build healthier habits for life.
+                </div>
+                <div class="footer-text" style="margin-top: 20px;">
                     You’re receiving this email because you subscribed to the Diet With Dee newsletter.<br><br>
-                    <a href="https://dietwithdee.org" class="unsubscribe">Unsubscribe anytime.</a>
+                    <a href="https://dietwithdee.org" class="unsubscribe">Unsubscribe</a>
                 </div>
             </div>
         </div>
@@ -331,6 +334,7 @@ const createWelcomeTemplate = () => {
               </div>
               <div class="footer">
                   <p>&copy; ${new Date().getFullYear()} Diet With Dee. All rights reserved.</p>
+                  <p>Accra, Ghana</p>
                   <p>Helping you build healthier habits for life.</p>
               </div>
           </div>
