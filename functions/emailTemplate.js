@@ -202,7 +202,7 @@ const createEmailTemplate = (title, coverImage, articleId) => {
                     ${coverImage ? `<img src="${coverImage}" alt="${title}" class="article-image" />` : ''}
                     <div class="article-content">
                         <h2 class="article-title">${title}</h2>
-                        <a href="https://dietwithdee.org/blog/${articleId}" 
+                        <a href="https://dietwithdee.org/blog/${articleId}?utm_source=newsletter&utm_medium=email&utm_campaign=${encodeURIComponent(title.substring(0, 30))}" 
                            class="cta-button">
                             READ THE ARTICLE →
                         </a>
@@ -217,7 +217,7 @@ const createEmailTemplate = (title, coverImage, articleId) => {
                         <li style="margin-bottom: 8px;">Specialized programs for weight loss, diabetes management, and heart health</li>
                     </ul>
                     
-                    <a href="https://dietwithdee.org/services" 
+                    <a href="https://dietwithdee.org/services?utm_source=newsletter&utm_medium=email&utm_campaign=services_upsell" 
                        class="cta-button" style="background-color: #16a34a; box-shadow: 0 8px 20px rgba(22, 163, 74, 0.35);">
                         Explore Nutrition Plans →
                     </a>
@@ -328,7 +328,7 @@ const createWelcomeTemplate = () => {
                   </ul>
                   <p>While you wait for the first update, why not explore some of our latest articles?</p>
                   <div style="text-align: center;">
-                      <a href="https://dietwithdee.org/blog" class="button">Explore the Blog</a>
+                      <a href="https://dietwithdee.org/blog?utm_source=welcome_email&utm_medium=email&utm_campaign=welcome_cta" class="button">Explore the Blog</a>
                   </div>
                   <p style="margin-top: 30px;">To your health,<br><strong>Nana Ama Dwamena</strong><br>Founder, Diet With Dee</p>
               </div>

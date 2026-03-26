@@ -1,7 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Loader } from 'lucide-react';
 import { getArticles, getAllEmails, getAllUsers } from '../../firebaseUtils';
-import { getBookingStatus, setBookingStatus } from '../../firebaseBookingUtils';
 import { useAuth } from '../../AuthContext';
 import Notification from './components/Notification';
 import ArticlesManager from './components/ArticlesManager';
@@ -15,7 +14,6 @@ const AdminDashboard = () => {
   const [articles, setArticles] = useState([]);
   const [notification, setNotification] = useState(null);
   const [isLoading, setIsLoading] = useState(true);
-  const [isBookingOpen, setIsBookingOpen] = useState(false);
   const [subscriberCount, setSubscriberCount] = useState(0);
   const [activeTab, setActiveTab] = useState('articles'); // 'articles' | 'journey' | 'bookings'
   const [users, setUsers] = useState([]);
@@ -51,51 +49,6 @@ const AdminDashboard = () => {
     setNotification(null);
   }, []);
 
-
-
-  // Function to fetch booking status
-  const fetchBookingStatus = React.useCallback(async () => {
-    const result = await getBookingStatus();
-    if (result.success) {
-      return result.isOpen;
-    } else {
-      showNotification('error', 'Failed to load booking status.');
-      console.error('Error loading booking status:', result.error);
-      return false; // Default to closed on error
-    }
-  }, [showNotification]);
-
-
-  // Function to update booking status
-  const updateBookingStatusInFirestore = async (status) => {
-    const result = await setBookingStatus(status);
-    if (result.success) {
-      showNotification('success', `Bookings are now ${status ? 'open' : 'closed'}.`);
-      return { success: true };
-    } else {
-      showNotification('error', 'Failed to update booking status.');
-      console.error('Error updating booking status:', result.error);
-      return { success: false };
-    }
-  };
-
-  useEffect(() => {
-    const getStatus = async () => {
-      const status = await fetchBookingStatus();
-      setIsBookingOpen(status);
-    };
-    getStatus();
-  }, [fetchBookingStatus]);
-
-  const handleBookingToggle = async () => {
-    const newStatus = !isBookingOpen;
-    const result = await updateBookingStatusInFirestore(newStatus);
-    if (result.success) {
-      setIsBookingOpen(newStatus);
-    } else {
-      showNotification('error', 'Failed to update booking status.');
-    }
-  };
 
 
   const loadArticles = React.useCallback(async () => {
@@ -206,15 +159,6 @@ const AdminDashboard = () => {
               <p className="text-sm text-gray-500">Total Subscribers</p>
             </div>
           </div>
-          <div className="bg-white rounded-xl shadow-md p-5 border border-green-100 flex items-center gap-4">
-            <div className="w-12 h-12 rounded-full bg-emerald-100 flex items-center justify-center text-emerald-600 text-xl font-bold flex-shrink-0">
-              📝
-            </div>
-            <div>
-              <p className="text-2xl font-bold text-gray-800">{articles.length}</p>
-              <p className="text-sm text-gray-500">Articles Published</p>
-            </div>
-          </div>
           <button 
             onClick={() => setActiveTab('journey')}
             className={`bg-white rounded-xl shadow-md p-5 border flex items-center gap-4 transition-all hover:shadow-lg text-left ${activeTab === 'journey' ? 'border-blue-500 ring-2 ring-blue-100' : 'border-blue-100'}`}
@@ -257,28 +201,6 @@ const AdminDashboard = () => {
 
         </div>
 
-        {/* Booking Toggle UI */}
-        <div className="bg-white rounded-xl shadow-lg p-6 mb-8 border border-green-100 flex items-center justify-between">
-          <h2 className="text-xl font-bold text-green-700">Manage Bookings</h2>
-          <label htmlFor="booking-toggle" className="flex items-center cursor-pointer">
-            <div className="relative">
-              <input
-                type="checkbox"
-                id="booking-toggle"
-                className="sr-only"
-                checked={isBookingOpen}
-                onChange={handleBookingToggle}
-              />
-              <div className={`block w-14 h-8 rounded-full transition-colors ${isBookingOpen ? 'bg-green-500' : 'bg-gray-300'}`}></div>
-              <div
-                className={`dot absolute left-1 top-1 bg-white w-6 h-6 rounded-full transition-transform ${isBookingOpen ? 'translate-x-full' : ''}`}
-              ></div>
-            </div>
-            <div className={`ml-3 font-bold transition-colors ${isBookingOpen ? 'text-green-600' : 'text-gray-700'}`}>
-              {isBookingOpen ? 'Bookings Open' : 'Bookings Closed'}
-            </div>
-          </label>
-        </div>
 
 
 

@@ -1,12 +1,16 @@
 import React, { useState, useEffect } from 'react';
 import { collection, query, orderBy, onSnapshot, doc, updateDoc } from 'firebase/firestore';
 import { db } from '../../../firebaseConfig';
-import { Calendar, Phone, Mail, FileText, Clock, CheckCircle, Activity, ChevronDown, Target } from 'lucide-react';
+import { Calendar, Phone, Mail, FileText, Clock, CheckCircle, Activity, ChevronDown, Target, AlertTriangle } from 'lucide-react';
+import { getBookingStatus, setBookingStatus } from '../../../firebaseBookingUtils';
 
 const BookingsPanel = ({ showNotification }) => {
   const [bookings, setBookings] = useState([]);
   const [loading, setLoading] = useState(true);
   const [filter, setFilter] = useState('all'); // all, pending, contacted, completed
+  const [isBookingOpen, setIsBookingOpen] = useState(false);
+  const [showConfirmModal, setShowConfirmModal] = useState(false);
+  const [isUpdatingStatus, setIsUpdatingStatus] = useState(false);
 
   useEffect(() => {
     // Real-time listener on the bookings collection
@@ -27,6 +31,45 @@ const BookingsPanel = ({ showNotification }) => {
 
     return () => unsubscribe();
   }, [showNotification]);
+
+  useEffect(() => {
+    const fetchStatus = async () => {
+      const result = await getBookingStatus();
+      if (result.success) {
+        setIsBookingOpen(result.isOpen);
+      }
+    };
+    fetchStatus();
+  }, []);
+
+  const handleToggleClick = () => {
+    if (isBookingOpen) {
+      // If opening -> closing, show confirmation
+      setShowConfirmModal(true);
+    } else {
+      // If closing -> opening, do it immediately
+      updateBookingStatus(true);
+    }
+  };
+
+  const updateBookingStatus = async (newStatus) => {
+    setIsUpdatingStatus(true);
+    try {
+      const result = await setBookingStatus(newStatus);
+      if (result.success) {
+        setIsBookingOpen(newStatus);
+        showNotification('success', `Bookings are now ${newStatus ? 'open' : 'closed'}.`);
+      } else {
+        showNotification('error', 'Failed to update booking status.');
+      }
+    } catch (error) {
+      console.error("Error updating booking status:", error);
+      showNotification('error', 'An error occurred.');
+    } finally {
+      setIsUpdatingStatus(false);
+      setShowConfirmModal(false);
+    }
+  };
 
   const handleStatusChange = async (bookingId, newStatus) => {
     try {
@@ -65,6 +108,69 @@ const BookingsPanel = ({ showNotification }) => {
 
   return (
     <div className="space-y-6 animate-in fade-in duration-500">
+      
+      {/* Booking Status Toggle Card */}
+      <div className="bg-white rounded-2xl shadow-sm border border-green-100 p-6 flex flex-col sm:flex-row items-center justify-between gap-4">
+        <div className="flex items-center gap-3">
+          <div className={`w-10 h-10 rounded-xl flex items-center justify-center ${isBookingOpen ? 'bg-green-100 text-green-600' : 'bg-gray-100 text-gray-400'}`}>
+            <Calendar size={20} />
+          </div>
+          <div>
+            <h3 className="font-bold text-gray-800">Booking Status</h3>
+            <p className="text-xs text-gray-500">Enable or disable new client bookings</p>
+          </div>
+        </div>
+
+        <button 
+          onClick={handleToggleClick}
+          disabled={isUpdatingStatus}
+          className={`relative inline-flex items-center h-9 rounded-full w-16 transition-colors focus:outline-none ${isBookingOpen ? 'bg-green-500' : 'bg-gray-300'} ${isUpdatingStatus ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer'}`}
+        >
+          <span className="sr-only">Toggle Booking Status</span>
+          <span
+            className={`${
+              isBookingOpen ? 'translate-x-8' : 'translate-x-1'
+            } inline-block w-7 h-7 transform bg-white rounded-full transition-transform shadow-sm`}
+          />
+          <span className={`absolute ${isBookingOpen ? 'left-2' : 'right-2'} text-[10px] font-black text-white uppercase`}>
+            {isBookingOpen ? 'ON' : 'OFF'}
+          </span>
+        </button>
+      </div>
+
+      {/* Confirmation Modal */}
+      {showConfirmModal && (
+        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm animate-in fade-in duration-200">
+          <div className="bg-white rounded-2xl shadow-2xl max-w-md w-full p-6 animate-in zoom-in-95 duration-200">
+            <div className="flex items-center gap-4 mb-4">
+              <div className="w-12 h-12 rounded-full bg-amber-100 flex items-center justify-center text-amber-600 flex-shrink-0">
+                <AlertTriangle size={24} />
+              </div>
+              <h3 className="text-xl font-bold text-gray-900">Close Bookings?</h3>
+            </div>
+            
+            <p className="text-gray-600 mb-6">
+              This will prevent new clients from booking consultations on the website. You can re-open them at any time.
+            </p>
+
+            <div className="flex gap-3 justify-end">
+              <button
+                onClick={() => setShowConfirmModal(false)}
+                className="px-4 py-2 text-gray-600 font-bold hover:bg-gray-100 rounded-xl transition-colors"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={() => updateBookingStatus(false)}
+                disabled={isUpdatingStatus}
+                className="px-6 py-2 bg-amber-600 hover:bg-amber-700 text-white font-bold rounded-xl transition-all shadow-md hover:shadow-lg disabled:opacity-50"
+              >
+                {isUpdatingStatus ? 'Updating...' : 'Yes, Close Bookings'}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
       
       {/* Header & Filters */}
       <div className="flex flex-col md:flex-row justify-between items-center gap-4 bg-white p-6 rounded-2xl shadow-sm border border-green-50">
