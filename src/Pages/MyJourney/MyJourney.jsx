@@ -14,7 +14,7 @@ import ProgressChart from './components/ProgressChart';
 import PlanRecommendation from './components/PlanRecommendation';
 import RecommendedReads from './components/RecommendedReads';
 import Achievements from './components/Achievements';
-import { SafeImage } from '../../Components/SafeImage';
+import SafeImage from '../../Components/SafeImage';
 import { logEvent } from 'firebase/analytics';
 import { analytics } from '../../firebaseConfig';
 import { deleteOwnAccount } from '../../firebaseUtils';
