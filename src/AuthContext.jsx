@@ -1,5 +1,5 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
-import { GoogleAuthProvider, signInWithPopup, signInWithRedirect, getRedirectResult, onAuthStateChanged, signOut as firebaseSignOut, signInWithCredential } from 'firebase/auth';
+import { GoogleAuthProvider, signInWithPopup, signInWithRedirect, getRedirectResult, onAuthStateChanged, signOut as firebaseSignOut, signInWithCredential, setPersistence, browserLocalPersistence } from 'firebase/auth';
 import { doc, getDoc, getDocs, setDoc, addDoc, collection, onSnapshot, updateDoc, query, where, Timestamp } from 'firebase/firestore';
 import { auth, db } from './firebaseConfig';
 import { BADGE_DEFINITIONS } from './constants/badges';
@@ -30,6 +30,9 @@ export const AuthProvider = ({ children }) => {
 
   // Listen for auth state changes
   useEffect(() => {
+    // Explicitly set persistence for PWA sessions
+    setPersistence(auth, browserLocalPersistence).catch(err => console.error('Auth persistence error:', err));
+
     let unsubscribeProfile = null;
     
     const unsubscribeAuth = onAuthStateChanged(auth, (firebaseUser) => {
@@ -135,9 +138,14 @@ export const AuthProvider = ({ children }) => {
   const signInWithGoogle = async () => {
     const provider = new GoogleAuthProvider();
     auth.useDeviceLanguage();
-    provider.setCustomParameters({
-      prompt: 'select_account'
-    });
+    const isStandalone = window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone === true;
+    const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
+
+    if (!isMobile && !isStandalone) {
+      provider.setCustomParameters({
+        prompt: 'select_account'
+      });
+    }
 
     try {
       // First try popup - it generally works better without leaving the page
