@@ -5,8 +5,10 @@ import { useAuth } from '../../../AuthContext';
 import { motion, AnimatePresence } from 'framer-motion';
 import { FiSettings, FiLogOut, FiTrash2, FiEdit2, FiBell, FiShield } from 'react-icons/fi';
 import OnboardingModal from '../../../Components/OnboardingModal';
+import { deleteOwnAccount } from '../../../firebaseUtils';
 
 function AccountSettings() {
+
     const { user, userProfile, signOut, saveUserProfile } = useAuth();
     const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
     const [showLogoutConfirm, setShowLogoutConfirm] = useState(false);
@@ -17,33 +19,26 @@ function AccountSettings() {
         if (!user) return;
         setDeleting(true);
         try {
-            // Delete all user logs
-            const logsSnap = await getDocs(collection(db, 'users', user.uid, 'logs'));
-            const deletePromises = logsSnap.docs.map((d) => deleteDoc(d.ref));
-            await Promise.all(deletePromises);
-
-            // Delete user profile
-            await deleteDoc(doc(db, 'users', user.uid));
-
-            // Delete Firebase Auth account
-            await user.delete();
-
-            // Force sign-out to prevent stuck states
-            await signOut();
+            const result = await deleteOwnAccount();
+            if (result.success) {
+                // Cloud function handled cleanup, now just sign out
+                await signOut();
+            } else {
+                alert(result.error || 'Failed to delete account. Please try again.');
+                // Fallback sign out if it was a permissions issue but data was mostly cleared
+                if (result.error?.includes('permission-denied')) {
+                    await signOut();
+                }
+            }
         } catch (err) {
             console.error('Failed to delete account:', err);
-            // If re-authentication needed
-            if (err.code === 'auth/requires-recent-login') {
-                alert('For security, please sign out and sign back in, then try deleting again.');
-            } else {
-                alert('Failed to delete account. Please try again.');
-            }
-            // Force sign-out on failure to prevent blank screen
+            alert('Failed to delete account. Please try again.');
             await signOut();
         }
         setDeleting(false);
         setShowDeleteConfirm(false);
     };
+
 
     const handleOnboardingSave = async (formData) => {
         try {

@@ -495,8 +495,55 @@ exports.adminDeleteUser = onCall(async (request) => {
     }
 });
 
-// 8. Public: User unsubscription
+// 8. Public: User self-deletion of account and data
+exports.deleteOwnAccount = onCall(async (request) => {
+    // 1. Check authentication
+    if (!request.auth) {
+        throw new HttpsError("unauthenticated", "You must be signed in to delete your account.");
+    }
+
+    const uid = request.auth.uid;
+    const email = request.auth.token.email;
+
+    console.log(`User ${uid} (${email || 'no email'}) is deleting their own account.`);
+
+    try {
+        const db = admin.firestore();
+
+        // 1. Delete user's logs subcollection
+        const logsSnapshot = await db.collection("users").doc(uid).collection("logs").get();
+        if (!logsSnapshot.empty) {
+            const batch = db.batch();
+            logsSnapshot.forEach(doc => batch.delete(doc.ref));
+            await batch.commit();
+            console.log(`Deleted ${logsSnapshot.size} logs for user ${uid}.`);
+        }
+
+        // 2. Delete user document from Firestore
+        await db.collection("users").doc(uid).delete();
+        console.log(`Deleted Firestore document for user ${uid}.`);
+
+        // 3. Delete from emails collection if email is available
+        if (email) {
+            await db.collection("emails").doc(email.toLowerCase()).delete();
+            console.log(`Deleted email ${email} from emails collection.`);
+        }
+
+        // 4. Finally, delete from Firebase Auth
+        // The Admin SDK can delete users without requiring a recent login session.
+        await admin.auth().deleteUser(uid);
+        console.log(`Successfully deleted user ${uid} from Auth.`);
+
+        return { success: true, message: "Account and all data deleted successfully." };
+    } catch (error) {
+        console.error("Error in deleteOwnAccount:", error);
+        throw new HttpsError("internal", error.message || "An error occurred during account deletion.");
+    }
+});
+
+// 9. Public: User unsubscription
 exports.unsubscribeUser = onCall(async (request) => {
+
     const email = request.data.email?.trim()?.toLowerCase();
     if (!email) {
         throw new HttpsError("invalid-argument", "Missing email address.");

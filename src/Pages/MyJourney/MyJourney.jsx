@@ -14,9 +14,11 @@ import ProgressChart from './components/ProgressChart';
 import PlanRecommendation from './components/PlanRecommendation';
 import RecommendedReads from './components/RecommendedReads';
 import Achievements from './components/Achievements';
-import SafeImage from '../../Components/SafeImage';
+import { SafeImage } from '../../Components/SafeImage';
 import { logEvent } from 'firebase/analytics';
 import { analytics } from '../../firebaseConfig';
+import { deleteOwnAccount } from '../../firebaseUtils';
+
 
 
 const FloatingBackground = () => (
@@ -730,25 +732,16 @@ function MyJourney() {
                   onClick={async () => {
                     setDeleting(true);
                     try {
-                      const { collection: col, getDocs: gd, deleteDoc: dd, doc: dc } = await import('firebase/firestore');
-                      const { db: fireDb } = await import('../../firebaseConfig');
-                      const logsSnap = await gd(col(fireDb, 'users', user.uid, 'logs'));
-                      await Promise.all(logsSnap.docs.map((d) => dd(d.ref)));
-                      await dd(dc(fireDb, 'users', user.uid));
-                      // On successful deletion, clear the pending flag
-                      localStorage.removeItem('pendingDeletion');
-                      // Force signout on success
-                      await signOut();
+                      const result = await deleteOwnAccount();
+                      if (result.success) {
+                        localStorage.removeItem('pendingDeletion');
+                        await signOut();
+                      } else {
+                        alert(result.error || 'Failed to delete account. Please try again.');
+                      }
                     } catch (err) {
                       console.error('Delete failed:', err);
-                      if (err.code === 'auth/requires-recent-login') {
-                        localStorage.setItem('pendingDeletion', 'true');
-                        alert('For security, please sign out and sign back in, then try deleting again.');
-                      } else {
-                        alert('Failed to delete account. Please try again.');
-                        localStorage.removeItem('pendingDeletion');
-                      }
-                      // Force signout on failure so they don't get stuck without a profile
+                      alert('Failed to delete account. Please try again.');
                       await signOut();
                     }
                     setDeleting(false);
@@ -761,6 +754,7 @@ function MyJourney() {
                     <><div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div> Deleting...</>
                   ) : 'Delete Forever'}
                 </button>
+
               </div>
             </motion.div>
           </motion.div>

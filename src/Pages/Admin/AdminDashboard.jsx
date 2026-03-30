@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Loader } from 'lucide-react';
-import { getArticles, getAllEmails, getAllUsers } from '../../firebaseUtils';
+import { getArticles, getAllEmails, getAllUsers, getAllUsersPaged } from '../../firebaseUtils';
+
 import { useAuth } from '../../AuthContext';
 import Notification from './components/Notification';
 import ArticlesManager from './components/ArticlesManager';
@@ -19,8 +20,11 @@ const AdminDashboard = () => {
   const [users, setUsers] = useState([]);
   const [usersLoading, setUsersLoading] = useState(false);
   const [usersFetched, setUsersFetched] = useState(false);
+  const [lastVisibleUser, setLastVisibleUser] = useState(null);
+  const [hasMoreUsers, setHasMoreUsers] = useState(false);
   const [pendingBookings, setPendingBookings] = useState(0);
   const [contactedBookings, setContactedBookings] = useState(0);
+
 
   useEffect(() => {
     // Listener for pending bookings
@@ -93,14 +97,23 @@ const AdminDashboard = () => {
     await signOut();
   };
 
-  const loadUsers = React.useCallback(async (force = false) => {
-    if (usersLoading || (usersFetched && !force)) return;
+  const loadUsers = React.useCallback(async (force = false, isNextPage = false) => {
+    if (usersLoading) return;
+    if (usersFetched && !force && !isNextPage) return;
     
     setUsersLoading(true);
     try {
-      const result = await getAllUsers(200);
+      const pageSize = 20;
+      const result = await getAllUsersPaged(pageSize, isNextPage ? lastVisibleUser : null);
+      
       if (result.success) {
-        setUsers(result.data || []);
+        if (isNextPage) {
+          setUsers(prev => [...prev, ...result.data]);
+        } else {
+          setUsers(result.data || []);
+        }
+        setLastVisibleUser(result.lastVisible);
+        setHasMoreUsers(result.hasMore);
         setUsersFetched(true);
       } else {
         showNotification('error', 'Failed to load user data');
@@ -111,7 +124,8 @@ const AdminDashboard = () => {
     } finally {
       setUsersLoading(false);
     }
-  }, [usersLoading, usersFetched, showNotification]);
+  }, [usersLoading, usersFetched, lastVisibleUser, showNotification]);
+
   
 
   // Handle tab switch - pre-fetch users if needed
@@ -265,8 +279,10 @@ const AdminDashboard = () => {
                 users={users}
                 loading={usersLoading}
                 loadUsers={loadUsers}
+                hasMore={hasMoreUsers}
               />
             ) : (
+
               <BookingsPanel showNotification={showNotification} />
             )}
           </div>

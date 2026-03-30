@@ -422,6 +422,39 @@ export const getAllUsers = async (limitCount = 100) => {
   }
 };
 
+// Get users with pagination (for admin)
+export const getAllUsersPaged = async (pageSize = 20, lastVisibleDoc = null) => {
+  try {
+    let q;
+    const baseQuery = collection(db, "users");
+    const constraints = [orderBy("updatedAt", "desc"), limit(pageSize)];
+
+    if (lastVisibleDoc) {
+      q = query(baseQuery, ...constraints, startAfter(lastVisibleDoc));
+    } else {
+      q = query(baseQuery, ...constraints);
+    }
+
+    const snapshot = await getDocs(q);
+    const lastVisibleData = snapshot.docs[snapshot.docs.length - 1];
+    const users = snapshot.docs.map(doc => ({
+      uid: doc.id,
+      ...doc.data()
+    }));
+
+    return { 
+      success: true, 
+      data: users, 
+      lastVisible: lastVisibleData,
+      hasMore: users.length === pageSize
+    };
+  } catch (error) {
+    console.error("Error fetching paged users:", error);
+    return { success: false, error: error.message };
+  }
+};
+
+
 // Get a specific user's logs
 export const getUserLogs = async (uid) => {
   try {
@@ -485,8 +518,22 @@ export const getArticleTags = async () => {
   }
 };
 
+// Public: User delete their own account and data via Cloud Function
+export const deleteOwnAccount = async () => {
+  try {
+    const functions = getFunctions();
+    const deleteOwnAccountFn = httpsCallable(functions, 'deleteOwnAccount');
+    const result = await deleteOwnAccountFn();
+    return result.data;
+  } catch (error) {
+    console.error("Error calling deleteOwnAccount:", error);
+    return { success: false, error: error.message };
+  }
+};
+
 // Admin: Delete user account and associated data
 export const deleteUserAccount = async (uid, email) => {
+
   try {
     const functions = getFunctions();
     const adminDeleteUser = httpsCallable(functions, 'adminDeleteUser');

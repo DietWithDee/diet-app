@@ -46,7 +46,8 @@ const getBMI = (user) => {
   return (user.weight / (h * h)).toFixed(1);
 };
 
-const UserJourneyPanel = React.memo(({ users, loading, showNotification, loadUsers }) => {
+const UserJourneyPanel = React.memo(({ users, loading, showNotification, loadUsers, hasMore }) => {
+
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedUser, setSelectedUser] = useState(null);
   const [userLogs, setUserLogs] = useState([]);
@@ -739,9 +740,23 @@ const UserJourneyPanel = React.memo(({ users, loading, showNotification, loadUse
               </tbody>
             </table>
           </div>
+          
+          {hasMore && (
+            <div className="p-6 border-t border-gray-100 flex justify-center">
+              <button
+                onClick={() => loadUsers(false, true)}
+                disabled={loading}
+                className="px-6 py-2 bg-white border border-green-600 text-green-700 font-bold rounded-xl hover:bg-green-50 transition-all flex items-center gap-2 disabled:opacity-50"
+              >
+                {loading ? <Loader size={18} className="animate-spin" /> : null}
+                Load More Users
+              </button>
+            </div>
+          )}
         </div>
       </div>
     </div>
+
   );
 });
 
