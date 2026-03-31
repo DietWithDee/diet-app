@@ -39,6 +39,7 @@ const OnboardingModal = ({ userName, onSave, onClose, initialData = null }) => {
     };
   });
 
+
   // Persistence: Save to localStorage on change
   useEffect(() => {
     if (!isEditing) {
@@ -416,6 +417,30 @@ const OnboardingModal = ({ userName, onSave, onClose, initialData = null }) => {
                   </div>
                 </div>
 
+                {/* Dietary Restrictions */}
+                <div className="space-y-2">
+                  <label className="block text-sm font-semibold text-gray-700 flex items-center gap-2">
+                    <Utensils size={16} className="text-green-600" /> Dietary Restrictions
+                  </label>
+                  <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+                    {['Vegan', 'Vegetarian', 'Gluten-free', 'None'].map(d => (
+                      <button
+                        key={d}
+                        onClick={() => {
+                          setFormData(p => ({ ...p, dietaryRestrictions: d }));
+                          scrollDown(200);
+                        }}
+                        className={`py-3 rounded-xl border-2 font-medium transition-all text-sm ${formData.dietaryRestrictions === d
+                            ? 'border-green-500 bg-green-50 text-green-700'
+                            : 'border-gray-200 hover:border-green-300 text-gray-600'
+                          }`}
+                      >
+                        {d}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+
                 {/* Health Conditions */}
                 <div className="space-y-2">
                   <label className="block text-sm font-semibold text-gray-700 flex items-center gap-2">
@@ -444,30 +469,6 @@ const OnboardingModal = ({ userName, onSave, onClose, initialData = null }) => {
                     className="w-full py-3 px-4 border-2 border-gray-200 rounded-xl focus:border-green-500 focus:outline-none text-gray-900 placeholder-gray-400"
                     placeholder="e.g., Lactose Intolerance, Gluten..."
                   />
-                </div>
-
-                {/* Dietary Restrictions */}
-                <div className="space-y-2">
-                  <label className="block text-sm font-semibold text-gray-700 flex items-center gap-2">
-                    <Utensils size={16} className="text-green-600" /> Dietary Restrictions
-                  </label>
-                  <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
-                    {['Vegan', 'Vegetarian', 'Gluten-free', 'None'].map(d => (
-                      <button
-                        key={d}
-                        onClick={() => {
-                          setFormData(p => ({ ...p, dietaryRestrictions: d }));
-                          scrollDown(200);
-                        }}
-                        className={`py-3 rounded-xl border-2 font-medium transition-all text-sm ${formData.dietaryRestrictions === d
-                            ? 'border-green-500 bg-green-50 text-green-700'
-                            : 'border-gray-200 hover:border-green-300 text-gray-600'
-                          }`}
-                      >
-                        {d}
-                      </button>
-                    ))}
-                  </div>
                 </div>
 
                 {/* Navigation */}

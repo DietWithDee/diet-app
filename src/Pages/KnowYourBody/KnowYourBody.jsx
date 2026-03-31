@@ -302,34 +302,6 @@ const CalorieStep = ({ formData, setFormData, onNext }) => {
             ))}
           </div>
         </div>
-        {/* Health Conditions */}
-        <div ref={healthRef} className="space-y-3 pt-4">
-          <label className="text-lg font-semibold text-gray-700 flex items-center">
-            <Heart className="mr-2" size={20} /> Any health conditions? (Optional)
-          </label>
-          <input
-            type="text"
-            value={formData.healthConditions}
-            onChange={e => setFormData(prev => ({ ...prev, healthConditions: e.target.value }))}
-            onBlur={() => scrollToNext(dietRef)}
-            className="w-full py-3 px-4 border-2 border-gray-200 rounded-xl focus:border-green-500 focus:outline-none text-gray-900 placeholder-gray-500"
-            placeholder="e.g., Diabetes, High blood pressure..."
-          />
-        </div>
-        {/* Food Allergies */}
-        <div className="space-y-3 pt-4">
-          <label className="text-lg font-semibold text-gray-700 flex items-center">
-            <Angry className="mr-2" size={30} /> Do you have any Food Allergies or Dislikes? (Optional)
-          </label>
-          <input
-            type="text"
-            value={formData.dislikes}
-            onChange={e => setFormData(prev => ({ ...prev, dislikes: e.target.value }))}
-            className="w-full py-3 px-4 border-2 border-gray-200 rounded-xl focus:border-green-500 focus:outline-none text-gray-900 placeholder-gray-500"
-            placeholder="e.g., Lactose Intolerance, Gluten Insensitivity..."
-          />
-        </div>
-
         {/* Dietary Restrictions */}
         <div ref={dietRef} className="space-y-4 pt-4">
           <label className="text-lg font-semibold text-gray-700 flex items-center">
@@ -351,6 +323,34 @@ const CalorieStep = ({ formData, setFormData, onNext }) => {
               </button>
             ))}
           </div>
+        </div>
+
+        {/* Health Conditions */}
+        <div ref={healthRef} className="space-y-3 pt-4">
+          <label className="text-lg font-semibold text-gray-700 flex items-center">
+            <Heart className="mr-2" size={20} /> Any health conditions? (Optional)
+          </label>
+          <input
+            type="text"
+            value={formData.healthConditions}
+            onChange={e => setFormData(prev => ({ ...prev, healthConditions: e.target.value }))}
+            className="w-full py-3 px-4 border-2 border-gray-200 rounded-xl focus:border-green-500 focus:outline-none text-gray-900 placeholder-gray-500"
+            placeholder="e.g., Diabetes, High blood pressure..."
+          />
+        </div>
+
+        {/* Food Allergies */}
+        <div className="space-y-3 pt-4">
+          <label className="text-lg font-semibold text-gray-700 flex items-center">
+            <Angry className="mr-2" size={30} /> Do you have any Food Allergies or Dislikes? (Optional)
+          </label>
+          <input
+            type="text"
+            value={formData.dislikes}
+            onChange={e => setFormData(prev => ({ ...prev, dislikes: e.target.value }))}
+            className="w-full py-3 px-4 border-2 border-gray-200 rounded-xl focus:border-green-500 focus:outline-none text-gray-900 placeholder-gray-500"
+            placeholder="e.g., Lactose Intolerance, Gluten Insensitivity..."
+          />
         </div>
       </div>
       <button
