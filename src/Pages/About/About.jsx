@@ -4,6 +4,7 @@ import SEO from '../../Components/SEO';
 import { useNavigate } from 'react-router-dom';
 import { motion, useInView } from 'framer-motion';
 import nutritionRootsVideo from '../../assets/videos/nutrition_roots.mp4';
+import expertAdviceImg from '../../assets/expert_advice.webp';
 
 function AboutUsSection() {
   const navigate = useNavigate();
@@ -84,10 +85,10 @@ function AboutUsSection() {
 
       <div className='py-20 bg-gradient-to-b from-white to-green-50 overflow-hidden'>
         <div className='container mx-auto px-6 lg:px-12'>
-          <div className='flex flex-col lg:flex-row items-center justify-between gap-12 lg:gap-20'>
+          <div className='flex flex-col items-center gap-16'>
 
-            {/* Left Side: About Content */}
-            <div className='flex-1 max-w-2xl'>
+            {/* Story Content */}
+            <div className='w-full max-w-3xl text-center lg:text-left'>
               <motion.div
                 className='space-y-5'
                 variants={staggerContainer}
@@ -114,6 +115,15 @@ function AboutUsSection() {
                     <p className='mt-4'>
                       Founded by <span className='italic font-semibold text-green-700'>Registered Dietitian Nana Ama Dwamena</span>, this initiative was created to make expert diet consultations more accessible, especially for Ghanaians who may not have easy access to in-person services.
                     </p>
+
+                    <div className='my-8 rounded-3xl overflow-hidden shadow-xl max-w-sm mx-auto border-4 border-white'>
+                      <img 
+                        src={expertAdviceImg} 
+                        alt="Expert advice you can trust" 
+                        className='w-full h-auto block'
+                        loading="lazy"
+                      />
+                    </div>
                     <p className='mt-4'>
                       <span className='italic font-semibold text-green-700'>DietWithDee</span> nutrition brings guidance right to your phone, your home, and your everyday life.
                     </p>
@@ -152,8 +162,8 @@ function AboutUsSection() {
               </motion.div>
             </div>
 
-            {/* Right Side: Video Content */}
-            <div className='flex-1 relative max-w-lg pt-2'>
+            {/* Video Content - Centered below text with reduced width */}
+            <div className='w-full max-w-sm relative pt-2'>
               {/* Background decorative elements */}
               <div className='absolute -top-5 -left-6 w-80 h-80 bg-gradient-to-br from-emerald-200 to-green-200 rounded-full opacity-20 blur-3xl' aria-hidden="true"></div>
               <div className='absolute -bottom-4 -right-4 w-64 h-64 bg-gradient-to-tr from-green-300 to-emerald-300 rounded-full opacity-15 blur-2xl' aria-hidden="true"></div>
@@ -163,9 +173,9 @@ function AboutUsSection() {
                 className='relative z-10 p-2'
                 variants={floatingImage}
                 initial="hidden"
-                animate={["show", "float"]}
+                animate="show"
               >
-                <div className='bg-white rounded-3xl shadow-2xl p-1 overflow-hidden transition-all duration-500 hover:scale-[1.02]'>
+                <div className='bg-white rounded-3xl p-1 overflow-hidden transition-all duration-500 hover:scale-[1.02]'>
                   <video 
                     ref={videoRef}
                     className='w-full h-auto block rounded-2xl'
@@ -260,7 +270,7 @@ function AboutUsSection() {
           </motion.div>
         </motion.div>
         
-        <p className='text-gray-500 font-medium italic'>- Respecting your roots, nourishing your future -</p>
+        <p className='text-gray-500 font-medium italic'>- Your Journey to a healthier you -</p>
       </div>
     </>
   );
