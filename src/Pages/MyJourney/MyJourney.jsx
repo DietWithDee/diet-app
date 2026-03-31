@@ -15,6 +15,7 @@ import PlanRecommendation from './components/PlanRecommendation';
 import RecommendedReads from './components/RecommendedReads';
 import Achievements from './components/Achievements';
 import SafeImage from '../../Components/SafeImage';
+import MyJourneySkeleton from './components/Skeleton';
 import { logEvent } from 'firebase/analytics';
 import { analytics } from '../../firebaseConfig';
 import { deleteOwnAccount } from '../../firebaseUtils';
@@ -258,11 +259,7 @@ function MyJourney() {
       />
 
       <div className="min-h-screen bg-gradient-to-br from-green-50 via-white to-emerald-50 w-full overflow-hidden">
-        {loading && (
-          <div className="flex items-center justify-center min-h-[50vh]">
-            <div className="w-12 h-12 border-4 border-green-500 border-t-transparent rounded-full animate-spin"></div>
-          </div>
-        )}
+        {loading && <MyJourneySkeleton />}
 
         {/* Hero Section — only shown for guests */}
         {!user && !loading && (

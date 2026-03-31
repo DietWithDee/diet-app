@@ -334,33 +334,59 @@ const OnboardingModal = ({ userName, onSave, onClose, initialData = null }) => {
                   </div>
                 </div>
 
-                {/* Goal */}
-                <div className="space-y-2">
-                  <label className="block text-sm font-semibold text-gray-700 flex items-center gap-2">
-                    <Target size={16} className="text-emerald-600" /> What's your goal?
-                  </label>
-                  <div className="grid grid-cols-3 gap-3">
-                    {[
-                      { key: 'lose', label: 'Lose Weight', icon: '📉' },
-                      { key: 'maintain', label: 'Maintain', icon: '⚖️' },
-                      { key: 'gain', label: 'Gain Weight', icon: '📈' },
-                    ].map(goal => (
-                      <button
-                        key={goal.key}
-                        onClick={() => {
-                          setFormData(p => ({ ...p, goal: goal.key }));
-                          scrollDown(180);
-                        }}
-                        className={`py-3 px-3 rounded-xl border-2 font-medium transition-all text-center text-sm ${formData.goal === goal.key
-                            ? 'border-green-500 bg-green-50 text-green-700'
-                            : 'border-gray-200 hover:border-green-300 text-gray-600'
-                          }`}
-                      >
-                        <div className="text-xl mb-1">{goal.icon}</div>
-                        {goal.label}
-                      </button>
-                    ))}
+                <div className="space-y-4">
+                  <div className="space-y-2">
+                    <label className="block text-sm font-semibold text-gray-700 flex items-center gap-2">
+                      <Target size={16} className="text-emerald-600" /> What's your goal?
+                    </label>
+                    <div className="grid grid-cols-3 gap-3">
+                      {[
+                        { key: 'lose', label: 'Lose Weight', icon: '📉' },
+                        { key: 'maintain', label: 'Maintain', icon: '⚖️' },
+                        { key: 'gain', label: 'Gain Weight', icon: '📈' },
+                      ].map(goal => (
+                        <button
+                          key={goal.key}
+                          onClick={() => {
+                            setFormData(p => ({ ...p, goal: goal.key }));
+                            scrollDown(180);
+                          }}
+                          className={`py-3 px-3 rounded-xl border-2 font-medium transition-all text-center text-sm ${formData.goal === goal.key
+                              ? 'border-green-500 bg-green-50 text-green-700'
+                              : 'border-gray-200 hover:border-green-300 text-gray-600'
+                            }`}
+                        >
+                          <div className="text-xl mb-1">{goal.icon}</div>
+                          {goal.label}
+                        </button>
+                      ))}
+                    </div>
                   </div>
+
+                  <AnimatePresence>
+                    {(formData.goal === 'lose' || formData.goal === 'gain') && (
+                      <motion.div
+                        initial={{ opacity: 0, height: 0 }}
+                        animate={{ opacity: 1, height: 'auto' }}
+                        exit={{ opacity: 0, height: 0 }}
+                        className="space-y-2 overflow-hidden"
+                      >
+                        <label className="block text-sm font-semibold text-gray-700 flex items-center gap-2">
+                          🎯 Target Weight (kg)
+                        </label>
+                        <input
+                          type="number"
+                          min="20"
+                          max="500"
+                          value={formData.targetWeight || ''}
+                          onChange={e => setFormData(p => ({ ...p, targetWeight: e.target.value }))}
+                          onKeyDown={e => e.key === 'Enter' && scrollDown(180)}
+                          className="w-full py-3 px-4 border-2 border-green-200 rounded-xl focus:border-green-500 focus:outline-none text-gray-900 placeholder-gray-400 font-bold"
+                          placeholder={`e.g., ${formData.goal === 'lose' ? (formData.weight ? formData.weight - 5 : '65') : (formData.weight ? parseFloat(formData.weight) + 5 : '75')} kg`}
+                        />
+                      </motion.div>
+                    )}
+                  </AnimatePresence>
                 </div>
 
                 {/* Activity Level */}

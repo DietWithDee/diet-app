@@ -222,33 +222,63 @@ const CalorieStep = ({ formData, setFormData, onNext }) => {
         <p className="text-gray-600">This helps us calculate your daily calorie needs</p>
       </div>
       <div className="bg-white rounded-2xl shadow-xl p-8 space-y-8">
-        {/* Goal */}
-        <div className="space-y-4">
-          <label className="text-lg font-semibold text-gray-700 flex items-center">
-            <Target className="mr-2" size={20} /> What's your goal?
-          </label>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-3 text-gray-600">
-            {[
-              { key: 'lose', label: 'Lose Weight', icon: '📉' },
-              { key: 'maintain', label: 'Maintain Weight', icon: '⚖️' },
-              { key: 'gain', label: 'Gain Weight', icon: '📈' }
-            ].map(goal => (
-              <button
-                key={goal.key}
-                onClick={() => {
-                  setFormData(prev => ({ ...prev, goal: goal.key }));
-                  scrollToNext(activityRef);
-                }}
-                className={`py-4 px-4 rounded-xl border-2 font-medium transition-all text-center ${formData.goal === goal.key
-                    ? 'border-green-500 bg-green-50 text-green-700'
-                    : 'border-gray-200 hover:border-green-300'
-                  }`}
-              >
-                <div className="text-2xl mb-2">{goal.icon}</div>
-                {goal.label}
-              </button>
-            ))}
+        <div className="space-y-6">
+          <div className="space-y-4">
+            <label className="text-lg font-semibold text-gray-700 flex items-center">
+              <Target className="mr-2" size={20} /> What's your goal?
+            </label>
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-3 text-gray-600">
+              {[
+                { key: 'lose', label: 'Lose Weight', icon: '📉' },
+                { key: 'maintain', label: 'Maintain Weight', icon: '⚖️' },
+                { key: 'gain', label: 'Gain Weight', icon: '📈' }
+              ].map(goal => (
+                <button
+                  key={goal.key}
+                  onClick={() => {
+                    setFormData(prev => ({ ...prev, goal: goal.key }));
+                    scrollToNext(activityRef);
+                  }}
+                  className={`py-4 px-4 rounded-xl border-2 font-medium transition-all text-center ${formData.goal === goal.key
+                      ? 'border-green-500 bg-green-50 text-green-700'
+                      : 'border-gray-200 hover:border-green-300'
+                    }`}
+                >
+                  <div className="text-2xl mb-2">{goal.icon}</div>
+                  {goal.label}
+                </button>
+              ))}
+            </div>
           </div>
+
+          <AnimatePresence>
+            {(formData.goal === 'lose' || formData.goal === 'gain') && (
+              <motion.div
+                initial={{ opacity: 0, height: 0 }}
+                animate={{ opacity: 1, height: 'auto' }}
+                exit={{ opacity: 0, height: 0 }}
+                className="space-y-4 overflow-hidden pt-2"
+              >
+                <label className="text-lg font-semibold text-gray-700 flex items-center">
+                  🎯 Target Weight (kg)
+                </label>
+                <input
+                  type="number"
+                  min="20"
+                  max="500"
+                  value={formData.targetWeight || ''}
+                  onChange={e => setFormData(p => ({ ...p, targetWeight: e.target.value }))}
+                  className="w-full py-3 px-4 border-2 border-green-200 rounded-xl focus:border-green-500 focus:outline-none text-lg text-gray-900 placeholder-gray-400 font-bold"
+                  placeholder={`e.g., ${formData.goal === 'lose' ? (formData.weight ? formData.weight - 5 : '65') : (formData.weight ? parseFloat(formData.weight) + 5 : '75')} kg`}
+                />
+                <div className="p-3 bg-emerald-50 rounded-xl border border-emerald-100">
+                  <p className="text-sm text-emerald-700 font-medium italic">
+                    {formData.goal === 'lose' ? '✨ Setting a specific target helps you stay motivated and track your progress accurately!' : '💪 Fuel your body to reach your strength and weight targets!'}
+                  </p>
+                </div>
+              </motion.div>
+            )}
+          </AnimatePresence>
         </div>
         {/* Activity */}
         <div ref={activityRef} className="space-y-4 pt-4">
