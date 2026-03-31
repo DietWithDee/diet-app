@@ -5,6 +5,7 @@ import { BsQuestion } from 'react-icons/bs';
 import { useWebHaptics } from 'web-haptics/react';
 import { logEvent } from 'firebase/analytics';
 import { analytics } from '../../firebaseConfig';
+import { motion, AnimatePresence } from 'framer-motion';
 
 // Progress Bar
 const ProgressBar = ({ step }) => {
