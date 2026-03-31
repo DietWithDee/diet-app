@@ -1,11 +1,27 @@
-import React from 'react';
+import React, { useRef, useEffect } from 'react';
 import LOGO from '../../assets/LOGO.webp'
 import SEO from '../../Components/SEO';
 import { useNavigate } from 'react-router-dom';
-import { motion } from 'framer-motion';
+import { motion, useInView } from 'framer-motion';
+import nutritionRootsVideo from '../../assets/videos/nutrition_roots.mp4';
 
 function AboutUsSection() {
   const navigate = useNavigate();
+  const videoRef = useRef(null);
+  const isVideoInView = useInView(videoRef, { amount: 0.5 }); // 50% must be visible
+
+  useEffect(() => {
+    if (videoRef.current) {
+      if (isVideoInView) {
+        videoRef.current.play().catch(err => {
+          // Fallback if browser blocks involuntary playback
+          console.warn('Video auto-play failed:', err);
+        });
+      } else {
+        videoRef.current.pause();
+      }
+    }
+  }, [isVideoInView]);
 
   // Animation variants
   const staggerContainer = {
@@ -64,6 +80,8 @@ function AboutUsSection() {
         ogType="article"
         lang="en"
       />
+      
+
       <div className='py-20 bg-gradient-to-b from-white to-green-50 overflow-hidden'>
         <div className='container mx-auto px-6 lg:px-12'>
           <div className='flex flex-col lg:flex-row items-center justify-between gap-12 lg:gap-20'>
@@ -134,37 +152,33 @@ function AboutUsSection() {
               </motion.div>
             </div>
 
-            {/* Right Side: Logo and Tagline */}
+            {/* Right Side: Video Content */}
             <div className='flex-1 relative max-w-lg pt-2'>
               {/* Background decorative elements */}
               <div className='absolute -top-5 -left-6 w-80 h-80 bg-gradient-to-br from-emerald-200 to-green-200 rounded-full opacity-20 blur-3xl' aria-hidden="true"></div>
               <div className='absolute -bottom-4 -right-4 w-64 h-64 bg-gradient-to-tr from-green-300 to-emerald-300 rounded-full opacity-15 blur-2xl' aria-hidden="true"></div>
 
-              {/* Main logo container */}
+              {/* Video container replacing logo */}
               <motion.div
-                className='relative z-10 p-7'
+                className='relative z-10 p-2'
                 variants={floatingImage}
                 initial="hidden"
                 animate={["show", "float"]}
               >
-                <div className='bg-white rounded-3xl shadow-2xl p-12 transition-all duration-500 hover:scale-[1.02]'>
-                  <img
-                    src={LOGO}
-                    alt="DietWithDee Logo - Registered Dietitian Services in Ghana"
-                    className='w-full h-auto'
-                    loading="lazy"
-                  />
+                <div className='bg-white rounded-3xl shadow-2xl p-1 overflow-hidden transition-all duration-500 hover:scale-[1.02]'>
+                  <video 
+                    ref={videoRef}
+                    className='w-full h-auto block rounded-2xl'
+                    muted 
+                    loop 
+                    playsInline
+                    disablePictureInPicture
+                    controls={false}
+                  >
+                    <source src={nutritionRootsVideo} type="video/mp4" />
+                    Your browser does not support the video tag.
+                  </video>
                 </div>
-
-                {/* Floating elements */}
-                <motion.div
-                  initial={{ opacity: 0, scale: 0 }}
-                  animate={{ opacity: 1, scale: 1 }}
-                  transition={{ delay: 0.5, type: "spring", stiffness: 200 }}
-                  className='absolute top-4 right-4 bg-gradient-to-r from-green-500 to-emerald-500 text-white px-4 py-2 rounded-full text-sm font-bold shadow-lg'
-                >
-                  Expert Care
-                </motion.div>
               </motion.div>
             </div>
           </div>
@@ -215,6 +229,38 @@ function AboutUsSection() {
             </motion.div>
           </div>
         </div>
+      </div>
+
+      {/* Bottom Logo Section */}
+      <div className='py-20 bg-gradient-to-t from-green-50 to-white flex flex-col items-center justify-center space-y-8'>
+        <motion.div
+          className='relative p-7 max-w-sm'
+          variants={floatingImage}
+          initial="hidden"
+          whileInView={["show", "float"]}
+          viewport={{ once: true }}
+        >
+          <div className='bg-white rounded-3xl shadow-2xl p-12 transition-all duration-500 hover:scale-[1.02]'>
+            <img
+              src={LOGO}
+              alt="DietWithDee Logo"
+              className='w-full h-auto'
+              loading="lazy"
+            />
+          </div>
+
+          <motion.div
+            initial={{ opacity: 0, scale: 0 }}
+            whileInView={{ opacity: 1, scale: 1 }}
+            viewport={{ once: true }}
+            transition={{ delay: 0.5, type: "spring", stiffness: 200 }}
+            className='absolute top-4 right-4 bg-gradient-to-r from-green-500 to-emerald-500 text-white px-4 py-2 rounded-full text-sm font-bold shadow-lg'
+          >
+            Expert Care
+          </motion.div>
+        </motion.div>
+        
+        <p className='text-gray-500 font-medium italic'>- Respecting your roots, nourishing your future -</p>
       </div>
     </>
   );
