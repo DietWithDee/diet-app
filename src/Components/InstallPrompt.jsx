@@ -116,7 +116,7 @@ export default function InstallPrompt() {
             <div className="flex gap-3">
               <button
                 onClick={handleDismiss}
-                className="flex-1 py-3 text-gray-600 text-[14px] font-semibold rounded-xl border border-gray-200 active:scale-[0.98] transition-all duration-200"
+                className="flex-1 py-3 text-green-600 text-[14px] font-bold hover:text-green-700 transition-colors"
               >
                 Not now
               </button>
@@ -190,7 +190,7 @@ export default function InstallPrompt() {
 
           <button
             onClick={handleDismiss}
-            className="mt-5 w-full py-3 bg-green-600 text-white text-[15px] font-bold rounded-xl shadow-lg shadow-green-500/20 active:scale-[0.98] transition-all duration-200"
+            className="mt-5 w-full py-2 text-green-600 text-[15px] font-bold hover:text-green-700 transition-colors text-center"
           >
             I'll do it later
           </button>
