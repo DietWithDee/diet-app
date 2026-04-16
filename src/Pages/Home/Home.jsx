@@ -188,7 +188,7 @@ function Home() {
                 <motion.div variants={fadeUp} className="hidden lg:flex flex-row items-start gap-4 sm:gap-8 pt-8 text-xs text-gray-600">
                   <div className="flex items-start gap-2 max-w-[90px]">
                     <div className="w-3 h-3 bg-green-500 rounded-full mt-0.5 flex-shrink-0"></div>
-                    <span className="leading-tight">300+ Success Stories</span>
+                    <span className="leading-tight">500+ Success Stories</span>
                   </div>
                   <div className="flex items-start gap-2 max-w-[90px]">
                     <div className="w-3 h-3 bg-emerald-500 rounded-full mt-0.5 flex-shrink-0"></div>
@@ -233,7 +233,7 @@ function Home() {
             >
               <div className="flex items-center gap-2">
                 <div className="w-3 h-3 bg-green-500 rounded-full flex-shrink-0"></div>
-                <span className="leading-tight">300+ Success Stories</span>
+                <span className="leading-tight">500+ Success Stories</span>
               </div>
               <div className="flex items-center gap-2">
                 <div className="w-3 h-3 bg-emerald-500 rounded-full flex-shrink-0"></div>
@@ -362,7 +362,7 @@ function Home() {
 
               <div className="space-y-2">
                 <div className="text-green-600">
-                  <AnimatedCounter target={300} suffix="+" />
+                  <AnimatedCounter target={500} suffix="+" />
                 </div>
                 <div className="text-gray-600 font-medium">Happy Clients</div>
               </div>
@@ -371,9 +371,9 @@ function Home() {
 
               <div className="space-y-2">
                 <div className="text-emerald-600">
-                  <AnimatedCounter target={6} suffix="+" />
+                  <AnimatedCounter target={5} suffix="+" />
                 </div>
-                <div className="text-gray-600 font-medium">Years Experience</div>
+                <div className="text-gray-600 font-medium">Years of Experience</div>
               </div>
 
               <div className="hidden md:block w-px h-16 bg-gray-200 mx-auto mt-2"></div>

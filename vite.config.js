@@ -17,15 +17,22 @@ export default defineConfig({
         description: "DietWithDee — healthy plans, tips, and articles",
         icons: [
           {
-            src: "/apple-touch-icon.png",
+            src: "/icon-192x192.png",
             sizes: "192x192",
-            type: "image/png"
+            type: "image/png",
+            purpose: "any"
           },
           {
-            src: "/apple-touch-icon.png",
+            src: "/icon-512x512.png",
             sizes: "512x512",
             type: "image/png",
-            purpose: "any maskable"
+            purpose: "any"
+          },
+          {
+            src: "/icon-512x512.png",
+            sizes: "512x512",
+            type: "image/png",
+            purpose: "maskable"
           }
         ],
         start_url: "/",
