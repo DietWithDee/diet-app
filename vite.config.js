@@ -10,7 +10,7 @@ export default defineConfig({
     tailwindcss(),
     VitePWA({
       registerType: 'autoUpdate',
-      includeAssets: ['favicon.ico', 'apple-touch-icon.png', 'LOGO.png', 'dietwithdee.svg'],
+      includeAssets: ['favicon.ico', 'apple-touch-icon.png', 'LOGO.png', 'dietwithdee.svg', 'icon-192x192.png', 'icon-512x512.png'],
       manifest: {
         short_name: "DietWithDee",
         name: "DietWithDee - Nutrition & Wellness",
@@ -20,25 +20,13 @@ export default defineConfig({
             src: "/icon-192x192.png",
             sizes: "192x192",
             type: "image/png",
-            purpose: "any"
-          },
-          {
-            src: "/icon-192x192.png",
-            sizes: "192x192",
-            type: "image/png",
-            purpose: "maskable"
+            purpose: "any maskable"
           },
           {
             src: "/icon-512x512.png",
             sizes: "512x512",
             type: "image/png",
-            purpose: "any"
-          },
-          {
-            src: "/icon-512x512.png",
-            sizes: "512x512",
-            type: "image/png",
-            purpose: "maskable"
+            purpose: "any maskable"
           }
         ],
         start_url: "/",
