@@ -7,6 +7,7 @@ import Notification from './components/Notification';
 import ArticlesManager from './components/ArticlesManager';
 import UserJourneyPanel from './components/UserJourneyPanel';
 import BookingsPanel from './components/BookingsPanel';
+import EventsManager from './components/EventsManager';
 import { collection, query, where, onSnapshot } from 'firebase/firestore';
 import { db } from '../../firebaseConfig';
 
@@ -16,7 +17,7 @@ const AdminDashboard = () => {
   const [notification, setNotification] = useState(null);
   const [isLoading, setIsLoading] = useState(true);
   const [subscriberCount, setSubscriberCount] = useState(0);
-  const [activeTab, setActiveTab] = useState('articles'); // 'articles' | 'journey' | 'bookings'
+  const [activeTab, setActiveTab] = useState('articles'); // 'articles' | 'journey' | 'bookings' | 'events'
   const [users, setUsers] = useState([]);
   const [usersLoading, setUsersLoading] = useState(false);
   const [usersFetched, setUsersFetched] = useState(false);
@@ -255,6 +256,12 @@ const AdminDashboard = () => {
                 </div>
               )}
             </button>
+            <button 
+              onClick={() => setActiveTab('events')}
+              className={`flex-1 flex justify-center items-center gap-2 py-4 px-6 text-center font-bold transition-all ${activeTab === 'events' ? 'text-purple-600 border-b-2 border-purple-600 bg-purple-50' : 'text-gray-400 hover:text-gray-600 hover:bg-gray-50'}`}
+            >
+              Events Manager
+            </button>
           </div>
 
 
@@ -281,8 +288,9 @@ const AdminDashboard = () => {
                 loadUsers={loadUsers}
                 hasMore={hasMoreUsers}
               />
+            ) : activeTab === 'events' ? (
+              <EventsManager showNotification={showNotification} />
             ) : (
-
               <BookingsPanel showNotification={showNotification} />
             )}
           </div>

@@ -4,6 +4,11 @@ import Food from '../../assets/Woman.webp'
 import { useNavigate } from 'react-router';
 import { motion } from 'framer-motion';
 import WhatsAppPopup from '../../Components/WhatsAppPopup';
+import Slider from 'react-slick';
+import "slick-carousel/slick/slick.css";
+import "slick-carousel/slick/slick-theme.css";
+import { Calendar, MapPin } from 'lucide-react';
+import { getAllEvents } from '../../firebaseEventsUtils';
 import Event1 from '../../assets/images/Events/Event1.webp';
 import Event2 from '../../assets/images/Events/Event2.webp';
 import Event3 from '../../assets/images/Events/Event3.webp';
@@ -40,6 +45,36 @@ function ServicesContactSection() {
   const minSwipeDistance = 50;
 
   const lightboxRef = useRef(null);
+  
+  const [upcomingEvents, setUpcomingEvents] = useState([]);
+  const [isEventsLoading, setIsEventsLoading] = useState(true);
+
+  useEffect(() => {
+    const fetchEvents = async () => {
+      setIsEventsLoading(true);
+      const res = await getAllEvents();
+      if (res.success) {
+        const today = new Date();
+        today.setHours(0, 0, 0, 0);
+        const filtered = res.data.filter(e => new Date(e.date) >= today);
+        setUpcomingEvents(filtered);
+      }
+      setIsEventsLoading(false);
+    };
+    fetchEvents();
+  }, []);
+
+  const sliderSettings = {
+    dots: true,
+    infinite: false,
+    speed: 500,
+    slidesToShow: 3,
+    slidesToScroll: 1,
+    responsive: [
+      { breakpoint: 1024, settings: { slidesToShow: 2 } },
+      { breakpoint: 640, settings: { slidesToShow: 1 } }
+    ]
+  };
 
   const eventImages = [
     { src: Event1, alt: "Event Landscape 1" },
@@ -487,6 +522,80 @@ function ServicesContactSection() {
             </div>
           </div>
         )}
+
+        {/* Upcoming Events Section */}
+        <div id="upcoming-events" className='py-12 sm:py-16 lg:py-20 bg-green-50'>
+          <div className='container mx-auto px-4 sm:px-6 lg:px-12'>
+            <motion.div 
+              initial={{ opacity: 0, y: 30 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true, margin: "-100px" }}
+              transition={{ duration: 0.6 }}
+            >
+              <h2 className='text-3xl sm:text-4xl lg:text-5xl font-black text-center text-transparent bg-clip-text bg-gradient-to-r from-green-700 via-emerald-600 to-green-600 leading-tight mb-12'>
+                Upcoming Events
+              </h2>
+              {isEventsLoading ? (
+                <div className="flex justify-center"><div className="w-8 h-8 border-4 border-green-500 border-t-transparent rounded-full animate-spin"></div></div>
+              ) : upcomingEvents.length === 0 ? (
+                <div className="text-center p-10 sm:p-16 bg-white rounded-[2rem] shadow-sm border border-emerald-50 max-w-2xl mx-auto flex flex-col items-center gap-8 relative overflow-hidden">
+                  {/* Decorative background circle */}
+                  <div className="absolute -top-10 -right-10 w-32 h-32 bg-emerald-50 rounded-full opacity-50 blur-2xl"></div>
+                  
+                  <div className="relative">
+                    <motion.div 
+                      animate={{ y: [0, -8, 0] }}
+                      transition={{ duration: 4, repeat: Infinity, ease: "easeInOut" }}
+                      className="w-24 h-24 bg-gradient-to-br from-emerald-50 to-green-100 rounded-3xl flex items-center justify-center text-emerald-600 shadow-sm transform -rotate-3 transition-transform duration-500"
+                    >
+                      <Calendar size={48} strokeWidth={1.5} />
+                    </motion.div>
+                    {/* Tiny pulsing dot */}
+                    <div className="absolute -top-1 -right-1 w-4 h-4 bg-orange-400 rounded-full border-4 border-white shadow-sm animate-pulse"></div>
+                  </div>
+
+                  <div className="space-y-4 relative z-10">
+                    <h3 className="text-2xl sm:text-3xl font-black text-gray-900">Next event brewing...</h3>
+                    <p className="text-gray-600 text-base sm:text-lg leading-relaxed max-w-md mx-auto">
+                      We're currently handcrafting our next community wellness experience. Check back soon or stay tuned to our socials for the big reveal!
+                    </p>
+                  </div>
+                  
+                  <div className="w-16 h-1 bg-gradient-to-r from-transparent via-emerald-200 to-transparent rounded-full"></div>
+                </div>
+              ) : (
+                <div className="mx-auto max-w-6xl slider-container px-2">
+                  <Slider {...sliderSettings}>
+                    {upcomingEvents.map(event => (
+                      <div key={event.id} className="p-2 sm:p-4 outline-none">
+                        <div className="bg-white rounded-2xl shadow-sm hover:shadow-md transition-all duration-300 border border-green-100 h-full flex flex-col overflow-hidden group">
+                          {event.imageUrl && (
+                            <div className="relative w-full h-48 overflow-hidden">
+                              <img src={event.imageUrl} alt={event.title} className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110" />
+                              <div className="absolute top-4 left-4 bg-white/90 backdrop-blur-sm px-3 py-1 rounded-full text-xs font-bold text-green-700 shadow-sm flex items-center gap-1">
+                                <Calendar size={12}/> {event.date}
+                              </div>
+                            </div>
+                          )}
+                          <div className="p-6 flex-1 flex flex-col">
+                            <h3 className="text-xl font-bold text-gray-900 mb-2">{event.title}</h3>
+                            {event.location && (
+                              <div className="flex items-start gap-1 text-sm text-gray-600 mb-4 font-medium">
+                                <MapPin size={16} className="text-emerald-500 flex-shrink-0 mt-0.5" />
+                                <span>{event.location}</span>
+                              </div>
+                            )}
+                            <div className="prose prose-sm text-gray-600 line-clamp-3 mb-4 flex-1" dangerouslySetInnerHTML={{ __html: event.description }} />
+                          </div>
+                        </div>
+                      </div>
+                    ))}
+                  </Slider>
+                </div>
+              )}
+            </motion.div>
+          </div>
+        </div>
 
         {/* Contact Section */}
         <div className='py-12 sm:py-16 lg:py-20 bg-gradient-to-br from-green-50 to-emerald-50'>

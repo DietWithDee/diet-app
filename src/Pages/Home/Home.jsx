@@ -249,14 +249,44 @@ function Home() {
           {/* About Section */}
           <div className="py-16 mt-12 bg-gradient-to-b from-transparent to-green-50 rounded-3xl mb-8">
             <div className="container mx-auto px-2 lg:px-8">
-              <div className="flex flex-col lg:flex-row items-center justify-between gap-12 lg:gap-20">
-                {/* Left: Image */}
+              <motion.div 
+                className="grid grid-cols-1 lg:grid-cols-2 gap-y-12 lg:gap-x-20 items-center"
+                initial="hidden"
+                whileInView="show"
+                viewport={{ once: true, margin: "-100px" }}
+                variants={staggerContainer}
+              >
+                {/* Block 1: Our Story Intro (Mobile Order 1, Desktop Top Right) */}
+                <motion.div variants={fadeUp} className="order-1 lg:col-start-2 lg:row-start-1 space-y-8">
+                  <div className="space-y-4">
+                    <h2 className="text-4xl lg:text-5xl font-black text-transparent bg-clip-text bg-gradient-to-r from-green-700 via-emerald-600 to-green-600 leading-tight">
+                      Our Story
+                    </h2>
+                    <motion.div variants={scaleRight} className="w-20 h-2 bg-gradient-to-r from-green-500 to-emerald-500 rounded-full"></motion.div>
+                  </div>
+
+                  <div className="space-y-6">
+                    <p className="text-lg text-gray-700 leading-relaxed">
+                      Here at <span className="italic font-semibold text-green-700">DietWithDee</span>, we believe that nutrition is the cornerstone of a vibrant life, and we're here to guide you every step of the way. Our mission is to provide personalized diet plans, delicious recipes, and expert advice to help you reach your wellness goals. DietWithDee is here to support you every step of the way. Let's make healthy living enjoyable and sustainable together!
+                    </p>
+
+                    <div className="bg-gradient-to-r from-green-50 to-emerald-50 p-6 rounded-2xl border-l-4 border-green-500 relative overflow-hidden group">
+                      <div className="absolute top-0 right-0 w-24 h-24 bg-green-200 rounded-full opacity-20 -mr-10 -mt-10 transition-transform group-hover:scale-150 duration-500"></div>
+                      <p className="text-lg font-semibold text-green-800 italic relative z-10">
+                        "We strive continually to help you take control of your health in all aspects."
+                      </p>
+                    </div>
+                  </div>
+
+                  <p className="text-lg text-gray-700 leading-relaxed">
+                    Our expert made plans are tailored to your unique needs, preferences, and lifestyle. Whether you're looking to lose weight, manage a health condition, or simply eat healthier, we've got you covered. Join us on a delicious journey to a better you!
+                  </p>
+                </motion.div>
+
+                {/* Block 2: Image (Mobile Order 2, Desktop Left Side) */}
                 <motion.div
-                  className="flex-1 relative max-w-lg order-2 lg:order-1"
-                  initial={{ opacity: 0, y: 40 }}
-                  whileInView={{ opacity: 1, y: 0 }}
-                  viewport={{ once: true, margin: "-100px" }}
-                  transition={{ duration: 1.2, ease: "easeOut" }}
+                  className="order-2 lg:order-1 lg:col-start-1 lg:row-start-1 lg:row-span-2 relative max-w-lg mx-auto lg:mx-0"
+                  variants={fadeUp}
                 >
                   <div className="absolute -top-6 -left-6 w-72 h-72 bg-gradient-to-br from-emerald-200 to-green-200 rounded-full opacity-20 blur-3xl"></div>
                   <div className="absolute -bottom-4 -right-4 w-64 h-64 bg-gradient-to-tr from-green-300 to-emerald-300 rounded-full opacity-15 blur-2xl"></div>
@@ -282,74 +312,40 @@ function Home() {
                         </div>
                       </div>
                     </div>
-
-                    <div className="mt-8 space-y-6 px-1 text-center lg:text-left">
-                      <p className="text-gray-700 leading-relaxed font-medium">
-                        Beyond individual consultations, we believe in the power of collective change. We are actively involved in community programs and health outreaches across Ghana to make nutrition education practical and fun.
-                      </p>
-                      <motion.button
-                        whileHover={{ scale: 1.05 }}
-                        whileTap={{ scale: 0.95 }}
-                        onClick={() => navigate('/services#events-gallery')}
-                        className="px-8 py-3 bg-gradient-to-r from-orange-400 to-orange-400 text-white font-bold rounded-full shadow-lg hover:shadow-xl transition-all duration-300 hover:from-green-700 hover:to-emerald-700 text-sm"
-                      >
-                        View Events Gallery
-                      </motion.button>
-                    </div>
                   </div>
                 </motion.div>
 
-                {/* Right: Text */}
-                <div className="flex-1 max-w-2xl order-1 lg:order-2">
-                  <motion.div
-                    className="space-y-8"
-                    initial="hidden"
-                    whileInView="show"
-                    viewport={{ once: true, margin: "-100px" }}
-                    variants={staggerContainer}
-                  >
-                    <div className="space-y-4">
-                      <motion.h2 variants={fadeUp} className="text-4xl lg:text-5xl font-black text-transparent bg-clip-text bg-gradient-to-r from-green-700 via-emerald-600 to-green-600 leading-tight">
-                        Our Story
-                      </motion.h2>
-                      <motion.div variants={scaleRight} className="w-20 h-2 bg-gradient-to-r from-green-500 to-emerald-500 rounded-full"></motion.div>
-                    </div>
+                {/* Block 3: Impact and Buttons (Mobile Order 3, Desktop Bottom Right) */}
+                <motion.div variants={fadeUp} className="order-3 lg:col-start-2 lg:row-start-2 space-y-8">
+                  {/* Community Impact Integrated */}
+                  <div className="space-y-4">
+                    <div className="w-12 h-1 bg-green-200 rounded-full"></div>
+                    <p className="text-gray-700 leading-relaxed font-medium">
+                      Beyond individual consultations, we believe in the power of collective change. We are actively involved in community programs and health outreaches across Ghana to make nutrition education practical and fun.
+                    </p>
+                  </div>
 
-                    <div className="space-y-6">
-                      <motion.p variants={fadeUp} className="text-lg text-gray-700 leading-relaxed">
-                        Here at <span className="italic font-semibold text-green-700">DietWithDee</span>, we believe that nutrition is the cornerstone of a vibrant life, and we're here to guide you every step of the way. Our mission is to provide personalized diet plans, delicious recipes, and expert advice to help you reach your wellness goals. DietWithDee is here to support you every step of the way. Let's make healthy living enjoyable and sustainable together!
-                      </motion.p>
-
-                      <motion.div
-                        variants={fadeUp}
-                        className="bg-gradient-to-r from-green-50 to-emerald-50 p-6 rounded-2xl border-l-4 border-green-500 relative overflow-hidden group"
-                      >
-                        <div className="absolute top-0 right-0 w-24 h-24 bg-green-200 rounded-full opacity-20 -mr-10 -mt-10 transition-transform group-hover:scale-150 duration-500"></div>
-                        <p className="text-lg font-semibold text-green-800 italic relative z-10">
-                          "We strive continually to help you take control of your health in all aspects."
-                        </p>
-                      </motion.div>
-                    </div>
-
-                    <div className="space-y-6">
-                      <motion.p variants={fadeUp} className="text-lg text-gray-700 leading-relaxed">
-                        Our expert made plans are tailored to your unique needs, preferences, and lifestyle. Whether you're looking to lose weight, manage a health condition, or simply eat healthier, we've got you covered. Join us on a delicious journey to a better you!
-                      </motion.p>
-                    </div>
-
-                    <motion.div variants={fadeUp} className="pt-6">
-                      <motion.button
-                        whileHover={{ scale: 1.05 }}
-                        whileTap={{ scale: 0.95 }}
-                        onClick={() => navigate('/plans')}
-                        className="px-8 py-4 bg-gradient-to-r from-orange-400 to-orange-400 text-white font-bold rounded-full shadow-lg hover:shadow-xl transition-all duration-300 hover:from-green-700 hover:to-emerald-700"
-                      >
-                        View Our Plans
-                      </motion.button>
-                    </motion.div>
-                  </motion.div>
-                </div>
-              </div>
+                  <div className="flex flex-wrap justify-center gap-4 pt-2">
+                    <motion.button
+                      whileHover={{ scale: 1.05 }}
+                      whileTap={{ scale: 0.95 }}
+                      onClick={() => navigate('/plans')}
+                      className="px-8 py-4 bg-gradient-to-r from-orange-400 to-orange-500 text-white font-bold rounded-full shadow-lg hover:shadow-xl transition-all duration-300 hover:from-green-700 hover:to-emerald-700"
+                    >
+                      View Our Plans
+                    </motion.button>
+                    
+                    <motion.button
+                      whileHover={{ scale: 1.05 }}
+                      whileTap={{ scale: 0.95 }}
+                      onClick={() => navigate('/services#events-gallery')}
+                      className="px-8 py-4 border-2 border-green-600 text-green-700 font-bold rounded-full hover:bg-green-50 transition-all duration-300"
+                    >
+                      See events
+                    </motion.button>
+                  </div>
+                </motion.div>
+              </motion.div>
             </div>
           </div>
 

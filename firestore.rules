@@ -47,6 +47,11 @@ service cloud.firestore {
       allow read, write: if isAdmin();
     }
 
+    match /events/{eventId} {
+      allow read: if true;
+      allow write: if isAdmin();
+    }
+
     // Default deny for anything not explicitly specified above
     match /{document=**} {
       allow read, write: if false;

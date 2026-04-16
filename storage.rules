@@ -13,6 +13,10 @@ service firebase.storage {
       allow read: if true;
       allow write: if request.auth != null && (request.auth.token.email == 'nanaamadwamena4@gmail.com' || request.auth.token.email == 'princetetteh963@gmail.com' || request.auth.token.email == 'godwinokro2020@gmail.com');
     }
+    match /eventImages/{imageId} {
+      allow read: if true;
+      allow write: if request.auth != null && (request.auth.token.email == 'nanaamadwamena4@gmail.com' || request.auth.token.email == 'princetetteh963@gmail.com' || request.auth.token.email == 'godwinokro2020@gmail.com');
+    }
     match /{allPaths=**} {
       allow read, write: if false;
     }
