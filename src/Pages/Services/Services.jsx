@@ -538,59 +538,61 @@ function ServicesContactSection() {
               {isEventsLoading ? (
                 <div className="flex justify-center"><div className="w-8 h-8 border-4 border-green-500 border-t-transparent rounded-full animate-spin"></div></div>
               ) : upcomingEvents.length === 0 ? (
-                <div className="text-center p-10 sm:p-16 bg-white rounded-[2rem] shadow-sm border border-emerald-50 max-w-2xl mx-auto flex flex-col items-center gap-8 relative overflow-hidden">
+                <div className="text-center p-6 bg-white rounded-2xl shadow-lg border border-emerald-50 max-w-lg mx-auto h-80 flex flex-col items-center justify-center gap-4 relative overflow-hidden">
                   {/* Decorative background circle */}
-                  <div className="absolute -top-10 -right-10 w-32 h-32 bg-emerald-50 rounded-full opacity-50 blur-2xl"></div>
+                  <div className="absolute -top-10 -right-10 w-24 h-24 bg-emerald-50 rounded-full opacity-50 blur-2xl"></div>
                   
                   <div className="relative">
                     <motion.div 
-                      animate={{ y: [0, -8, 0] }}
+                      animate={{ y: [0, -5, 0] }}
                       transition={{ duration: 4, repeat: Infinity, ease: "easeInOut" }}
-                      className="w-24 h-24 bg-gradient-to-br from-emerald-50 to-green-100 rounded-3xl flex items-center justify-center text-emerald-600 shadow-sm transform -rotate-3 transition-transform duration-500"
+                      className="w-20 h-20 bg-gradient-to-br from-emerald-50 to-green-100 rounded-2xl flex items-center justify-center text-emerald-600 shadow-sm transform -rotate-3 transition-transform duration-500"
                     >
-                      <Calendar size={48} strokeWidth={1.5} />
+                      <Calendar size={36} strokeWidth={1.5} />
                     </motion.div>
                     {/* Tiny pulsing dot */}
-                    <div className="absolute -top-1 -right-1 w-4 h-4 bg-orange-400 rounded-full border-4 border-white shadow-sm animate-pulse"></div>
+                    <div className="absolute -top-1 -right-1 w-3 h-3 bg-orange-400 rounded-full border-2 border-white shadow-sm animate-pulse"></div>
                   </div>
 
-                  <div className="space-y-4 relative z-10">
-                    <h3 className="text-2xl sm:text-3xl font-black text-gray-900">Next event brewing...</h3>
-                    <p className="text-gray-600 text-base sm:text-lg leading-relaxed max-w-md mx-auto">
-                      We're currently handcrafting our next community wellness experience. Check back soon or stay tuned to our socials for the big reveal!
+                  <div className="space-y-2 relative z-10 px-4">
+                    <h3 className="text-xl font-black text-gray-900 leading-tight">Next event brewing...</h3>
+                    <p className="text-gray-600 text-sm leading-relaxed max-w-xs mx-auto">
+                      We're currently handcrafting our next community wellness experience. stay tuned!
                     </p>
                   </div>
                   
-                  <div className="w-16 h-1 bg-gradient-to-r from-transparent via-emerald-200 to-transparent rounded-full"></div>
+                  <div className="w-12 h-1 bg-gradient-to-r from-transparent via-emerald-200 to-transparent rounded-full"></div>
                 </div>
               ) : (
-                <div className="mx-auto max-w-6xl slider-container px-2">
-                  <Slider {...sliderSettings}>
-                    {upcomingEvents.map(event => (
-                      <div key={event.id} className="p-2 sm:p-4 outline-none">
-                        <div className="bg-white rounded-2xl shadow-sm hover:shadow-md transition-all duration-300 border border-green-100 h-full flex flex-col overflow-hidden group">
-                          {event.imageUrl && (
-                            <div className="relative w-full h-48 overflow-hidden">
-                              <img src={event.imageUrl} alt={event.title} className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110" />
-                              <div className="absolute top-4 left-4 bg-white/90 backdrop-blur-sm px-3 py-1 rounded-full text-xs font-bold text-green-700 shadow-sm flex items-center gap-1">
-                                <Calendar size={12}/> {event.date}
-                              </div>
-                            </div>
-                          )}
-                          <div className="p-6 flex-1 flex flex-col">
-                            <h3 className="text-xl font-bold text-gray-900 mb-2">{event.title}</h3>
-                            {event.location && (
-                              <div className="flex items-start gap-1 text-sm text-gray-600 mb-4 font-medium">
-                                <MapPin size={16} className="text-emerald-500 flex-shrink-0 mt-0.5" />
-                                <span>{event.location}</span>
+                <div className="mx-auto max-w-lg slider-container group relative">
+                  <div className="h-80">
+                    <Slider {...{...sliderSettings, slidesToShow: 1, slidesToScroll: 1, dotsClass: "slick-dots !bottom-4"}}>
+                      {upcomingEvents.map(event => (
+                        <div key={event.id} className="outline-none h-80">
+                          <div className="bg-white rounded-2xl shadow-lg border border-green-100 h-full flex flex-col overflow-hidden group relative">
+                            {event.imageUrl && (
+                              <div className="absolute inset-0 w-full h-full">
+                                <img src={event.imageUrl} alt={event.title} className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105" />
+                                <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent"></div>
                               </div>
                             )}
-                            <div className="prose prose-sm text-gray-600 line-clamp-3 mb-4 flex-1" dangerouslySetInnerHTML={{ __html: event.description }} />
+                            <div className="mt-auto p-6 relative z-10 text-white">
+                              <div className="bg-emerald-500/95 backdrop-blur-sm px-3 py-1 rounded-full text-[10px] font-bold inline-flex items-center gap-1 mb-2">
+                                <Calendar size={10}/> {event.date}
+                              </div>
+                              <h3 className="text-xl font-bold mb-1 leading-tight">{event.title}</h3>
+                              {event.location && (
+                                <div className="flex items-center gap-1 text-xs font-medium opacity-90">
+                                  <MapPin size={14} className="text-emerald-400" />
+                                  <span>{event.location}</span>
+                                </div>
+                              )}
+                            </div>
                           </div>
                         </div>
-                      </div>
-                    ))}
-                  </Slider>
+                      ))}
+                    </Slider>
+                  </div>
                 </div>
               )}
             </motion.div>

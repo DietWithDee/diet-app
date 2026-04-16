@@ -21,6 +21,7 @@ import TestEmails from "../Components/TestEmails";
 import Unsubscribe from "../Pages/Unsubscribe/Unsubscribe";
 import { AuthProvider } from "../AuthContext";
 import { usePageTracking } from "../hooks/usePageTracking";
+import InstallPrompt from "../Components/InstallPrompt";
 
 // Inner component so usePageTracking can access the router context
 const AppRoutes = () => {
@@ -28,6 +29,7 @@ const AppRoutes = () => {
   return (
     <>
       <ScrollToTop />
+      <InstallPrompt />
       <NavBar />
       <Routes>
         <Route path="/" element={<Home />} />
