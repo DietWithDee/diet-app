@@ -81,10 +81,15 @@ export const AuthProvider = ({ children }) => {
     };
   }, []);
 
-  // Google One Tap (disabled by default).
-  // To enable One Tap set VITE_ENABLE_GOOGLE_ONE_TAP=true in your environment.
+  // Google One Tap
+  // Auto-enables in PWA standalone mode for seamless sign-in.
+  // Also available in browser if VITE_ENABLE_GOOGLE_ONE_TAP=true.
   useEffect(() => {
-    if (import.meta.env.VITE_ENABLE_GOOGLE_ONE_TAP !== 'true') return; // opt-in only
+    const isStandalone = window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone === true;
+    const isOneTapEnabled = import.meta.env.VITE_ENABLE_GOOGLE_ONE_TAP === 'true';
+
+    // Enable One Tap if explicitly opted in OR if running as installed PWA
+    if (!isStandalone && !isOneTapEnabled) return;
 
     if (!loading && !user) {
       const initializeOneTap = () => {
@@ -99,14 +104,15 @@ export const AuthProvider = ({ children }) => {
                 console.error('Google One Tap sign-in error:', err);
               }
             },
-            auto_select: false,
+            auto_select: isStandalone, // Auto-select in PWA for zero-friction
             context: 'signin',
             itp_support: true,
           });
 
-          // Prompt will only run when One Tap is enabled via env flag
           window.google.accounts.id.prompt((notification) => {
-            // optional: inspect notification for isNotDisplayed/isSkippedMoment
+            if (notification.isNotDisplayed()) {
+              console.log('One Tap not displayed:', notification.getNotDisplayedReason());
+            }
           });
         }
       };
@@ -120,12 +126,12 @@ export const AuthProvider = ({ children }) => {
             initializeOneTap();
           }
         }, 300);
-        setTimeout(() => clearInterval(checkGoogle), 5000); // Give up after 5s
+        setTimeout(() => clearInterval(checkGoogle), 5000);
       }
     }
   }, [loading, user]);
 
-  // Handle redirect result (for mobile sign-in)
+  // Handle redirect result (for mobile/PWA sign-in)
   useEffect(() => {
     getRedirectResult(auth)
       .then((result) => {
@@ -133,7 +139,6 @@ export const AuthProvider = ({ children }) => {
           const redirectUrl = localStorage.getItem('authRedirect');
           if (redirectUrl) {
             localStorage.removeItem('authRedirect');
-            // If the redirectUrl is not the current page, redirect
             if (window.location.pathname !== redirectUrl) {
               window.location.href = redirectUrl;
             }
@@ -143,7 +148,6 @@ export const AuthProvider = ({ children }) => {
       .catch((err) => {
         if (err.code !== 'auth/redirect-cancelled-by-user') {
           console.error('Redirect sign-in error:', err);
-          // Alert the error so mobile users can see it
           alert(`Redirect Error: ${err.message || err.code}`);
         }
       });
@@ -156,20 +160,28 @@ export const AuthProvider = ({ children }) => {
     const isStandalone = window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone === true;
     const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
 
-    if (!isMobile && !isStandalone) {
+    // In PWA standalone mode, always use redirect — popups open an isolated
+    // webview with no access to the device's Google accounts.
+    if (isStandalone) {
+      localStorage.setItem('authRedirect', window.location.pathname + window.location.search);
+      await signInWithRedirect(auth, provider);
+      return null;
+    }
+
+    // On desktop browser, show account picker
+    if (!isMobile) {
       provider.setCustomParameters({
         prompt: 'select_account'
       });
     }
 
     try {
-      // First try popup - it generally works better without leaving the page
       const result = await signInWithPopup(auth, provider);
       return result.user;
     } catch (err) {
       console.error('Google popup sign-in error:', err);
 
-      // If popup is blocked by mobile browser, fallback smoothly to redirect
+      // If popup is blocked, fallback to redirect
       if (err.code === 'auth/popup-blocked' || err.code === 'auth/popup-closed-by-user') {
         if (typeof window !== 'undefined') {
           localStorage.setItem('authRedirect', window.location.pathname + window.location.search);
