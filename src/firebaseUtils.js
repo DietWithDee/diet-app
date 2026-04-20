@@ -381,7 +381,7 @@ export const markArticleHelpful = async (articleId, isHelpful) => {
     }
 
     // Increment the appropriate counter
-    const updateField = isHelpful ? 'helpfulCount' : '';
+    const updateField = isHelpful ? 'helpfulCount' : 'notHelpfulCount';
     await updateDoc(articleRef, {
       [updateField]: increment(1)
     });

@@ -10,33 +10,36 @@ const Unsubscribe = () => {
   const [status, setStatus] = useState('idle'); // idle, loading, success, error
   const [message, setMessage] = useState('');
 
+  const handleUnsubscribe = async () => {
+    if (!email) {
+      setStatus('error');
+      setMessage('No email address provided. Please use the link from your email.');
+      return;
+    }
+
+    setStatus('loading');
+    try {
+      const unsubscribeUser = httpsCallable(functions, 'unsubscribeUser');
+      const result = await unsubscribeUser({ email: email.toLowerCase() });
+      
+      if (result.data.success) {
+        setStatus('success');
+        setMessage(`You have been successfully removed from our mailing list.`);
+      } else {
+        throw new Error('Unsubscribe failed');
+      }
+    } catch (error) {
+      console.error('Unsubscribe error:', error);
+      setStatus('error');
+      setMessage('Could not complete your request. Please try again later or contact us directly.');
+    }
+  };
+
   useEffect(() => {
-    const performUnsubscribe = async () => {
-      if (!email) {
-        setStatus('error');
-        setMessage('No email address provided. Please use the link from your email.');
-        return;
-      }
-
-      setStatus('loading');
-      try {
-        const unsubscribeUser = httpsCallable(functions, 'unsubscribeUser');
-        const result = await unsubscribeUser({ email: email.toLowerCase() });
-        
-        if (result.data.success) {
-          setStatus('success');
-          setMessage(`You have been successfully removed from our mailing list.`);
-        } else {
-          throw new Error('Unsubscribe failed');
-        }
-      } catch (error) {
-        console.error('Unsubscribe error:', error);
-        setStatus('error');
-        setMessage('Could not complete your request. Please try again later or contact us directly.');
-      }
-    };
-
-    performUnsubscribe();
+    if (!email) {
+      setStatus('error');
+      setMessage('No email address provided. Please use the link from your email.');
+    }
   }, [email]);
 
   return (
@@ -50,10 +53,38 @@ const Unsubscribe = () => {
         </div>
 
         <div className="p-8 text-center">
+          {status === 'idle' && (
+            <div className="space-y-6 py-4">
+              <div className="w-20 h-20 bg-green-50 rounded-full flex items-center justify-center mx-auto text-green-600">
+                <Mail size={48} />
+              </div>
+              <div>
+                <h2 className="text-2xl font-bold text-gray-800 mb-2">Unsubscribe?</h2>
+                <p className="text-gray-600">
+                  Are you sure you want to stop receiving newsletters at <span className="font-bold text-green-700">{email}</span>?
+                </p>
+              </div>
+              <div className="pt-6 border-t border-gray-100 space-y-3">
+                <button 
+                  onClick={handleUnsubscribe}
+                  className="w-full px-6 py-4 bg-green-600 text-white font-black rounded-xl hover:bg-green-700 transition-all shadow-lg active:scale-95"
+                >
+                  Confirm Unsubscribe
+                </button>
+                <Link 
+                  to="/" 
+                  className="w-full px-6 py-3 bg-white text-gray-400 font-medium rounded-xl hover:text-gray-600 transition-all block text-sm"
+                >
+                  I changed my mind, keep me subscribed
+                </Link>
+              </div>
+            </div>
+          )}
+
           {status === 'loading' && (
-            <div className="space-y-4 py-8">
+            <div className="space-y-4 py-12">
               <Loader className="animate-spin text-green-600 mx-auto" size={48} />
-              <p className="text-gray-600 font-medium">Processing your request...</p>
+              <p className="text-gray-600 font-medium">Updating your preferences...</p>
             </div>
           )}
 

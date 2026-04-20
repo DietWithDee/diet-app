@@ -3,12 +3,9 @@ rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
 
-    // Secure isAdmin check using whitelisted emails
+    // Secure isAdmin check using Firebase Custom Claims
     function isAdmin() {
-      return request.auth != null && 
-        (request.auth.token.email == 'nanaamadwamena4@gmail.com' || 
-         request.auth.token.email == 'princetetteh963@gmail.com' || 
-         request.auth.token.email == 'godwinokro2020@gmail.com');
+      return request.auth != null && request.auth.token.admin == true;
     }
 
     match /users/{userId} {

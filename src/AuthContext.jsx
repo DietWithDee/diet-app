@@ -15,6 +15,7 @@ const ADMIN_EMAILS = [
   'godwinokro2020@gmail.com'
 ];
 
+
 export const useAuth = () => {
   const ctx = useContext(AuthContext);
   if (!ctx) throw new Error('useAuth must be used within AuthProvider');
@@ -28,6 +29,8 @@ export const AuthProvider = ({ children }) => {
   const [notification, setNotification] = useState(null);
   const [sharingBadge, setSharingBadge] = useState(null);
 
+  const [isAdmin, setIsAdmin] = useState(false);
+
   // Listen for auth state changes
   useEffect(() => {
     // Explicitly set persistence for PWA sessions
@@ -35,7 +38,7 @@ export const AuthProvider = ({ children }) => {
 
     let unsubscribeProfile = null;
     
-    const unsubscribeAuth = onAuthStateChanged(auth, (firebaseUser) => {
+    const unsubscribeAuth = onAuthStateChanged(auth, async (firebaseUser) => {
       setLoading(true);
       setUser(firebaseUser);
       
@@ -46,6 +49,17 @@ export const AuthProvider = ({ children }) => {
       }
 
       if (firebaseUser) {
+        // Fetch custom claims to check admin status
+        try {
+          const idTokenResult = await firebaseUser.getIdTokenResult();
+          const hasAdminClaim = !!idTokenResult.claims.admin;
+          const isWhitelisted = ADMIN_EMAILS.includes(firebaseUser.email);
+          setIsAdmin(hasAdminClaim || isWhitelisted);
+        } catch (err) {
+          console.error('Error fetching token claims:', err);
+          setIsAdmin(ADMIN_EMAILS.includes(firebaseUser.email));
+        }
+
         // Real-time profile listener
         unsubscribeProfile = onSnapshot(doc(db, 'users', firebaseUser.uid), (doc) => {
           setUserProfile(doc.exists() ? doc.data() : null);
@@ -56,6 +70,7 @@ export const AuthProvider = ({ children }) => {
         });
       } else {
         setUserProfile(null);
+        setIsAdmin(false);
         setLoading(false);
       }
     });
@@ -206,7 +221,7 @@ export const AuthProvider = ({ children }) => {
       return true; // OK to log
     } catch (err) {
       console.error('Error checking daily log limit:', err);
-      return true; // Fail open to not block users on error
+      return false; // Fail closed to prevent bypassing limit on errors
     }
   };
 
@@ -302,7 +317,7 @@ export const AuthProvider = ({ children }) => {
       user,
       userProfile,
       loading,
-      isAdmin: user ? ADMIN_EMAILS.includes(user.email) : false,
+      isAdmin,
       signInWithGoogle,
       signOut: signOutUser,
       saveUserProfile,

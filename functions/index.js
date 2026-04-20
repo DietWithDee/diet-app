@@ -11,7 +11,7 @@ const { createAdminBookingEmail, createClientConfirmationEmail } = require("./bo
 admin.initializeApp();
 const db = admin.firestore();
 
-// Admin Authorization Helper
+// Admin Authorization Whitelist
 const ADMIN_EMAILS = [
   'nanaamadwamena4@gmail.com',
   'princetetteh963@gmail.com',
@@ -19,8 +19,31 @@ const ADMIN_EMAILS = [
 ];
 
 const isAuthorizedAdmin = (auth) => {
-  return auth && auth.token && ADMIN_EMAILS.includes(auth.token.email);
+  if (!auth || !auth.token) return false;
+  // Hybrid check: Success if they have the claim OR if their email is in the whitelist
+  return auth.token.admin === true || ADMIN_EMAILS.includes(auth.token.email || "");
 };
+
+// Admin: Promote or demote a user (Admin only)
+exports.setAdminStatus = onCall(async (request) => {
+  if (!isAuthorizedAdmin(request.auth)) {
+    throw new HttpsError("permission-denied", "Only authorized admins can manage roles.");
+  }
+
+  const { uid, admin: isAdminStatus } = request.data;
+  if (!uid) {
+    throw new HttpsError("invalid-argument", "The function must be called with a user UID.");
+  }
+
+  try {
+    await admin.auth().setCustomUserClaims(uid, { admin: !!isAdminStatus });
+    console.log(`Admin Status for user ${uid} set to ${!!isAdminStatus} by ${request.auth.token.email}`);
+    return { success: true, message: `Admin status for ${uid} updated to ${!!isAdminStatus}` };
+  } catch (error) {
+    console.error("Error setting admin status:", error);
+    throw new HttpsError("internal", error.message);
+  }
+});
 
 // Set global options to max instances to avoid cold start issues if desired
 setGlobalOptions({ maxInstances: 3 });
@@ -77,9 +100,6 @@ exports.onArticlePublished = onDocumentWritten(
         return; // Document was deleted
     }
 
-    // Check if status transitioned to 'published'
-    // 1. If it was created as 'published' (beforeData is null)
-    // 2. If it was updated from something else to 'published' (beforeData is not null)
     const wasPublished = beforeData ? beforeData.status === "published" : false;
     const isNowPublished = afterData.status === "published";
 
@@ -87,7 +107,6 @@ exports.onArticlePublished = onDocumentWritten(
       return; // Skip if it was already published or if it's not published now
     }
 
-    // Double check if there's a title and if we already sent the newsletter
     if (!afterData.title) {
         console.warn(`Article ${articleId} lacks a title. Skipping newsletter.`);
         return;
@@ -101,14 +120,12 @@ exports.onArticlePublished = onDocumentWritten(
     console.log(`Article ${articleId} just transitioned to published! Preparing newsletter...`);
 
     try {
-      // Setup Resend
       const resendApiKey = process.env.RESEND_API_KEY;
       if (!resendApiKey) {
         throw new Error("RESEND_API_KEY is not set.");
       }
       const resend = new Resend(resendApiKey);
 
-      // Fetch all unique subscriber emails
       const emailsQuery = await db.collection("emails").get();
       if (emailsQuery.empty) {
         console.log("No subscribers found. Skipping emails.");
@@ -128,16 +145,14 @@ exports.onArticlePublished = onDocumentWritten(
 
       if (subscriberEmails.length === 0) return;
 
-      // Prepare Email Template
       const subject = `New from Diet With Dee: ${afterData.title}`;
       const coverImage = afterData.coverImage || "";
-      const emailContent = createEmailTemplate(afterData.title, coverImage, articleId);
+      const emailHtml = createEmailTemplate(afterData.title, coverImage, articleId);
+      const emailText = `New Article: ${afterData.title}\n\nRead more at: https://dietwithdee.org/blog/${articleId}\n\nTo unsubscribe: https://dietwithdee.org/unsubscribe`;
 
-      // Batch send via Resend
       let sentCount = 0;
       let failCount = 0;
 
-      // Resend allows up to 10 emails per second and batched sends of up to 100 per request
       const batchSize = 50;
       for (let i = 0; i < subscriberEmails.length; i += batchSize) {
         const batchEmails = subscriberEmails.slice(i, i + batchSize);
@@ -145,13 +160,17 @@ exports.onArticlePublished = onDocumentWritten(
         const batchedPayloads = batchEmails.map(email => ({
              from: 'Diet With Dee <newsletter@dietwithdee.org>',
              to: [email],
+             reply_to: 'hello@dietwithdee.org',
              subject: subject,
-             html: emailContent.split('https://dietwithdee.org/unsubscribe').join(`https://dietwithdee.org/unsubscribe?email=${encodeURIComponent(email)}`)
+             html: emailHtml.split('https://dietwithdee.org/unsubscribe').join(`https://dietwithdee.org/unsubscribe?email=${encodeURIComponent(email)}`),
+             text: emailText + `?email=${encodeURIComponent(email)}`,
+             headers: {
+               'List-Unsubscribe': `<https://dietwithdee.org/unsubscribe?email=${encodeURIComponent(email)}>`
+             }
         }));
 
         try {
             const { data, error } = await resend.batch.send(batchedPayloads);
-            
             if (error) {
                 console.error("Batch send error:", error);
                 failCount += batchEmails.length;
@@ -166,7 +185,7 @@ exports.onArticlePublished = onDocumentWritten(
         await new Promise(r => setTimeout(r, 500));
       }
 
-      console.log(`Newsletter sending task complete! Attempted: ${subscriberEmails.length}, Successful: ${sentCount}, Failed: ${failCount}`);
+      console.log(`Newsletter task complete: ${sentCount} sent, ${failCount} failed.`);
 
       if (sentCount > 0) {
           await db.collection("articles").doc(articleId).update({
@@ -174,7 +193,7 @@ exports.onArticlePublished = onDocumentWritten(
           });
       }
     } catch (error) {
-      console.error("Error in onArticlePublished email logic:", error);
+      console.error("Error in newsletter distribution:", error);
     }
   }
 );
@@ -543,19 +562,22 @@ exports.deleteOwnAccount = onCall(async (request) => {
 
 // 9. Public: User unsubscription
 exports.unsubscribeUser = onCall(async (request) => {
-
+    // We allow unauthenticated unsubscription because users click links from their email clients
+    // where they are almost never signed into the web app.
+    
     const email = request.data.email?.trim()?.toLowerCase();
-    if (!email) {
-        throw new HttpsError("invalid-argument", "Missing email address.");
+    
+    if (!email || !/^\S+@\S+\.\S+$/.test(email)) {
+        throw new HttpsError("invalid-argument", "Valid email address is required.");
     }
 
     try {
         const db = admin.firestore();
+        console.log(`Unsubscribing email: ${email}`);
         await db.collection("emails").doc(email).delete();
-        console.log(`Successfully unsubscribed: ${email}`);
-        return { success: true };
+        return { success: true, message: "Unsubscribed successfully." };
     } catch (error) {
         console.error("Unsubscribe error:", error);
-        throw new HttpsError("internal", "Failed to unsubscribe.");
+        throw new HttpsError("internal", "Failed to process unsubscription.");
     }
 });
