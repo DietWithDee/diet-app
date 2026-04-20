@@ -1,5 +1,5 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
-import { GoogleAuthProvider, signInWithPopup, signInWithRedirect, getRedirectResult, onAuthStateChanged, signOut as firebaseSignOut, signInWithCredential, setPersistence, browserLocalPersistence } from 'firebase/auth';
+import { GoogleAuthProvider, signInWithPopup, signInWithRedirect, getRedirectResult, onAuthStateChanged, signOut as firebaseSignOut, signInWithCredential, setPersistence, browserLocalPersistence, RecaptchaVerifier, signInWithPhoneNumber } from 'firebase/auth';
 import { doc, getDoc, getDocs, setDoc, addDoc, collection, onSnapshot, updateDoc, query, where, Timestamp } from 'firebase/firestore';
 import { auth, db } from './firebaseConfig';
 import { BADGE_DEFINITIONS } from './constants/badges';
@@ -13,6 +13,11 @@ const ADMIN_EMAILS = [
   'nanaamadwamena4@gmail.com',
   'princetetteh963@gmail.com',
   'godwinokro2020@gmail.com'
+];
+
+const ADMIN_PHONE_NUMBERS = [
+  '+23320064732',
+  '+233592330870'
 ];
 
 
@@ -53,11 +58,11 @@ export const AuthProvider = ({ children }) => {
         try {
           const idTokenResult = await firebaseUser.getIdTokenResult();
           const hasAdminClaim = !!idTokenResult.claims.admin;
-          const isWhitelisted = ADMIN_EMAILS.includes(firebaseUser.email);
+          const isWhitelisted = ADMIN_EMAILS.includes(firebaseUser.email) || ADMIN_PHONE_NUMBERS.includes(firebaseUser.phoneNumber);
           setIsAdmin(hasAdminClaim || isWhitelisted);
         } catch (err) {
           console.error('Error fetching token claims:', err);
-          setIsAdmin(ADMIN_EMAILS.includes(firebaseUser.email));
+          setIsAdmin(ADMIN_EMAILS.includes(firebaseUser.email) || ADMIN_PHONE_NUMBERS.includes(firebaseUser.phoneNumber));
         }
 
         // Real-time profile listener
@@ -160,6 +165,12 @@ export const AuthProvider = ({ children }) => {
     const isStandalone = window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone === true;
     const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
 
+    // Remember returning users — skip the "type your email" step
+    const lastEmail = localStorage.getItem('lastSignInEmail');
+    if (lastEmail) {
+      provider.setCustomParameters({ login_hint: lastEmail });
+    }
+
     // In PWA standalone mode, always use redirect — popups open an isolated
     // webview with no access to the device's Google accounts.
     if (isStandalone) {
@@ -169,7 +180,7 @@ export const AuthProvider = ({ children }) => {
     }
 
     // On desktop browser, show account picker
-    if (!isMobile) {
+    if (!isMobile && !lastEmail) {
       provider.setCustomParameters({
         prompt: 'select_account'
       });
@@ -177,6 +188,10 @@ export const AuthProvider = ({ children }) => {
 
     try {
       const result = await signInWithPopup(auth, provider);
+      // Save email for next time
+      if (result.user?.email) {
+        localStorage.setItem('lastSignInEmail', result.user.email);
+      }
       return result.user;
     } catch (err) {
       console.error('Google popup sign-in error:', err);
@@ -190,6 +205,55 @@ export const AuthProvider = ({ children }) => {
         return null;
       }
 
+      throw err;
+    }
+  };
+
+  // Phone sign-in logic
+  const setupRecaptcha = (containerId) => {
+    if (!window.recaptchaVerifier) {
+      window.recaptchaVerifier = new RecaptchaVerifier(auth, containerId, {
+        'size': 'invisible',
+        'callback': (response) => {
+          // reCAPTCHA solved, allow signInWithPhoneNumber.
+          console.log('reCAPTCHA solved');
+        },
+        'expired-callback': () => {
+          // Response expired. Ask user to solve reCAPTCHA again.
+          console.error('reCAPTCHA expired');
+          window.recaptchaVerifier = null;
+        }
+      });
+    }
+    return window.recaptchaVerifier;
+  };
+
+  const sendOtp = async (phoneNumber, containerId = 'recaptcha-container') => {
+    try {
+      const appVerifier = setupRecaptcha(containerId);
+      const confirmationResult = await signInWithPhoneNumber(auth, phoneNumber, appVerifier);
+      window.confirmationResult = confirmationResult;
+      return true;
+    } catch (err) {
+      console.error('Error sending OTP:', err);
+      // If error occurs, reset verifier so it can be re-initialized
+      if (window.recaptchaVerifier) {
+        window.recaptchaVerifier.clear();
+        window.recaptchaVerifier = null;
+      }
+      throw err;
+    }
+  };
+
+  const verifyOtp = async (otpCode) => {
+    try {
+      if (!window.confirmationResult) {
+        throw new Error('MISSING_CONFIRMATION_RESULT');
+      }
+      const result = await window.confirmationResult.confirm(otpCode);
+      return result.user;
+    } catch (err) {
+      console.error('Error verifying OTP:', err);
       throw err;
     }
   };
@@ -331,6 +395,8 @@ export const AuthProvider = ({ children }) => {
       loading,
       isAdmin,
       signInWithGoogle,
+      sendOtp,
+      verifyOtp,
       signOut: signOutUser,
       saveUserProfile,
       setNotification,

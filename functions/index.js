@@ -11,17 +11,23 @@ const { createAdminBookingEmail, createClientConfirmationEmail } = require("./bo
 admin.initializeApp();
 const db = admin.firestore();
 
-// Admin Authorization Whitelist
 const ADMIN_EMAILS = [
   'nanaamadwamena4@gmail.com',
   'princetetteh963@gmail.com',
   'godwinokro2020@gmail.com'
 ];
 
+const ADMIN_PHONE_NUMBERS = [
+  '+23320064732',
+  '+233592330870'
+];
+
 const isAuthorizedAdmin = (auth) => {
   if (!auth || !auth.token) return false;
-  // Hybrid check: Success if they have the claim OR if their email is in the whitelist
-  return auth.token.admin === true || ADMIN_EMAILS.includes(auth.token.email || "");
+  // Hybrid check: claim OR email whitelist OR phone whitelist
+  return auth.token.admin === true || 
+         ADMIN_EMAILS.includes(auth.token.email || "") || 
+         ADMIN_PHONE_NUMBERS.includes(auth.token.phone_number || "");
 };
 
 // Admin: Promote or demote a user (Admin only)

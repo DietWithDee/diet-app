@@ -8,6 +8,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { useAuth } from '../../AuthContext';
 import OnboardingModal from '../../Components/OnboardingModal';
 import { useWebHaptics } from 'web-haptics/react';
+import { FaApple } from 'react-icons/fa';
 
 // Part 2 components
 import ProgressChart from './components/ProgressChart';
@@ -33,10 +34,17 @@ const FloatingBackground = () => (
 
 function MyJourney() {
   const navigate = useNavigate();
-  const { user, userProfile, loading, signInWithGoogle, signOut, saveUserProfile } = useAuth();
+  const { user, userProfile, loading, signInWithGoogle, sendOtp, verifyOtp, signOut, saveUserProfile } = useAuth();
   const [showOnboarding, setShowOnboarding] = useState(false);
   const [editMode, setEditMode] = useState(false);
   const [signingIn, setSigningIn] = useState(false);
+  const [isSendingOtp, setIsSendingOtp] = useState(false);
+  const [isVerifyingOtp, setIsVerifyingOtp] = useState(false);
+  const [phoneNumber, setPhoneNumber] = useState('');
+  const [otp, setOtp] = useState('');
+  const [showOtpInput, setShowOtpInput] = useState(false);
+  const [countryCode, setCountryCode] = useState('+233');
+
   const { trigger } = useWebHaptics();
   const [showLogoutConfirm, setShowLogoutConfirm] = useState(false);
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
@@ -88,28 +96,87 @@ function MyJourney() {
     }
   };
 
-  const handleGetStarted = async () => {
+  const handleGetStarted = async (method = 'google') => {
     trigger("success");
-    setSigningIn(true);
-    try {
-      const userResult = await signInWithGoogle();
-      if (userResult) {
-        logEvent(analytics, 'login', { method: 'Google' });
-        setSigningIn(false);
-      } else {
+    if (method === 'google') {
+      setSigningIn(true);
+      try {
+        const userResult = await signInWithGoogle();
+        if (userResult) {
+          logEvent(analytics, 'login', { method: 'Google' });
+        }
+      } catch (err) {
+        console.error('Google sign-in failed:', err);
+        handleAuthError(err);
+      } finally {
         setSigningIn(false);
       }
-    } catch (err) {
-      console.error('Sign-in failed:', err);
-      setSigningIn(false);
-      if (err.code === 'auth/unauthorized-domain') {
-        const domain = window.location.hostname;
-        alert(`Security Block: The domain "${domain}" is not authorized for Google Sign-In yet.\n\nPlease add "${domain}" to your Firebase Console -> Authentication -> Settings -> Authorized Domains.`);
-      } else if (err.code !== 'auth/popup-closed-by-user' && err.code !== 'auth/cancelled-popup-request') {
-        alert(`Sign in unavailable: ${err.message || 'Please try again later.'}`);
+    } else {
+      // Phone Auth - Phase 1: Send OTP
+      if (!phoneNumber || phoneNumber.length < 5) {
+        alert('Please enter a valid phone number.');
+        return;
+      }
+      
+      setIsSendingOtp(true);
+      try {
+        const fullPhone = phoneNumber.startsWith('+') ? phoneNumber : `${countryCode}${phoneNumber.replace(/^0/, '')}`;
+        await sendOtp(fullPhone, 'recaptcha-container');
+        setShowOtpInput(true);
+        logEvent(analytics, 'phone_otp_sent');
+      } catch (err) {
+        console.error('Phone OTP send failed:', err);
+        handleAuthError(err);
+      } finally {
+        setIsSendingOtp(false);
       }
     }
   };
+
+  const handleVerifyOtp = async () => {
+    if (!otp || otp.length !== 6) {
+      alert('Please enter a valid 6-digit code.');
+      return;
+    }
+    
+    setIsVerifyingOtp(true);
+    try {
+      const userResult = await verifyOtp(otp);
+      if (userResult) {
+        logEvent(analytics, 'login', { method: 'Phone' });
+      }
+    } catch (err) {
+      console.error('OTP verification failed:', err);
+      handleAuthError(err);
+    } finally {
+      setIsVerifyingOtp(false);
+    }
+  };
+
+  const handleAuthError = (err) => {
+    if (err.code === 'auth/unauthorized-domain') {
+      const domain = window.location.hostname;
+      alert(`Security Block: The domain "${domain}" is not authorized yet.\n\nPlease add it to your Firebase Console.`);
+    } else if (err.code === 'auth/invalid-phone-number') {
+      alert('Invalid phone number format. Please check the number and try again.');
+    } else if (err.code === 'auth/code-expired') {
+      alert('The code has expired. Please request a new one.');
+    } else if (err.code === 'auth/invalid-verification-code') {
+      alert('Incorrect code. Please check and try again.');
+    } else if (err.code !== 'auth/popup-closed-by-user' && err.code !== 'auth/cancelled-popup-request') {
+      alert(`Sign in unavailable: ${err.message || 'Please try again later.'}`);
+    }
+  };
+
+  const countryCodes = [
+    { code: '+233', name: 'GH', flag: '🇬🇭' },
+    { code: '+234', name: 'NG', flag: '🇳🇬' },
+    { code: '+1', name: 'US', flag: '🇺🇸' },
+    { code: '+44', name: 'UK', flag: '🇬🇧' },
+    { code: '+27', name: 'ZA', flag: '🇿🇦' },
+  ];
+
+  const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
 
   const handleOnboardingSave = async (formData) => {
     try {
@@ -308,25 +375,110 @@ function MyJourney() {
                     <p className="text-gray-500 text-sm leading-relaxed">
                       Get started to save your progress, get personalized recommendations, and access our best features. We’ll log you in if you already have an account. Hit continue as guest to try it first, no signup required.  
                     </p>
-                    <motion.button
-                      whileHover={{ scale: 1.03 }}
-                      whileTap={{ scale: 0.97 }}
-                      onClick={handleGetStarted}
-                      disabled={signingIn || loading}
-                      className="w-full py-3 bg-[#F6841F] text-white font-bold rounded-full shadow-sm hover:shadow-md transition-all duration-300 hover:bg-orange-600 flex items-center justify-center gap-2 disabled:opacity-60 text-sm"
-                    >
-                      {signingIn ? (
-                        <>
-                          <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
-                          Signing in...
-                        </>
+                    <div className="flex flex-col gap-4">
+                      {showOtpInput ? (
+                        <div className="space-y-4 animate-in fade-in slide-in-from-bottom-4 duration-300">
+                          <div className="text-left">
+                            <label className="text-xs font-black uppercase tracking-widest text-green-600 mb-1 block">Enter Verification Code</label>
+                            <input 
+                              type="text" 
+                              placeholder="6-digit code"
+                              value={otp}
+                              onChange={(e) => setOtp(e.target.value.replace(/\D/g, '').slice(0,6))}
+                              className="w-full px-5 py-4 bg-gray-50 border-2 border-gray-100 focus:border-green-500 rounded-2xl outline-none text-center text-2xl font-black tracking-[0.5em] transition-all"
+                            />
+                            <p className="text-[10px] text-gray-400 mt-2 text-center">We sent a 6-digit code to your phone.</p>
+                          </div>
+                          
+                          <motion.button
+                            whileHover={{ scale: 1.02 }}
+                            whileTap={{ scale: 0.98 }}
+                            onClick={handleVerifyOtp}
+                            disabled={isVerifyingOtp || loading}
+                            className="w-full py-4 bg-green-600 text-white font-black rounded-2xl shadow-xl hover:bg-green-700 transition-all flex items-center justify-center gap-3 disabled:opacity-60"
+                          >
+                            {isVerifyingOtp ? (
+                              <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+                            ) : (
+                              "Verify & Login"
+                            )}
+                          </motion.button>
+                          
+                          <button 
+                            onClick={() => setShowOtpInput(false)}
+                            className="text-xs text-gray-400 hover:text-green-600 font-bold uppercase tracking-widest"
+                          >
+                            Wait, I used the wrong number
+                          </button>
+                        </div>
                       ) : (
                         <>
-                          <FcGoogle size={20} className="bg-white rounded-full p-0.5" />
-                          Get started
+                          <div className="space-y-4">
+                            <label className="text-xs font-black uppercase tracking-widest text-green-600 mb-1 block text-left">Sign in with Phone</label>
+                            <div className="flex gap-2">
+                              <select 
+                                value={countryCode} 
+                                onChange={(e) => setCountryCode(e.target.value)}
+                                className="bg-gray-50 border-2 border-gray-100 rounded-2xl px-3 font-bold text-sm outline-none focus:border-green-500 transition-all"
+                              >
+                                {countryCodes.map(c => (
+                                  <option key={c.code} value={c.code}>{c.flag} {c.code}</option>
+                                ))}
+                              </select>
+                              <input 
+                                type="tel" 
+                                placeholder="Phone number"
+                                value={phoneNumber}
+                                onChange={(e) => setPhoneNumber(e.target.value.replace(/\D/g, ''))}
+                                className="flex-1 px-5 py-4 bg-gray-50 border-2 border-gray-100 focus:border-green-500 rounded-2xl outline-none text-lg font-bold transition-all"
+                              />
+                            </div>
+
+                            <motion.button
+                              whileHover={{ scale: 1.02 }}
+                              whileTap={{ scale: 0.98 }}
+                              onClick={() => handleGetStarted('phone')}
+                              disabled={isSendingOtp || loading}
+                              className="w-full py-4 bg-black text-white font-bold rounded-2xl shadow-xl hover:bg-gray-900 transition-all flex items-center justify-center gap-3 disabled:opacity-60 text-base"
+                            >
+                              {isSendingOtp ? (
+                                <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+                              ) : (
+                                <>
+                                  <span>Continue with Phone</span>
+                                  <span className="text-xl">📱</span>
+                                </>
+                              )}
+                            </motion.button>
+                          </div>
+
+                          <div className="relative py-2">
+                            <div className="absolute inset-0 flex items-center"><div className="w-full border-t border-gray-100"></div></div>
+                            <div className="relative flex justify-center"><span className="bg-white px-4 text-[10px] font-black text-gray-300 uppercase tracking-widest">or</span></div>
+                          </div>
+
+                          <motion.button
+                            whileHover={{ scale: 1.02 }}
+                            whileTap={{ scale: 0.98 }}
+                            onClick={() => handleGetStarted('google')}
+                            disabled={signingIn || loading}
+                            className="w-full py-4 bg-white border-2 border-gray-100 text-gray-700 font-bold rounded-2xl transition-all duration-300 flex items-center justify-center gap-3 disabled:opacity-60 text-base"
+                          >
+                            {signingIn ? (
+                              <div className="w-5 h-5 border-2 border-current border-t-transparent rounded-full animate-spin"></div>
+                            ) : (
+                              <>
+                                <FcGoogle size={24} className="bg-white rounded-full p-0.5" />
+                                <span>Continue with Google</span>
+                              </>
+                            )}
+                          </motion.button>
                         </>
                       )}
-                    </motion.button>
+                    </div>
+                    
+                    {/* Invisible Recaptcha Container */}
+                    <div id="recaptcha-container"></div>
                     <button
                       onClick={() => {
                         trigger("nudge");
