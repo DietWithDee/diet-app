@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { Share2, Check, ChevronLeft, ChevronRight } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Helmet } from 'react-helmet-async';
+import SEO from '../../Components/SEO';
 import PlanImg from '../../assets/Salad.webp'; // you can replace this with actual plan images
 import B2B from '../../assets/images/B2B.webp'; // example image for Back to Basics plan
 import Gain from '../../assets/images/Gain.webp'; // example image for Weight Gain plan
@@ -244,19 +244,16 @@ function Plans() {
     </div>
   );
 
+  const activePlan = location.hash ? plans.find(p => p.id === location.hash.replace('#', '')) : null;
+
   return (
     <>
-      {location.hash && !loading && (
-        <Helmet>
-          {plans.find(p => p.id === location.hash.replace('#', '')) && (
-            <>
-              <title>{plans.find(p => p.id === location.hash.replace('#', '')).title} | DietWithDee</title>
-              <meta property="og:title" content={`${plans.find(p => p.id === location.hash.replace('#', '')).title} | DietWithDee`} />
-              <meta property="og:description" content={plans.find(p => p.id === location.hash.replace('#', '')).Subtitle} />
-            </>
-          )}
-        </Helmet>
-      )}
+      <SEO 
+        title={activePlan ? activePlan.title : "Diet Plans"}
+        description={activePlan ? activePlan.Subtitle : "Tailored nutrition solutions for every lifestyle and goal."}
+        image={activePlan ? activePlan.img : undefined}
+        url={activePlan ? `/plans#${activePlan.id}` : "/plans"}
+      />
       <div className='min-h-screen bg-gradient-to-br from-green-50 via-white to-emerald-50 py-20 px-6 lg:px-12'>
         <div className='text-center space-y-4 max-w-3xl mx-auto mb-12'>
           <h1 className='text-3xl font-black text-transparent bg-clip-text bg-gradient-to-r from-green-700 via-emerald-600 to-green-600'>
