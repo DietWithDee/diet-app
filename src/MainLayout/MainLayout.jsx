@@ -22,6 +22,7 @@ import Unsubscribe from "../Pages/Unsubscribe/Unsubscribe";
 import { AuthProvider } from "../AuthContext";
 import { usePageTracking } from "../hooks/usePageTracking";
 import InstallPrompt from "../Components/InstallPrompt";
+import { ToastProvider } from "../Contexts/ToastContext";
 
 // Inner component so usePageTracking can access the router context
 const AppRoutes = () => {
@@ -37,6 +38,7 @@ const AppRoutes = () => {
         <Route path="/blog" element={<Blog />} />
         <Route path="/blog/:slugOrId" element={<Blog />} />
         <Route path="/contactUs" element={<ContactUs />} />
+        <Route path="/contactus" element={<ContactUs />} />
         <Route path="/services" element={<Services />} />
         <Route path="/knowYourBody" element={<KnowYourBody />} />
         <Route path="/my-journey" element={<MyJourney />} />
@@ -57,15 +59,17 @@ const AppRoutes = () => {
 
 const MainLayout = () => {
   return (
-    <AuthProvider>
-      <AppErrorBoundary>
-        <SEOProvider>
-          <BrowserRouter basename="/">
-            <AppRoutes />
-          </BrowserRouter>
-        </SEOProvider>
-      </AppErrorBoundary>
-    </AuthProvider>
+    <ToastProvider>
+      <AuthProvider>
+        <AppErrorBoundary>
+          <SEOProvider>
+            <BrowserRouter basename="/">
+              <AppRoutes />
+            </BrowserRouter>
+          </SEOProvider>
+        </AppErrorBoundary>
+      </AuthProvider>
+    </ToastProvider>
   );
 };
 

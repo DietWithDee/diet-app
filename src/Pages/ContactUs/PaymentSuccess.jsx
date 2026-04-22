@@ -4,10 +4,12 @@ import { useNavigate, useLocation } from 'react-router-dom';
 import { httpsCallable } from 'firebase/functions';
 import { functions } from '../../firebaseConfig';
 import SEO from '../../Components/SEO';
+import { useToast } from '../../Contexts/ToastContext';
 
 function PaymentSuccess() {
   const navigate = useNavigate();
   const location = useLocation();
+  const { showToast } = useToast();
 
   const [status, setStatus] = useState('verifying'); // verifying, processing, confirmed, error
   const [errorMessage, setErrorMessage] = useState('');
@@ -52,14 +54,26 @@ function PaymentSuccess() {
 
       if (!verifyResult.data.success) {
         setStatus('error');
-        setErrorMessage(verifyResult.data.message || 'Payment verification failed.');
+        const errorMsg = verifyResult.data.message || 'Payment verification failed.';
+
+        // Provide specific error messages based on common Paystack error codes
+        if (errorMsg.includes('cancelled') || errorMsg.includes('abandoned')) {
+          setErrorMessage('Payment was cancelled. You can try again when ready.');
+          showToast('Payment was cancelled', 'info');
+        } else if (errorMsg.includes('declined') || errorMsg.includes('failed')) {
+          setErrorMessage('Payment was declined by your bank. Please try a different payment method or contact your bank.');
+          showToast('Payment declined by bank', 'error');
+        } else {
+          setErrorMessage(errorMsg);
+          showToast('Payment verification failed', 'error');
+        }
         return;
       }
 
       // Step 2: Process Booking (Save to Firestore & Send Emails)
       setStatus('processing');
       const processBookingFn = httpsCallable(functions, 'processBooking');
-      
+
       // Derive type from amount to be robust against extra charges/fees
       const actualAmount = verifyResult.data.amount / 100;
       const verifiedType = actualAmount < 600 ? 'followup' : 'initial';
@@ -74,35 +88,66 @@ function PaymentSuccess() {
       };
 
       const processResult = await processBookingFn(payload);
-
+      
       if (processResult.data.success) {
         // Clear sensitive local storage
         try {
             localStorage.removeItem('consultationFormData');
         } catch(e){}
+
+        // Add a small "satisfaction" delay so the user sees the steps completing
+        await new Promise(resolve => setTimeout(resolve, 1500));
+        
         setStatus('confirmed');
+        showToast('Booking confirmed successfully!', 'success');
       } else {
          setStatus('error');
          setErrorMessage('We verified your payment but hit an issue finalizing the booking. Please contact support.');
+         showToast('Booking processing failed. Please contact support.', 'error');
       }
 
     } catch (error) {
       console.error('Payment sequence error:', error);
       setStatus('error');
       setErrorMessage('A network error occurred while verifying your payment. Please try again.');
+      showToast('Network error during payment verification. Please try again.', 'error');
     }
-  }, [location, formData, userResults]);
+  }, [location.search, formData, userResults, showToast]);
 
   useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    if (params.get('mock') === 'success' && status === 'verifying') {
+      const t1 = setTimeout(() => {
+        setVerifiedConsultationType('initial');
+        setStatus('processing');
+        const t2 = setTimeout(() => {
+          setStatus('confirmed');
+          showToast('Booking confirmed successfully!', 'success');
+        }, 2000);
+        return () => clearTimeout(t2);
+      }, 2000);
+      return () => clearTimeout(t1);
+    }
+
+    if (status === 'confirmed') return;
     processPaymentSequence();
-  }, [processPaymentSequence]);
+  }, [processPaymentSequence, status, showToast]);
 
   const isFollowUp = (verifiedConsultationType || formData.consultationType) === 'followup';
 
   if (status === 'verifying' || status === 'processing') {
+    const steps = [
+      { id: 'connecting', label: 'Connecting', completed: true },
+      { id: 'verifying', label: 'Verifying Payment', completed: status === 'processing' },
+      { id: 'processing', label: 'Processing Booking', completed: status === 'confirmed' },
+      { id: 'sending', label: 'Sending Confirmation', completed: status === 'confirmed' },
+    ];
+
+    const currentStepIndex = status === 'verifying' ? 1 : 2;
+
     return (
       <div className="min-h-screen bg-gradient-to-br from-green-50 via-white to-emerald-50 flex items-center justify-center p-6">
-        <div className="bg-white rounded-3xl shadow-xl p-10 text-center max-w-md w-full border border-green-100 space-y-6">
+        <div className="bg-white rounded-3xl shadow-xl p-10 text-center max-w-md w-full border border-green-100 space-y-8">
           <Loader2 className="w-16 h-16 text-green-600 animate-spin mx-auto" />
           <div>
             <h2 className="text-2xl font-bold text-gray-800">
@@ -113,6 +158,38 @@ function PaymentSuccess() {
                 ? 'Please wait, securely connecting to Paystack.' 
                 : 'Payment received. Generating your booking confirmation...'}
             </p>
+          </div>
+
+          {/* Progress Steps */}
+          <div className="space-y-4">
+            <div className="flex items-center justify-between text-xs font-semibold text-gray-400 uppercase tracking-wider">
+              <span>Step {currentStepIndex} of 4</span>
+              <span className="text-gray-300">~10-15 seconds</span>
+            </div>
+            <div className="space-y-3">
+              {steps.map((step, index) => (
+                <div key={step.id} className="flex items-center gap-3">
+                  <div className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-bold transition-all ${
+                    step.completed 
+                      ? 'bg-green-500 text-white' 
+                      : index === currentStepIndex 
+                        ? 'bg-green-100 text-green-600' 
+                        : 'bg-gray-100 text-gray-400'
+                  }`}>
+                    {step.completed ? '✓' : index + 1}
+                  </div>
+                  <span className={`text-sm font-medium ${
+                    step.completed 
+                      ? 'text-green-600' 
+                      : index === currentStepIndex 
+                        ? 'text-gray-800' 
+                        : 'text-gray-400'
+                  }`}>
+                    {step.label}
+                  </span>
+                </div>
+              ))}
+            </div>
           </div>
         </div>
       </div>

@@ -81,55 +81,6 @@ export const AuthProvider = ({ children }) => {
     };
   }, []);
 
-  // Google One Tap
-  // Auto-enables in PWA standalone mode for seamless sign-in.
-  // Also available in browser if VITE_ENABLE_GOOGLE_ONE_TAP=true.
-  useEffect(() => {
-    const isStandalone = window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone === true;
-    const isOneTapEnabled = import.meta.env.VITE_ENABLE_GOOGLE_ONE_TAP === 'true';
-
-    // Enable One Tap if explicitly opted in OR if running as installed PWA
-    if (!isStandalone && !isOneTapEnabled) return;
-
-    if (!loading && !user) {
-      const initializeOneTap = () => {
-        if (window.google && window.google.accounts && window.google.accounts.id) {
-          window.google.accounts.id.initialize({
-            client_id: import.meta.env.VITE_GOOGLE_CLIENT_ID,
-            callback: async (response) => {
-              try {
-                const credential = GoogleAuthProvider.credential(response.credential);
-                await signInWithCredential(auth, credential);
-              } catch (err) {
-                console.error('Google One Tap sign-in error:', err);
-              }
-            },
-            auto_select: isStandalone, // Auto-select in PWA for zero-friction
-            context: 'signin',
-            itp_support: true,
-          });
-
-          window.google.accounts.id.prompt((notification) => {
-            if (notification.isNotDisplayed()) {
-              console.log('One Tap not displayed:', notification.getNotDisplayedReason());
-            }
-          });
-        }
-      };
-
-      if (window.google) {
-        initializeOneTap();
-      } else {
-        const checkGoogle = setInterval(() => {
-          if (window.google) {
-            clearInterval(checkGoogle);
-            initializeOneTap();
-          }
-        }, 300);
-        setTimeout(() => clearInterval(checkGoogle), 5000);
-      }
-    }
-  }, [loading, user]);
 
   // Handle redirect result (for mobile/PWA sign-in)
   useEffect(() => {
