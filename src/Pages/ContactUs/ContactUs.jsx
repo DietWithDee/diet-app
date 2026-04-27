@@ -3,6 +3,7 @@ import SEO from '../../Components/SEO';
 import { ArrowLeft, User, Mail, Calculator, Target, Heart, Utensils, MessageCircle, Phone, CheckCircle, CreditCard, Lock, Shield, Calendar, Clock, Banknote } from 'lucide-react';
 import { useLocation } from 'react-router-dom';
 import FullyBooked from '../FullyBooked/FullyBooked';
+import Offline from '../Offline/Offline';
 import { getBookingStatus } from '../../firebaseBookingUtils';
 import { isValidEmail } from '../../utils/validation';
 import { useAuth } from '../../AuthContext';
@@ -45,9 +46,11 @@ const computeResultsFromProfile = (profile) => {
   };
 };
 
-function ContactUs() {
+const ContactUs = () => {
   const [isFullyBooked, setIsFullyBooked] = useState(false);
+  const [isOffline, setIsOffline] = useState(false);
   const [isBookingOpen, setIsBookingOpen] = useState(true);
+
   const [showWhatsAppPopup, setShowWhatsAppPopup] = useState(false);
 
   const { user, userProfile } = useAuth();
@@ -97,24 +100,36 @@ function ContactUs() {
     }
   }, [user, userProfile]);
 
-  // Check booking status on mount to prevent async blocking later
-  useEffect(() => {
-    const checkAvailability = async () => {
-      logEvent(analytics, 'add_shipping_info', {
+  // Reusable function to check booking availability
+  const checkAvailability = async () => {
+    logEvent(analytics, 'add_shipping_info', {
       value: 800,
       currency: 'GHS'
     });
 
     try {
-        const result = await getBookingStatus();
-        if (!result.success || !result.isOpen) {
+      const result = await getBookingStatus();
+      if (result.success) {
+        // Successfully reached Firebase — check if bookings are open
+        setIsOffline(false);
+        if (!result.isOpen) {
           setIsFullyBooked(true);
+        } else {
+          setIsFullyBooked(false);
         }
-      } catch (error) {
-        console.error("Error checking booking status:", error);
-        // Optional: Default to open or closed on error depending on preference
+      } else {
+        // Firebase returned an error (likely offline)
+        console.warn("Booking check failed:", result.error);
+        setIsOffline(true);
       }
-    };
+    } catch (error) {
+      console.error("Error checking booking status:", error);
+      setIsOffline(true);
+    }
+  };
+
+  // Check booking status on mount
+  useEffect(() => {
     checkAvailability();
   }, []);
 
@@ -154,6 +169,10 @@ function ContactUs() {
     // Use the same tab for seamless redirection back to /paymentSuccess
     window.location.href = paymentUrl;
   };
+
+  if (isOffline) {
+    return <Offline onRetry={checkAvailability} />;
+  }
 
   if (isFullyBooked) {
     return <FullyBooked />;
