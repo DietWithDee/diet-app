@@ -305,14 +305,18 @@ const ContactUs = () => {
                 {/* Initial Consultation Card */}
                 <div className="bg-gradient-to-br from-green-500 via-green-600 to-emerald-700 rounded-3xl p-7 text-white shadow-2xl shadow-green-500/30 border border-green-400/20 flex flex-col">
                   <div className="flex-1">
-                    <div className="flex items-center gap-2 mb-1">
+                    <div className="flex items-center gap-2 mb-1 flex-wrap">
                       <span className="bg-white/20 text-white text-[10px] font-black px-3 py-1 rounded-full tracking-widest uppercase">Most Popular</span>
+                      <span className="bg-amber-400 text-green-900 text-[10px] font-black px-3 py-1 rounded-full tracking-widest uppercase animate-pulse">Time Limited Offer</span>
                     </div>
                     <h2 className="text-xl font-bold mt-3 mb-1">Initial Consultation</h2>
                     <p className="text-white/90 text-sm mb-4">45 mins</p>
-                    <p className="text-4xl font-extrabold text-white tracking-tight mb-5">₵800</p>
+                    <div className="flex items-baseline gap-3 mb-5">
+                      <p className="text-4xl font-extrabold text-white tracking-tight">₵800</p>
+                      <span className="text-xl text-white/50 line-through font-medium">₵1000</span>
+                    </div>
                     <div className="space-y-2.5 text-sm">
-                      {['Full assessment of your health goals', 'Personalised diet plan', 'Food diary setup'].map((item, i) => (
+                      {['Full assessment of your health goals', 'Free Personalised diet plan', 'Food diary setup'].map((item, i) => (
                         <div key={i} className="flex items-start gap-2.5">
                           <CheckCircle size={16} className="text-white mt-0.5 shrink-0" />
                           <span className="text-white/100">{item}</span>
@@ -325,7 +329,7 @@ const ContactUs = () => {
                     className="mt-6 w-full py-3.5 bg-white text-green-700 font-bold rounded-xl shadow hover:bg-green-50 transition-colors flex items-center justify-center gap-2"
                   >
                     <Banknote size={16} />
-                    Pay now — ₵800
+                    Pay now — GH₵ 800
                   </button>
                 </div>
 
@@ -352,7 +356,7 @@ const ContactUs = () => {
                     className="mt-6 w-full py-3.5 bg-gradient-to-r from-green-500 to-emerald-600 text-white font-bold rounded-xl shadow hover:shadow-md transition-all flex items-center justify-center gap-2"
                   >
                     <Banknote size={16} />
-                    Pay now — ₵400
+                    Pay now — GH₵ 400
                   </button>
                 </div>
               </div>
@@ -488,7 +492,7 @@ const ContactUs = () => {
                           <div className="absolute inset-0 bg-white/10 translate-y-full group-hover:translate-y-0 transition-transform duration-300"></div>
                           <Banknote size={22} className="relative z-10" />
                           <span className="relative z-10 uppercase tracking-wider">
-                            Pay now — ₵{selectedType === 'followup' ? '400' : '800'}
+                            Pay now — GH₵ {selectedType === 'followup' ? '400' : '800'}
                           </span>
                         </button>
                       </div>
