@@ -1,0 +1,3 @@
+## 2025-02-27 - Added ARIA labels to icon-only navigation elements in NavBar
+**Learning:** Icon-only navigation links (like those for "My Journey" and "Plans") and toggle buttons (like the hamburger menu) in the top-level NavBar component were lacking `aria-label`s. This creates significant accessibility gaps for screen reader users who rely on these labels to understand the purpose of these key interface elements.
+**Action:** Always verify that icon-only interactive elements, especially those crucial to global navigation, have clear and descriptive `aria-label` attributes. Additionally, use `aria-expanded` on toggle buttons to communicate their state to assistive technologies.

@@ -69,6 +69,7 @@ export default function NavBar() {
               `relative flex items-center justify-center w-10 h-10 transition-colors duration-300 ${isActive ? 'text-orange-600' : 'text-orange-400'}`
             }
             title="My Journey"
+            aria-label="My Journey"
           >
             {({ isActive }) => (
               <>
@@ -112,6 +113,7 @@ export default function NavBar() {
               `relative flex items-center justify-center w-10 h-10 transition-colors duration-300 ${isActive ? 'text-orange-600' : 'text-orange-400'}`
             }
             title="Plans"
+            aria-label="Plans"
           >
             {({ isActive }) => (
               <>
@@ -135,10 +137,15 @@ export default function NavBar() {
             )}
           </NavLink>
 
-          <button className="md:hidden text-orange-600" onClick={() => {
-            trigger("nudge")
-            setMenuOpen(true)
-          }}>
+          <button
+            className="md:hidden text-orange-600"
+            onClick={() => {
+              trigger("nudge")
+              setMenuOpen(true)
+            }}
+            aria-label="Open main menu"
+            aria-expanded={menuOpen}
+          >
             <FiMenu size={26} />
           </button>
         </div>
@@ -175,6 +182,7 @@ export default function NavBar() {
                 trigger("success")
                 setMenuOpen(false)
               }}
+              aria-label="Close main menu"
             >
               <FiX />
             </button>
