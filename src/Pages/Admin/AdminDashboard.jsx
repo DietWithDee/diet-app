@@ -8,6 +8,7 @@ import ArticlesManager from './components/ArticlesManager';
 import UserJourneyPanel from './components/UserJourneyPanel';
 import BookingsPanel from './components/BookingsPanel';
 import EventsManager from './components/EventsManager';
+import SubscribersPanel from './components/SubscribersPanel';
 import { collection, query, where, onSnapshot } from 'firebase/firestore';
 import { db } from '../../firebaseConfig';
 
@@ -17,7 +18,7 @@ const AdminDashboard = () => {
   const [notification, setNotification] = useState(null);
   const [isLoading, setIsLoading] = useState(true);
   const [subscriberCount, setSubscriberCount] = useState(0);
-  const [activeTab, setActiveTab] = useState('articles'); // 'articles' | 'journey' | 'bookings' | 'events'
+  const [activeTab, setActiveTab] = useState('articles'); // 'articles' | 'journey' | 'bookings' | 'events' | 'subscribers'
   const [users, setUsers] = useState([]);
   const [usersLoading, setUsersLoading] = useState(false);
   const [usersFetched, setUsersFetched] = useState(false);
@@ -165,15 +166,18 @@ const AdminDashboard = () => {
       <div className="container mx-auto px-4 py-8">
         {/* Metrics */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
-          <div className="bg-white rounded-xl shadow-md p-5 border border-green-100 flex items-center gap-4">
+          <button
+            onClick={() => setActiveTab('subscribers')}
+            className={`bg-white rounded-xl shadow-md p-5 border flex items-center gap-4 transition-all hover:shadow-lg text-left ${activeTab === 'subscribers' ? 'border-green-500 ring-2 ring-green-100' : 'border-green-100'}`}
+          >
             <div className="w-12 h-12 rounded-full bg-green-100 flex items-center justify-center text-green-600 text-xl font-bold flex-shrink-0">
               📧
             </div>
             <div>
               <p className="text-2xl font-bold text-gray-800">{subscriberCount}</p>
-              <p className="text-sm text-gray-500">Total Subscribers</p>
+              <p className="text-sm text-green-600 font-medium">Total Subscribers</p>
             </div>
-          </div>
+          </button>
           <button 
             onClick={() => setActiveTab('journey')}
             className={`bg-white rounded-xl shadow-md p-5 border flex items-center gap-4 transition-all hover:shadow-lg text-left ${activeTab === 'journey' ? 'border-blue-500 ring-2 ring-blue-100' : 'border-blue-100'}`}
@@ -262,6 +266,12 @@ const AdminDashboard = () => {
             >
               Events Manager
             </button>
+            <button 
+              onClick={() => setActiveTab('subscribers')}
+              className={`flex-1 py-4 px-6 text-center font-bold transition-all ${activeTab === 'subscribers' ? 'text-green-600 border-b-2 border-green-600 bg-green-50' : 'text-gray-400 hover:text-gray-600 hover:bg-gray-50'}`}
+            >
+              Subscribers
+            </button>
           </div>
 
 
@@ -290,6 +300,8 @@ const AdminDashboard = () => {
               />
             ) : activeTab === 'events' ? (
               <EventsManager showNotification={showNotification} />
+            ) : activeTab === 'subscribers' ? (
+              <SubscribersPanel showNotification={showNotification} />
             ) : (
               <BookingsPanel showNotification={showNotification} />
             )}

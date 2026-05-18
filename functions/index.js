@@ -581,3 +581,99 @@ exports.unsubscribeUser = onCall(async (request) => {
         throw new HttpsError("internal", "Failed to process unsubscription.");
     }
 });
+
+// 10. Admin: Send bulk custom emails to subscribers
+exports.sendBulkCustomEmails = onCall(
+    { secrets: ["RESEND_API_KEY"] },
+    async (request) => {
+        // Check authorization
+        if (!isAuthorizedAdmin(request.auth)) {
+            throw new HttpsError("permission-denied", "Only authorized admins can send bulk emails.");
+        }
+
+        const { recipients, subject, htmlContent, textContent } = request.data;
+
+        if (!recipients || !Array.isArray(recipients) || recipients.length === 0) {
+            throw new HttpsError("invalid-argument", "At least one recipient email is required.");
+        }
+
+        if (!subject || !subject.trim()) {
+            throw new HttpsError("invalid-argument", "Email subject is required.");
+        }
+
+        if (!htmlContent || !htmlContent.trim()) {
+            throw new HttpsError("invalid-argument", "Email content is required.");
+        }
+
+        console.log(`Admin ${request.auth.token.email} is sending bulk email to ${recipients.length} subscribers`);
+
+        try {
+            const resendApiKey = process.env.RESEND_API_KEY;
+            if (!resendApiKey) {
+                throw new HttpsError("internal", "Email service is not configured.");
+            }
+
+            const resend = new Resend(resendApiKey);
+
+            let sentCount = 0;
+            let failCount = 0;
+
+            // Clean and validate email addresses
+            const validEmails = recipients.filter(email => {
+                const trimmed = email?.trim()?.toLowerCase();
+                return trimmed && /^\S+@\S+\.\S+$/.test(trimmed);
+            }).map(email => email.trim().toLowerCase());
+
+            if (validEmails.length === 0) {
+                throw new HttpsError("invalid-argument", "No valid email addresses provided.");
+            }
+
+            // Send in batches to avoid rate limiting
+            const batchSize = 50;
+            for (let i = 0; i < validEmails.length; i += batchSize) {
+                const batchEmails = validEmails.slice(i, i + batchSize);
+
+                const batchedPayloads = batchEmails.map(email => ({
+                    from: 'Diet With Dee <hello@dietwithdee.org>',
+                    to: [email],
+                    reply_to: 'hello@dietwithdee.org',
+                    subject: subject.trim(),
+                    html: htmlContent.trim() + '\n\n<div style="text-align: center; margin-top: 40px; font-size: 12px; color: #999;"><p><a href="https://dietwithdee.org/unsubscribe?email=' + encodeURIComponent(email) + '" style="color: #16a34a; text-decoration: none;">Unsubscribe</a></p></div>',
+                    text: (textContent || htmlContent.replace(/<[^>]*>/g, '')).trim() + '\n\n---\nUnsubscribe: https://dietwithdee.org/unsubscribe?email=' + encodeURIComponent(email),
+                    headers: {
+                        'List-Unsubscribe': `<https://dietwithdee.org/unsubscribe?email=${encodeURIComponent(email)}>`
+                    }
+                }));
+
+                try {
+                    const { data, error } = await resend.batch.send(batchedPayloads);
+                    if (error) {
+                        console.error("Batch send error:", error);
+                        failCount += batchEmails.length;
+                    } else {
+                        sentCount += batchEmails.length;
+                    }
+                } catch (err) {
+                    console.error("Batch send failed:", err);
+                    failCount += batchEmails.length;
+                }
+
+                // Rate limiting delay between batches
+                await new Promise(r => setTimeout(r, 500));
+            }
+
+            console.log(`Bulk email complete: ${sentCount} sent, ${failCount} failed.`);
+
+            return {
+                success: true,
+                sentCount: sentCount,
+                failCount: failCount,
+                message: `Email sent to ${sentCount} subscriber${sentCount !== 1 ? 's' : ''}`
+            };
+        } catch (error) {
+            console.error("Error in sendBulkCustomEmails:", error);
+            if (error instanceof HttpsError) throw error;
+            throw new HttpsError("internal", error.message || "Failed to send emails");
+        }
+    }
+);
