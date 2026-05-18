@@ -3,6 +3,7 @@ import { Trash2, Mail, Copy, Check, X, Loader } from 'lucide-react';
 import { getAllEmails } from '../../../firebaseUtils';
 import { httpsCallable } from 'firebase/functions';
 import { functions } from '../../../firebaseConfig';
+import EmailTemplateBuilder from './EmailTemplateBuilder';
 
 const SubscribersPanel = ({ showNotification }) => {
   const [emails, setEmails] = useState([]);
@@ -264,72 +265,12 @@ const SubscribersPanel = ({ showNotification }) => {
                 />
               </div>
 
-              {/* HTML Content */}
-              <div>
-                <label className="block text-sm font-semibold text-gray-700 mb-2">Email Content (HTML)</label>
-                <textarea
-                  value={emailTemplate.htmlContent}
-                  onChange={(e) => setEmailTemplate({ ...emailTemplate, htmlContent: e.target.value })}
-                  placeholder="Enter HTML email content"
-                  rows={10}
-                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500 font-mono text-sm"
-                />
-                <p className="text-xs text-gray-500 mt-1">You can use HTML tags to format your email</p>
-              </div>
-
-              {/* Plain Text Content */}
-              <div>
-                <label className="block text-sm font-semibold text-gray-700 mb-2">Plain Text Alternative</label>
-                <textarea
-                  value={emailTemplate.textContent}
-                  onChange={(e) => setEmailTemplate({ ...emailTemplate, textContent: e.target.value })}
-                  placeholder="Plain text version (optional)"
-                  rows={5}
-                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500 font-mono text-sm"
-                />
-              </div>
-
-              {/* Preset Templates */}
-              <div className="bg-gray-50 p-4 rounded-lg">
-                <p className="text-sm font-semibold text-gray-700 mb-3">Quick Templates</p>
-                <div className="space-y-2">
-                  <button
-                    onClick={() => setEmailTemplate({
-                      ...emailTemplate,
-                      htmlContent: `
-<div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
-  <h1 style="color: #16a34a; text-align: center;">Updates from Diet With Dee</h1>
-  <p>Hello there!</p>
-  <p>We have some exciting updates to share with you.</p>
-  <p style="color: #666; margin-top: 20px;">Best regards,<br/><strong>Nana Ama & Team</strong></p>
-</div>
-                      `
-                    })}
-                    className="w-full text-left px-3 py-2 bg-white border border-gray-300 rounded hover:bg-green-50 text-sm"
-                  >
-                    📧 Basic Newsletter
-                  </button>
-                  <button
-                    onClick={() => setEmailTemplate({
-                      ...emailTemplate,
-                      htmlContent: `
-<div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
-  <div style="background: linear-gradient(135deg, #16a34a 0%, #059669 100%); padding: 30px; border-radius: 10px; color: white; text-align: center; margin-bottom: 20px;">
-    <h1 style="margin: 0;">New Content Available!</h1>
-  </div>
-  <div style="background: #f0fdf4; padding: 20px; border-left: 4px solid #16a34a;">
-    <p><strong>Check out our latest resources</strong></p>
-    <p>Click the button below to explore new content.</p>
-  </div>
-</div>
-                      `
-                    })}
-                    className="w-full text-left px-3 py-2 bg-white border border-gray-300 rounded hover:bg-green-50 text-sm"
-                  >
-                    🎯 Announcement
-                  </button>
-                </div>
-              </div>
+              {/* Email Template Builder */}
+              <EmailTemplateBuilder 
+                emailTemplate={emailTemplate}
+                setEmailTemplate={setEmailTemplate}
+                showNotification={showNotification}
+              />
 
               {/* Send Button */}
               <div className="flex gap-3 pt-4 border-t">
