@@ -132,15 +132,16 @@ exports.onArticlePublished = onDocumentWritten(
         return;
       }
 
-      const uniqueEmails = new Set();
+      const subscriberMap = new Map();
       emailsQuery.forEach(doc => {
-        const email = doc.data().email?.trim()?.toLowerCase();
+        const docData = doc.data();
+        const email = docData.email?.trim()?.toLowerCase();
         if (email && /^\S+@\S+\.\S+$/.test(email)) {
-          uniqueEmails.add(email);
+          subscriberMap.set(email, docData.name || "");
         }
       });
 
-      const subscriberEmails = Array.from(uniqueEmails);
+      const subscriberEmails = Array.from(subscriberMap.keys());
       console.log(`Found ${subscriberEmails.length} unique subscribers.`);
 
       if (subscriberEmails.length === 0) return;
@@ -157,17 +158,24 @@ exports.onArticlePublished = onDocumentWritten(
       for (let i = 0; i < subscriberEmails.length; i += batchSize) {
         const batchEmails = subscriberEmails.slice(i, i + batchSize);
         
-        const batchedPayloads = batchEmails.map(email => ({
-             from: 'Diet With Dee <newsletter@dietwithdee.org>',
-             to: [email],
-             reply_to: 'hello@dietwithdee.org',
-             subject: subject,
-             html: emailHtml.split('https://dietwithdee.org/unsubscribe').join(`https://dietwithdee.org/unsubscribe?email=${encodeURIComponent(email)}`),
-             text: emailText + `?email=${encodeURIComponent(email)}`,
-             headers: {
-               'List-Unsubscribe': `<https://dietwithdee.org/unsubscribe?email=${encodeURIComponent(email)}>`
-             }
-        }));
+        const batchedPayloads = batchEmails.map(email => {
+             const name = subscriberMap.get(email);
+             const personalizedHtml = emailHtml
+                  .split('Hi there,').join(`Hi ${name || 'there'},`)
+                  .split('https://dietwithdee.org/unsubscribe').join(`https://dietwithdee.org/unsubscribe?email=${encodeURIComponent(email)}`);
+             
+             return {
+                 from: 'Diet With Dee <newsletter@mail.dietwithdee.org>',
+                 to: [email],
+                 reply_to: 'hello@dietwithdee.org',
+                 subject: subject,
+                 html: personalizedHtml,
+                 text: emailText + `?email=${encodeURIComponent(email)}`,
+                 headers: {
+                   'List-Unsubscribe': `<https://dietwithdee.org/unsubscribe?email=${encodeURIComponent(email)}>`
+                 }
+             };
+        });
 
         try {
             const { data, error } = await resend.batch.send(batchedPayloads);
@@ -225,7 +233,7 @@ exports.onNewSubscriber = onDocumentCreated(
             }
             const resend = new Resend(resendApiKey);
 
-            const welcomeContent = createWelcomeTemplate();
+            const welcomeContent = createWelcomeTemplate(data.name);
             
             const { data: result, error } = await resend.emails.send({
                 from: 'Nana Ama from Diet With Dee <hello@dietwithdee.org>',
@@ -276,8 +284,10 @@ exports.onUserCreated = onDocumentCreated(
                 return;
             }
 
+            const name = data.displayName || data.name || "";
             await emailDocRef.set({
                 email: email,
+                name: name,
                 createdAt: admin.firestore.Timestamp.now(),
                 source: "registration"
             });
@@ -634,7 +644,7 @@ exports.sendBulkCustomEmails = onCall(
                 const batchEmails = validEmails.slice(i, i + batchSize);
 
                 const batchedPayloads = batchEmails.map(email => ({
-                    from: 'Diet With Dee <hello@dietwithdee.org>',
+                    from: 'Diet With Dee <hello@mail.dietwithdee.org>',
                     to: [email],
                     reply_to: 'hello@dietwithdee.org',
                     subject: subject.trim(),

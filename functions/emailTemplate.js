@@ -243,7 +243,7 @@ const createEmailTemplate = (title, coverImage, articleId) => {
   `;
 };
 
-const createWelcomeTemplate = () => {
+const createWelcomeTemplate = (name) => {
     return `
       <!DOCTYPE html>
       <html lang="en">
@@ -317,7 +317,7 @@ const createWelcomeTemplate = () => {
                   <h1>Welcome to the Family! 🌿</h1>
               </div>
               <div class="content">
-                  <p>Hi there,</p>
+                  <p>Hi \${name || 'there'},</p>
                   <p>I'm so glad you've decided to join the <strong>Diet With Dee</strong> community! You've taken a wonderful step toward a more nourished and balanced lifestyle.</p>
                   <p>Here’s what you can expect from our newsletter:</p>
                   <ul>
@@ -329,6 +329,10 @@ const createWelcomeTemplate = () => {
                   <p>While you wait for the first update, why not explore some of our latest articles?</p>
                   <div style="text-align: center;">
                       <a href="https://dietwithdee.org/blog?utm_source=welcome_email&utm_medium=email&utm_campaign=welcome_cta" class="button">Explore the Blog</a>
+                  </div>
+                  <div style="margin-top: 30px; background-color: #f0fdf4; padding: 20px; border-radius: 12px; border: 1px solid #dcfce7; text-align: center;">
+                      <p style="margin-bottom: 5px; font-weight: 700; color: #16a34a;">I'd love to hear from you!</p>
+                      <p style="margin: 0; font-size: 15px;">Reply to this email and let me know: <strong>What is your biggest health or nutrition goal right now?</strong><br>(I read and reply to every message!)</p>
                   </div>
                   <p style="margin-top: 30px;">To your health,<br><strong>Nana Ama Dwamena</strong><br>Founder, Diet With Dee</p>
               </div>
