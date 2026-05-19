@@ -4,13 +4,15 @@ const BASE = "https://dietwithdee.org";
 
 const routes = [
   "/", 
-  "/about",
-  "/services",
-  "/blog",
-  "/contactUs",
-  "/knowYourBody",
-  "/plans"
-  // add any other public pages you want indexed
+  "/about/",
+  "/services/",
+  "/blog/",
+  "/contactUs/",
+  "/knowYourBody/",
+  "/plans/",
+  "/my-journey/",
+  "/terms/",
+  "/privacy/"
 ];
 
 const urls = routes.map(

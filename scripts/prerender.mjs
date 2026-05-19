@@ -9,12 +9,15 @@ const PORT = 5050;
 
 const ROUTES = [
   "/",
-  "/about",
-  "/services",
-  "/blog",
-  "/contactUs",
-  "/knowYourBody",
-  "/plans",
+  "/about/",
+  "/services/",
+  "/blog/",
+  "/contactUs/",
+  "/knowYourBody/",
+  "/plans/",
+  "/my-journey/",
+  "/terms/",
+  "/privacy/",
 ];
 
 function outPathFor(route) {
