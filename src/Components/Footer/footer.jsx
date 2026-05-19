@@ -45,7 +45,7 @@ const Footer = () => {
       if (result && result.exists) {
         setMessage({ type: 'warning', text: 'This email is already subscribed!' });
       } else {
-        setMessage({ type: 'success', text: 'Successfully subscribed to our newsletter!' });
+        setMessage({ type: 'success', text: 'Subscribed! Check your email (and Promotions) for a welcome message. Move us to Primary and add to VIP/Star to never miss an update!' });
         setEmail('');
       }
     } catch (error) {

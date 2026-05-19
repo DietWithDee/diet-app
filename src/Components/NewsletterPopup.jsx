@@ -100,11 +100,14 @@ export default function NewsletterPopup() {
 
                     {/* Success State */}
                     {status === "success" ? (
-                        <div className="flex items-center gap-3 bg-green-50 p-4 rounded-xl border border-green-200 mt-2">
-                            <svg className="w-6 h-6 text-green-600 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <div className="flex items-start gap-3 bg-green-50 p-4 rounded-xl border border-green-200 mt-2">
+                            <svg className="w-6 h-6 text-green-600 flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
                             </svg>
-                            <p className="text-[14px] text-green-800 font-semibold">You're subscribed! 🎉</p>
+                            <div>
+                                <p className="text-[14px] text-green-800 font-semibold">You're subscribed! 🎉</p>
+                                <p className="text-[11px] text-green-700 mt-1">Check your email (and Promotions) for a welcome message. Move us to Primary and add to VIP/Star to never miss an update!</p>
+                            </div>
                         </div>
                     ) : (
                         <>
