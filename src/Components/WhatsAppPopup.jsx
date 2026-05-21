@@ -32,13 +32,13 @@ export default function WhatsAppPopup({ isOpen, onClose, onConfirm }) {
                     <div className="flex flex-col gap-2.5">
                         <button
                             onClick={onConfirm}
-                            className="w-full py-3 bg-green-600 text-white font-bold rounded-xl shadow-lg shadow-green-500/25 hover:bg-green-700 active:scale-[0.98] transition-all duration-200 text-sm"
+                            className="w-full py-3 bg-green-600 text-white font-bold rounded-xl shadow-lg shadow-green-500/25 hover:bg-green-700 active:scale-[0.98] transition-all duration-200 text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-green-500 focus-visible:ring-offset-2"
                         >
                             Yes, Proceed
                         </button>
                         <button
                             onClick={onClose}
-                            className="w-full py-3 bg-gray-100 text-gray-700 font-bold rounded-xl hover:bg-gray-200 active:scale-[0.98] transition-all duration-200 text-sm"
+                            className="w-full py-3 bg-gray-100 text-gray-700 font-bold rounded-xl hover:bg-gray-200 active:scale-[0.98] transition-all duration-200 text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-gray-400 focus-visible:ring-offset-2"
                         >
                             Back to Browsing
                         </button>
