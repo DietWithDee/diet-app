@@ -36,6 +36,7 @@ import {
   Area
 } from 'recharts';
 import { getAllUsers, getUserLogs, deleteUserAccount } from '../../../firebaseUtils';
+import DeleteConfirmationModal from './DeleteConfirmationModal';
 
 const COLORS = ['#10b981', '#3b82f6', '#f59e0b', '#ef4444', '#8b5cf6', '#ec4899'];
 
@@ -54,6 +55,7 @@ const UserJourneyPanel = React.memo(({ users, loading, showNotification, loadUse
   const [loadingLogs, setLoadingLogs] = useState(false);
   const [filterGoal, setFilterGoal] = useState('all');
   const [isDeleting, setIsDeleting] = useState(false);
+  const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
 
   const handleUserClick = async (user) => {
     setSelectedUser(user);
@@ -70,10 +72,6 @@ const UserJourneyPanel = React.memo(({ users, loading, showNotification, loadUse
   const handleDeleteUser = async () => {
     if (!selectedUser) return;
     
-    const confirmDelete = window.confirm(`Are you absolutely sure you want to delete ${selectedUser.displayName || 'this user'}? This will permanently remove their account, logs, and subscription. This action cannot be undone.`);
-    
-    if (!confirmDelete) return;
-    
     setIsDeleting(true);
     try {
       const result = await deleteUserAccount(selectedUser.uid, selectedUser.email);
@@ -89,6 +87,7 @@ const UserJourneyPanel = React.memo(({ users, loading, showNotification, loadUse
       showNotification('error', 'An unexpected error occurred.');
     } finally {
       setIsDeleting(false);
+      setIsDeleteModalOpen(false);
     }
   };
 
@@ -305,7 +304,7 @@ const UserJourneyPanel = React.memo(({ users, loading, showNotification, loadUse
               </div>
               <div className="ml-auto">
                 <button
-                  onClick={handleDeleteUser}
+                  onClick={() => setIsDeleteModalOpen(true)}
                   disabled={isDeleting}
                   className="flex items-center gap-2 px-4 py-2 bg-red-500 hover:bg-red-600 text-white rounded-xl font-bold text-sm transition-all shadow-lg active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed"
                 >
@@ -755,6 +754,16 @@ const UserJourneyPanel = React.memo(({ users, loading, showNotification, loadUse
           )}
         </div>
       </div>
+
+      <DeleteConfirmationModal
+        isOpen={isDeleteModalOpen}
+        onClose={() => setIsDeleteModalOpen(false)}
+        onConfirm={handleDeleteUser}
+        title="Delete User Account"
+        message={`Are you absolutely sure you want to delete this user? This will permanently remove their account, active logs, nutrition plans, and subscriptions. This action cannot be undone.`}
+        itemName={selectedUser?.displayName || selectedUser?.email}
+        isLoading={isDeleting}
+      />
     </div>
 
   );

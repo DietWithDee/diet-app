@@ -3,6 +3,7 @@ import { useAuth } from '../../../AuthContext';
 import { useTestimonials } from '../../../hooks/useTestimonials';
 import { CheckCircle, XCircle, Trash2, Star, Loader2 } from 'lucide-react';
 import SubmissionReviewModal from './SubmissionReviewModal';
+import DeleteConfirmationModal from './DeleteConfirmationModal';
 
 function TestimonialAdmin() {
   const { user } = useAuth();
@@ -11,6 +12,11 @@ function TestimonialAdmin() {
   const [filter, setFilter] = useState('pending');
   const [selectedForReview, setSelectedForReview] = useState(null);
   const [actionLoading, setActionLoading] = useState({});
+
+  // Delete Confirmation Modal states
+  const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
+  const [testimonialToDelete, setTestimonialToDelete] = useState(null);
+  const [isDeleting, setIsDeleting] = useState(false);
 
   useEffect(() => {
     fetchAllTestimonials();
@@ -50,12 +56,20 @@ function TestimonialAdmin() {
     setActionLoading(prev => ({ ...prev, [docId]: false }));
   };
 
-  const handleDelete = async (docId) => {
-    if (window.confirm('Are you sure you want to delete this testimonial?')) {
-      setActionLoading(prev => ({ ...prev, [docId]: true }));
-      await deleteTestimonial(docId);
-      setActionLoading(prev => ({ ...prev, [docId]: false }));
-    }
+  const handleDeleteClick = (testimonial) => {
+    setTestimonialToDelete(testimonial);
+    setIsDeleteModalOpen(true);
+  };
+
+  const handleConfirmDelete = async () => {
+    if (!testimonialToDelete) return;
+    setIsDeleting(true);
+    setActionLoading(prev => ({ ...prev, [testimonialToDelete.id]: true }));
+    await deleteTestimonial(testimonialToDelete.id);
+    setActionLoading(prev => ({ ...prev, [testimonialToDelete.id]: false }));
+    setIsDeleting(false);
+    setIsDeleteModalOpen(false);
+    setTestimonialToDelete(null);
   };
 
   if (loading) {
@@ -157,7 +171,7 @@ function TestimonialAdmin() {
                 )}
 
                 <button
-                  onClick={() => handleDelete(testimonial.id)}
+                  onClick={() => handleDeleteClick(testimonial)}
                   disabled={actionLoading[testimonial.id]}
                   className='px-4 py-2 bg-gray-500 text-white rounded hover:bg-gray-600 text-sm flex items-center gap-1 ml-auto disabled:opacity-50'
                 >
@@ -178,6 +192,20 @@ function TestimonialAdmin() {
           onClose={() => setSelectedForReview(null)}
         />
       )}
+
+      {/* Delete Confirmation Modal */}
+      <DeleteConfirmationModal
+        isOpen={isDeleteModalOpen}
+        onClose={() => {
+          setIsDeleteModalOpen(false);
+          setTestimonialToDelete(null);
+        }}
+        onConfirm={handleConfirmDelete}
+        title="Delete Testimonial"
+        message="Are you absolutely sure you want to delete this success story? This will permanently remove it from the platform. This action cannot be undone."
+        itemName={testimonialToDelete ? `${testimonialToDelete.name} (${testimonialToDelete.plan || 'N/A'})` : ""}
+        isLoading={isDeleting}
+      />
     </div>
   );
 }

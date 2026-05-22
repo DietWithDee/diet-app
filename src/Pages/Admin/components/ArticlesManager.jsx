@@ -4,6 +4,7 @@ import { createArticle, updateArticle, deleteArticle, getArticleTags } from '../
 import RichTextEditor from './RichTextEditor';
 import ProgressBar from './ProgressBar';
 import SafeImage from '../../../Components/SafeImage';
+import DeleteConfirmationModal from './DeleteConfirmationModal';
 
 // Articles Management Component
 const ArticlesManager = React.memo(({ articles, setArticles, showNotification, loadArticles }) => {
@@ -22,6 +23,11 @@ const ArticlesManager = React.memo(({ articles, setArticles, showNotification, l
   const [uploadProgress, setUploadProgress] = useState(0);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [imagePreview, setImagePreview] = useState('');
+
+  // Delete Confirmation Modal states
+  const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
+  const [articleToDelete, setArticleToDelete] = useState(null);
+  const [isDeleting, setIsDeleting] = useState(false);
 
   // Fetch tags for suggestions
   const fetchTags = React.useCallback(async () => {
@@ -122,11 +128,25 @@ const ArticlesManager = React.memo(({ articles, setArticles, showNotification, l
     setIsEditing(true);
   };
 
-  const handleDelete = (article) => {
-    if (window.confirm('Are you sure you want to delete this article?')) {
-      setArticles(articles.filter(a => a.id !== article.id));
-      deleteArticle(article.id, article.coverImage, article.content);
+  const handleDeleteClick = (article) => {
+    setArticleToDelete(article);
+    setIsDeleteModalOpen(true);
+  };
+
+  const handleConfirmDelete = async () => {
+    if (!articleToDelete) return;
+    setIsDeleting(true);
+    try {
+      setArticles(articles.filter(a => a.id !== articleToDelete.id));
+      await deleteArticle(articleToDelete.id, articleToDelete.coverImage, articleToDelete.content);
       showNotification('success', 'Article deleted successfully!');
+    } catch (error) {
+      console.error('Error deleting article:', error);
+      showNotification('error', 'Failed to delete article.');
+    } finally {
+      setIsDeleting(false);
+      setIsDeleteModalOpen(false);
+      setArticleToDelete(null);
     }
   };
 
@@ -459,7 +479,7 @@ const ArticlesManager = React.memo(({ articles, setArticles, showNotification, l
                     <Edit2 size={16} />
                   </button>
                   <button
-                    onClick={() => handleDelete(article)}
+                    onClick={() => handleDeleteClick(article)}
                     className="p-2 text-red-600 hover:bg-red-50 rounded-lg transition-colors"
                   >
                     <Trash2 size={16} />
@@ -470,6 +490,19 @@ const ArticlesManager = React.memo(({ articles, setArticles, showNotification, l
           ))
         )}
       </div>
+
+      <DeleteConfirmationModal
+        isOpen={isDeleteModalOpen}
+        onClose={() => {
+          setIsDeleteModalOpen(false);
+          setArticleToDelete(null);
+        }}
+        onConfirm={handleConfirmDelete}
+        title="Delete Article"
+        message="Are you absolutely sure you want to delete this article? This will permanently remove it from the platform. This action cannot be undone."
+        itemName={articleToDelete?.title}
+        isLoading={isDeleting}
+      />
     </div>
   );
 });

@@ -4,6 +4,7 @@ import { createEvent, updateEvent, deleteEvent, getAllEvents } from '../../../fi
 import RichTextEditor from './RichTextEditor';
 import ProgressBar from './ProgressBar';
 import SafeImage from '../../../Components/SafeImage';
+import DeleteConfirmationModal from './DeleteConfirmationModal';
 
 const EventsManager = React.memo(({ showNotification }) => {
   const [events, setEvents] = useState([]);
@@ -20,6 +21,11 @@ const EventsManager = React.memo(({ showNotification }) => {
   const [uploadProgress, setUploadProgress] = useState(0);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [imagePreview, setImagePreview] = useState('');
+
+  // Delete Confirmation Modal states
+  const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
+  const [eventToDelete, setEventToDelete] = useState(null);
+  const [isDeleting, setIsDeleting] = useState(false);
 
   const loadEvents = async () => {
     setIsLoading(true);
@@ -122,16 +128,24 @@ const EventsManager = React.memo(({ showNotification }) => {
     setIsEditing(true);
   };
 
-  const handleDelete = async (event) => {
-    if (window.confirm('Are you sure you want to delete this event?')) {
-      const result = await deleteEvent(event.id, event.imageUrl);
-      if (result.success) {
-        setEvents(events.filter(e => e.id !== event.id));
-        showNotification('success', 'Event deleted successfully!');
-      } else {
-        showNotification('error', 'Failed to delete event.');
-      }
+  const handleDeleteClick = (event) => {
+    setEventToDelete(event);
+    setIsDeleteModalOpen(true);
+  };
+
+  const handleConfirmDelete = async () => {
+    if (!eventToDelete) return;
+    setIsDeleting(true);
+    const result = await deleteEvent(eventToDelete.id, eventToDelete.imageUrl);
+    if (result.success) {
+      setEvents(events.filter(e => e.id !== eventToDelete.id));
+      showNotification('success', 'Event deleted successfully!');
+    } else {
+      showNotification('error', 'Failed to delete event.');
     }
+    setIsDeleting(false);
+    setIsDeleteModalOpen(false);
+    setEventToDelete(null);
   };
 
   return (
@@ -304,7 +318,7 @@ const EventsManager = React.memo(({ showNotification }) => {
                     <button onClick={() => handleEdit(event)} className="p-2 text-blue-600 hover:bg-blue-50 rounded-lg transition-colors">
                       <Edit2 size={16} />
                     </button>
-                    <button onClick={() => handleDelete(event)} className="p-2 text-red-600 hover:bg-red-50 rounded-lg transition-colors">
+                    <button onClick={() => handleDeleteClick(event)} className="p-2 text-red-600 hover:bg-red-50 rounded-lg transition-colors">
                       <Trash2 size={16} />
                     </button>
                   </div>
@@ -314,6 +328,19 @@ const EventsManager = React.memo(({ showNotification }) => {
           })
         )}
       </div>
+
+      <DeleteConfirmationModal
+        isOpen={isDeleteModalOpen}
+        onClose={() => {
+          setIsDeleteModalOpen(false);
+          setEventToDelete(null);
+        }}
+        onConfirm={handleConfirmDelete}
+        title="Delete Event"
+        message="Are you absolutely sure you want to delete this event? This will permanently remove it from the platform. This action cannot be undone."
+        itemName={eventToDelete?.title}
+        isLoading={isDeleting}
+      />
     </div>
   );
 });
