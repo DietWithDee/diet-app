@@ -23,6 +23,9 @@ import { AuthProvider } from "../AuthContext";
 import { usePageTracking } from "../hooks/usePageTracking";
 import InstallPrompt from "../Components/InstallPrompt";
 import { ToastProvider } from "../Contexts/ToastContext";
+import SubmitTestimonial from "../Pages/SubmitTestimonial/SubmitTestimonial";
+import SuccessStories from "../Pages/SuccessStories/SuccessStories";
+import TestimonialAdmin from "../Pages/Admin/components/TestimonialAdmin";
 
 // Inner component so usePageTracking can access the router context
 const AppRoutes = () => {
@@ -43,7 +46,10 @@ const AppRoutes = () => {
         <Route path="/knowYourBody" element={<KnowYourBody />} />
         <Route path="/my-journey" element={<MyJourney />} />
         <Route path="/admin" element={<AdminApp />} />
+        <Route path="/admin/testimonials" element={<TestimonialAdmin />} />
         <Route path="/plans" element={<Plans />} />
+        <Route path="/submit-testimonial" element={<SubmitTestimonial />} />
+        <Route path="/success-stories" element={<SuccessStories />} />
         <Route path="/terms" element={<Terms />} />
         <Route path="/privacy" element={<Privacy />} />
         <Route path="/paymentSuccess" element={<PaymentSuccess />} />

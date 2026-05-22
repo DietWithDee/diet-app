@@ -6,6 +6,7 @@ const admin = require("firebase-admin");
 const { Resend } = require("resend");
 const { createEmailTemplate, createWelcomeTemplate } = require("./emailTemplate");
 const { createAdminBookingEmail, createClientConfirmationEmail } = require("./bookingEmailTemplates");
+const { createAdminTestimonialEmail } = require("./testimonialEmailTemplate");
 
 
 admin.initializeApp();
@@ -249,6 +250,49 @@ exports.onNewSubscriber = onDocumentCreated(
             }
         } catch (error) {
             console.error("Error in onNewSubscriber welcome email logic:", error);
+        }
+    }
+);
+
+// 3.5. Trigger Function for New Testimonials to Send Admin Notification Email
+exports.onNewTestimonial = onDocumentCreated(
+    { document: "testimonials/{testimonialId}", secrets: ["RESEND_API_KEY"] },
+    async (event) => {
+        const snapshot = event.data;
+        if (!snapshot) {
+            console.log("No snapshot data found for new testimonial.");
+            return;
+        }
+
+        const data = snapshot.data();
+        const email = data.email?.trim()?.toLowerCase();
+        const name = data.name || "A client";
+
+        console.log(`New testimonial submitted by ${name} (${email || 'no email'}). Sending admin notification...`);
+
+        try {
+            const resendApiKey = process.env.RESEND_API_KEY;
+            if (!resendApiKey) {
+                throw new Error("RESEND_API_KEY is not set.");
+            }
+            const resend = new Resend(resendApiKey);
+
+            const adminHtml = createAdminTestimonialEmail(data);
+            
+            const { data: result, error } = await resend.emails.send({
+                from: 'Diet With Dee Testimonials <testimonials@dietwithdee.org>',
+                to: ['dietwdee@gmail.com'],
+                subject: `New Success Story: ${name} (${data.plan || 'N/A'})`,
+                html: adminHtml
+            });
+
+            if (error) {
+                console.error(`Error sending testimonial notification email:`, error);
+            } else {
+                console.log(`Testimonial notification email successfully sent. ID: ${result.id}`);
+            }
+        } catch (error) {
+            console.error("Error in onNewTestimonial admin notification logic:", error);
         }
     }
 );

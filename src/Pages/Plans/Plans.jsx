@@ -1,7 +1,7 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { Share2, Check, ChevronLeft, ChevronRight } from 'lucide-react';
-import { motion, AnimatePresence } from 'framer-motion';
+import { motion } from 'framer-motion';
 import SEO from '../../Components/SEO';
 import PlanImg from '../../assets/Salad.webp'; // you can replace this with actual plan images
 import B2B from '../../assets/images/B2B.webp'; // example image for Back to Basics plan
@@ -10,10 +10,12 @@ import Weightloss from '../../assets/images/Weightloss.webp'; // example image f
 import Diabetes from '../../assets/images/Diabetes.webp'; // example image for Diabetes plan
 import Pressure from '../../assets/images/Pressure.webp'; // example image for Hypertension plan
 import ScrollToTop from "../../utils/ScrollToTop";
+import { useTestimonials } from '../../hooks/useTestimonials';
 
 function Plans() {
   const navigate = useNavigate();
   const location = useLocation();
+  const { testimonials: firestoreTestimonials, fetchApprovedTestimonials } = useTestimonials();
   const [shareToast, setShareToast] = useState(null);
   const [currentTestimonial, setCurrentTestimonial] = useState(0);
   const [isAutoPlaying, setIsAutoPlaying] = useState(true);
@@ -25,24 +27,56 @@ function Plans() {
     }, 100); // Delay slightly to ensure DOM has updated
   }
 
-  const nextTestimonial = () => {
-    setCurrentTestimonial((prev) => (prev + 1) % testimonials.length);
-  };
 
-  const prevTestimonial = () => {
-    setCurrentTestimonial((prev) => (prev - 1 + testimonials.length) % testimonials.length);
-  };
 
-  // Autoscroll logic
-  useEffect(() => {
-    let interval;
-    if (isAutoPlaying && !loading) {
-      interval = setInterval(() => {
-        nextTestimonial();
-      }, 3500); // Change testimonial every 3.5 seconds
+  // Default testimonials (fallback)
+  const defaultTestimonials = [
+    {
+      name: 'Michael Asare',
+      img: Weightloss,
+      content: "Nana Ama's Weight Gain guide helped me go from 56kg to 78kg in just 5 months. Before that her 5 week follow up period psyched my mind for the task ahead. Her encouragement, step-by-step approach, and constant motivation made all the difference. I feel healthier, more confident, and energized than ever before. I couldn't have done it without her support.",
+      stars: 5,
+      profession: 'Professional Engineer ',
+      plan: 'Snatched & Nourished',
+      location: 'Accra, Ghana'
+    },
+    {
+      name: 'Grace Blankson',
+      img: Diabetes,
+      content: "I've struggled with hypertension for well over 2 years. Thanks to Dee's Pressure No Dey Catch Me Plan, I now have a trusted source of meals that actually work for me. Her warm demeanor and constant willingness to listen made all the difference. I definitely recommend her to anyone managing hypertension.",
+      stars: 5,
+      profession: 'Trader ',
+      plan: 'Pressure No Dey Catch Me',
+      location: 'Takoradi, Ghana'
+    },
+    {
+      name: 'Kobby Breeze',
+      img: B2B,
+      content: 'When I was diagnosed with diabetes in October 2024, it felt like a death sentence. I was scared and overwhelmed. But with the guidance of my Doctor and my Dietician, Nana Ama Dwamena, I learned that with the right lifestyle changes, exercise and a proper diet, I could live a normal life. For six weeks, I committed to the plan, not just for myself, but for my daughter Nicole. Through the Blood Sugar Balancing plan, today, I feel healthier, stronger, and more hopeful than ever. Glory be to God!',
+      stars: 5,
+      profession: 'Professional Engineer ',
+      plan: 'Blood Sugar Balance',
+      location: 'Accra, Ghana'
+    },
+    {
+      name: 'Lawrencia Kwakye',
+      img: Pressure,
+      content: "Before I started Diet with Dee's 5-Day Reset, my body felt totally out of sync and sluggish. Seriously, I was dragging myself through the day! But after just five days, it's like my body hit the reset button – pun totally intended. My system feels cleaner, and I'm pretty sure my skin is glowing. Dee, you've worked some kind of magic! This isn't just a diet; it's a total life upgrade.",
+      stars: 5,
+      profession: 'Teacher ',
+      plan: 'Back to Basics',
+      location: 'Accra, Ghana'
+    },
+    {
+      name: 'Richard Oti',
+      img: Pressure,
+      content: "This was my very first encounter with a dietitian, and the objective of my visit was to lose weight.I must say, the results over the past few weeks have been amazing! She gave me a personalized meal plan with familiar foods that are protein-rich, low in carbs, and full of healthy fats. Since following it, my digestion has improved, my bloating has reduced, I wake up more energized, and I've been able to cut out late-night snacking and junk food.I feel healthier and more active than ever!",
+      stars: 5,
+      profession: 'Teacher ',
+      plan: 'Weight loss',
+      location: 'Tema, Ghana'
     }
-    return () => clearInterval(interval);
-  }, [isAutoPlaying, loading]);
+  ];
 
   const plans = [
     {
@@ -118,53 +152,35 @@ function Plans() {
     }
   ];
 
-  const testimonials = [
-    {
-      name: 'Michael Asare',
-      img: Weightloss,
-      content: 'Nana Ama’s Weight Gain guide helped me go from 56kg to 78kg in just 5 months. Before that her 5 week follow up period psyched my mind for the task ahead. Her encouragement, step-by-step approach, and constant motivation made all the difference. I feel healthier, more confident, and energized than ever before. I couldn’t have done it without her support.',
-      stars: 5,
-      profession: 'Professional Engineer ',
-      plan: 'Snatched & Nourished',
-      location: 'Accra, Ghana'
-    },
-    {
-      name: 'Grace Blankson',
-      img: Diabetes,
-      content: 'I’ve struggled with hypertension for well over 2 years. Thanks to Dee’s Pressure No Dey Catch Me Plan, I now have a trusted source of meals that actually work for me. Her warm demeanor and constant willingness to listen made all the difference. I definitely recommend her to anyone managing hypertension.',
-      stars: 5,
-      profession: 'Trader ',
-      plan: 'Pressure No Dey Catch Me',
-      location: 'Takoradi, Ghana'
-    },
-    {
-      name: 'Kobby Breeze',
-      img: B2B,
-      content: 'When I was diagnosed with diabetes in October 2024, it felt like a death sentence. I was scared and overwhelmed. But with the guidance of my Doctor and my Dietician, Nana Ama Dwamena, I learned that with the right lifestyle changes, exercise and a proper diet, I could live a normal life. For six weeks, I committed to the plan, not just for myself, but for my daughter Nicole. Through the Blood Sugar Balancing plan, today, I feel healthier, stronger, and more hopeful than ever. Glory be to God!',
-      stars: 5,
-      profession: 'Professional Engineer ',
-      plan: 'Blood Sugar Balance',
-      location: 'Accra, Ghana'
-    },
-    {
-      name: 'Lawrencia Kwakye',
-      img: Pressure,
-      content: "Before I started Diet with Dee's 5-Day Reset, my body felt totally out of sync and sluggish. Seriously, I was dragging myself through the day! But after just five days, it's like my body hit the reset button – pun totally intended. My system feels cleaner, and I'm pretty sure my skin is glowing. Dee, you've worked some kind of magic! This isn't just a diet; it's a total life upgrade.",
-      stars: 5,
-      profession: 'Teacher ',
-      plan: 'Back to Basics',
-      location: 'Accra, Ghana'
-    },
-    {
-      name: 'Richard Oti',
-      img: Pressure,
-      content: "This was my very first encounter with a dietitian, and the objective of my visit was to lose weight.I must say, the results over the past few weeks have been amazing! She gave me a personalized meal plan with familiar foods that are protein-rich, low in carbs, and full of healthy fats. Since following it, my digestion has improved, my bloating has reduced, I wake up more energized, and I’ve been able to cut out late-night snacking and junk food.I feel healthier and more active than ever!",
-      stars: 5,
-      profession: 'Teacher ',
-      plan: 'Weight loss',
-      location: 'Tema, Ghana'
+  const liveFeatured = firestoreTestimonials.filter(t => t.isFeatured).map(t => ({
+    ...t,
+    stars: t.rating
+  }));
+
+  const testimonials = liveFeatured.length >= 5
+    ? liveFeatured
+    : [...liveFeatured, ...defaultTestimonials].slice(0, 5);
+
+  const nextTestimonial = useCallback(() => {
+    setCurrentTestimonial((prev) => (prev + 1) % testimonials.length);
+  }, [testimonials.length]);
+
+  const prevTestimonial = useCallback(() => {
+    setCurrentTestimonial((prev) => (prev - 1 + testimonials.length) % testimonials.length);
+  }, [testimonials.length]);
+
+  // Fetch featured testimonials from Firestore
+  useEffect(() => {
+    fetchApprovedTestimonials();
+  }, [fetchApprovedTestimonials]);
+
+  useEffect(() => {
+    let interval;
+    if (isAutoPlaying && !loading && testimonials.length > 1) {
+      interval = setInterval(nextTestimonial, 3500); // Change testimonial every 3.5 seconds
     }
-  ];
+    return () => clearInterval(interval);
+  }, [isAutoPlaying, loading, nextTestimonial, testimonials.length]);
 
   // Star rating component
   const StarRating = ({ rating }) => {
@@ -375,17 +391,18 @@ function Plans() {
             <div className='w-16 h-1 bg-gradient-to-r from-green-500 to-emerald-500 mx-auto rounded-full'></div>
           </div>
 
-          <div className='relative max-w-6xl mx-auto px-0 sm:px-12'>
+          <div className='relative max-w-6xl mx-auto px-4 sm:px-12'>
             {/* Carousel Container */}
             <div className='overflow-hidden py-10'>
               <motion.div
-                className='flex cursor-grab active:cursor-grabbing'
+                className={`flex ${testimonials.length > 1 ? 'cursor-grab active:cursor-grabbing' : ''}`}
                 animate={{ x: `-${currentTestimonial * 100}%` }}
                 transition={{ type: 'spring', stiffness: 300, damping: 30 }}
-                drag="x"
+                drag={testimonials.length > 1 ? "x" : false}
                 dragConstraints={{ left: 0, right: 0 }}
                 onDragStart={() => setIsAutoPlaying(false)}
-                onDragEnd={(e, { offset, velocity }) => {
+                onDragEnd={(e, { offset }) => {
+                  if (testimonials.length <= 1) return;
                   const swipe = offset.x;
                   if (swipe < -50) nextTestimonial();
                   else if (swipe > 50) prevTestimonial();
@@ -404,11 +421,17 @@ function Plans() {
                       {/* Profile Section */}
                       <div className='flex items-center gap-4 mb-6'>
                         <div className='relative'>
-                          <img
-                            src={testimonial.img}
-                            alt={testimonial.name}
-                            className='h-16 w-16 object-cover rounded-full border-4 border-emerald-100 shadow-md'
-                          />
+                          {testimonial.img ? (
+                            <img
+                              src={testimonial.img}
+                              alt={testimonial.name}
+                              className='h-16 w-16 object-cover rounded-full border-4 border-emerald-100 shadow-md'
+                            />
+                          ) : (
+                            <div className='h-16 w-16 rounded-full border-4 border-emerald-100 shadow-md bg-gradient-to-br from-green-400 to-emerald-500 flex items-center justify-center text-white font-black text-xl select-none'>
+                              {(testimonial.name || 'A').charAt(0).toUpperCase()}
+                            </div>
+                          )}
                           <div className='absolute -bottom-1 -right-1 bg-green-500 rounded-full p-1'>
                             <svg className='w-3 h-3 text-white' fill='currentColor' viewBox='0 0 20 20'>
                               <path fillRule='evenodd' d='M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z' clipRule='evenodd' />
@@ -433,30 +456,85 @@ function Plans() {
               </motion.div>
             </div>
 
-            {/* Navigation Arrows (Desktop) */}
-            <button
-              onClick={() => { setIsAutoPlaying(false); prevTestimonial(); }}
-              className='absolute left-0 top-1/2 -translate-y-1/2 p-3 bg-white shadow-lg rounded-full text-green-600 hover:bg-green-50 z-10 transition-all hidden sm:block'
-            >
-              <ChevronLeft size={24} />
-            </button>
-            <button
-              onClick={() => { setIsAutoPlaying(false); nextTestimonial(); }}
-              className='absolute right-0 top-1/2 -translate-y-1/2 p-3 bg-white shadow-lg rounded-full text-green-600 hover:bg-green-50 z-10 transition-all hidden sm:block'
-            >
-              <ChevronRight size={24} />
-            </button>
+            {/* Testimonials Call to Actions */}
+            <div className='flex flex-col sm:flex-row items-center justify-center gap-4 max-w-2xl mx-auto mb-6 px-4'>
+              <motion.button
+                whileHover={{ scale: 1.03 }}
+                whileTap={{ scale: 0.97 }}
+                onClick={() => { scrollUp(); navigate('/submit-testimonial'); }}
+                className="group inline-flex items-center justify-center gap-3 bg-gradient-to-r from-green-700 via-emerald-600 to-green-600 text-white px-8 py-4 rounded-full font-bold shadow-md hover:shadow-xl transition-all duration-300 hover:-translate-y-0.5 w-full sm:w-auto text-center text-sm sm:text-base cursor-pointer"
+              >
+                <span>Share Your Success Story</span>
+                <svg
+                  className="w-5 h-5 group-hover:translate-x-1 transition-transform"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                  aria-hidden="true"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M17 8l4 4m0 0l-4 4m4-4H3"
+                  />
+                </svg>
+              </motion.button>
+              <motion.button
+                whileHover={{ scale: 1.03 }}
+                whileTap={{ scale: 0.97 }}
+                onClick={() => { scrollUp(); navigate('/success-stories'); }}
+                className="group inline-flex items-center justify-center gap-3 bg-green-50 text-green-700 px-8 py-4 rounded-full font-bold hover:bg-green-700 hover:text-white transition-all duration-300 shadow-md hover:-translate-y-0.5 w-full sm:w-auto text-center text-sm sm:text-base cursor-pointer"
+              >
+                <span>View Success Stories</span>
+                <svg
+                  className="w-5 h-5 group-hover:translate-x-1 transition-transform"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                  aria-hidden="true"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M17 8l4 4m0 0l-4 4m4-4H3"
+                  />
+                </svg>
+              </motion.button>
+            </div>
+
+
+            {/* Navigation Arrows */}
+            {testimonials.length > 1 && (
+              <>
+                <button
+                  onClick={() => { setIsAutoPlaying(false); prevTestimonial(); }}
+                  className='absolute left-1 sm:left-0 top-1/2 -translate-y-1/2 p-2 sm:p-3 bg-white shadow-md sm:shadow-lg rounded-full text-green-600 hover:bg-green-50 z-10 transition-all focus:outline-none'
+                >
+                  <ChevronLeft className="w-5 h-5 sm:w-6 sm:h-6" />
+                </button>
+                <button
+                  onClick={() => { setIsAutoPlaying(false); nextTestimonial(); }}
+                  className='absolute right-1 sm:right-0 top-1/2 -translate-y-1/2 p-2 sm:p-3 bg-white shadow-md sm:shadow-lg rounded-full text-green-600 hover:bg-green-50 z-10 transition-all focus:outline-none'
+                >
+                  <ChevronRight className="w-5 h-5 sm:w-6 sm:h-6" />
+                </button>
+              </>
+            )}
 
             {/* Pagination Dots */}
-            <div className='flex justify-center gap-2 mt-4'>
-              {testimonials.map((_, idx) => (
-                <button
-                  key={idx}
-                  onClick={() => { setIsAutoPlaying(false); setCurrentTestimonial(idx); }}
-                  className={`w-2.5 h-2.5 rounded-full transition-all duration-300 ${idx === currentTestimonial ? 'bg-green-600 w-8' : 'bg-gray-300 hover:bg-gray-400'}`}
-                />
-              ))}
-            </div>
+            {testimonials.length > 1 && (
+              <div className='flex justify-center gap-2 mt-4'>
+                {testimonials.map((_, idx) => (
+                  <button
+                    key={idx}
+                    onClick={() => { setIsAutoPlaying(false); setCurrentTestimonial(idx); }}
+                    className={`w-2.5 h-2.5 rounded-full transition-all duration-300 ${idx === currentTestimonial ? 'bg-green-600 w-8' : 'bg-gray-300 hover:bg-gray-400'}`}
+                  />
+                ))}
+              </div>
+            )}
           </div>
 
           {/* Call to Action */}

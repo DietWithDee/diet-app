@@ -9,6 +9,7 @@ import UserJourneyPanel from './components/UserJourneyPanel';
 import BookingsPanel from './components/BookingsPanel';
 import EventsManager from './components/EventsManager';
 import SubscribersPanel from './components/SubscribersPanel';
+import TestimonialAdmin from './components/TestimonialAdmin';
 import { collection, query, where, onSnapshot } from 'firebase/firestore';
 import { db } from '../../firebaseConfig';
 
@@ -18,7 +19,7 @@ const AdminDashboard = () => {
   const [notification, setNotification] = useState(null);
   const [isLoading, setIsLoading] = useState(true);
   const [subscriberCount, setSubscriberCount] = useState(0);
-  const [activeTab, setActiveTab] = useState('articles'); // 'articles' | 'journey' | 'bookings' | 'events' | 'subscribers'
+  const [activeTab, setActiveTab] = useState('articles'); // 'articles' | 'journey' | 'bookings' | 'events' | 'subscribers' | 'testimonials'
   const [users, setUsers] = useState([]);
   const [usersLoading, setUsersLoading] = useState(false);
   const [usersFetched, setUsersFetched] = useState(false);
@@ -26,6 +27,7 @@ const AdminDashboard = () => {
   const [hasMoreUsers, setHasMoreUsers] = useState(false);
   const [pendingBookings, setPendingBookings] = useState(0);
   const [contactedBookings, setContactedBookings] = useState(0);
+  const [pendingTestimonials, setPendingTestimonials] = useState(0);
 
 
   useEffect(() => {
@@ -41,9 +43,16 @@ const AdminDashboard = () => {
       setContactedBookings(snapshot.docs.length);
     });
 
+    // Listener for pending testimonials
+    const qTestimonials = query(collection(db, 'testimonials'), where('status', '==', 'pending'));
+    const unsubscribeTestimonials = onSnapshot(qTestimonials, (snapshot) => {
+      setPendingTestimonials(snapshot.docs.length);
+    });
+
     return () => {
       unsubscribePending();
       unsubscribeContacted();
+      unsubscribeTestimonials();
     };
   }, []);
 
@@ -267,6 +276,20 @@ const AdminDashboard = () => {
               Events Manager
             </button>
             <button 
+              onClick={() => setActiveTab('testimonials')}
+              className={`flex-1 flex justify-center items-center gap-2 py-4 px-6 text-center font-bold transition-all ${activeTab === 'testimonials' ? 'text-green-600 border-b-2 border-green-600 bg-green-50' : 'text-gray-400 hover:text-gray-600 hover:bg-gray-50'}`}
+            >
+              Testimonials
+              {pendingTestimonials > 0 && (
+                <div className="relative">
+                  <span className="flex items-center justify-center px-1.5 py-0.5 bg-red-500 text-white text-[10px] rounded-full min-w-[20px] leading-tight">
+                    {pendingTestimonials}
+                  </span>
+                  <span className="absolute inset-0 rounded-full bg-red-500 animate-ping opacity-25"></span>
+                </div>
+              )}
+            </button>
+            <button 
               onClick={() => setActiveTab('subscribers')}
               className={`flex-1 py-4 px-6 text-center font-bold transition-all ${activeTab === 'subscribers' ? 'text-green-600 border-b-2 border-green-600 bg-green-50' : 'text-gray-400 hover:text-gray-600 hover:bg-gray-50'}`}
             >
@@ -300,6 +323,8 @@ const AdminDashboard = () => {
               />
             ) : activeTab === 'events' ? (
               <EventsManager showNotification={showNotification} />
+            ) : activeTab === 'testimonials' ? (
+              <TestimonialAdmin />
             ) : activeTab === 'subscribers' ? (
               <SubscribersPanel showNotification={showNotification} />
             ) : (

@@ -3,9 +3,12 @@ rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
 
-    // Secure isAdmin check using Firebase Custom Claims
+    // Secure isAdmin check using Firebase Custom Claims or whitelisted emails
     function isAdmin() {
-      return request.auth != null && request.auth.token.admin == true;
+      return request.auth != null && (
+        request.auth.token.admin == true ||
+        request.auth.token.email in ['nanaamadwamena4@gmail.com', 'princetetteh963@gmail.com', 'godwinokro2020@gmail.com']
+      );
     }
 
     match /users/{userId} {
@@ -47,6 +50,19 @@ service cloud.firestore {
     match /events/{eventId} {
       allow read: if true;
       allow write: if isAdmin();
+    }
+
+    match /testimonials/{testimonialId} {
+      // Public can only READ approved testimonials, Admin can read all
+      allow read: if resource.data.status == 'approved' || isAdmin();
+      // Anyone can submit a testimonial (must start as pending, rating 1-5, and not featured)
+      allow create: if request.resource.data.status == 'pending'
+                    && request.resource.data.isFeatured == false
+                    && request.resource.data.rating >= 1
+                    && request.resource.data.rating <= 5
+                    && request.resource.data.content != "";
+      // Admin only - can update status, toggle featured, delete
+      allow update, delete: if isAdmin();
     }
 
     // Default deny for anything not explicitly specified above

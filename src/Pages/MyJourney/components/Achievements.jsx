@@ -133,7 +133,7 @@ const Achievements = React.memo(() => {
             {sharingBadge && (
                 <AchievementShareCard
                     badge={sharingBadge}
-                    userName={user.displayName?.split(' ')[0] || 'there'}
+                    userName={user?.displayName?.split(' ')[0] || 'there'}
                     date={new Date().toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' })}
                     onComplete={() => setSharingBadge(null)}
                 />
