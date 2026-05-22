@@ -237,7 +237,7 @@ exports.onNewSubscriber = onDocumentCreated(
             const welcomeContent = createWelcomeTemplate(data.name);
             
             const { data: result, error } = await resend.emails.send({
-                from: 'Nana Ama from Diet With Dee <hello@dietwithdee.org>',
+                from: 'Nana Ama from Diet With Dee <hello@mail.dietwithdee.org>',
                 to: [email],
                 subject: 'Welcome to Diet With Dee! 🌿',
                 html: welcomeContent.split('https://dietwithdee.org/unsubscribe').join(`https://dietwithdee.org/unsubscribe?email=${encodeURIComponent(email)}`)
@@ -280,7 +280,7 @@ exports.onNewTestimonial = onDocumentCreated(
             const adminHtml = createAdminTestimonialEmail(data);
             
             const { data: result, error } = await resend.emails.send({
-                from: 'Diet With Dee Testimonials <testimonials@dietwithdee.org>',
+                from: 'Diet With Dee Testimonials <testimonials@mail.dietwithdee.org>',
                 to: ['dietwdee@gmail.com'],
                 subject: `New Success Story: ${name} (${data.plan || 'N/A'})`,
                 html: adminHtml
@@ -481,7 +481,7 @@ exports.processBooking = onCall(
             // Email 1: To Admin
             const adminHtml = createAdminBookingEmail(bookingData);
             await resend.emails.send({
-                from: 'Diet With Dee Bookings <bookings@dietwithdee.org>',
+                from: 'Diet With Dee Bookings <bookings@mail.dietwithdee.org>',
                 to: ['dietwdee@gmail.com'],
                 subject: `New Booking: ${formData.name} (${actualType === 'followup' ? 'Follow-Up' : 'Initial'})`,
                 html: adminHtml
@@ -490,7 +490,7 @@ exports.processBooking = onCall(
             // Email 2: To Client
             const clientHtml = createClientConfirmationEmail(formData.name, actualType);
             await resend.emails.send({
-                from: 'Diet With Dee <hello@dietwithdee.org>',
+                from: 'Diet With Dee <hello@mail.dietwithdee.org>',
                 to: [formData.email],
                 subject: 'Booking Confirmed! ✅',
                 html: clientHtml
