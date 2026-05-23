@@ -1,0 +1,4 @@
+## 2024-05-23 - Prevent XSS with DOMPurify
+**Vulnerability:** XSS vulnerability found in `dangerouslySetInnerHTML` usages across Blog and Admin components (e.g., `EmailTemplateBuilder`, `ArticlesManager`, `Blog.jsx`). Unsanitized raw HTML strings were being rendered directly to the DOM.
+**Learning:** React applications are vulnerable to XSS if `dangerouslySetInnerHTML` is used without an HTML sanitizer. This app renders rich text content which requires this functionality. In `ArticlesManager.jsx`, a `substring` operation could break HTML tags before being rendered, making sanitization even more crucial to avoid DOM corruption.
+**Prevention:** Always use `DOMPurify.sanitize()` (or a similar robust HTML sanitization library) to wrap the `__html` payload anytime `dangerouslySetInnerHTML` is used.
