@@ -264,7 +264,7 @@ function Blog() {
         
         // If it's a raw URL with no text (or identical text), format the URL explicitly into a readable title
         if (!displayTitle || displayTitle.trim() === url.trim() || displayTitle.startsWith('http') || displayTitle.startsWith('/plans')) {
-           const match = url.match(/\/pay\/([a-zA-Z0-9_-]+)/);
+           const match = url.match(/\/(?:pay|product|buy)\/([a-zA-Z0-9_-]+)/);
            if (match && match[1]) {
              displayTitle = match[1].replace(/-/g, ' ');
              displayTitle = displayTitle.split(' ').map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(' ') + " Plan";
@@ -282,7 +282,7 @@ function Blog() {
         }
         
         const wrapper = doc.createElement('div');
-        wrapper.className = "my-8 p-5 sm:p-6 bg-gradient-to-br from-green-50 to-emerald-50 rounded-2xl border border-green-100 shadow-md flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 not-prose hover:shadow-lg transition-all duration-300";
+        wrapper.className = "my-8 p-5 sm:p-6 rounded-2xl border border-green-100/40 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 not-prose transition-all duration-300 shimmer-card";
         wrapper.innerHTML = `
           <div class="flex-1 min-w-0">
             <div class="text-[10px] sm:text-xs font-bold text-green-600 uppercase tracking-wider mb-1.5 flex items-center gap-1.5">
@@ -302,7 +302,11 @@ function Blog() {
       const links = Array.from(doc.querySelectorAll('a'));
       links.forEach(a => {
         const href = a.getAttribute('href') || '';
-        const isPaystack = href.includes('paystack.shop/pay/') || href.includes('paystack.com/pay/');
+        const isPaystack = href.includes('paystack.shop/pay/') || 
+                           href.includes('paystack.com/pay/') ||
+                           href.includes('paystack.com/buy/') ||
+                           href.includes('paystack.shop/product/') ||
+                           href.includes('paystack.com/product/');
         const isPlans = href.includes('/plans');
         
         if (isPaystack || isPlans) {
@@ -320,7 +324,7 @@ function Blog() {
       }
       
       // Regex for matching raw text URLs (including hashes for internal plans)
-      const planRegex = /(https?:\/\/(?:www\.)?(?:paystack\.shop|paystack\.com)\/pay\/[a-zA-Z0-9_-]+|https?:\/\/(?:www\.)?dietwithdee\.org\/plans(?:#[a-zA-Z0-9_-]+)?|\/plans(?:#[a-zA-Z0-9_-]+)?)/g;
+      const planRegex = /(https?:\/\/(?:www\.)?(?:paystack\.shop|paystack\.com)\/(?:pay|product|buy)\/[a-zA-Z0-9_-]+|https?:\/\/(?:www\.)?dietwithdee\.org\/plans(?:#[a-zA-Z0-9_-]+)?|\/plans(?:#[a-zA-Z0-9_-]+)?)/g;
 
       textNodes.forEach(textNode => {
         // Skip if it's already inside our newly created plan card or inside an anchor tag
@@ -488,30 +492,6 @@ function Blog() {
           datePublished={articleDate}
         />
         <div className="min-h-screen bg-gradient-to-br from-green-50 via-white to-emerald-50">
-          <style>{`
-            .prose b, .prose strong {
-              color: #059669 !important;
-              font-weight: 700;
-            }
-            .prose i, .prose em {
-              color: #059669 !important;
-            }
-            /* Force list visibility in case of global resets */
-            .prose ul {
-              list-style-type: disc !important;
-              padding-left: 1.5rem !important;
-              margin-bottom: 1rem !important;
-            }
-            .prose ol {
-              list-style-type: decimal !important;
-              padding-left: 1.5rem !important;
-              margin-bottom: 1rem !important;
-            }
-            .prose li {
-              display: list-item !important;
-              margin-bottom: 0.5rem !important;
-            }
-          `}</style>
           {/* Article Header */}
           <div className="bg-white shadow-sm border-b border-green-100">
             <div className="max-w-4xl mx-auto px-4 sm:px-6 py-4">

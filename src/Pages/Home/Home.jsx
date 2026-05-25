@@ -4,7 +4,6 @@ import { useNavigate } from 'react-router';
 import { motion } from 'framer-motion';
 import { logEvent } from 'firebase/analytics';
 import { analytics } from '../../firebaseConfig';
-import Avocado from '../../assets/avocado_journey.webp';
 import Dee from '../../assets/images/Dee1.webp';
 import InstallPrompt from '../../Components/InstallPrompt';
 
@@ -60,6 +59,33 @@ const AnimatedCounter = ({ target, duration = 2000, suffix = '' }) => {
 
 function Home() {
   const navigate = useNavigate();
+  const videoRef = useRef(null);
+
+  useEffect(() => {
+    const videoElement = videoRef.current;
+    if (!videoElement) return;
+
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        if (entry.isIntersecting) {
+          videoElement.play().catch(err => {
+            console.log("Autoplay was prevented by browser:", err);
+          });
+        } else {
+          videoElement.pause();
+        }
+      },
+      { threshold: 0.15 } // Trigger when 15% visible
+    );
+
+    observer.observe(videoElement);
+
+    return () => {
+      if (videoElement) {
+        observer.unobserve(videoElement);
+      }
+    };
+  }, []);
 
   // Animation variants
   const staggerContainer = {
@@ -202,11 +228,8 @@ function Home() {
               </motion.div>
             </div>
 
-            {/* Right: Image */}
+            {/* Right: Video without glowing green background elements */}
             <div className="flex-1 relative max-w-lg w-full">
-              <div className="absolute -top-4 -right-4 w-72 h-62 bg-gradient-to-br from-green-200 to-emerald-200 rounded-full opacity-20 blur-3xl"></div>
-              <div className="absolute -bottom-8 -left-8 w-64 h-54 bg-gradient-to-tr from-emerald-300 to-green-300 rounded-full opacity-15 blur-2xl"></div>
-
               <motion.div
                 className="relative z-10 p-4 lg:p-8"
                 variants={floatingImage}
@@ -215,9 +238,16 @@ function Home() {
               >
                 <div className="bg-transparent rounded-3xl transition-all duration-500 hover:scale-[1.02]">
                   <div className="w-full flex items-center justify-center relative">
-                    {/* Glowing effect behind image */}
-                    <div className="absolute inset-0 bg-green-300/20 rounded-full blur-3xl filter transform scale-75"></div>
-                    <img src={Avocado} alt="Journey to a Healthier You" className="object-contain w-[120%] max-w-none relative z-10 drop-shadow-2xl" />
+                    <video
+                      ref={videoRef}
+                      src="/Hero_animation.mp4"
+                      className="object-contain w-[120%] max-w-none relative z-10 mix-blend-multiply"
+                      style={{ mixBlendMode: 'multiply' }}
+                      playsInline
+                      muted
+                      controls={false}
+                      preload="auto"
+                    />
                   </div>
                 </div>
               </motion.div>

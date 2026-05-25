@@ -62,3 +62,41 @@
   animation: slideInFromLeft 0.5s cubic-bezier(0.4, 0, 0.2, 1) forwards;
 }
 
+/* Custom Blog Article Prose Overrides & Shimmer Card Animations */
+.prose b, .prose strong {
+  color: #059669 !important;
+  font-weight: 700;
+}
+.prose i, .prose em {
+  color: #059669 !important;
+}
+.prose ul {
+  list-style-type: disc !important;
+  padding-left: 1.5rem !important;
+  margin-bottom: 1rem !important;
+}
+.prose ol {
+  list-style-type: decimal !important;
+  padding-left: 1.5rem !important;
+  margin-bottom: 1rem !important;
+}
+.prose li {
+  display: list-item !important;
+  margin-bottom: 0.5rem !important;
+}
+
+@keyframes shimmer-bg {
+  0% {
+    background-position: 200% 0;
+  }
+  100% {
+    background-position: -200% 0;
+  }
+}
+.shimmer-card {
+  background: linear-gradient(120deg, #f7fdfa 30%, #e6f9ed 45%, #f7fdfa 60%);
+  background-size: 200% 100%;
+  animation: shimmer-bg 4s infinite linear;
+  border: 1px solid rgba(16, 185, 129, 0.15) !important;
+}
+

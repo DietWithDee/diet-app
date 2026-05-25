@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
-import { Share2, Check, ChevronLeft, ChevronRight } from 'lucide-react';
+import { Share2, Check, ChevronLeft, ChevronRight, CreditCard, Sparkles } from 'lucide-react';
 import { motion } from 'framer-motion';
 import SEO from '../../Components/SEO';
 import PlanImg from '../../assets/Salad.webp'; // you can replace this with actual plan images
@@ -20,6 +20,12 @@ function Plans() {
   const [currentTestimonial, setCurrentTestimonial] = useState(0);
   const [isAutoPlaying, setIsAutoPlaying] = useState(true);
   const [loading, setLoading] = useState(true);
+  const [redirectedPlan, setRedirectedPlan] = useState(null);
+
+  const handleBuyClick = (plan) => {
+    setRedirectedPlan(plan);
+    window.open(plan.Url, '_blank', 'noopener,noreferrer');
+  };
 
   const scrollUp = () => {
     setTimeout(() => {
@@ -29,51 +35,51 @@ function Plans() {
 
 
 
-  // Default testimonials (fallback)
+  // Default testimonials (fallback - corrected AI layout mixups)
   const defaultTestimonials = [
     {
       name: 'Michael Asare',
-      img: Weightloss,
+      img: Gain,
       content: "Nana Ama's Weight Gain guide helped me go from 56kg to 78kg in just 5 months. Before that her 5 week follow up period psyched my mind for the task ahead. Her encouragement, step-by-step approach, and constant motivation made all the difference. I feel healthier, more confident, and energized than ever before. I couldn't have done it without her support.",
       stars: 5,
-      profession: 'Professional Engineer ',
-      plan: 'Snatched & Nourished',
+      profession: 'Structural Engineer',
+      plan: 'The Weight Gain',
       location: 'Accra, Ghana'
     },
     {
       name: 'Grace Blankson',
-      img: Diabetes,
+      img: Pressure,
       content: "I've struggled with hypertension for well over 2 years. Thanks to Dee's Pressure No Dey Catch Me Plan, I now have a trusted source of meals that actually work for me. Her warm demeanor and constant willingness to listen made all the difference. I definitely recommend her to anyone managing hypertension.",
       stars: 5,
-      profession: 'Trader ',
+      profession: 'Retail Trader',
       plan: 'Pressure No Dey Catch Me',
       location: 'Takoradi, Ghana'
     },
     {
       name: 'Kobby Breeze',
-      img: B2B,
+      img: Diabetes,
       content: 'When I was diagnosed with diabetes in October 2024, it felt like a death sentence. I was scared and overwhelmed. But with the guidance of my Doctor and my Dietician, Nana Ama Dwamena, I learned that with the right lifestyle changes, exercise and a proper diet, I could live a normal life. For six weeks, I committed to the plan, not just for myself, but for my daughter Nicole. Through the Blood Sugar Balancing plan, today, I feel healthier, stronger, and more hopeful than ever. Glory be to God!',
       stars: 5,
-      profession: 'Professional Engineer ',
+      profession: 'Software Developer',
       plan: 'Blood Sugar Balance',
       location: 'Accra, Ghana'
     },
     {
       name: 'Lawrencia Kwakye',
-      img: Pressure,
+      img: B2B,
       content: "Before I started Diet with Dee's 5-Day Reset, my body felt totally out of sync and sluggish. Seriously, I was dragging myself through the day! But after just five days, it's like my body hit the reset button – pun totally intended. My system feels cleaner, and I'm pretty sure my skin is glowing. Dee, you've worked some kind of magic! This isn't just a diet; it's a total life upgrade.",
       stars: 5,
-      profession: 'Teacher ',
+      profession: 'High School Teacher',
       plan: 'Back to Basics',
       location: 'Accra, Ghana'
     },
     {
       name: 'Richard Oti',
-      img: Pressure,
-      content: "This was my very first encounter with a dietitian, and the objective of my visit was to lose weight.I must say, the results over the past few weeks have been amazing! She gave me a personalized meal plan with familiar foods that are protein-rich, low in carbs, and full of healthy fats. Since following it, my digestion has improved, my bloating has reduced, I wake up more energized, and I've been able to cut out late-night snacking and junk food.I feel healthier and more active than ever!",
+      img: Weightloss,
+      content: "This was my very first encounter with a dietitian, and the objective of my visit was to lose weight. I must say, the results over the past few weeks have been amazing! She gave me a personalized meal plan with familiar foods that are protein-rich, low in carbs, and full of healthy fats. Since following it, my digestion has improved, my bloating has reduced, I wake up more energized, and I've been able to cut out late-night snacking and junk food. I feel healthier and more active than ever!",
       stars: 5,
-      profession: 'Teacher ',
-      plan: 'Weight loss',
+      profession: 'Senior Accountant',
+      plan: 'Snatched & Nourished',
       location: 'Tema, Ghana'
     }
   ];
@@ -84,7 +90,7 @@ function Plans() {
       title: 'Back to Basics',
       Subtitle: 'A 5-Day Healthy Eating Reset',
       price: '₵349',
-      Url: " https://paystack.shop/pay/backtobasics",
+      Url: "https://paystack.com/buy/back-to-basics",
       img: B2B,
       features: [
         '5-Day Custom Meal Plan',
@@ -99,7 +105,7 @@ function Plans() {
       title: 'Snatched & Nourished',
       Subtitle: 'Gentle Weight Loss Guide',
       price: '₵249',
-      Url: "https://paystack.shop/pay/gentleweightloss",
+      Url: "https://paystack.com/buy/snatched-and-nourished",
       img: Weightloss,
       features: [
         'Balanced Meal Plan',
@@ -113,7 +119,7 @@ function Plans() {
       title: 'Blood Sugar Balance',
       Subtitle: 'A Type 2 Diabetes-Friendly Guide',
       price: '₵299',
-      Url: "https://paystack.shop/pay/bloodsugar",
+      Url: "https://paystack.com/buy/blood-sugar-balance-plan",
       img: Diabetes,
       features: [
         'Easy to follow meal plan',
@@ -127,7 +133,7 @@ function Plans() {
       title: 'Pressure No Dey Catch Me',
       Subtitle: 'A Hypertension-Friendly Plan',
       price: '₵299',
-      Url: "https://paystack.shop/pay/pressurenodey",
+      Url: "https://paystack.com/buy/pressure-no-dey",
       img: Pressure,
       features: [
         'Heart-Smart Meal Plan',
@@ -141,7 +147,7 @@ function Plans() {
       title: 'The Weight Gain',
       Subtitle: 'Wahala-Free Plan',
       price: '₵249',
-      Url: "https://paystack.shop/pay/weightgain",
+      Url: "https://paystack.com/buy/the-weight-gain",
       img: Gain,
       features: [
         'High-calorie meal plan',
@@ -317,13 +323,12 @@ function Plans() {
                 </ul>
 
                 <div className="flex gap-3">
-                  <a href={plan.Url} target="_blank" rel="noopener noreferrer" className="flex-1">
-                    <button
-                      className={`w-full px-6 py-3 bg-gradient-to-r ${plan.gradient} text-white font-bold rounded-full transition-all hover:shadow-lg`}
-                    >
-                      Buy Now
-                    </button>
-                  </a>
+                  <button
+                    onClick={() => handleBuyClick(plan)}
+                    className={`flex-1 px-6 py-3 bg-gradient-to-r ${plan.gradient} text-white font-bold rounded-full transition-all hover:shadow-lg`}
+                  >
+                    Buy Now
+                  </button>
                   <button
                     onClick={() => handleShare(plan)}
                     className="p-3 bg-gray-50 text-gray-600 rounded-full hover:bg-gray-100 transition-all border border-gray-200 flex items-center justify-center relative group"
@@ -547,6 +552,91 @@ function Plans() {
           </div>
         </div>
       </div>
+
+      {/* Post-Purchase/Redirect Instructions Modal */}
+      {redirectedPlan && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-6 bg-emerald-950/40 backdrop-blur-md">
+          <motion.div
+            initial={{ opacity: 0, scale: 0.95 }}
+            animate={{ opacity: 1, scale: 1 }}
+            exit={{ opacity: 0, scale: 0.95 }}
+            transition={{ type: 'spring', duration: 0.5 }}
+            className="bg-white rounded-3xl p-8 max-w-md w-full shadow-2xl border border-green-50 flex flex-col items-center text-center space-y-6 relative overflow-hidden"
+          >
+            {/* Glow Ring and Icon */}
+            <div className="relative">
+              <div className="absolute inset-0 bg-green-100 rounded-full scale-150 opacity-75"></div>
+              <div className="w-16 h-16 bg-gradient-to-tr from-green-600 to-emerald-500 rounded-full flex items-center justify-center text-white shadow-lg relative z-10">
+                <CreditCard size={32} />
+              </div>
+            </div>
+
+            {/* Title */}
+            <div className="space-y-2">
+              <h3 className="text-2xl font-black text-green-700">Checkout Opened!</h3>
+              <p className="text-gray-600 text-sm">
+                We have opened the secure Paystack checkout page in a new tab for:
+              </p>
+              <div className="inline-block bg-green-50 text-green-700 font-bold px-4 py-1.5 rounded-full text-md border border-green-100/50">
+                {redirectedPlan.title}
+              </div>
+            </div>
+
+            {/* Instructions */}
+            <div className="bg-gray-50 rounded-2xl p-5 w-full text-left space-y-4 border border-gray-100">
+              <h4 className="font-bold text-gray-800 text-xs uppercase tracking-wider text-center border-b border-gray-200 pb-2">
+                💡 What to Expect Next
+              </h4>
+              <div className="space-y-3.5 text-sm text-gray-700 leading-relaxed">
+                <div className="flex gap-3">
+                  <span className="text-green-500 font-bold shrink-0">1.</span>
+                  <p>
+                    <strong>Complete Checkout:</strong> Complete your payment securely in the opened tab.
+                  </p>
+                </div>
+                <div className="flex gap-3">
+                  <span className="text-green-500 font-bold shrink-0">2.</span>
+                  <p>
+                    <strong>Instant Download:</strong> Click the direct <strong>Download</strong> button on the Paystack success page to save your PDF plan immediately.
+                  </p>
+                </div>
+                <div className="flex gap-3">
+                  <span className="text-green-500 font-bold shrink-0">3.</span>
+                  <p>
+                    <strong>Check Your Email:</strong> Paystack will also send an automated email with a secure link to download your guide anytime.
+                  </p>
+                </div>
+              </div>
+            </div>
+
+            {/* CTAs */}
+            <div className="w-full space-y-3 pt-2">
+              <button
+                onClick={() => {
+                  setRedirectedPlan(null);
+                  scrollUp();
+                  navigate('/my-journey');
+                }}
+                className="w-full py-3.5 bg-gradient-to-r from-orange-500 to-[#F6841F] text-white font-bold rounded-full shadow-lg hover:shadow-xl transition-all hover:scale-[1.02] active:scale-[0.98] text-sm flex items-center justify-center gap-2"
+              >
+                <Sparkles size={16} />
+                Go to My Journey Portal
+              </button>
+              <button
+                onClick={() => setRedirectedPlan(null)}
+                className="w-full py-3.5 bg-gray-100 text-gray-700 font-bold rounded-full hover:bg-gray-200 transition-all text-sm"
+              >
+                Back to Plans
+              </button>
+            </div>
+
+            {/* Help footer */}
+            <p className="text-[10px] text-gray-400">
+              Questions or issues? Reach out to Nana Ama at <a href="mailto:dietwdee@gmail.com" className="text-green-600 font-bold hover:underline">dietwdee@gmail.com</a>
+            </p>
+          </motion.div>
+        </div>
+      )}
     </>
   );
 }

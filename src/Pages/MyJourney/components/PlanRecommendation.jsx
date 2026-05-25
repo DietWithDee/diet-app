@@ -18,7 +18,7 @@ const PLANS = [
         subtitle: 'A 5-Day Healthy Eating Reset',
         price: '₵349',
         img: B2B,
-        url: 'https://paystack.shop/pay/backtobasics',
+        url: 'https://paystack.com/buy/back-to-basics',
         tags: ['maintain'],
         isPopular: true,
     },
@@ -28,7 +28,7 @@ const PLANS = [
         subtitle: 'Gentle Weight Loss Guide',
         price: '₵249',
         img: Weightloss,
-        url: 'https://paystack.shop/pay/gentleweightloss',
+        url: 'https://paystack.com/buy/snatched-and-nourished',
         tags: ['lose'],
     },
     {
@@ -37,7 +37,7 @@ const PLANS = [
         subtitle: 'A Type 2 Diabetes-Friendly Guide',
         price: '₵299',
         img: Diabetes,
-        url: 'https://paystack.shop/pay/bloodsugar',
+        url: 'https://paystack.com/buy/blood-sugar-balance-plan',
         tags: ['diabetes'],
     },
     {
@@ -46,7 +46,7 @@ const PLANS = [
         subtitle: 'A Hypertension-Friendly Plan',
         price: '₵299',
         img: Pressure,
-        url: 'https://paystack.shop/pay/pressurenodey',
+        url: 'https://paystack.com/buy/pressure-no-dey',
         tags: ['hypertension', 'pressure'],
     },
     {
@@ -55,7 +55,7 @@ const PLANS = [
         subtitle: 'Wahala-Free Plan',
         price: '₵249',
         img: Gain,
-        url: 'https://paystack.shop/pay/weightgain',
+        url: 'https://paystack.com/buy/the-weight-gain',
         tags: ['gain'],
     },
 ];
