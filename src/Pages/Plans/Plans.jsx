@@ -11,6 +11,7 @@ import Diabetes from '../../assets/images/Diabetes.webp'; // example image for D
 import Pressure from '../../assets/images/Pressure.webp'; // example image for Hypertension plan
 import ScrollToTop from "../../utils/ScrollToTop";
 import { useTestimonials } from '../../hooks/useTestimonials';
+import { plans } from '../../utils/plansData';
 
 function Plans() {
   const navigate = useNavigate();
@@ -20,11 +21,10 @@ function Plans() {
   const [currentTestimonial, setCurrentTestimonial] = useState(0);
   const [isAutoPlaying, setIsAutoPlaying] = useState(true);
   const [loading, setLoading] = useState(true);
-  const [redirectedPlan, setRedirectedPlan] = useState(null);
 
   const handleBuyClick = (plan) => {
-    setRedirectedPlan(plan);
     window.open(plan.Url, '_blank', 'noopener,noreferrer');
+    navigate(`/checkout-success?plan=${plan.id}`);
   };
 
   const scrollUp = () => {
@@ -84,79 +84,7 @@ function Plans() {
     }
   ];
 
-  const plans = [
-    {
-      id: 'back-to-basics',
-      title: 'Back to Basics',
-      Subtitle: 'A 5-Day Healthy Eating Reset',
-      price: '₵349',
-      Url: "https://paystack.com/buy/back-to-basics",
-      img: B2B,
-      features: [
-        '5-Day Custom Meal Plan',
-        'Grocery List & Prep Guide',
-        'Perfect for busy professionals, healthy eating beginners.'
-      ],
-      gradient: 'from-orange-400 to-orange-500',
-      isPopular: true,
-    },
-    {
-      id: 'snatched-nourished',
-      title: 'Snatched & Nourished',
-      Subtitle: 'Gentle Weight Loss Guide',
-      price: '₵249',
-      Url: "https://paystack.com/buy/snatched-and-nourished",
-      img: Weightloss,
-      features: [
-        'Balanced Meal Plan',
-        'Workout & Nutrition Sync',
-        'Self-guided tools'
-      ],
-      gradient: 'from-orange-400 to-orange-500',
-    },
-    {
-      id: 'blood-sugar-balance',
-      title: 'Blood Sugar Balance',
-      Subtitle: 'A Type 2 Diabetes-Friendly Guide',
-      price: '₵299',
-      Url: "https://paystack.com/buy/blood-sugar-balance-plan",
-      img: Diabetes,
-      features: [
-        'Easy to follow meal plan',
-        'Healthy Lifestyle Tips',
-        'Blood Sugar Tracker',
-      ],
-      gradient: 'from-orange-400 to-orange-500',
-    },
-    {
-      id: 'pressure-no-dey-catch-me',
-      title: 'Pressure No Dey Catch Me',
-      Subtitle: 'A Hypertension-Friendly Plan',
-      price: '₵299',
-      Url: "https://paystack.com/buy/pressure-no-dey",
-      img: Pressure,
-      features: [
-        'Heart-Smart Meal Plan',
-        'Blood Pressure-Friendly Habits',
-        'Track & Tweak Toolkit',
-      ],
-      gradient: 'from-orange-400 to-orange-500',
-    },
-    {
-      id: 'weight-gain',
-      title: 'The Weight Gain',
-      Subtitle: 'Wahala-Free Plan',
-      price: '₵249',
-      Url: "https://paystack.com/buy/the-weight-gain",
-      img: Gain,
-      features: [
-        'High-calorie meal plan',
-        'Snack list',
-        'Progress-monitoring tools',
-      ],
-      gradient: 'from-orange-400 to-orange-500',
-    }
-  ];
+
 
   const liveFeatured = firestoreTestimonials.filter(t => t.isFeatured).map(t => ({
     ...t,
@@ -553,90 +481,7 @@ function Plans() {
         </div>
       </div>
 
-      {/* Post-Purchase/Redirect Instructions Modal */}
-      {redirectedPlan && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-6 bg-emerald-950/40 backdrop-blur-md">
-          <motion.div
-            initial={{ opacity: 0, scale: 0.95 }}
-            animate={{ opacity: 1, scale: 1 }}
-            exit={{ opacity: 0, scale: 0.95 }}
-            transition={{ type: 'spring', duration: 0.5 }}
-            className="bg-white rounded-3xl p-8 max-w-md w-full shadow-2xl border border-green-50 flex flex-col items-center text-center space-y-6 relative overflow-hidden"
-          >
-            {/* Glow Ring and Icon */}
-            <div className="relative">
-              <div className="absolute inset-0 bg-green-100 rounded-full scale-150 opacity-75"></div>
-              <div className="w-16 h-16 bg-gradient-to-tr from-green-600 to-emerald-500 rounded-full flex items-center justify-center text-white shadow-lg relative z-10">
-                <CreditCard size={32} />
-              </div>
-            </div>
 
-            {/* Title */}
-            <div className="space-y-2">
-              <h3 className="text-2xl font-black text-green-700">Checkout Opened!</h3>
-              <p className="text-gray-600 text-sm">
-                We have opened the secure Paystack checkout page in a new tab for:
-              </p>
-              <div className="inline-block bg-green-50 text-green-700 font-bold px-4 py-1.5 rounded-full text-md border border-green-100/50">
-                {redirectedPlan.title}
-              </div>
-            </div>
-
-            {/* Instructions */}
-            <div className="bg-gray-50 rounded-2xl p-5 w-full text-left space-y-4 border border-gray-100">
-              <h4 className="font-bold text-gray-800 text-xs uppercase tracking-wider text-center border-b border-gray-200 pb-2">
-                💡 What to Expect Next
-              </h4>
-              <div className="space-y-3.5 text-sm text-gray-700 leading-relaxed">
-                <div className="flex gap-3">
-                  <span className="text-green-500 font-bold shrink-0">1.</span>
-                  <p>
-                    <strong>Complete Checkout:</strong> Complete your payment securely in the opened tab.
-                  </p>
-                </div>
-                <div className="flex gap-3">
-                  <span className="text-green-500 font-bold shrink-0">2.</span>
-                  <p>
-                    <strong>Instant Download:</strong> Click the direct <strong>Download</strong> button on the Paystack success page to save your PDF plan immediately.
-                  </p>
-                </div>
-                <div className="flex gap-3">
-                  <span className="text-green-500 font-bold shrink-0">3.</span>
-                  <p>
-                    <strong>Check Your Email:</strong> Paystack will also send an automated email with a secure link to download your guide anytime.
-                  </p>
-                </div>
-              </div>
-            </div>
-
-            {/* CTAs */}
-            <div className="w-full space-y-3 pt-2">
-              <button
-                onClick={() => {
-                  setRedirectedPlan(null);
-                  scrollUp();
-                  navigate('/my-journey');
-                }}
-                className="w-full py-3.5 bg-gradient-to-r from-orange-500 to-[#F6841F] text-white font-bold rounded-full shadow-lg hover:shadow-xl transition-all hover:scale-[1.02] active:scale-[0.98] text-sm flex items-center justify-center gap-2"
-              >
-                <Sparkles size={16} />
-                Go to My Journey Portal
-              </button>
-              <button
-                onClick={() => setRedirectedPlan(null)}
-                className="w-full py-3.5 bg-gray-100 text-gray-700 font-bold rounded-full hover:bg-gray-200 transition-all text-sm"
-              >
-                Back to Plans
-              </button>
-            </div>
-
-            {/* Help footer */}
-            <p className="text-[10px] text-gray-400">
-              Questions or issues? Reach out to Nana Ama at <a href="mailto:dietwdee@gmail.com" className="text-green-600 font-bold hover:underline">dietwdee@gmail.com</a>
-            </p>
-          </motion.div>
-        </div>
-      )}
     </>
   );
 }

@@ -12,6 +12,7 @@ import Footer from '../Components/Footer/footer';
 import KnowYourBody from "../Pages/KnowYourBody/KnowYourBody";
 import AdminApp from "../Pages/Admin/AdminApp";
 import Plans from "../Pages/Plans/Plans";
+import CheckoutSuccess from "../Pages/Plans/CheckoutSuccess";
 import Terms from "../Pages/Terms/Terms";
 import Privacy from "../Pages/Privacy/Privacy";
 import ScrollToTop from "../utils/ScrollToTop";
@@ -48,6 +49,7 @@ const AppRoutes = () => {
         <Route path="/admin" element={<AdminApp />} />
         <Route path="/admin/testimonials" element={<TestimonialAdmin />} />
         <Route path="/plans" element={<Plans />} />
+        <Route path="/checkout-success" element={<CheckoutSuccess />} />
         <Route path="/submit-testimonial" element={<SubmitTestimonial />} />
         <Route path="/success-stories" element={<SuccessStories />} />
         <Route path="/terms" element={<Terms />} />
