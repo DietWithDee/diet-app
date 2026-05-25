@@ -1,0 +1,28 @@
+# DietWithDee
+
+> DietWithDee is a digital nutrition and wellness platform founded by Registered Dietitian Nana Ama Dwamena, providing expert diet consultations, personalized meal plans, and nutrition education — primarily serving Ghana and expanding globally.
+
+- Based in Ghana, West Africa
+- Founded by Nana Ama Dwamena, a licensed Registered Dietitian
+- Services include one-on-one consultations, group programs, corporate wellness, and community health outreach
+- Available online at dietwithdee.org
+
+## Pages
+
+- [Home](https://dietwithdee.org/): Landing page with overview of services, statistics, and call-to-action
+- [About Us](https://dietwithdee.org/about): Story of DietWithDee, mission, vision, and community involvement
+- [Our Services](https://dietwithdee.org/services): Full list of dietetic services offered, including individual consultations, group sessions, and events gallery
+- [Diet Plans](https://dietwithdee.org/plans): Available nutrition plans, pricing, and client success stories
+- [Blog](https://dietwithdee.org/blog): Wellness articles, nutrition tips, healthy recipes, and expert advice
+- [Know Your Body](https://dietwithdee.org/knowYourBody): Interactive health assessment tools including BMI calculator
+- [Contact Us](https://dietwithdee.org/contactUs): Booking and inquiry form
+
+## Legal
+
+- [Privacy Policy](https://dietwithdee.org/privacy): Data protection and privacy practices
+- [Terms and Conditions](https://dietwithdee.org/terms): Platform usage terms and health disclaimer
+
+## Optional
+
+- [Events Gallery](https://dietwithdee.org/services#events-gallery): Photos from community health outreaches and corporate wellness events
+- [Success Stories](https://dietwithdee.org/plans#success-stories): Client transformation stories and testimonials
