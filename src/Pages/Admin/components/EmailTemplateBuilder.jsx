@@ -1,3 +1,4 @@
+import DOMPurify from "dompurify";
 import React, { useState } from 'react';
 import { Bold, Italic, Type, Image, Phone } from 'lucide-react';
 
@@ -376,7 +377,7 @@ const EmailTemplateBuilder = ({ emailTemplate, setEmailTemplate, showNotificatio
         <div className="bg-gray-50 border border-gray-200 rounded-lg p-4 max-h-[600px] overflow-auto">
           <div
             dangerouslySetInnerHTML={{
-              __html: emailTemplate.htmlContent
+              __html: DOMPurify.sanitize(emailTemplate.htmlContent)
             }}
             className="email-preview"
           />

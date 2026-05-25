@@ -1,3 +1,4 @@
+import DOMPurify from "dompurify";
 import React, { useState, useEffect } from 'react';
 import SEO from '../../Components/SEO';
 import { useNavigate, useParams } from 'react-router-dom';
@@ -576,7 +577,7 @@ function Blog() {
                     fontSize: '18px',
                     lineHeight: '1.8'
                   }}
-                  dangerouslySetInnerHTML={{ __html: transformArticleContent(selectedArticle.content) }}
+                  dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(transformArticleContent(selectedArticle.content)) }}
                 />
 
                 {/* Tags */}
