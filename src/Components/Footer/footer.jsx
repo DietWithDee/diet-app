@@ -46,6 +46,7 @@ const Footer = () => {
         setMessage({ type: 'warning', text: 'This email is already subscribed!' });
       } else {
         setMessage({ type: 'success', text: 'Subscribed! Check your email (and Promotions) for a welcome message. Move us to Primary and add to VIP/Star to never miss an update!' });
+        localStorage.setItem('newsletterPopupSubscribed', 'true');
         setEmail('');
       }
     } catch (error) {

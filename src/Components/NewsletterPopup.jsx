@@ -6,7 +6,7 @@ const LS_KEY_DISMISSED = "newsletterPopupLastDismissed";
 const LS_KEY_COUNT = "newsletterPopupCount";
 const LS_KEY_SUBSCRIBED = "newsletterPopupSubscribed";
 
-export default function NewsletterPopup() {
+export default function NewsletterPopup({ forceShowOnArticleReading }) {
     const [show, setShow] = useState(false);
     const [email, setEmail] = useState("");
     const [status, setStatus] = useState("idle"); // idle | loading | success | error | exists
@@ -32,6 +32,24 @@ export default function NewsletterPopup() {
             }
         }
     }, []);
+
+    useEffect(() => {
+        if (!forceShowOnArticleReading) return;
+
+        // Already subscribed — never show
+        if (localStorage.getItem(LS_KEY_SUBSCRIBED) === "true") return;
+
+        // Already shown this session — don't show again
+        const sessionShown = sessionStorage.getItem("newsletterPopupArticleSessionShown");
+        if (sessionShown === "true") return;
+
+        const timer = setTimeout(() => {
+            setShow(true);
+            sessionStorage.setItem("newsletterPopupArticleSessionShown", "true");
+        }, 9000); // 9-second organic delay
+
+        return () => clearTimeout(timer);
+    }, [forceShowOnArticleReading]);
 
     const handleDismiss = () => {
         setShow(false);

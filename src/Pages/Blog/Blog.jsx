@@ -855,7 +855,7 @@ function Blog() {
         />
       )}
       {/* Newsletter Popup */}
-      <NewsletterPopup />
+      <NewsletterPopup forceShowOnArticleReading={viewMode === 'article' && !!selectedArticle} />
     </div>
   );
 }

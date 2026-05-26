@@ -47,7 +47,7 @@ exports.setAdminStatus = onCall(async (request) => {
 });
 
 // Set global options to max instances to avoid cold start issues if desired
-setGlobalOptions({ maxInstances: 3 });
+setGlobalOptions({ maxInstances: 4 });
 
 // 1. Scheduled Function to Publish Articles
 exports.publishScheduledArticles = onSchedule("every 10 minutes", async (event) => {
@@ -86,7 +86,12 @@ exports.publishScheduledArticles = onSchedule("every 10 minutes", async (event) 
 
 // 2. Trigger Function on Article Publish to Send Newsletters
 exports.onArticlePublished = onDocumentWritten(
-  { document: "articles/{articleId}", secrets: ["RESEND_API_KEY"] },
+  { 
+    document: "articles/{articleId}", 
+    secrets: ["RESEND_API_KEY"],
+    memory: "512MiB",
+    timeoutSeconds: 300
+  },
   async (event) => {
     const articleId = event.params.articleId;
     
@@ -638,7 +643,11 @@ exports.unsubscribeUser = onCall(async (request) => {
 
 // 10. Admin: Send bulk custom emails to subscribers
 exports.sendBulkCustomEmails = onCall(
-    { secrets: ["RESEND_API_KEY"] },
+    { 
+      secrets: ["RESEND_API_KEY"],
+      memory: "1GiB",
+      timeoutSeconds: 540
+    },
     async (request) => {
         // Check authorization
         if (!isAuthorizedAdmin(request.auth)) {
