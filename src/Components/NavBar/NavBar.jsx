@@ -1,15 +1,17 @@
 import React, { useState, useEffect } from 'react'
 import { NavLink } from 'react-router-dom'
 import { useWebHaptics } from 'web-haptics/react'
-import { FiShoppingCart, FiMenu, FiX, FiCompass } from "react-icons/fi"
+import { FiShoppingCart, FiMenu, FiX, FiUser } from "react-icons/fi"
 import { motion } from 'framer-motion'
 import logo from "../../assets/LOGO.webp"
 import { useNavigate } from 'react-router'
+import { useAuth } from '../../AuthContext'
 
 export default function NavBar() {
   const [menuOpen, setMenuOpen] = useState(false)
   const { trigger } = useWebHaptics()
   const navigate = useNavigate()
+  const { user } = useAuth()
 
   // Prevent background scroll when open
   useEffect(() => {
@@ -83,23 +85,22 @@ export default function NavBar() {
                   />
                 )}
                 <motion.div
-                  animate={isActive ? { rotate: 0 } : {
-                    rotate: [0, -6, 6, -6, 6, 0],
-                  }}
-                  transition={{
-                    duration: 3,
-                    repeat: Infinity,
-                    ease: "easeInOut"
-                  }}
-                  whileHover={isActive ? {} : {
-                    rotate: [0, -15, 15, -15, 15, -15, 15, 0],
-                    scale: 1.2,
-                    transition: { duration: 0.5 }
-                  }}
+                  whileHover={{ scale: 1.15 }}
                   whileTap={{ scale: 0.9 }}
                   className="relative z-10 flex items-center justify-center"
                 >
-                  <FiCompass size={23} className="transition-transform duration-300" />
+                  {user && user.photoURL ? (
+                    <img
+                      src={user.photoURL}
+                      alt={user.displayName || "Profile"}
+                      className={`w-7 h-7 rounded-full object-cover border transition-all duration-300 ${
+                        isActive ? 'border-orange-600 ring-2 ring-orange-100' : 'border-orange-400 hover:border-orange-500'
+                      }`}
+                      referrerPolicy="no-referrer"
+                    />
+                  ) : (
+                    <FiUser size={23} className="transition-transform duration-300" />
+                  )}
                 </motion.div>
               </>
             )}
