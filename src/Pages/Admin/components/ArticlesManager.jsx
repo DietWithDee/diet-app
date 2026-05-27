@@ -5,6 +5,7 @@ import RichTextEditor from './RichTextEditor';
 import ProgressBar from './ProgressBar';
 import SafeImage from '../../../Components/SafeImage';
 import DeleteConfirmationModal from './DeleteConfirmationModal';
+import DOMPurify from 'dompurify';
 
 // Articles Management Component
 const ArticlesManager = React.memo(({ articles, setArticles, showNotification, loadArticles }) => {
@@ -435,9 +436,9 @@ const ArticlesManager = React.memo(({ articles, setArticles, showNotification, l
                   <div
                     className="text-gray-600 text-sm mb-2 prose prose-sm max-w-none"
                     dangerouslySetInnerHTML={{
-                      __html: article.content.length > 150
+                      __html: DOMPurify.sanitize(article.content.length > 150
                         ? article.content.substring(0, 150) + '...'
-                        : article.content
+                        : article.content)
                     }}
                   />
                   {article.tags && article.tags.length > 0 && (
