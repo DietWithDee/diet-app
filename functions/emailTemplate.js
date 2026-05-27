@@ -317,7 +317,7 @@ const createWelcomeTemplate = (name) => {
                   <h1>Welcome to the Family! 🌿</h1>
               </div>
               <div class="content">
-                  <p>Hi \${name || 'there'},</p>
+                  <p>Hi ${name || 'there'},</p>
                   <p>I'm so glad you've decided to join the <strong>Diet With Dee</strong> community! You've taken a wonderful step toward a more nourished and balanced lifestyle.</p>
                   <p>Here’s what you can expect from our newsletter:</p>
                   <ul>
