@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import SEO from '../../Components/SEO';
 import { useNavigate, useParams } from 'react-router-dom';
 import { Loader, Calendar, User, ArrowRight, ArrowLeft, Share2, Heart, MessageCircle, Tag } from 'lucide-react';
+import DOMPurify from 'dompurify';
 import { getArticlesPaged, getArticleBySlugOrId, likeNews, markArticleHelpful } from '../../firebaseUtils';
 import BlogImage from '../../assets/LOGO.webp'; // Fallback image (Logo)
 import BlogArticleSEO from '../../Components/BlogArticleSEO';
@@ -576,7 +577,7 @@ function Blog() {
                     fontSize: '18px',
                     lineHeight: '1.8'
                   }}
-                  dangerouslySetInnerHTML={{ __html: transformArticleContent(selectedArticle.content) }}
+                  dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(transformArticleContent(selectedArticle.content)) }}
                 />
 
                 {/* Tags */}
