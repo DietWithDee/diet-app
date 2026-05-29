@@ -16,6 +16,7 @@
   "dependencies": {
     "@emailjs/browser": "^4.4.1",
     "@tailwindcss/vite": "^4.1.11",
+    "dompurify": "^3.4.7",
     "firebase": "^12.0.0",
     "firebase-admin": "^13.4.0",
     "firebase-functions": "^6.4.0",
@@ -35,7 +36,8 @@
     "react-slick": "^0.30.3",
     "recharts": "^3.7.0",
     "slick-carousel": "^1.8.1",
-    "web-haptics": "^0.0.6"
+    "web-haptics": "^0.0.6",
+    "workbox-window": "^7.4.1"
   },
   "devDependencies": {
     "@eslint/js": "^9.29.0",

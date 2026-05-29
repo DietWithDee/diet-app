@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import DOMPurify from 'dompurify';
 import { Plus, Edit2, Trash2, Save, X, Loader, Tag, Eye, Calendar, Clock, Image as ImageIcon } from 'lucide-react';
 import { createArticle, updateArticle, deleteArticle, getArticleTags } from '../../../firebaseUtils';
 import RichTextEditor from './RichTextEditor';
@@ -435,9 +436,9 @@ const ArticlesManager = React.memo(({ articles, setArticles, showNotification, l
                   <div
                     className="text-gray-600 text-sm mb-2 prose prose-sm max-w-none"
                     dangerouslySetInnerHTML={{
-                      __html: article.content.length > 150
+                      __html: DOMPurify.sanitize(article.content.length > 150
                         ? article.content.substring(0, 150) + '...'
-                        : article.content
+                        : article.content)
                     }}
                   />
                   {article.tags && article.tags.length > 0 && (
