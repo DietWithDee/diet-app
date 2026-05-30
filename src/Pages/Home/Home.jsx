@@ -203,10 +203,10 @@ function Home() {
                   <motion.button
                     whileHover={{ scale: 1.05, y: -2 }}
                     whileTap={{ scale: 0.95 }}
-                    onClick={() => navigate('/about')}
+                    onClick={() => navigate('/contactus')}
                     className="px-8 py-4 border-2 border-green-600 text-green-700 font-bold rounded-full hover:bg-green-50 transition-all duration-300 hover:shadow-md"
                   >
-                    Learn More
+                    Book a Session
                   </motion.button>
                 </motion.div>
 
