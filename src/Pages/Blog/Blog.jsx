@@ -11,6 +11,7 @@ import SafeImage from '../../Components/SafeImage';
 import 'react-lazy-load-image-component/src/effects/blur.css';
 import { logEvent } from 'firebase/analytics';
 import { analytics } from '../../firebaseConfig';
+import DOMPurify from 'dompurify';
 
 function Blog() {
   const navigate = useNavigate();
@@ -576,7 +577,7 @@ function Blog() {
                     fontSize: '18px',
                     lineHeight: '1.8'
                   }}
-                  dangerouslySetInnerHTML={{ __html: transformArticleContent(selectedArticle.content) }}
+                  dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(transformArticleContent(selectedArticle.content)) }}
                 />
 
                 {/* Tags */}
