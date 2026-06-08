@@ -100,3 +100,19 @@
   border: 1px solid rgba(16, 185, 129, 0.15) !important;
 }
 
+/* Standardized Article Body Typography */
+.article-body {
+  font-size: 16px;
+  line-height: 1.8;
+}
+@media (min-width: 640px) {
+  .article-body {
+    font-size: 17px;
+  }
+}
+@media (min-width: 1024px) {
+  .article-body {
+    font-size: 18px;
+  }
+}
+
