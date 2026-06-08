@@ -531,7 +531,7 @@ function Blog() {
                     {selectedArticle.title}
                   </h1>
 
-                  <div className="flex flex-wrap items-center gap-4 lg:gap-6 text-gray-600 mb-6">
+                  <div className="flex flex-wrap items-center gap-4 lg:gap-6 text-gray-600 pb-6 border-b border-gray-200 mb-6">
                     <div className="flex items-center gap-2">
                       <Calendar size={18} />
                       <span className="text-sm lg:text-base">{formatDate(selectedArticle.createdAt)}</span>
@@ -547,28 +547,6 @@ function Blog() {
                       <Heart size={16} className="text-red-500" />
                       <span className="text-sm lg:text-base">{selectedArticle.likesCount || 0} likes</span>
                     </div>
-                  </div>
-
-                  {/* Social Actions */}
-                  <div className="flex flex-wrap items-center gap-2 sm:gap-4 pb-6 border-b border-gray-200">
-                    <button
-                      onClick={() => handleShare(selectedArticle)}
-                      className="flex items-center gap-2 px-3 sm:px-4 py-2 text-gray-600 hover:text-green-600 hover:bg-green-50 rounded-lg transition-all text-sm"
-                    >
-                      <Share2 size={16} />
-                      Share
-                    </button>
-                    <button
-                      onClick={() => handleLike(selectedArticle.id)}
-                      disabled={isLiking}
-                      className={`flex items-center gap-2 px-3 sm:px-4 py-2 rounded-lg transition-all text-sm ${isLiking
-                          ? 'text-gray-400 bg-gray-50 cursor-not-allowed'
-                          : 'text-gray-600 hover:text-red-500 hover:bg-red-50'
-                        }`}
-                    >
-                      <Heart size={16} />
-                      {isLiking ? 'Liking...' : 'Like'}
-                    </button>
                   </div>
                 </div>
 
@@ -591,61 +569,35 @@ function Blog() {
                 )}
 
                 {/* Article Footer */}
-                <div className="mt-8 lg:mt-12 pt-6 lg:pt-8 border-t border-gray-200">
-                  <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-                    <div className="text-sm text-gray-500">
-                      Was this article helpful?
-                      {(selectedArticle.helpfulCount || 0) > 0 && (
-                        <span className="ml-2 text-green-600 font-medium">
-                          {selectedArticle.helpfulCount} people found this helpful
+                <div className="mt-8 lg:mt-12 pt-6 lg:pt-8 border-t border-gray-200 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+                  <div className="text-sm text-gray-500">
+                    Enjoyed this article? Share it with your friends or show some love!
+                  </div>
+                  <div className="flex flex-wrap items-center gap-2 sm:gap-3">
+                    <button
+                      onClick={() => handleLike(selectedArticle.id)}
+                      disabled={isLiking}
+                      className={`flex items-center gap-2 px-4 py-2 rounded-full border transition-all text-sm font-semibold cursor-pointer ${isLiking
+                          ? 'text-gray-400 bg-gray-50 border-gray-100 cursor-not-allowed'
+                          : 'text-gray-600 hover:text-red-500 hover:bg-red-55 border-gray-200'
+                        }`}
+                    >
+                      <Heart size={16} className={selectedArticle.likesCount > 0 ? "fill-red-500 text-red-500" : ""} />
+                      {isLiking ? 'Liking...' : 'Like'}
+                      {(selectedArticle.likesCount || 0) > 0 && (
+                        <span className="ml-1 bg-gray-100 text-gray-600 px-2 py-0.5 rounded-full text-xs">
+                          {selectedArticle.likesCount}
                         </span>
                       )}
-                    </div>
-                    <div className="flex gap-2">
-                      <button
-                        onClick={() => handleHelpfulFeedback(selectedArticle.id, true)}
-                        disabled={hasFeedback}
-                        className={`px-3 sm:px-4 py-2 rounded-lg transition-colors text-xs sm:text-sm ${hasFeedback
-                            ? 'bg-gray-100 text-gray-400 cursor-not-allowed'
-                            : 'bg-green-100 text-green-700 hover:bg-green-200'
-                          }`}
-                      >
-                        Yes, helpful! 👍
-                      </button>
-                      <button
-                        onClick={() => handleHelpfulFeedback(selectedArticle.id, false)}
-                        disabled={hasFeedback}
-                        className={`px-3 sm:px-4 py-2 rounded-lg transition-colors text-xs sm:text-sm ${hasFeedback
-                            ? 'bg-gray-100 text-gray-400 cursor-not-allowed'
-                            : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
-                          }`}
-                      >
-                        Could be better 👎
-                      </button>
-                    </div>
+                    </button>
+                    <button
+                      onClick={() => handleShare(selectedArticle)}
+                      className="flex items-center gap-2 px-4 py-2 rounded-full border border-gray-200 text-gray-600 hover:text-green-600 hover:bg-green-50 transition-all text-sm font-semibold cursor-pointer"
+                    >
+                      <Share2 size={16} />
+                      Share
+                    </button>
                   </div>
-
-                  {/* Feedback Summary */}
-                  {((selectedArticle.helpfulCount || 0) > 0 || (selectedArticle.notHelpfulCount || 0) > 0) && (
-                    <div className="mt-4 p-3 bg-gray-50 rounded-lg">
-                      <div className="flex items-center justify-between text-sm text-gray-600">
-                        <div className="flex items-center gap-4">
-                          <span className="text-green-600">
-                            👍 {selectedArticle.helpfulCount || 0} helpful
-                          </span>
-                          <span className="text-gray-500">
-                            👎 {selectedArticle.notHelpfulCount || 0} not helpful
-                          </span>
-                        </div>
-                      </div>
-                    </div>
-                  )}
-
-                  {hasFeedback && (
-                    <div className="mt-3 text-sm text-green-600 text-center">
-                      Thank you for your feedback! 🙏
-                    </div>
-                  )}
                 </div>
               </div>
             </div>
