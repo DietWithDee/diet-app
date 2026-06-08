@@ -261,6 +261,7 @@ function Blog() {
       // Helper to generate the card safely
       const createPlanCard = (url, linkText) => {
         let displayTitle = linkText;
+        const isAllPlans = url.includes('/plans') && !url.includes('#');
         
         // If it's a raw URL with no text (or identical text), format the URL explicitly into a readable title
         if (!displayTitle || displayTitle.trim() === url.trim() || displayTitle.startsWith('http') || displayTitle.startsWith('/plans')) {
@@ -281,6 +282,8 @@ function Blog() {
            }
         }
         
+        const buttonText = isAllPlans ? 'View All Plans' : 'View Plan';
+        
         const wrapper = doc.createElement('div');
         wrapper.className = "my-8 p-5 sm:p-6 rounded-2xl border border-green-100/40 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 not-prose transition-all duration-300 shimmer-card";
         wrapper.innerHTML = `
@@ -291,7 +294,7 @@ function Blog() {
             <h4 class="text-lg sm:text-xl font-bold text-gray-800 m-0 leading-tight truncate-whitespace">${displayTitle}</h4>
           </div>
           <a href="${url}" target="_blank" rel="noopener noreferrer" class="w-full sm:w-auto shrink-0 inline-flex items-center justify-center px-6 py-2.5 sm:py-3 bg-gradient-to-r from-[#F6841F] to-orange-500 text-white text-sm font-bold rounded-full shadow-md hover:shadow-lg no-underline gap-2">
-            View Plan
+            ${buttonText}
             <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14"/><path d="m12 5 7 7-7 7"/></svg>
           </a>
         `;

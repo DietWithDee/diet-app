@@ -310,7 +310,6 @@ function MyJourney() {
                       Get started to save your progress, get personalized recommendations, and access our best features. We’ll log you in if you already have an account. Hit continue as guest to try it first, no signup required.  
                     </p>
                     <motion.button
-                      whileHover={{ scale: 1.03 }}
                       whileTap={{ scale: 0.97 }}
                       onClick={handleGetStarted}
                       disabled={signingIn || loading}
@@ -393,7 +392,6 @@ function MyJourney() {
                 </p>
                 <div className="flex flex-col sm:flex-row gap-3 justify-center">
                   <motion.button
-                    whileHover={{ scale: 1.05 }}
                     whileTap={{ scale: 0.95 }}
                     onClick={() => {
                       trigger("success");
@@ -404,7 +402,6 @@ function MyJourney() {
                     Explore Plans
                   </motion.button>
                   <motion.button
-                    whileHover={{ scale: 1.05 }}
                     whileTap={{ scale: 0.95 }}
                     onClick={() => {
                       trigger("success");
@@ -461,7 +458,6 @@ function MyJourney() {
                   className="max-w-3xl mx-auto mb-10 flex justify-center"
                 >
                   <motion.button
-                    whileHover={{ scale: 1.03 }}
                     whileTap={{ scale: 0.97 }}
                     onClick={handleBookConsultation}
                     className="px-6 py-3 bg-gradient-to-r from-[#F6841F] to-orange-500 text-white font-bold rounded-full shadow-lg hover:shadow-xl transition-all flex items-center justify-center gap-2 text-base"
@@ -604,7 +600,6 @@ function MyJourney() {
                 </p>
                 {isPendingDeletion ? (
                   <motion.button
-                    whileHover={{ scale: 1.05 }}
                     whileTap={{ scale: 0.95 }}
                     onClick={() => {
                       trigger("error");
@@ -616,7 +611,6 @@ function MyJourney() {
                   </motion.button>
                 ) : (
                   <motion.button
-                    whileHover={{ scale: 1.05 }}
                     whileTap={{ scale: 0.95 }}
                     onClick={() => {
                       trigger("nudge");

@@ -187,7 +187,6 @@ function Home() {
                 {/* Buttons */}
                 <motion.div variants={fadeUp} className="flex flex-col sm:flex-row gap-4 pt-6">
                   <motion.button
-                    whileHover={{ scale: 1.05, y: -2 }}
                     whileTap={{ scale: 0.95 }}
                     onClick={() => {
                       logEvent(analytics, 'select_content', {
@@ -201,7 +200,6 @@ function Home() {
                     Start My Journey
                   </motion.button>
                   <motion.button
-                    whileHover={{ scale: 1.05, y: -2 }}
                     whileTap={{ scale: 0.95 }}
                     onClick={() => navigate('/contactus')}
                     className="px-8 py-4 border-2 border-green-600 text-green-700 font-bold rounded-full hover:bg-green-50 transition-all duration-300 hover:shadow-md"
@@ -357,7 +355,6 @@ function Home() {
 
                   <div className="flex flex-wrap justify-center gap-4 pt-2">
                     <motion.button
-                      whileHover={{ scale: 1.05 }}
                       whileTap={{ scale: 0.95 }}
                       onClick={() => navigate('/plans')}
                       className="px-8 py-4 bg-gradient-to-r from-orange-400 to-orange-500 text-white font-bold rounded-full shadow-lg hover:shadow-xl transition-all duration-300 hover:from-green-700 hover:to-emerald-700"
@@ -366,7 +363,6 @@ function Home() {
                     </motion.button>
                     
                     <motion.button
-                      whileHover={{ scale: 1.05 }}
                       whileTap={{ scale: 0.95 }}
                       onClick={() => navigate('/services#events-gallery')}
                       className="px-8 py-4 border-2 border-green-600 text-green-700 font-bold rounded-full hover:bg-green-50 transition-all duration-300"

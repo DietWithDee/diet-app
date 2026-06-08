@@ -101,18 +101,30 @@
 }
 
 /* Standardized Article Body Typography */
-.article-body {
-  font-size: 16px;
-  line-height: 1.8;
+.article-body,
+.article-body p,
+.article-body li,
+.article-body span,
+.article-body div:not(.not-prose *) {
+  font-size: 16px !important;
+  line-height: 1.8 !important;
 }
 @media (min-width: 640px) {
-  .article-body {
-    font-size: 17px;
+  .article-body,
+  .article-body p,
+  .article-body li,
+  .article-body span,
+  .article-body div:not(.not-prose *) {
+    font-size: 17px !important;
   }
 }
 @media (min-width: 1024px) {
-  .article-body {
-    font-size: 18px;
+  .article-body,
+  .article-body p,
+  .article-body li,
+  .article-body span,
+  .article-body div:not(.not-prose *) {
+    font-size: 18px !important;
   }
 }
 
