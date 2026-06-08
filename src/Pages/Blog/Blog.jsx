@@ -290,7 +290,7 @@ function Blog() {
             </div>
             <h4 class="text-lg sm:text-xl font-bold text-gray-800 m-0 leading-tight truncate-whitespace">${displayTitle}</h4>
           </div>
-          <a href="${url}" target="_blank" rel="noopener noreferrer" class="w-full sm:w-auto shrink-0 inline-flex items-center justify-center px-6 py-2.5 sm:py-3 bg-gradient-to-r from-[#F6841F] to-orange-500 text-white text-sm font-bold rounded-full shadow-md hover:shadow-lg hover:scale-105 transition-all duration-200 no-underline gap-2">
+          <a href="${url}" target="_blank" rel="noopener noreferrer" class="w-full sm:w-auto shrink-0 inline-flex items-center justify-center px-6 py-2.5 sm:py-3 bg-gradient-to-r from-[#F6841F] to-orange-500 text-white text-sm font-bold rounded-full shadow-md hover:shadow-lg no-underline gap-2">
             View Plan
             <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14"/><path d="m12 5 7 7-7 7"/></svg>
           </a>
