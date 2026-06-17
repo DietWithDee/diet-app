@@ -1,5 +1,5 @@
 const createAdminBookingEmail = (bookingData) => {
-  if (bookingData.isFathersDayBooking) {
+  if (bookingData.isFathersDayBooking || bookingData.consultationType === 'fathersday') {
     return `
       <!DOCTYPE html>
       <html lang="en">

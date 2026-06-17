@@ -103,3 +103,18 @@ To launch a new campaign (e.g. "Mother's Day Promo"), follow this checklist:
 - **Actions**:
   1. Modify the template in `createAdminBookingEmail` and `createClientConfirmationEmail` to check for the current campaign flags.
   2. Rewrite titles, visual colors, and subject lines to match the new campaign holiday name (e.g., replace *"Father's Day Gift"* with *"Mother's Day Voucher"*).
+
+### 5. Configure Amount-to-Type Routing Tiers
+- **Files**:
+  - `src/Pages/ContactUs/PaymentSuccess.jsx`
+  - `functions/index.js`
+- **Actions**:
+  1. When introducing a campaign-specific price (e.g., 600 GHS), define a tier-based mapping from transaction amounts to the target campaign `consultationType`.
+  2. For example, check amount ranges:
+     - Under 500 GHS -> `'followup'`
+     - 500 GHS to 700 GHS -> `'fathersday'` (or the new campaign type)
+     - 700 GHS and above -> `'initial'`
+  3. Ensure the custom consultation type is stored in Firestore and checked in the layout conditional statements:
+     - In `PaymentSuccess.jsx`, make sure `isFathersDay` (or `isNewCampaign`) checks `verifiedConsultationType === 'campaignType'` or `formData.consultationType === 'campaignType'`.
+     - In `functions/bookingEmailTemplates.js`, check `bookingData.consultationType === 'campaignType'` when routing templates.
+     - In `src/Pages/Admin/components/BookingsPanel.jsx`, update the conditional badges display to label the new campaign type correctly.

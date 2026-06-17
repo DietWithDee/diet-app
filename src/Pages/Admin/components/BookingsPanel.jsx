@@ -218,7 +218,7 @@ const BookingsPanel = ({ showNotification }) => {
                 <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-4">
                   <h3 className="text-lg font-bold text-gray-900">{booking.name}</h3>
                   <div className="flex gap-2">
-                    {booking.isFathersDayBooking ? (
+                    {booking.isFathersDayBooking || booking.consultationType === 'fathersday' ? (
                       <span className="px-2.5 py-1 bg-amber-50 text-amber-700 text-xs font-bold rounded-lg uppercase tracking-wide border border-amber-100">🎁 Father's Day Gift (₵{booking.amount || '600'})</span>
                     ) : booking.consultationType === 'followup' ? (
                       <span className="px-2.5 py-1 bg-emerald-50 text-emerald-700 text-xs font-bold rounded-lg uppercase tracking-wide border border-emerald-100">Follow-Up (₵400)</span>

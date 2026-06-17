@@ -100,7 +100,12 @@ function PaymentSuccess() {
 
       // Derive type from amount to be robust against extra charges/fees
       const actualAmount = verifyResult.data.amount / 100;
-      const verifiedType = actualAmount < 600 ? 'followup' : 'initial';
+      let verifiedType = 'initial';
+      if (actualAmount < 500) {
+        verifiedType = 'followup';
+      } else if (actualAmount >= 500 && actualAmount < 700) {
+        verifiedType = 'fathersday';
+      }
       setVerifiedConsultationType(verifiedType);
 
       const payload = {
@@ -255,7 +260,9 @@ function PaymentSuccess() {
   }
 
   // status === 'confirmed'
-  const isFathersDay = !!formData.isFathersDayBooking || new URLSearchParams(location.search).get('campaign') === 'fathersday';
+  const isFathersDay = !!formData.isFathersDayBooking || 
+                       new URLSearchParams(location.search).get('campaign') === 'fathersday' ||
+                       (verifiedConsultationType || formData.consultationType) === 'fathersday';
 
   if (isFathersDay) {
     const searchParams = new URLSearchParams(location.search);

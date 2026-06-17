@@ -444,7 +444,12 @@ exports.processBooking = onCall(
         
         // Derive actual type from amount as the source of truth
         const actualAmount = Number(amount);
-        const actualType = actualAmount < 600 ? 'followup' : 'initial';
+        let actualType = 'initial';
+        if (actualAmount < 500) {
+            actualType = 'followup';
+        } else if (actualAmount >= 500 && actualAmount < 700) {
+            actualType = 'fathersday';
+        }
 
         const db = admin.firestore();
         const bookingRef = db.collection("bookings").doc(reference);
@@ -487,7 +492,7 @@ exports.processBooking = onCall(
         try {
             // Email 1: To Admin
             const adminHtml = createAdminBookingEmail(bookingData);
-            const isFathersDay = !!bookingData.isFathersDayBooking;
+            const isFathersDay = !!bookingData.isFathersDayBooking || actualType === 'fathersday';
             const adminSubject = isFathersDay
                 ? `New Father's Day Gift: ${bookingData.buyerName || formData.name} for ${bookingData.fatherName || 'N/A'}`
                 : `New Booking: ${formData.name} (${actualType === 'followup' ? 'Follow-Up' : 'Initial'})`;
