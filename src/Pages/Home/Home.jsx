@@ -250,8 +250,9 @@ function Home() {
               </motion.div>
             </div>
 
-            {/* Right: Video without glowing green background elements */}
+            {/* Right: Video replaced with Father's Day Campaign Ad (Video commented out) */}
             <div className="flex-1 relative max-w-lg w-full">
+              {/*
               <motion.div
                 className="relative z-10 p-4 lg:p-8"
                 variants={floatingImage}
@@ -272,6 +273,52 @@ function Home() {
                     />
                   </div>
                 </div>
+              </motion.div>
+              */}
+
+              <motion.div
+                variants={floatingImage}
+                initial="hidden"
+                animate="show"
+                className="bg-white border border-zinc-200 p-6 shadow-sm rounded-none text-left relative z-10 space-y-4"
+              >
+                {/* Image Section */}
+                <div 
+                  onClick={() => navigate('/fathersday')} 
+                  className="w-full overflow-hidden bg-zinc-100 border border-zinc-200 cursor-pointer group"
+                >
+                  <img
+                    src={fathersDayPromo}
+                    alt="Father's Day Special Gift"
+                    className="w-full h-56 object-cover"
+                  />
+                </div>
+
+                {/* Text Section */}
+                <div className="space-y-2">
+                  <div className="flex items-center gap-1.5 text-amber-600 font-bold text-[10px] uppercase tracking-wider">
+                    <span className="inline-block w-1.5 h-1.5 bg-amber-500 animate-ping rounded-full"></span>
+                    <span>Temporary Campaign Ad</span>
+                  </div>
+                  <h3 className="text-xl font-bold tracking-tight text-zinc-950 font-serif">
+                    Gift Wellness this Father's Day
+                  </h3>
+                  <p className="text-xs text-zinc-500 leading-relaxed">
+                    Honor your father or a father figure with a premium consultation and custom nutritional roadmap. Make health his best gift.
+                  </p>
+                  <div className="flex justify-between items-baseline pt-2">
+                    <span className="text-3xl font-extrabold text-zinc-950">₵600</span>
+                    <span className="text-xs text-zinc-400 line-through">₵1000 original value</span>
+                  </div>
+                </div>
+
+                {/* Action button */}
+                <button
+                  onClick={() => navigate('/fathersday')}
+                  className="w-full h-10 bg-zinc-900 hover:bg-zinc-800 text-zinc-50 font-bold text-xs rounded-none transition-colors tracking-wide cursor-pointer flex items-center justify-center border-none"
+                >
+                  Book Father's Day Gift
+                </button>
               </motion.div>
             </div>
 
@@ -470,7 +517,7 @@ function Home() {
                 <img
                   src={fathersDayPromo}
                   alt="Father's Day Special Gift"
-                  className="w-full h-48 md:h-full object-cover grayscale opacity-90 hover:grayscale-0 transition-all duration-300"
+                  className="w-full h-48 md:h-full object-cover"
                 />
               </div>
 

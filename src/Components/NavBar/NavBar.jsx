@@ -7,6 +7,53 @@ import logo from "../../assets/LOGO.webp"
 import { useNavigate } from 'react-router'
 import { useAuth } from '../../AuthContext'
 
+// Playful bouncing icon that transitions between shopping cart and gift emoji
+const PlayfulNavBarIcon = () => {
+  return (
+    <div className="relative w-8 h-8 flex items-center justify-center select-none">
+      {/* Shopping Cart Icon */}
+      <motion.div
+        initial={{ scale: 0, rotate: -180, opacity: 0 }}
+        animate={{ 
+          scale: [0, 1.2, 0.9, 1, 1, 0],
+          rotate: [-180, 10, -5, 0, 0, 180],
+          opacity: [0, 1, 1, 1, 1, 0]
+        }}
+        transition={{
+          duration: 3,
+          ease: "easeInOut",
+          repeat: Infinity,
+          repeatDelay: 0.5,
+          times: [0, 0.15, 0.25, 0.35, 0.45, 0.5]
+        }}
+        className="absolute text-current flex items-center justify-center"
+      >
+        <FiShoppingCart size={22} />
+      </motion.div>
+
+      {/* Gift Emoji */}
+      <motion.div
+        initial={{ scale: 0, rotate: 180, opacity: 0 }}
+        animate={{ 
+          scale: [0, 0, 1.3, 0.9, 1.1, 1],
+          rotate: [180, 180, -15, 5, -2, 0],
+          opacity: [0, 0, 1, 1, 1, 1]
+        }}
+        transition={{
+          duration: 3,
+          ease: "easeInOut",
+          repeat: Infinity,
+          repeatDelay: 0.5,
+          times: [0, 0.5, 0.65, 0.75, 0.85, 1]
+        }}
+        className="absolute text-lg flex items-center justify-center animate-pulse"
+      >
+        🎁
+      </motion.div>
+    </div>
+  );
+};
+
 export default function NavBar() {
   const [menuOpen, setMenuOpen] = useState(false)
   const { trigger } = useWebHaptics()
@@ -132,7 +179,7 @@ export default function NavBar() {
                   whileTap={{ scale: 0.9 }}
                   className="relative z-10 flex items-center justify-center"
                 >
-                  <FiShoppingCart size={23} className="transition-transform duration-300" />
+                  <PlayfulNavBarIcon />
                 </motion.div>
               </>
             )}

@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
-import { Share2, Check, ChevronLeft, ChevronRight, CreditCard, Sparkles } from 'lucide-react';
+import { Share2, Check, ChevronLeft, ChevronRight, CreditCard, Sparkles, Gift, ShoppingCart } from 'lucide-react';
 import { motion } from 'framer-motion';
 import SEO from '../../Components/SEO';
 import PlanImg from '../../assets/Salad.webp'; // you can replace this with actual plan images
@@ -12,6 +12,53 @@ import Pressure from '../../assets/images/Pressure.webp'; // example image for H
 import ScrollToTop from "../../utils/ScrollToTop";
 import { useTestimonials } from '../../hooks/useTestimonials';
 import { plans } from '../../utils/plansData';
+
+// Playful bouncing banner icon that transitions between shopping cart and gift emoji
+const PlayfulBannerIcon = () => {
+  return (
+    <div className="relative w-10 h-10 flex items-center justify-center shrink-0">
+      {/* Shopping Cart Icon */}
+      <motion.div
+        initial={{ scale: 0, rotate: -180, opacity: 0 }}
+        animate={{ 
+          scale: [0, 1.2, 0.9, 1, 1, 0],
+          rotate: [-180, 10, -5, 0, 0, 180],
+          opacity: [0, 1, 1, 1, 1, 0]
+        }}
+        transition={{
+          duration: 3,
+          ease: "easeInOut",
+          repeat: Infinity,
+          repeatDelay: 0.5,
+          times: [0, 0.15, 0.25, 0.35, 0.45, 0.5]
+        }}
+        className="absolute text-amber-500"
+      >
+        <ShoppingCart size={22} />
+      </motion.div>
+
+      {/* Gift Emoji */}
+      <motion.div
+        initial={{ scale: 0, rotate: 180, opacity: 0 }}
+        animate={{ 
+          scale: [0, 0, 1.3, 0.9, 1.1, 1],
+          rotate: [180, 180, -15, 5, -2, 0],
+          opacity: [0, 0, 1, 1, 1, 1]
+        }}
+        transition={{
+          duration: 3,
+          ease: "easeInOut",
+          repeat: Infinity,
+          repeatDelay: 0.5,
+          times: [0, 0.5, 0.65, 0.75, 0.85, 1]
+        }}
+        className="absolute text-xl select-none"
+      >
+        🎁
+      </motion.div>
+    </div>
+  );
+};
 
 function Plans() {
   const navigate = useNavigate();
@@ -213,6 +260,20 @@ function Plans() {
             Tailored nutrition solutions for every lifestyle and goal. Pick a plan and begin your transformation.
           </p>
           <div className='w-20 h-1 bg-gradient-to-r from-green-500 to-emerald-500 mx-auto rounded-full'></div>
+        </div>
+
+        {/* Father's Day Promo Banner */}
+        <div className="max-w-6xl mx-auto mb-8 bg-zinc-950 text-white border border-amber-500/20 p-4 rounded-none flex flex-col sm:flex-row items-center justify-between gap-4 text-center sm:text-left">
+          <div className="flex items-center gap-3">
+            <PlayfulBannerIcon />
+            <div>
+              <p className="text-sm font-bold tracking-tight text-amber-400 uppercase">Father's Day Special</p>
+              <p className="text-xs text-zinc-300">All diet plans are 10% off using promo code <span className="font-mono bg-zinc-900 text-white border border-zinc-800 px-1.5 py-0.5 font-bold">FATHERSDAY</span> at checkout!</p>
+            </div>
+          </div>
+          <div className="text-xs font-semibold text-zinc-400 bg-zinc-900 border border-zinc-800 px-3 py-1 rounded-none uppercase tracking-widest shrink-0">
+            10% OFF ALL PLANS
+          </div>
         </div>
 
         <div className='grid grid-cols-1 md:grid-cols-3 gap-8 max-w-6xl mx-auto'>

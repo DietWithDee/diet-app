@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import SEO from '../../Components/SEO';
-import { ArrowLeft, User, Mail, Calculator, Target, Heart, Utensils, MessageCircle, Phone, CheckCircle, CreditCard, Lock, Shield, Calendar, Clock, Banknote } from 'lucide-react';
-import { useLocation } from 'react-router-dom';
+import { ArrowLeft, User, Mail, Calculator, Target, Heart, Utensils, MessageCircle, Phone, CheckCircle, CreditCard, Lock, Shield, Calendar, Clock, Banknote, Gift } from 'lucide-react';
+import { useLocation, useNavigate } from 'react-router-dom';
 import FullyBooked from '../FullyBooked/FullyBooked';
 import Offline from '../Offline/Offline';
 import { getBookingStatus } from '../../firebaseBookingUtils';
@@ -10,6 +10,8 @@ import { useAuth } from '../../AuthContext';
 import WhatsAppPopup from '../../Components/WhatsAppPopup';
 import { logEvent } from 'firebase/analytics';
 import { analytics } from '../../firebaseConfig';
+import { motion } from 'framer-motion';
+import fathersDayPromo from '../../assets/fathers_day_promo.png';
 
 // Compute BMI/calories from a stored profile (reusable helper)
 const computeResultsFromProfile = (profile) => {
@@ -47,6 +49,7 @@ const computeResultsFromProfile = (profile) => {
 };
 
 const ContactUs = () => {
+  const navigate = useNavigate();
   const [isFullyBooked, setIsFullyBooked] = useState(false);
   const [isOffline, setIsOffline] = useState(false);
   const [isBookingOpen, setIsBookingOpen] = useState(true);
@@ -299,15 +302,86 @@ const ContactUs = () => {
             {/* Main Booking Section - Centered and Wider */}
             <div className="max-w-4xl mx-auto w-full px-4 sm:px-0 space-y-6">
 
-              {/* Two Consultation Cards */}
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              {/* Father's Day Promotion Banner */}
+              <div className="bg-white border border-zinc-200 shadow-sm rounded-none overflow-hidden flex flex-col md:flex-row items-stretch">
+                <div className="w-full md:w-5/12 bg-zinc-100 flex items-center justify-center border-b md:border-b-0 md:border-r border-zinc-200">
+                  <img
+                    src={fathersDayPromo}
+                    alt="Father's Day Campaign"
+                    className="w-full h-48 md:h-full object-cover"
+                  />
+                </div>
+                <div className="w-full md:w-7/12 p-6 flex flex-col justify-between space-y-4 text-left">
+                  <div className="space-y-2">
+                    <div className="flex items-center gap-1.5 text-amber-600 font-bold text-[10px] uppercase tracking-wider">
+                      <Gift size={12} className="animate-bounce" />
+                      <span>Limited Father's Day Offer</span>
+                    </div>
+                    <h3 className="text-xl font-bold tracking-tight text-zinc-950 font-serif">
+                      Gift Wellness this Father's Day
+                    </h3>
+                    <p className="text-xs text-zinc-500 leading-relaxed">
+                      Honor your father or a father figure with a premium consultation and custom nutritional roadmap. Make health his best gift.
+                    </p>
+                    <div className="flex items-baseline gap-2 pt-1">
+                      <span className="text-2xl font-extrabold text-zinc-950">₵600</span>
+                      <span className="text-xs text-zinc-400 line-through">₵1000 original value</span>
+                    </div>
+                  </div>
+                  <button
+                    onClick={() => navigate('/fathersday')}
+                    className="w-full md:w-auto px-6 py-2.5 bg-zinc-900 hover:bg-zinc-800 text-zinc-50 font-bold text-xs rounded-none transition-colors tracking-wide cursor-pointer flex items-center justify-center gap-2 border-none"
+                  >
+                    <Gift size={14} />
+                    Book Father's Day Gift
+                  </button>
+                </div>
+              </div>
+
+              {/* Three Consultation Cards */}
+              <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+
+                {/* Father's Day Campaign Promo Card */}
+                <div className="gold-shimmer-card rounded-3xl p-7 text-white shadow-2xl border border-amber-500/30 flex flex-col justify-between">
+                  <div className="flex-1">
+                    <div className="flex items-center gap-2 mb-1 flex-wrap">
+                      <span className="bg-amber-400 text-green-955 text-[10px] font-black px-3 py-1 rounded-full tracking-widest uppercase">Special Event</span>
+                      <span className="bg-white/20 text-white text-[10px] font-black px-3 py-1 rounded-full tracking-widest uppercase animate-pulse">Save ₵400</span>
+                    </div>
+                    <h2 className="text-xl font-bold mt-3 mb-1 font-serif text-amber-100">Father's Day Gift</h2>
+                    <p className="text-white/90 text-sm mb-4">Initial Consultation Package</p>
+                    <div className="flex items-baseline gap-3 mb-5">
+                      <p className="text-4xl font-extrabold text-amber-400 tracking-tight">₵600</p>
+                      <span className="text-xl text-white/50 line-through font-medium">₵1000</span>
+                    </div>
+                    <div className="space-y-2.5 text-sm mb-6 text-left">
+                      {[
+                        'Giver & Recipient WhatsApp Outreach',
+                        'Downloadable Gift Voucher Card',
+                        'Option to keep it a surprise'
+                      ].map((item, i) => (
+                        <div key={i} className="flex items-start gap-2.5">
+                          <CheckCircle size={16} className="text-amber-400 mt-0.5 shrink-0" />
+                          <span className="text-zinc-100">{item}</span>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                  <button
+                    onClick={() => navigate('/fathersday')}
+                    className="mt-4 w-full py-3.5 bg-amber-500 text-zinc-950 hover:bg-amber-600 font-bold rounded-xl shadow-lg transition-colors flex items-center justify-center gap-2 border-none cursor-pointer"
+                  >
+                    <Gift size={16} />
+                    Gift This Package
+                  </button>
+                </div>
 
                 {/* Initial Consultation Card */}
-                <div className="bg-gradient-to-br from-green-500 via-green-600 to-emerald-700 rounded-3xl p-7 text-white shadow-2xl shadow-green-500/30 border border-green-400/20 flex flex-col">
+                <div className="bg-gradient-to-br from-green-500 via-green-600 to-emerald-700 rounded-3xl p-7 text-white shadow-2xl shadow-green-500/30 border border-green-400/20 flex flex-col justify-between">
                   <div className="flex-1">
                     <div className="flex items-center gap-2 mb-1 flex-wrap">
                       <span className="bg-white/20 text-white text-[10px] font-black px-3 py-1 rounded-full tracking-widest uppercase">Most Popular</span>
-                      <span className="bg-amber-400 text-green-900 text-[10px] font-black px-3 py-1 rounded-full tracking-widest uppercase animate-pulse">Time Limited Offer</span>
+                      <span className="bg-amber-400 text-green-905 text-[10px] font-black px-3 py-1 rounded-full tracking-widest uppercase animate-pulse">Time Limited Offer</span>
                     </div>
                     <h2 className="text-xl font-bold mt-3 mb-1">Initial Consultation</h2>
                     <p className="text-white/90 text-sm mb-4">45 mins</p>
@@ -315,7 +389,7 @@ const ContactUs = () => {
                       <p className="text-4xl font-extrabold text-white tracking-tight">₵800</p>
                       <span className="text-xl text-white/50 line-through font-medium">₵1000</span>
                     </div>
-                    <div className="space-y-2.5 text-sm">
+                    <div className="space-y-2.5 text-sm mb-6 text-left">
                       {['Full assessment of your health goals', 'Free Personalised diet plan', 'Food diary setup'].map((item, i) => (
                         <div key={i} className="flex items-start gap-2.5">
                           <CheckCircle size={16} className="text-white mt-0.5 shrink-0" />
@@ -326,7 +400,7 @@ const ContactUs = () => {
                   </div>
                   <button
                     onClick={() => handlePaymentRedirect('initial')}
-                    className="mt-6 w-full py-3.5 bg-white text-green-700 font-bold rounded-xl shadow hover:bg-green-50 transition-colors flex items-center justify-center gap-2"
+                    className="mt-4 w-full py-3.5 bg-white text-green-700 font-bold rounded-xl shadow hover:bg-green-50 transition-colors flex items-center justify-center gap-2 cursor-pointer border-none"
                   >
                     <Banknote size={16} />
                     Pay now — GH₵ 800
@@ -334,7 +408,7 @@ const ContactUs = () => {
                 </div>
 
                 {/* Follow-up Consultation Card */}
-                <div className="bg-white rounded-3xl p-7 shadow-xl border border-gray-100 flex flex-col">
+                <div className="bg-white rounded-3xl p-7 shadow-xl border border-gray-100 flex flex-col justify-between">
                   <div className="flex-1">
                     <div className="flex items-center gap-2 mb-1">
                       <span className="bg-emerald-100 text-emerald-700 text-[10px] font-black px-3 py-1 rounded-full tracking-widest uppercase">Returning Clients</span>
@@ -342,7 +416,7 @@ const ContactUs = () => {
                     <h2 className="text-xl font-bold text-gray-800 mt-3 mb-1">Follow Up Consultation</h2>
                     <p className="text-gray-600 text-sm mb-4">25 mins</p>
                     <p className="text-4xl font-extrabold text-green-600 tracking-tight mb-5">₵400</p>
-                    <div className="space-y-2.5 text-sm">
+                    <div className="space-y-2.5 text-sm mb-6 text-left">
                       {['Progress review', 'Plan adjustments', 'Personalised counselling'].map((item, i) => (
                         <div key={i} className="flex items-start gap-2.5">
                           <CheckCircle size={16} className="text-green-500 mt-0.5 shrink-0" />
@@ -353,7 +427,7 @@ const ContactUs = () => {
                   </div>
                   <button
                     onClick={() => handlePaymentRedirect('followup')}
-                    className="mt-6 w-full py-3.5 bg-gradient-to-r from-green-500 to-emerald-600 text-white font-bold rounded-xl shadow hover:shadow-md transition-all flex items-center justify-center gap-2"
+                    className="mt-4 w-full py-3.5 bg-gradient-to-r from-green-500 to-emerald-600 text-white font-bold rounded-xl shadow hover:shadow-md transition-all flex items-center justify-center gap-2 border-none cursor-pointer"
                   >
                     <Banknote size={16} />
                     Pay now — GH₵ 400
@@ -446,6 +520,25 @@ const ContactUs = () => {
                               <span className="text-[10px] opacity-80 italic">₵400</span>
                             </button>
                           </div>
+                          {selectedType === 'initial' && (
+                            <motion.div
+                              initial={{ opacity: 0, y: -5 }}
+                              animate={{ opacity: 1, y: 0 }}
+                              className="text-xs text-amber-800 font-semibold bg-amber-50 border border-amber-100 p-2.5 rounded-none flex items-center gap-2"
+                            >
+                              <Gift size={14} className="shrink-0 text-amber-500 animate-pulse" />
+                              <span>
+                                Gifting a father? Use our{' '}
+                                <span
+                                  onClick={() => navigate('/fathersday')}
+                                  className="underline cursor-pointer hover:text-amber-950 font-bold"
+                                >
+                                  Father's Day booking page
+                                </span>{' '}
+                                to save ₵200 (₵600 total) and get a downloadable voucher card!
+                              </span>
+                            </motion.div>
+                          )}
                         </div>
 
                         {/* Phone */}
