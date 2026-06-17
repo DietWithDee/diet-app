@@ -487,19 +487,25 @@ exports.processBooking = onCall(
         try {
             // Email 1: To Admin
             const adminHtml = createAdminBookingEmail(bookingData);
+            const isFathersDay = !!bookingData.isFathersDayBooking;
+            const adminSubject = isFathersDay
+                ? `New Father's Day Gift: ${bookingData.buyerName || formData.name} for ${bookingData.fatherName || 'N/A'}`
+                : `New Booking: ${formData.name} (${actualType === 'followup' ? 'Follow-Up' : 'Initial'})`;
+
             await resend.emails.send({
                 from: 'Diet With Dee Bookings <bookings@mail.dietwithdee.org>',
                 to: ['dietwdee@gmail.com'],
-                subject: `New Booking: ${formData.name} (${actualType === 'followup' ? 'Follow-Up' : 'Initial'})`,
+                subject: adminSubject,
                 html: adminHtml
             });
 
             // Email 2: To Client
-            const clientHtml = createClientConfirmationEmail(formData.name, actualType);
+            const clientHtml = createClientConfirmationEmail(formData.name, actualType, bookingData);
+            const clientSubject = isFathersDay ? "Father's Day Gift Confirmed! 🎁" : "Booking Confirmed! ✅";
             await resend.emails.send({
                 from: 'Diet With Dee <hello@mail.dietwithdee.org>',
                 to: [formData.email],
-                subject: 'Booking Confirmed! ✅',
+                subject: clientSubject,
                 html: clientHtml
             });
 

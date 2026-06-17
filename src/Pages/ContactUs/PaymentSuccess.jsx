@@ -1,15 +1,37 @@
-import React, { useMemo, useState, useEffect, useCallback } from 'react';
+import React, { useMemo, useState, useEffect, useCallback, useRef } from 'react';
 import { CheckCircle, ShieldAlert, ArrowLeft, Loader2, RefreshCw } from 'lucide-react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { httpsCallable } from 'firebase/functions';
 import { functions } from '../../firebaseConfig';
 import SEO from '../../Components/SEO';
 import { useToast } from '../../Contexts/ToastContext';
+import html2canvas from 'html2canvas';
 
 function PaymentSuccess() {
   const navigate = useNavigate();
   const location = useLocation();
   const { showToast } = useToast();
+  const cardRef = useRef(null);
+
+  const handleDownloadCard = async () => {
+    if (!cardRef.current) return;
+    try {
+      const canvas = await html2canvas(cardRef.current, {
+        scale: 2,
+        useCORS: true,
+        backgroundColor: '#0c2a17'
+      });
+      const dataUrl = canvas.toDataURL('image/jpeg', 0.95);
+      const link = document.createElement('a');
+      link.download = `Fathers_Day_Voucher_${formData.fatherName?.replace(/\s+/g, '_') || 'Gift'}.jpg`;
+      link.href = dataUrl;
+      link.click();
+      showToast('Gift Voucher downloaded!', 'success');
+    } catch (err) {
+      console.error('Failed to generate image:', err);
+      showToast('Failed to download voucher card. Please try again.', 'error');
+    }
+  };
 
   const [status, setStatus] = useState('verifying'); // verifying, processing, confirmed, error
   const [errorMessage, setErrorMessage] = useState('');
@@ -231,6 +253,149 @@ function PaymentSuccess() {
   }
 
   // status === 'confirmed'
+  const isFathersDay = !!formData.isFathersDayBooking;
+
+  if (isFathersDay) {
+    const searchParams = new URLSearchParams(location.search);
+    const reference = searchParams.get('reference') || searchParams.get('trxref') || 'N/A';
+
+    return (
+      <>
+        <SEO title="Gift Confirmed" description="Thank you for gifting Diet With Dee!" url="/paymentSuccess" noindex />
+        <div className="min-h-screen bg-zinc-50 py-16 flex items-center justify-center p-4">
+          <div className="max-w-xl w-full border border-zinc-200 bg-white shadow-sm rounded-none overflow-hidden space-y-6">
+            
+            {/* Header Section */}
+            <div className="bg-zinc-950 p-8 text-center border-b border-zinc-200 text-white rounded-none">
+              <div className="w-16 h-16 bg-zinc-900 border border-zinc-800 rounded-none flex items-center justify-center mx-auto mb-4 shadow-sm">
+                <CheckCircle className="text-amber-500" size={32} />
+              </div>
+              <div className="inline-block bg-zinc-800 text-zinc-300 text-[10px] font-bold px-3 py-1 rounded-none tracking-widest uppercase mb-2 border border-zinc-700">
+                Father's Day Gift
+              </div>
+              <h1 className="text-2xl font-bold tracking-tight text-white">Gift Verified Successfully!</h1>
+              <p className="text-zinc-400 text-xs mt-1">Thank you for giving the gift of healthy living.</p>
+            </div>
+
+            {/* Body Section */}
+            <div className="px-8 pb-8 space-y-6">
+              
+              {/* Card Preview Container */}
+              <div className="space-y-2">
+                <h3 className="text-xs font-bold uppercase tracking-wider text-zinc-400 text-left">Your Gift Voucher Preview</h3>
+                
+                {/* Visual Voucher representation */}
+                <div 
+                  ref={cardRef} 
+                  className="w-full bg-gradient-to-br from-[#0c2a17] to-[#041108] border border-amber-500/40 p-6 text-white text-left relative overflow-hidden select-none"
+                  style={{ minHeight: '260px' }}
+                >
+                  {/* Decorative corner patterns */}
+                  <div className="absolute top-0 left-0 w-8 h-8 border-t border-l border-amber-500/30"></div>
+                  <div className="absolute top-0 right-0 w-8 h-8 border-t border-r border-amber-500/30"></div>
+                  <div className="absolute bottom-0 left-0 w-8 h-8 border-b border-l border-amber-500/30"></div>
+                  <div className="absolute bottom-0 right-0 w-8 h-8 border-b border-r border-amber-500/30"></div>
+
+                  <div className="space-y-6">
+                    <div className="flex justify-between items-start border-b border-zinc-800 pb-3">
+                      <div>
+                        <h4 className="text-[10px] font-black text-amber-500 uppercase tracking-widest leading-none">Gift Voucher</h4>
+                        <h2 className="text-xl font-bold tracking-tight font-serif mt-1.5">Premium Nutrition Consultation</h2>
+                      </div>
+                      <div className="text-[9px] uppercase tracking-widest text-zinc-400 font-bold border border-zinc-800 px-2 py-0.5">
+                        Diet With Dee
+                      </div>
+                    </div>
+
+                    <div className="space-y-4">
+                      <div>
+                        <span className="text-[9px] text-zinc-400 uppercase tracking-wider block leading-none">Presented To</span>
+                        <span className="text-lg font-bold text-amber-100">{formData.fatherName}</span>
+                      </div>
+
+                      <div className="flex justify-between items-end">
+                        <div>
+                          <span className="text-[9px] text-zinc-400 uppercase tracking-wider block leading-none">Gifted By</span>
+                          <span className="text-sm font-semibold text-zinc-200">{formData.buyerName}</span>
+                        </div>
+                        <div className="text-right">
+                          <span className="text-[9px] text-zinc-400 uppercase tracking-wider block leading-none">Ref Code</span>
+                          <span className="text-xs font-mono font-bold text-amber-500">{reference?.substring(0, 8).toUpperCase()}</span>
+                        </div>
+                      </div>
+                    </div>
+
+                    <div className="border-t border-zinc-900 pt-3 flex justify-between items-center text-[8px] text-zinc-500 font-semibold uppercase tracking-wider">
+                      <span>Accra, Ghana</span>
+                      <span>Health, Vitality, Longevity</span>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Download Button */}
+                <button
+                  onClick={handleDownloadCard}
+                  className="w-full h-10 bg-amber-500 hover:bg-amber-600 text-zinc-950 font-bold text-xs rounded-none transition-colors tracking-wide cursor-pointer flex items-center justify-center gap-1.5 border-none"
+                >
+                  Download Gift Voucher Card
+                </button>
+              </div>
+
+              {/* Gift Outreach details */}
+              <div className="border border-zinc-200 p-5 space-y-4 rounded-none">
+                <h3 className="text-xs font-bold uppercase tracking-wider text-zinc-400 text-left">Outreach Specifications</h3>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-xs text-left">
+                  <div className="space-y-1">
+                    <span className="text-zinc-400 font-semibold block">Giver / Buyer</span>
+                    <span className="text-zinc-950 font-bold block">{formData.buyerName}</span>
+                    <span className="text-zinc-500 block">{formData.buyerPhone}</span>
+                  </div>
+                  <div className="space-y-1">
+                    <span className="text-zinc-400 font-semibold block">Recipient Father</span>
+                    <span className="text-zinc-950 font-bold block">{formData.fatherName}</span>
+                    <span className="text-zinc-500 block">{formData.fatherPhone}</span>
+                  </div>
+                </div>
+                
+                {formData.isSurprise && (
+                  <div className="bg-amber-50 border border-amber-200 p-3 flex items-center gap-2 text-xs text-amber-900 text-left font-semibold">
+                    <span>🤫 Surprise Request:</span>
+                    <span className="font-normal text-zinc-700">We will hold any WhatsApp outreach to the father until Father's Day morning.</span>
+                  </div>
+                )}
+              </div>
+
+              {/* What's next box */}
+              <div className="border-l-2 border-amber-500 bg-amber-50/50 p-4 space-y-1 text-left">
+                <h4 className="text-xs font-bold text-amber-800 uppercase tracking-wide">Next Steps</h4>
+                <p className="text-xs text-zinc-700 leading-relaxed">
+                  Our team will reach out directly to coordinate scheduling.
+                  {formData.isSurprise 
+                    ? " We will coordinate with you first before contacting the father on Father's Day morning." 
+                    : ` We will contact ${formData.fatherName} within the next 24 hours.`}
+                </p>
+              </div>
+
+              {/* Back to Homepage Button */}
+              <div className="pt-4 border-t border-zinc-100 flex flex-col gap-2">
+                <button
+                  onClick={() => navigate('/')}
+                  className="w-full h-10 bg-zinc-900 hover:bg-zinc-900/90 text-zinc-50 font-bold text-xs rounded-none transition-colors tracking-wide cursor-pointer flex items-center justify-center border-none"
+                >
+                  Back to Homepage
+                </button>
+                <div className="text-center text-[10px] text-zinc-400 font-semibold uppercase tracking-wider">
+                  Accra, Ghana • Diet With Dee
+                </div>
+              </div>
+
+            </div>
+          </div>
+        </div>
+      </>
+    );
+  }
+
   return (
     <><SEO title="Booking Confirmed" description="Thank you for booking with Diet With Dee!" url="/paymentSuccess" noindex />
     <div className="min-h-screen bg-gradient-to-br from-green-50 via-white to-emerald-50 py-12 flex items-center justify-center p-6">
