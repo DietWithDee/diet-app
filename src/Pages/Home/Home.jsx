@@ -290,7 +290,7 @@ function Home() {
                   <img
                     src={fathersDayPromo}
                     alt="Father's Day Special Gift"
-                    className="w-full h-56 object-cover"
+                    className="w-full object-cover md:auto"
                   />
                 </div>
 

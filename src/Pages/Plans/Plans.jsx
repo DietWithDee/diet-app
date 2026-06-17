@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
-import { Share2, Check, ChevronLeft, ChevronRight, CreditCard, Sparkles, Gift, ShoppingCart } from 'lucide-react';
+import { Share2, Check, ChevronLeft, ChevronRight, CreditCard, Sparkles, Gift, ShoppingCart, Copy, CheckCheck } from 'lucide-react';
 import { motion } from 'framer-motion';
 import SEO from '../../Components/SEO';
 import PlanImg from '../../assets/Salad.webp'; // you can replace this with actual plan images
@@ -240,17 +240,22 @@ function Plans() {
         </div>
 
         {/* Father's Day Promo Banner */}
-        <div className="max-w-6xl mx-auto mb-8 bg-zinc-800 text-white border border-zinc-700 p-4 rounded-none flex flex-col sm:flex-row items-center justify-between gap-4 text-center sm:text-left">
+        <div className="max-w-6xl mx-auto mb-8 bg-gradient-to-r from-emerald-50 to-amber-50 border border-emerald-200/60 p-5 rounded-2xl flex flex-col sm:flex-row items-center justify-between gap-4 text-center sm:text-left shadow-sm">
           <div className="flex items-center gap-3">
-            <Gift size={20} className="text-amber-400 shrink-0" />
+            <div className="w-10 h-10 bg-gradient-to-br from-amber-400 to-orange-500 rounded-xl flex items-center justify-center shrink-0 shadow-md">
+              <Gift size={20} className="text-white" />
+            </div>
             <div>
-              <p className="text-sm font-bold tracking-tight text-amber-400 uppercase">Father's Day Special</p>
-              <p className="text-xs text-zinc-300 font-medium">Get 10% off any diet plan! Copy your plan's code shown directly on the card below and enter it at checkout.</p>
+              <p className="text-sm font-bold tracking-tight text-gray-800">🎁 Father's Day Special — <span className="text-red-600">10% OFF</span> all plans!</p>
+              <p className="text-xs text-gray-500 font-medium mt-0.5">Tap the promo code on any card below and enter it at checkout.</p>
             </div>
           </div>
-          <div className="text-xs font-semibold text-zinc-300 bg-zinc-900 border border-zinc-800 px-3 py-1 rounded-none uppercase tracking-widest shrink-0">
-            10% OFF
-          </div>
+          <button
+            onClick={() => navigate('/fathersday')}
+            className="text-xs font-bold text-white bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-700 hover:to-emerald-700 px-4 py-2 rounded-lg transition-all shrink-0 shadow-sm cursor-pointer border-none"
+          >
+            Gift a Consultation →
+          </button>
         </div>
 
         <div className='grid grid-cols-1 md:grid-cols-3 gap-8 max-w-6xl mx-auto'>
@@ -264,38 +269,47 @@ function Plans() {
                 id={plan.id}
                 className="bg-white rounded-3xl shadow-xl hover:shadow-2xl transition-transform hover:-translate-y-1 p-6 relative border border-gray-100 scroll-mt-24"
               >
+                {/* Slanted 10% OFF ribbon */}
+                <div className="absolute top-0 right-0 z-20 overflow-hidden w-24 h-24 pointer-events-none">
+                  <div className="absolute top-[14px] right-[-30px] w-[140px] bg-red-600 text-white text-[10px] font-black text-center py-1 rotate-45 shadow-md tracking-wider">
+                    10% OFF
+                  </div>
+                </div>
+
                 {plan.isPopular && (
                   <div className="absolute -top-3 left-1/2 -translate-x-1/2 bg-gradient-to-r from-orange-400 to-orange-500 text-white text-[10px] font-black px-4 py-1 rounded-full shadow-lg z-10 whitespace-nowrap tracking-widest border-2 border-white">
                     🔥 MOST POPULAR
                   </div>
                 )}
                 <div
-                  className={`w-full h-44 bg-gradient-to-br ${plan.gradient} rounded-2xl flex items-center justify-center mb-6`}
+                  className={`w-full h-44 bg-gradient-to-br ${plan.gradient} flex items-center justify-center mb-6`}
                 >
-                  <img src={plan.img} alt={plan.title} className='h-auto object-contain rounded-2xl' />
+                  <img src={plan.img} alt={plan.title} className='h-auto object-contain' />
                 </div>
 
                 <h3 className='text-2xl font-bold text-green-700 mb-2'>{plan.title}</h3>
                 <h2 className='text-sm font-bold text-black mb-3'>{plan.Subtitle}</h2>
                 <p className='text-xl font-semibold text-gray-600 mb-2'>{plan.price}</p>
 
-                {/* Father's Day Promo Code */}
-                <div 
+                {/* Father's Day Promo Code — warm inline pill */}
+                <div
                   onClick={() => handleCopyCode(PROMO_CODES[plan.id])}
-                  className="bg-zinc-950 text-white border border-amber-500/10 px-3 py-1.5 rounded-none flex items-center justify-between text-xs mb-4 cursor-pointer hover:bg-zinc-900 transition-colors select-none"
-                  title="Click to copy promo code"
+                  className="group bg-gradient-to-r from-amber-50 to-orange-50 border border-amber-200/80 rounded-lg px-3 py-2 flex items-center justify-between text-xs mb-4 cursor-pointer hover:border-amber-300 hover:shadow-sm transition-all select-none"
+                  title="Tap to copy promo code"
                 >
                   <div className="flex items-center gap-1.5">
-                    <Gift size={12} className="text-amber-500 animate-pulse" />
-                    <span className="font-semibold text-zinc-300">Father's Day Code</span>
+                    <span className="text-base leading-none">🎁</span>
+                    <span className="font-semibold text-gray-600">Father's Day</span>
                   </div>
-                  <div className="flex items-center gap-2">
-                    <span className="font-mono font-black text-amber-500 bg-zinc-900 border border-zinc-800 px-1.5 py-0.5">
+                  <div className="flex items-center gap-1.5">
+                    <span className="font-mono font-black text-sm text-orange-600 bg-white border border-amber-200 px-2 py-0.5 rounded">
                       {PROMO_CODES[plan.id]}
                     </span>
-                    <span className="text-[10px] text-zinc-400 font-bold uppercase tracking-wider min-w-[50px] text-right">
-                      {copiedCode === PROMO_CODES[plan.id] ? "Copied!" : "Copy"}
-                    </span>
+                    {copiedCode === PROMO_CODES[plan.id] ? (
+                      <CheckCheck size={14} className="text-green-600" />
+                    ) : (
+                      <Copy size={14} className="text-gray-400 group-hover:text-orange-500 transition-colors" />
+                    )}
                   </div>
                 </div>
 

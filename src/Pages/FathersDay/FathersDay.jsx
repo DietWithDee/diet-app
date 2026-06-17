@@ -1,9 +1,34 @@
 import React, { useState, useRef } from 'react';
 import SEO from '../../Components/SEO';
-import { ArrowLeft, Send, Shield, CheckCircle, CreditCard, HelpCircle } from 'lucide-react';
+import { ArrowLeft, Send, Shield, CheckCircle, CreditCard, HelpCircle, ChevronDown } from 'lucide-react';
 import { useNavigate } from 'react-router';
 import fathersDayPromo from '../../assets/fathers_day_promo.png';
 import { isValidEmail } from '../../utils/validation';
+
+// Collapsible FAQ item
+const FaqItem = ({ question, answer }) => {
+  const [open, setOpen] = useState(false);
+  return (
+    <div className="border border-zinc-200 bg-white rounded-none">
+      <button
+        type="button"
+        onClick={() => setOpen(!open)}
+        className="w-full flex items-center justify-between px-4 py-3 text-left cursor-pointer bg-transparent border-none"
+      >
+        <span className="text-sm font-semibold text-zinc-800">{question}</span>
+        <ChevronDown
+          size={16}
+          className={`text-zinc-400 shrink-0 transition-transform duration-200 ${open ? 'rotate-180' : ''}`}
+        />
+      </button>
+      {open && (
+        <div className="px-4 pb-3 text-xs text-zinc-600 leading-relaxed border-t border-zinc-100">
+          <p className="pt-2">{answer}</p>
+        </div>
+      )}
+    </div>
+  );
+};
 
 const FathersDay = () => {
   const navigate = useNavigate();
@@ -122,8 +147,19 @@ const FathersDay = () => {
                       <span className="text-sm text-zinc-500 line-through">₵1000</span>
                     </div>
                   </div>
-                  <div className="text-[11px] text-zinc-300 italic leading-relaxed border-t border-zinc-800 pt-3">
-                    Includes a full 45-minute comprehensive initial assessment, diagnostic review, and a customized personal meal guide.
+                  <div className="border-t border-zinc-800 pt-3 space-y-2.5">
+                    <span className="text-[10px] font-bold uppercase tracking-wider text-zinc-500">What's Included</span>
+                    {[
+                      '45-min comprehensive assessment',
+                      'Custom personal meal plan',
+                      'Downloadable gift voucher card',
+                      'WhatsApp scheduling & support'
+                    ].map((item, i) => (
+                      <div key={i} className="flex items-center gap-2">
+                        <CheckCircle size={14} className="text-amber-500 shrink-0" />
+                        <span className="text-[12px] text-zinc-200 font-medium">{item}</span>
+                      </div>
+                    ))}
                   </div>
                 </div>
 
@@ -301,6 +337,31 @@ const FathersDay = () => {
               </div>
             </div>
 
+          </div>
+
+          {/* FAQ Section */}
+          <div className="space-y-4">
+            <h3 className="text-lg font-bold text-zinc-800 tracking-tight">Frequently Asked Questions</h3>
+            {[
+              {
+                q: 'What happens after I pay?',
+                a: 'You\'ll receive a confirmation email and a downloadable gift voucher card instantly. Our team will then reach out via WhatsApp within 24 hours to schedule the consultation.'
+              },
+              {
+                q: 'Can I choose the exact consultation date?',
+                a: 'Yes! After payment, our team coordinates directly with you (and the father, unless it\'s a surprise) to pick a date and time that works best. Consultations run Tuesday–Sunday, 10 AM – 3 PM.'
+              },
+              {
+                q: 'What if my father has a specific health condition?',
+                a: 'That\'s exactly what this consultation is for. You can mention any conditions (diabetes, hypertension, etc.) in the message field, and Nana Ama will tailor the entire session and meal plan accordingly.'
+              },
+              {
+                q: 'Is the surprise option really secret?',
+                a: 'Absolutely. If you check the surprise box, we will not contact the father until Father\'s Day morning. We\'ll coordinate everything through you first.'
+              }
+            ].map((faq, i) => (
+              <FaqItem key={i} question={faq.q} answer={faq.a} />
+            ))}
           </div>
 
         </div>
