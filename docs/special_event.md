@@ -34,8 +34,7 @@ When a holiday event ends, follow these steps to restore the website to its stan
 - **File**: `src/Pages/Plans/Plans.jsx`
 - **Actions**:
   1. Locate and delete the `{/* Father's Day Promo Banner */}` div container.
-  2. Delete the `PlayfulBannerIcon` component definition.
-  3. Clean up unused `Gift` and `ShoppingCart` imports.
+  2. Clean up unused imports if necessary.
 
 ### 5. Disable the NavBar Playful Bouncing Icon
 - **File**: `src/Components/NavBar/NavBar.jsx`
@@ -60,7 +59,7 @@ To launch a new campaign (e.g. "Mother's Day Promo"), follow this checklist:
 ### 2. Update Copy, Promo Codes and Pricing in UI Components
 1. Update price constants, descriptions, and coupon codes on the landing pages, modals, and banners:
    - On the `FathersDay.jsx` booking form and `ContactUs.jsx` banners: Update pricing and info copy.
-   - On the `Plans.jsx` top promo banner: Update the text and code (e.g. change `FATHERSDAY` to `MOTHERSDAY` or `XMAS10`).
+   - On the `Plans.jsx` top promo banner: Update the text and individual coupon codes mapping each plan to its respective discount code (e.g., replace `BASICS10`, `SNATCH10`, `WEIGHT10`, `SUGAR15`, `PRESSURE10` with new codes).
 2. Adjust the CSS class in `src/index.css` to fit the holiday mood:
    - *Mother's Day*: Soft pink/gold shimmer.
    - *Christmas*: Warm red/emerald-green shimmer.

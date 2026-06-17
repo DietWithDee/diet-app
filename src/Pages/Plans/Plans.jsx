@@ -12,52 +12,15 @@ import Pressure from '../../assets/images/Pressure.webp'; // example image for H
 import ScrollToTop from "../../utils/ScrollToTop";
 import { useTestimonials } from '../../hooks/useTestimonials';
 import { plans } from '../../utils/plansData';
+import { useToast } from '../../Contexts/ToastContext';
 
-// Playful bouncing banner icon that transitions between shopping cart and gift emoji
-const PlayfulBannerIcon = () => {
-  return (
-    <div className="relative w-10 h-10 flex items-center justify-center shrink-0">
-      {/* Shopping Cart Icon */}
-      <motion.div
-        initial={{ scale: 0, rotate: -180, opacity: 0 }}
-        animate={{ 
-          scale: [0, 1.2, 0.9, 1, 1, 0],
-          rotate: [-180, 10, -5, 0, 0, 180],
-          opacity: [0, 1, 1, 1, 1, 0]
-        }}
-        transition={{
-          duration: 3,
-          ease: "easeInOut",
-          repeat: Infinity,
-          repeatDelay: 0.5,
-          times: [0, 0.15, 0.25, 0.35, 0.45, 0.5]
-        }}
-        className="absolute text-amber-500"
-      >
-        <ShoppingCart size={22} />
-      </motion.div>
 
-      {/* Gift Emoji */}
-      <motion.div
-        initial={{ scale: 0, rotate: 180, opacity: 0 }}
-        animate={{ 
-          scale: [0, 0, 1.3, 0.9, 1.1, 1],
-          rotate: [180, 180, -15, 5, -2, 0],
-          opacity: [0, 0, 1, 1, 1, 1]
-        }}
-        transition={{
-          duration: 3,
-          ease: "easeInOut",
-          repeat: Infinity,
-          repeatDelay: 0.5,
-          times: [0, 0.5, 0.65, 0.75, 0.85, 1]
-        }}
-        className="absolute text-xl select-none"
-      >
-        🎁
-      </motion.div>
-    </div>
-  );
+const PROMO_CODES = {
+  'back-to-basics': 'BASICS10',
+  'snatched-nourished': 'SNATCH10',
+  'blood-sugar-balance': 'SUGAR10',
+  'pressure-no-dey-catch-me': 'PRESSURE10',
+  'weight-gain': 'WEIGHT10',
 };
 
 function Plans() {
@@ -68,6 +31,20 @@ function Plans() {
   const [currentTestimonial, setCurrentTestimonial] = useState(0);
   const [isAutoPlaying, setIsAutoPlaying] = useState(true);
   const [loading, setLoading] = useState(true);
+  const { showToast } = useToast();
+
+  // Click-to-copy promo code helper for mobile
+  const [copiedCode, setCopiedCode] = useState(null);
+  const handleCopyCode = (code) => {
+    navigator.clipboard.writeText(code).then(() => {
+      setCopiedCode(code);
+      showToast('Promo code copied successfully!', 'success');
+      setTimeout(() => setCopiedCode(null), 1500);
+    }).catch(err => {
+      console.error('Failed to copy code:', err);
+      showToast('Failed to copy promo code.', 'error');
+    });
+  };
 
   const handleBuyClick = (plan) => {
     window.open(plan.Url, '_blank', 'noopener,noreferrer');
@@ -263,16 +240,16 @@ function Plans() {
         </div>
 
         {/* Father's Day Promo Banner */}
-        <div className="max-w-6xl mx-auto mb-8 bg-zinc-950 text-white border border-amber-500/20 p-4 rounded-none flex flex-col sm:flex-row items-center justify-between gap-4 text-center sm:text-left">
+        <div className="max-w-6xl mx-auto mb-8 bg-zinc-800 text-white border border-zinc-700 p-4 rounded-none flex flex-col sm:flex-row items-center justify-between gap-4 text-center sm:text-left">
           <div className="flex items-center gap-3">
-            <PlayfulBannerIcon />
+            <Gift size={20} className="text-amber-400 shrink-0" />
             <div>
               <p className="text-sm font-bold tracking-tight text-amber-400 uppercase">Father's Day Special</p>
-              <p className="text-xs text-zinc-300">All diet plans are 10% off using promo code <span className="font-mono bg-zinc-900 text-white border border-zinc-800 px-1.5 py-0.5 font-bold">FATHERSDAY</span> at checkout!</p>
+              <p className="text-xs text-zinc-300 font-medium">Get 10% off any diet plan! Copy your plan's code shown directly on the card below and enter it at checkout.</p>
             </div>
           </div>
-          <div className="text-xs font-semibold text-zinc-400 bg-zinc-900 border border-zinc-800 px-3 py-1 rounded-none uppercase tracking-widest shrink-0">
-            10% OFF ALL PLANS
+          <div className="text-xs font-semibold text-zinc-300 bg-zinc-900 border border-zinc-800 px-3 py-1 rounded-none uppercase tracking-widest shrink-0">
+            10% OFF
           </div>
         </div>
 
@@ -300,7 +277,27 @@ function Plans() {
 
                 <h3 className='text-2xl font-bold text-green-700 mb-2'>{plan.title}</h3>
                 <h2 className='text-sm font-bold text-black mb-3'>{plan.Subtitle}</h2>
-                <p className='text-xl font-semibold text-gray-600 mb-4'>{plan.price}</p>
+                <p className='text-xl font-semibold text-gray-600 mb-2'>{plan.price}</p>
+
+                {/* Father's Day Promo Code */}
+                <div 
+                  onClick={() => handleCopyCode(PROMO_CODES[plan.id])}
+                  className="bg-zinc-950 text-white border border-amber-500/10 px-3 py-1.5 rounded-none flex items-center justify-between text-xs mb-4 cursor-pointer hover:bg-zinc-900 transition-colors select-none"
+                  title="Click to copy promo code"
+                >
+                  <div className="flex items-center gap-1.5">
+                    <Gift size={12} className="text-amber-500 animate-pulse" />
+                    <span className="font-semibold text-zinc-300">Father's Day Code</span>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <span className="font-mono font-black text-amber-500 bg-zinc-900 border border-zinc-800 px-1.5 py-0.5">
+                      {PROMO_CODES[plan.id]}
+                    </span>
+                    <span className="text-[10px] text-zinc-400 font-bold uppercase tracking-wider min-w-[50px] text-right">
+                      {copiedCode === PROMO_CODES[plan.id] ? "Copied!" : "Copy"}
+                    </span>
+                  </div>
+                </div>
 
                 <ul className='space-y-2 text-gray-700 text-sm mb-6'>
                   {plan.features.map((feature, idx) => (

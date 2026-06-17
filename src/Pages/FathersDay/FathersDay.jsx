@@ -65,8 +65,8 @@ const FathersDay = () => {
     localStorage.setItem('consultationFormData', JSON.stringify(fathersDayData));
     localStorage.setItem('userResults', JSON.stringify({})); // Father's Day gifts don't require pre-computed user results
 
-    // 3. Redirect to secure Paystack page (Initial Consultation - bookdee)
-    window.location.href = 'https://paystack.shop/pay/bookdee';
+    // 3. Redirect to secure Paystack page (Father's Day Campaign - dee-campaign)
+    window.location.href = 'https://paystack.shop/pay/dee-campaign';
   };
 
   return (

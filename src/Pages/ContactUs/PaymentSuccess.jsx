@@ -5,7 +5,9 @@ import { httpsCallable } from 'firebase/functions';
 import { functions } from '../../firebaseConfig';
 import SEO from '../../Components/SEO';
 import { useToast } from '../../Contexts/ToastContext';
-import html2canvas from 'html2canvas';
+import html2canvas from 'html2canvas-pro';
+import Logo from '../../assets/LOGO.webp';
+import fathersDayPromo from '../../assets/fathers_day_promo.png';
 
 function PaymentSuccess() {
   const navigate = useNavigate();
@@ -19,7 +21,7 @@ function PaymentSuccess() {
       const canvas = await html2canvas(cardRef.current, {
         scale: 2,
         useCORS: true,
-        backgroundColor: '#0c2a17'
+        backgroundColor: null
       });
       const dataUrl = canvas.toDataURL('image/jpeg', 0.95);
       const link = document.createElement('a');
@@ -253,7 +255,7 @@ function PaymentSuccess() {
   }
 
   // status === 'confirmed'
-  const isFathersDay = !!formData.isFathersDayBooking;
+  const isFathersDay = !!formData.isFathersDayBooking || new URLSearchParams(location.search).get('campaign') === 'fathersday';
 
   if (isFathersDay) {
     const searchParams = new URLSearchParams(location.search);
@@ -279,55 +281,141 @@ function PaymentSuccess() {
 
             {/* Body Section */}
             <div className="px-8 pb-8 space-y-6">
-              
-              {/* Card Preview Container */}
+          {/* Card Preview Container */}
               <div className="space-y-2">
                 <h3 className="text-xs font-bold uppercase tracking-wider text-zinc-400 text-left">Your Gift Voucher Preview</h3>
                 
-                {/* Visual Voucher representation */}
+                {/* On-screen visual Voucher representation (simplified for responsive screen sizing) */}
                 <div 
-                  ref={cardRef} 
-                  className="w-full bg-gradient-to-br from-[#0c2a17] to-[#041108] border border-amber-500/40 p-6 text-white text-left relative overflow-hidden select-none"
-                  style={{ minHeight: '260px' }}
+                  className="w-full bg-gradient-to-br from-[#0b2e1b] to-[#030a06] border border-amber-500/30 p-6 text-white text-left relative overflow-hidden select-none"
+                  style={{ minHeight: '260px', fontFamily: 'Georgia, serif' }}
                 >
                   {/* Decorative corner patterns */}
-                  <div className="absolute top-0 left-0 w-8 h-8 border-t border-l border-amber-500/30"></div>
-                  <div className="absolute top-0 right-0 w-8 h-8 border-t border-r border-amber-500/30"></div>
-                  <div className="absolute bottom-0 left-0 w-8 h-8 border-b border-l border-amber-500/30"></div>
-                  <div className="absolute bottom-0 right-0 w-8 h-8 border-b border-r border-amber-500/30"></div>
+                  <div className="absolute top-0 left-0 w-6 h-6 border-t border-l border-amber-500/30"></div>
+                  <div className="absolute top-0 right-0 w-6 h-6 border-t border-r border-amber-500/30"></div>
+                  <div className="absolute bottom-0 left-0 w-6 h-6 border-b border-l border-amber-500/30"></div>
+                  <div className="absolute bottom-0 right-0 w-6 h-6 border-b border-r border-amber-500/30"></div>
 
-                  <div className="space-y-6">
-                    <div className="flex justify-between items-start border-b border-zinc-800 pb-3">
+                  <div className="space-y-4">
+                    <div className="flex justify-between items-start border-b border-zinc-950 pb-3">
                       <div>
-                        <h4 className="text-[10px] font-black text-amber-500 uppercase tracking-widest leading-none">Gift Voucher</h4>
-                        <h2 className="text-xl font-bold tracking-tight font-serif mt-1.5">Premium Nutrition Consultation</h2>
+                        <h4 className="text-[10px] font-black text-amber-500 uppercase tracking-widest leading-none">Happy Father's Day</h4>
+                        <h2 className="text-lg font-bold tracking-tight mt-1.5 text-amber-400">Premium Nutrition Consultation</h2>
                       </div>
-                      <div className="text-[9px] uppercase tracking-widest text-zinc-400 font-bold border border-zinc-800 px-2 py-0.5">
+                      <div className="text-[9px] uppercase tracking-widest text-zinc-400 font-bold border border-zinc-900 px-2 py-0.5 shrink-0">
                         Diet With Dee
                       </div>
                     </div>
 
-                    <div className="space-y-4">
-                      <div>
-                        <span className="text-[9px] text-zinc-400 uppercase tracking-wider block leading-none">Presented To</span>
-                        <span className="text-lg font-bold text-amber-100">{formData.fatherName}</span>
-                      </div>
-
-                      <div className="flex justify-between items-end">
+                    <div className="space-y-3 font-sans">
+                      <div className="flex justify-between items-end gap-4">
                         <div>
-                          <span className="text-[9px] text-zinc-400 uppercase tracking-wider block leading-none">Gifted By</span>
-                          <span className="text-sm font-semibold text-zinc-200">{formData.buyerName}</span>
+                          <span className="text-[9px] text-zinc-400 uppercase tracking-wider block leading-none">For</span>
+                          <span className="text-base font-bold text-amber-100">{formData.fatherName}</span>
                         </div>
                         <div className="text-right">
-                          <span className="text-[9px] text-zinc-400 uppercase tracking-wider block leading-none">Ref Code</span>
-                          <span className="text-xs font-mono font-bold text-amber-500">{reference?.substring(0, 8).toUpperCase()}</span>
+                          <span className="text-[9px] text-zinc-400 uppercase tracking-wider block leading-none">From</span>
+                          <span className="text-xs font-semibold text-zinc-200">{formData.buyerName}</span>
                         </div>
                       </div>
                     </div>
 
-                    <div className="border-t border-zinc-900 pt-3 flex justify-between items-center text-[8px] text-zinc-500 font-semibold uppercase tracking-wider">
+                    <div className="border-t border-zinc-900/60 pt-3 flex justify-between items-center text-[8px] text-zinc-500 font-semibold uppercase tracking-wider font-sans">
                       <span>Accra, Ghana</span>
-                      <span>Health, Vitality, Longevity</span>
+                      <span>dietwithdee.org</span>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Hidden high-fidelity 1080x1080 voucher card for html2canvas download */}
+                <div style={{ position: 'fixed', left: '-9999px', top: 0 }}>
+                  <div 
+                    ref={cardRef} 
+                    style={{
+                      width: '1080px',
+                      height: '1080px',
+                      background: 'linear-gradient(135deg, #0b2e1b 0%, #030a06 100%)',
+                      display: 'flex',
+                      flexDirection: 'column',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      position: 'relative',
+                      fontFamily: 'Georgia, serif',
+                      overflow: 'hidden',
+                      color: '#ffffff',
+                      boxSizing: 'border-box'
+                    }}
+                  >
+                    {/* Decorative glows */}
+                    <div style={{ position: 'absolute', top: '-10%', left: '-10%', width: '500px', height: '500px', background: '#f59e0b', borderRadius: '50%', filter: 'blur(120px)', opacity: 0.12 }} />
+                    <div style={{ position: 'absolute', bottom: '-10%', right: '-10%', width: '600px', height: '600px', background: '#10b981', borderRadius: '50%', filter: 'blur(150px)', opacity: 0.12 }} />
+                    
+                    {/* Outer gold borders */}
+                    <div style={{ position: 'absolute', inset: '40px', border: '2px solid rgba(245, 158, 11, 0.25)', pointerEvents: 'none' }} />
+                    <div style={{ position: 'absolute', inset: '50px', border: '1px solid rgba(245, 158, 11, 0.15)', pointerEvents: 'none' }} />
+                    
+                    {/* Corner accents */}
+                    <div style={{ position: 'absolute', top: '35px', left: '35px', width: '30px', height: '30px', borderTop: '4px solid #f59e0b', borderLeft: '4px solid #f59e0b' }} />
+                    <div style={{ position: 'absolute', top: '35px', right: '35px', width: '30px', height: '30px', borderTop: '4px solid #f59e0b', borderRight: '4px solid #f59e0b' }} />
+                    <div style={{ position: 'absolute', bottom: '35px', left: '35px', width: '30px', height: '30px', borderBottom: '4px solid #f59e0b', borderLeft: '4px solid #f59e0b' }} />
+                    <div style={{ position: 'absolute', bottom: '35px', right: '35px', width: '30px', height: '30px', borderBottom: '4px solid #f59e0b', borderRight: '4px solid #f59e0b' }} />
+
+                    {/* Center Glass panel */}
+                    <div
+                      style={{
+                        background: 'rgba(255, 255, 255, 0.03)',
+                        border: '1px solid rgba(255, 255, 255, 0.08)',
+                        borderRadius: '24px',
+                        padding: '60px 80px',
+                        display: 'flex',
+                        flexDirection: 'column',
+                        alignItems: 'center',
+                        width: '80%',
+                        maxWidth: '850px',
+                        boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.5)',
+                        boxSizing: 'border-box'
+                      }}
+                    >
+                      {/* Promo illustration badge */}
+                      <div style={{ width: '220px', height: '220px', borderRadius: '50%', overflow: 'hidden', border: '3px solid #f59e0b', marginBottom: '30px', boxShadow: '0 10px 20px rgba(0,0,0,0.3)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                        <img src={fathersDayPromo} alt="Promo" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                      </div>
+                      <span style={{ color: '#f59e0b', fontSize: '24px', fontWeight: 'bold', letterSpacing: '4px', textTransform: 'uppercase', marginBottom: '10px', fontFamily: 'sans-serif' }}>
+                        Happy Father's Day
+                      </span>
+                      
+                      <h1 style={{ fontSize: '48px', fontWeight: 800, margin: '0 0 15px 0', textAlign: 'center', color: '#f59e0b' }}>
+                        Premium Consultation
+                      </h1>
+                      
+                      <p style={{ fontSize: '18px', color: 'rgba(255, 255, 255, 0.75)', margin: '0 0 30px 0', fontFamily: 'sans-serif', textAlign: 'center', lineHeight: '1.6' }}>
+                        This voucher entitles you to a comprehensive assessment & customized diet roadmap with Registered Dietitian Nana Ama Dwamena.
+                      </p>
+
+                      {/* Separator line */}
+                      <div style={{ width: '120px', height: '2px', background: 'linear-gradient(90deg, transparent, #f59e0b, transparent)', marginBottom: '40px' }} />
+
+                      {/* Details table */}
+                      <div style={{ width: '100%', display: 'flex', flexDirection: 'column', gap: '20px', fontFamily: 'sans-serif', color: 'rgba(255,255,255,0.9)' }}>
+                        <div style={{ display: 'flex', justifyContent: 'space-between', borderBottom: '1px solid rgba(255,255,255,0.05)', paddingBottom: '8px' }}>
+                          <span style={{ color: 'rgba(255,255,255,0.4)', textTransform: 'uppercase', fontSize: '12px', letterSpacing: '1px' }}>For</span>
+                          <span style={{ fontWeight: 'bold', fontSize: '22px', color: '#fff9f2' }}>{formData.fatherName}</span>
+                        </div>
+                        <div style={{ display: 'flex', justifyContent: 'space-between', paddingBottom: '8px' }}>
+                          <span style={{ color: 'rgba(255,255,255,0.4)', textTransform: 'uppercase', fontSize: '12px', letterSpacing: '1px' }}>From</span>
+                          <span style={{ fontWeight: 'bold', fontSize: '20px', color: '#fff9f2' }}>{formData.buyerName}</span>
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Logo / Footer branding */}
+                    <div style={{ position: 'absolute', bottom: '80px', display: 'flex', alignItems: 'center', gap: '15px' }}>
+                      <img src={Logo} alt="DietWithDee" style={{ width: '48px', height: '48px', borderRadius: '12px' }} />
+                      <div style={{ color: '#ffffff', fontSize: '20px', fontWeight: 'bold', fontFamily: 'sans-serif' }}>
+                        DietWithDee
+                        <span style={{ color: 'rgba(255,255,255,0.3)', margin: '0 10px', fontWeight: 300 }}>|</span>
+                        <span style={{ color: '#f59e0b', fontWeight: 500 }}>dietwithdee.org</span>
+                      </div>
                     </div>
                   </div>
                 </div>
