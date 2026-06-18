@@ -246,7 +246,7 @@ function Plans() {
               <Gift size={20} className="text-white" />
             </div>
             <div>
-              <p className="text-sm font-bold tracking-tight text-gray-800">🎁 Father's Day Special — <span className="text-red-600">10% OFF</span> all plans!</p>
+              <p className="text-sm font-bold tracking-tight text-gray-800">🎁 Father's Day Special — <span className="text-red-600">10% OFF</span> all plans starting on 20th June!</p>
               <p className="text-xs text-gray-500 font-medium mt-0.5">Tap the promo code on any card below and enter it at checkout.</p>
             </div>
           </div>

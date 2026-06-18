@@ -99,6 +99,7 @@ function PaymentSuccess() {
       const processBookingFn = httpsCallable(functions, 'processBooking');
 
       // Derive type from amount to be robust against extra charges/fees
+    console.log("This is the amount being charged",verifyResult.data)
       const actualAmount = verifyResult.data.amount / 100;
       let verifiedType = 'initial';
       if (actualAmount < 500) {
