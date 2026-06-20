@@ -152,7 +152,7 @@ const TerraVee = () => {
                                 <img
                                   src={v.image}
                                   alt={v.name}
-                                  className="w-full h-full object-contain drop-shadow-[0_20px_20px_rgba(0,0,0,0.55)]"
+                                  className="w-200 h-200 object-contain drop-shadow-[0_20px_20px_rgba(0,0,0,0.55)]"
                                 />
                               </motion.div>
                             ))}
@@ -177,9 +177,9 @@ const TerraVee = () => {
                             animate={{ scale: 1, opacity: 1 }}
                             exit={{ scale: 0.9, opacity: 0 }}
                             transition={{ duration: 0.25, ease: "easeOut" }}
-                            className="flex items-center justify-center w-full md:w-1/2 h-[50vh] md:h-[80vh] max-h-[85vh]"
+                            className="flex items-center justify-center w-full md:w-1/2"
                           >
-                            <div className="relative w-full h-full max-w-[450px] sm:max-w-[550px] md:max-w-[650px] lg:max-w-[800px] flex items-center justify-center transition-all duration-300">
+                            <div className="relative w-[85vw] md:w-[45vw] h-[45vh] md:h-[75vh] flex items-center justify-center transition-all duration-300">
                               <img
                                 src={variant.image}
                                 alt={variant.name}
