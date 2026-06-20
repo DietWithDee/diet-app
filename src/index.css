@@ -1,14 +1,12 @@
-@import url('https://fonts.googleapis.com/css2?family=Inter:ital,opsz,wght@0,14..32,100..900;1,14..32,100..900&display=swap');
+@import url("https://fonts.googleapis.com/css2?family=Inter:ital,opsz,wght@0,14..32,100..900;1,14..32,100..900&display=swap");
 
 :root {
   color-scheme: light;
 }
 
-
-
 @font-face {
-  font-family: 'Transcity';
-  src: url('../src/assets/fonts/Transcity.ttf') format('truetype');
+  font-family: "Transcity";
+  src: url("../src/assets/fonts/Transcity.ttf") format("truetype");
   font-weight: normal;
   font-style: normal;
 }
@@ -19,13 +17,17 @@
 
 /* google fonts */
 @theme {
-  --font-inter: 'Inter', sans-serif;
-  --font-transcity: 'Transcity', sans-serif;
+  --font-inter: "Inter", sans-serif;
+  --font-transcity: "Transcity", sans-serif;
 }
 
 @keyframes fadeIn {
-  from { opacity: 0; }
-  to { opacity: 1; }
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
 }
 
 @keyframes slideInFromRight {
@@ -63,11 +65,13 @@
 }
 
 /* Custom Blog Article Prose Overrides & Shimmer Card Animations */
-.prose b, .prose strong {
+.prose b,
+.prose strong {
   color: #059669 !important;
   font-weight: 700;
 }
-.prose i, .prose em {
+.prose i,
+.prose em {
   color: #059669 !important;
 }
 .prose ul {
@@ -137,7 +141,14 @@
   }
 }
 .gold-shimmer-card {
-  background: linear-gradient(120deg, #09090b 35%, #27272a 45%, #eab308 50%, #27272a 55%, #09090b 65%);
+  background: linear-gradient(
+    120deg,
+    #09090b 35%,
+    #27272a 45%,
+    #eab308 50%,
+    #27272a 55%,
+    #09090b 65%
+  );
   background-size: 200% 100%;
   animation: gold-shimmer 10s infinite linear;
   border: 1px solid rgba(234, 179, 8, 0.4) !important;
@@ -147,4 +158,3 @@
 .bg-gradient-radial {
   background-image: radial-gradient(circle, var(--tw-gradient-stops));
 }
-
