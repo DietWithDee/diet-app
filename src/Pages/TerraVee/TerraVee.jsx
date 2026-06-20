@@ -172,24 +172,23 @@ const TerraVee = () => {
                         /* Standard Single Variant Slide Layout - Split screen on desktop */
                         <>
                           {/* Left Side: Product Image (Large and Centered) */}
-                          <motion.div
-                            initial={{ scale: 0.9, opacity: 0 }}
-                            animate={{ scale: 1, opacity: 1 }}
-                            exit={{ scale: 0.9, opacity: 0 }}
-                            transition={{ duration: 0.25, ease: "easeOut" }}
-                            className="flex items-center justify-center w-full md:w-1/2"
-                          >
+                          <div className="flex items-center justify-center w-full md:w-1/2">
                             <div className="relative w-[85vw] md:w-[45vw] h-[45vh] md:h-[75vh] flex items-center justify-center transition-all duration-300">
-                              <img
+                              <motion.img
+                                key={variant.image}
                                 src={variant.image}
                                 alt={variant.name}
-                                className="w-full h-full object-contain drop-shadow-[0_35px_35px_rgba(0,0,0,0.7)] hover:scale-105 transition-transform duration-500 ease-out"
+                                initial={{ scale: 0.3, opacity: 0 }}
+                                animate={{ scale: 1.05, opacity: 1 }}
+                                exit={{ scale: 0.3, opacity: 0 }}
+                                transition={{ duration: 0.4, ease: "easeOut" }}
+                                className="w-full h-full object-contain drop-shadow-[0_35px_35px_rgba(0,0,0,0.7)] hover:scale-110 transition-transform duration-300 ease-out"
                                 onError={(e) => {
                                   e.target.style.display = "none";
                                 }}
                               />
                             </div>
-                          </motion.div>
+                          </div>
 
                           {/* Right Side: Product Info (Grouped with CTA on md+) */}
                           <div className="w-full md:w-1/2 flex flex-col items-center md:items-start text-center md:text-left justify-center gap-6">
