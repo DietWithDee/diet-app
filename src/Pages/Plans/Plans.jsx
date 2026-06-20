@@ -279,7 +279,7 @@ function Plans() {
       />
       <div className="min-h-screen bg-gradient-to-br from-green-50 via-white to-emerald-50 py-20 px-6 lg:px-12">
         {/* Featured Image Carousel */}
-        <div className="max-w-6xl mx-auto mb-16">
+        <div className="max-w-6xl mx-auto mb-4">
           <div className="relative overflow-hidden">
             <motion.div
               className="flex"

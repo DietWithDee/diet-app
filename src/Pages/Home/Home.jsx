@@ -8,6 +8,21 @@ import Dee from '../../assets/images/Dee1.webp';
 import InstallPrompt from '../../Components/InstallPrompt';
 import fathersDayPromo from '../../assets/fathers_day_promo.png';
 import { X, Gift } from 'lucide-react';
+import carousel1 from '../../assets/carousel/1.jpg?url';
+import carousel2 from '../../assets/carousel/2.jpg?url';
+import carousel3 from '../../assets/carousel/3.jpg?url';
+import carousel4 from '../../assets/carousel/4.jpg?url';
+import carousel5 from '../../assets/carousel/5.jpg?url';
+import carousel6 from '../../assets/carousel/6.jpg?url';
+
+const CAROUSEL_IMAGES = [
+  carousel1,
+  carousel2,
+  carousel3,
+  carousel4,
+  carousel5,
+  carousel6,
+];
 
 // Animated Counter Component
 const AnimatedCounter = ({ target, duration = 2000, suffix = '' }) => {
@@ -63,6 +78,14 @@ function Home() {
   const navigate = useNavigate();
   const videoRef = useRef(null);
   const [showFathersDayPopup, setShowFathersDayPopup] = useState(false);
+  const [carouselIndex, setCarouselIndex] = useState(0);
+
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setCarouselIndex((prev) => (prev + 1) % CAROUSEL_IMAGES.length);
+    }, 3000);
+    return () => clearInterval(interval);
+  }, []);
 
   useEffect(() => {
     const hasSeenPopup = sessionStorage.getItem('hasSeenFathersDayPopup');
@@ -251,31 +274,7 @@ function Home() {
             </div>
 
             {/* Right: Video replaced with Father's Day Campaign Ad (Video commented out) */}
-            <div className="flex-1 relative max-w-lg w-full">
-              {/*
-              <motion.div
-                className="relative z-10 p-4 lg:p-8"
-                variants={floatingImage}
-                initial="hidden"
-                animate="show"
-              >
-                <div className="bg-transparent rounded-3xl transition-all duration-500 hover:scale-[1.02]">
-                  <div className="w-full flex items-center justify-center relative">
-                    <video
-                      ref={videoRef}
-                      src="/Hero_animation.mp4"
-                      className="object-contain w-[120%] max-w-none relative z-10 mix-blend-multiply"
-                      style={{ mixBlendMode: 'multiply' }}
-                      playsInline
-                      muted
-                      controls={false}
-                      preload="auto"
-                    />
-                  </div>
-                </div>
-              </motion.div>
-              */}
-
+            <div className="flex-1 relative max-w-lg w-full flex flex-col gap-6">
               <motion.div
                 variants={floatingImage}
                 initial="hidden"
@@ -320,6 +319,45 @@ function Home() {
                   Book Father's Day Gift
                 </button>
               </motion.div>
+
+              {/* Sliding Carousel Card leading to /terravee */}
+              <div className="relative overflow-hidden w-full bg-white border border-zinc-200 p-2 shadow-sm">
+                <div className="relative overflow-hidden cursor-pointer" onClick={() => navigate('/terravee')}>
+                  <motion.div
+                    className="flex animate-none"
+                    animate={{ x: `-${carouselIndex * 100}%` }}
+                    transition={{ type: "spring", stiffness: 300, damping: 30 }}
+                  >
+                    {CAROUSEL_IMAGES.map((image, index) => (
+                      <div key={index} className="min-w-full">
+                        <img
+                          src={image}
+                          alt={`TerraVee slide ${index + 1}`}
+                          className="w-full h-auto object-cover hover:opacity-95 transition-opacity"
+                        />
+                      </div>
+                    ))}
+                  </motion.div>
+                  
+                  {/* Indicators */}
+                  <div className="flex justify-center gap-1.5 mt-2">
+                    {CAROUSEL_IMAGES.map((_, idx) => (
+                      <button
+                        key={idx}
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          setCarouselIndex(idx);
+                        }}
+                        className={`w-2 h-2 rounded-full transition-all duration-300 border-none outline-none cursor-pointer ${
+                          idx === carouselIndex
+                            ? "bg-green-600 w-5"
+                            : "bg-gray-300 hover:bg-gray-400"
+                        }`}
+                      />
+                    ))}
+                  </div>
+                </div>
+              </div>
             </div>
 
             {/* Trust Indicators (Mobile - visible below the image) */}
