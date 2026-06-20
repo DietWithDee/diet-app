@@ -136,100 +136,88 @@ const TerraVee = () => {
                     <div className="absolute inset-0 bg-gradient-radial from-white via-transparent to-transparent opacity-40"></div>
 
                     {/* Content Container */}
-                    <div className="relative w-full h-full flex flex-col md:flex-row items-center justify-center md:justify-around px-6 md:px-20 py-12 md:py-0 overflow-y-auto md:overflow-hidden gap-8 md:gap-16">
+                    <div style={{ position: 'relative', width: '100%', height: '100%' }}>
                       {variant.isSpecialPack ? (
-                        /* Father's Day Pack Slide Layout (Grid of 5 bottles) */
-                        <div className="flex flex-col items-center justify-center max-w-5xl mx-auto w-full">
-                          {/* Side by side bottles */}
-                          <div className="flex items-center justify-center gap-1.5 sm:gap-4 md:gap-6 mb-8 md:mb-12 w-full px-2">
-                            {variants.slice(0, 5).map((v) => (
+                        /* Father's Day Pack — bottles fill the full available height */
+                        <div style={{ width: '100%', height: '100%', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'space-between', padding: '48px 8px 12px' }}>
+                          {/* Bottles — each fills available height */}
+                          <div style={{ display: 'flex', alignItems: 'flex-end', justifyContent: 'center', gap: '4px', width: '100%', flex: 1, paddingBottom: '12px' }}>
+                            {variants.slice(0, 5).map((v, i) => (
                               <motion.div
                                 key={v.id}
-                                whileHover={{ y: -20, scale: 1.12 }}
-                                transition={{ type: "spring", stiffness: 300 }}
-                                className="relative w-16 h-40 sm:w-32 sm:h-[350px] md:w-40 md:h-[420px] lg:w-48 lg:h-[500px] flex items-center justify-center"
+                                initial={{ y: 80, opacity: 0 }}
+                                animate={{ y: 0, opacity: 1 }}
+                                transition={{ duration: 0.4, delay: i * 0.07, ease: "easeOut" }}
+                                whileHover={{ y: -20, scale: 1.08 }}
+                                style={{ flex: 1, display: 'flex', alignItems: 'flex-end', justifyContent: 'center', minHeight: 0 }}
                               >
                                 <img
                                   src={v.image}
                                   alt={v.name}
-                                  className="w-200 h-200 object-contain drop-shadow-[0_20px_20px_rgba(0,0,0,0.55)]"
+                                  style={{ height: '55vh', width: 'auto', maxWidth: '100%', objectFit: 'contain', filter: 'drop-shadow(0 20px 30px rgba(0,0,0,0.7))' }}
                                 />
                               </motion.div>
                             ))}
                           </div>
 
-                          {/* Heading and Pack pricing info */}
-                          <div className="text-center mb-8">
-                            <h2 className="text-4xl sm:text-5xl lg:text-6xl font-black text-white mb-3 tracking-wide drop-shadow-lg">
+                          {/* Heading and pricing */}
+                          <div style={{ textAlign: 'center', flexShrink: 0, paddingBottom: '8px' }}>
+                            <h2 className="text-3xl sm:text-5xl lg:text-6xl font-black text-white mb-2 tracking-wide drop-shadow-lg">
                               {variant.name}
                             </h2>
-                            <p className="text-lg sm:text-2xl lg:text-3xl font-bold text-amber-400 drop-shadow-md">
+                            <p className="text-base sm:text-2xl lg:text-3xl font-bold text-amber-400 drop-shadow-md">
                               Available from GHS 120.00 to GHS 300.00
                             </p>
                           </div>
                         </div>
                       ) : (
-                        /* Standard Single Variant Slide Layout - Split screen on desktop */
-                        <>
-                          {/* Left Side: Product Image (Large and Centered) */}
-                          <div className="flex items-center justify-center w-full md:w-1/2">
-                            <div className="relative w-[85vw] md:w-[45vw] h-[45vh] md:h-[75vh] flex items-center justify-center transition-all duration-300">
-                              <motion.img
-                                key={variant.image}
-                                src={variant.image}
-                                alt={variant.name}
-                                initial={{ scale: 0.3, opacity: 0 }}
-                                animate={{ scale: 1.05, opacity: 1 }}
-                                exit={{ scale: 0.3, opacity: 0 }}
-                                transition={{ duration: 0.4, ease: "easeOut" }}
-                                className="w-full h-full object-contain drop-shadow-[0_35px_35px_rgba(0,0,0,0.7)] hover:scale-110 transition-transform duration-300 ease-out"
-                                onError={(e) => {
-                                  e.target.style.display = "none";
-                                }}
-                              />
-                            </div>
-                          </div>
+                        /* Standard Single Variant: Full-screen hero bottle */
+                        <div style={{ width: '100%', height: '100%', position: 'relative', display: 'flex', alignItems: 'center', justifyContent: 'center', overflow: 'hidden' }}>
+                          {/* Bottle — fills the entire slide height */}
+                          <motion.img
+                            key={variant.image}
+                            src={variant.image}
+                            alt={variant.name}
+                            initial={{ scale: 0.15, opacity: 0, y: 100 }}
+                            animate={{ scale: 1, opacity: 1, y: 0 }}
+                            exit={{ scale: 0.15, opacity: 0, y: -100 }}
+                            transition={{ duration: 0.45, ease: [0.22, 1, 0.36, 1] }}
+                            style={{ height: '85vh', width: 'auto', maxWidth: '88vw', objectFit: 'contain', filter: 'drop-shadow(0 40px 60px rgba(0,0,0,0.85))', zIndex: 10 }}
+                            onError={(e) => { e.target.style.display = "none"; }}
+                          />
 
-                          {/* Right Side: Product Info (Grouped with CTA on md+) */}
-                          <div className="w-full md:w-1/2 flex flex-col items-center md:items-start text-center md:text-left justify-center gap-6">
-                            <motion.div
-                              initial={{ opacity: 0, y: 10 }}
-                              animate={{ opacity: 1, y: 0 }}
-                              exit={{ opacity: 0, y: -10 }}
-                              transition={{ duration: 0.25, ease: "easeOut" }}
-                            >
-                              <h2 className="text-5xl sm:text-6xl md:text-7xl lg:text-8xl font-black text-white drop-shadow-lg tracking-wide leading-tight">
-                                {variant.name}
-                              </h2>
-                            </motion.div>
-                            
-                            {/* Glass Effect Buy Button (rendered inside the right side for standard products) */}
-                            <motion.button
-                              initial={{ opacity: 0, scale: 0.95 }}
-                              animate={{ opacity: 1, scale: 1 }}
-                              exit={{ opacity: 0, scale: 0.95 }}
-                              transition={{ duration: 0.25, ease: "easeOut" }}
-                              whileHover={{ scale: 1.05, y: -5 }}
-                              whileTap={{ scale: 0.95 }}
-                              onClick={() => handleBuyNow(variant)}
-                              className={`relative px-10 py-4 lg:px-14 lg:py-5 rounded-full font-bold text-lg lg:text-xl text-white 
-                              bg-gradient-to-r ${variant.accentColor}
-                              backdrop-blur-md bg-opacity-30 border border-white border-opacity-50
-                              shadow-lg hover:shadow-2xl transition-all duration-300
-                              flex items-center gap-3 group overflow-hidden`}
-                            >
-                              <span className="relative z-10 flex items-center gap-2">
-                                <ShoppingBag size={24} />
-                                Buy Now
-                              </span>
-                              {/* Glass shine effect */}
-                              <div className="absolute inset-0 bg-gradient-to-r from-white/0 via-white/20 to-white/0 opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
-                            </motion.button>
-                          </div>
-                        </>
+                          {/* Product name — bottom left overlay */}
+                          <motion.div
+                            initial={{ opacity: 0, x: -30 }}
+                            animate={{ opacity: 1, x: 0 }}
+                            exit={{ opacity: 0, x: -30 }}
+                            transition={{ duration: 0.25, ease: "easeOut" }}
+                            style={{ position: 'absolute', bottom: 64, left: 24, zIndex: 20 }}
+                          >
+                            <h2 className="text-5xl sm:text-7xl md:text-8xl lg:text-9xl font-black text-white drop-shadow-lg tracking-tight leading-none">
+                              {variant.name}
+                            </h2>
+                          </motion.div>
+
+                          {/* Buy button — bottom right overlay */}
+                          <motion.button
+                            initial={{ opacity: 0, x: 30 }}
+                            animate={{ opacity: 1, x: 0 }}
+                            exit={{ opacity: 0, x: 30 }}
+                            transition={{ duration: 0.25, ease: "easeOut" }}
+                            whileHover={{ scale: 1.05, y: -4 }}
+                            whileTap={{ scale: 0.95 }}
+                            onClick={() => handleBuyNow(variant)}
+                            className={`bg-gradient-to-r ${variant.accentColor}`}
+                            style={{ position: 'absolute', bottom: 64, right: 24, zIndex: 20, padding: '14px 28px', borderRadius: 9999, fontWeight: 700, fontSize: 18, color: 'white', border: '1px solid rgba(255,255,255,0.4)', boxShadow: '0 20px 40px rgba(0,0,0,0.4)', display: 'flex', alignItems: 'center', gap: 8 }}
+                          >
+                            <ShoppingBag size={22} />
+                            Buy Now
+                          </motion.button>
+                        </div>
                       )}
 
-                      {/* Render Buy Button at bottom for Father's Day pack (since it has a full width centered layout) */}
+                      {/* Order Now Button for Father's Day pack */}
                       {variant.isSpecialPack && (
                         <motion.button
                           initial={{ opacity: 0, scale: 0.95 }}
@@ -239,17 +227,11 @@ const TerraVee = () => {
                           whileHover={{ scale: 1.05, y: -5 }}
                           whileTap={{ scale: 0.95 }}
                           onClick={() => handleBuyNow(variant)}
-                          className={`relative px-10 py-4 lg:px-14 lg:py-5 rounded-full font-bold text-lg lg:text-xl text-white 
-                          bg-gradient-to-r ${variant.accentColor}
-                          backdrop-blur-md bg-opacity-30 border border-white border-opacity-50
-                          shadow-lg hover:shadow-2xl transition-all duration-300
-                          flex items-center gap-3 group overflow-hidden`}
+                          className={`bg-gradient-to-r ${variant.accentColor}`}
+                          style={{ position: 'absolute', bottom: 20, right: 20, zIndex: 30, padding: '14px 28px', borderRadius: 9999, fontWeight: 700, fontSize: 18, color: 'white', border: '1px solid rgba(255,255,255,0.4)', boxShadow: '0 20px 40px rgba(0,0,0,0.4)', display: 'flex', alignItems: 'center', gap: 8 }}
                         >
-                          <span className="relative z-10 flex items-center gap-2">
-                            <ShoppingBag size={24} />
-                            Order Now
-                          </span>
-                          <div className="absolute inset-0 bg-gradient-to-r from-white/0 via-white/20 to-white/0 opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
+                          <ShoppingBag size={22} />
+                          Order Now
                         </motion.button>
                       )}
                     </div>
