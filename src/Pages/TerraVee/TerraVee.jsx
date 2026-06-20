@@ -138,111 +138,232 @@ const TerraVee = () => {
                     {/* Content Container */}
                     <div className="relative w-full h-full">
                       {variant.isSpecialPack ? (
-                        /* Father's Day Pack Slide Layout — bottles fill available height */
-                        <div className="w-full h-full flex flex-col items-center justify-between py-10 px-4">
-                          {/* Bottles fill the top portion */}
-                          <div className="flex items-end justify-center gap-2 sm:gap-4 md:gap-6 w-full flex-1 px-2 pb-4">
-                            {variants.slice(0, 5).map((v, i) => (
-                              <motion.div
-                                key={v.id}
-                                initial={{ y: 60, opacity: 0 }}
-                                animate={{ y: 0, opacity: 1 }}
-                                transition={{ duration: 0.4, delay: i * 0.06, ease: "easeOut" }}
-                                whileHover={{ y: -24, scale: 1.1 }}
-                                className="flex-1 flex items-end justify-center h-[55vh] max-h-[520px]"
+                        /* Father's Day Pack Slide Layout */
+                        <>
+                          {/* Desktop Layout (md and up) */}
+                          <div className="hidden md:flex w-full h-full flex-col items-center justify-between py-10 px-4">
+                            {/* Bottles fill the top portion */}
+                            <div className="flex items-end justify-center gap-4 md:gap-6 w-full flex-1 px-2 pb-4">
+                              {variants.slice(0, 5).map((v, i) => (
+                                <motion.div
+                                  key={v.id}
+                                  initial={{ y: 60, opacity: 0 }}
+                                  animate={{ y: 0, opacity: 1 }}
+                                  transition={{ duration: 0.4, delay: i * 0.06, ease: "easeOut" }}
+                                  whileHover={{ y: -24, scale: 1.1 }}
+                                  className="flex-1 flex items-end justify-center h-[55vh] max-h-[520px]"
+                                >
+                                  <img
+                                    src={v.image}
+                                    alt={v.name}
+                                    className="w-full h-full object-contain drop-shadow-[0_20px_40px_rgba(0,0,0,0.7)]"
+                                    onError={(e) => { e.target.style.display = "none"; }}
+                                  />
+                                </motion.div>
+                              ))}
+                            </div>
+
+                            {/* Heading and Pack pricing info */}
+                            <div className="text-center shrink-0 pb-2">
+                              <h2 className="text-5xl lg:text-6xl font-black text-white mb-2 tracking-wide drop-shadow-lg">
+                                {variant.name}
+                              </h2>
+                              <p className="text-2xl lg:text-3xl font-bold text-amber-400 drop-shadow-md">
+                                Available from GHS 120.00 to GHS 300.00
+                              </p>
+                            </div>
+
+                            {/* Order Now Button - Desktop absolute bottom-right */}
+                            <motion.button
+                              initial={{ opacity: 0, scale: 0.8, y: 20 }}
+                              animate={{ opacity: 1, scale: 1, y: 0 }}
+                              transition={{ 
+                                type: "spring",
+                                stiffness: 90,
+                                damping: 12,
+                                delay: 0.3
+                              }}
+                              whileHover={{ scale: 1.05, y: -5 }}
+                              whileTap={{ scale: 0.95 }}
+                              onClick={() => handleBuyNow(variant)}
+                              className={`absolute bottom-6 right-6 z-20 px-10 py-4 lg:px-14 lg:py-5 rounded-full font-bold text-lg lg:text-xl text-white 
+                              bg-gradient-to-r ${variant.accentColor}
+                              border border-white/40
+                              shadow-2xl flex items-center gap-3 group overflow-hidden`}
+                            >
+                              <span className="relative z-10 flex items-center gap-2">
+                                <ShoppingBag size={24} />
+                                Order Now
+                              </span>
+                              <div className="absolute inset-0 bg-gradient-to-r from-white/0 via-white/20 to-white/0 opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
+                            </motion.button>
+                          </div>
+
+                          {/* Mobile Layout (stacked layout, centered elements) */}
+                          <div className="flex md:hidden w-full h-full flex-col items-center justify-between py-12 px-6">
+                            {/* Bottles grid */}
+                            <div className="flex items-end justify-center gap-1 w-full flex-1 pb-6 px-1">
+                              {variants.slice(0, 5).map((v, i) => (
+                                <motion.div
+                                  key={v.id}
+                                  initial={{ y: 40, opacity: 0 }}
+                                  animate={{ y: 0, opacity: 1 }}
+                                  transition={{ duration: 0.35, delay: i * 0.05, ease: "easeOut" }}
+                                  className="flex-1 flex items-end justify-center h-[38vh]"
+                                >
+                                  <img
+                                    src={v.image}
+                                    alt={v.name}
+                                    className="w-full h-full object-contain drop-shadow-[0_12px_24px_rgba(0,0,0,0.6)]"
+                                    onError={(e) => { e.target.style.display = "none"; }}
+                                  />
+                                </motion.div>
+                              ))}
+                            </div>
+
+                            {/* Content card + button stacked at the bottom */}
+                            <div className="w-full flex flex-col items-center gap-5 text-center shrink-0">
+                              <div>
+                                <h2 className="text-3xl font-black text-white mb-1 tracking-wide drop-shadow-lg">
+                                  {variant.name}
+                                </h2>
+                                <p className="text-base font-bold text-amber-400 drop-shadow-md">
+                                  GHS 120.00 to GHS 300.00
+                                </p>
+                              </div>
+
+                              <motion.button
+                                initial={{ opacity: 0, y: 30, scale: 0.9 }}
+                                animate={{ opacity: 1, y: 0, scale: 1 }}
+                                transition={{ 
+                                  type: "spring",
+                                  stiffness: 90,
+                                  damping: 12,
+                                  delay: 0.3
+                                }}
+                                whileHover={{ scale: 1.05 }}
+                                whileTap={{ scale: 0.95 }}
+                                onClick={() => handleBuyNow(variant)}
+                                className={`w-full max-w-[280px] py-4 rounded-full font-bold text-lg text-white
+                                bg-gradient-to-r ${variant.accentColor}
+                                border border-white/30
+                                shadow-2xl flex items-center justify-center gap-2`}
                               >
-                                <img
-                                  src={v.image}
-                                  alt={v.name}
-                                  className="w-full h-full object-contain drop-shadow-[0_20px_40px_rgba(0,0,0,0.7)]"
-                                />
-                              </motion.div>
-                            ))}
+                                <ShoppingBag size={20} />
+                                Order Now
+                              </motion.button>
+                            </div>
                           </div>
-
-                          {/* Heading and Pack pricing info */}
-                          <div className="text-center shrink-0 pb-2">
-                            <h2 className="text-3xl sm:text-5xl lg:text-6xl font-black text-white mb-2 tracking-wide drop-shadow-lg">
-                              {variant.name}
-                            </h2>
-                            <p className="text-base sm:text-2xl lg:text-3xl font-bold text-amber-400 drop-shadow-md">
-                              Available from GHS 120.00 to GHS 300.00
-                            </p>
-                          </div>
-                        </div>
+                        </>
                       ) : (
-                        /* Standard Single Variant: Full-screen hero bottle with overlay text */
-                        <div className="w-full h-full relative flex items-center justify-center">
-                          {/* Bottle — fills the entire slide */}
-                          <motion.img
-                            key={variant.image}
-                            src={variant.image}
-                            alt={variant.name}
-                            initial={{ scale: 0.2, opacity: 0, y: 80 }}
-                            animate={{ scale: 1, opacity: 1, y: 0 }}
-                            exit={{ scale: 0.2, opacity: 0, y: -80 }}
-                            transition={{ duration: 0.4, ease: [0.22, 1, 0.36, 1] }}
-                            className="h-[78vh] sm:h-[82vh] md:h-[88vh] w-auto max-w-[90vw] object-contain drop-shadow-[0_40px_60px_rgba(0,0,0,0.8)] z-10"
-                            onError={(e) => { e.target.style.display = "none"; }}
-                          />
+                        /* Standard Single Variant Layout */
+                        <>
+                          {/* Desktop Layout (md and up) */}
+                          <div className="hidden md:flex w-full h-full items-center justify-center relative">
+                            {/* Bottle */}
+                            <motion.img
+                              key={`${variant.image}-desktop`}
+                              src={variant.image}
+                              alt={variant.name}
+                              initial={{ scale: 0.2, opacity: 0, y: 80 }}
+                              animate={{ scale: 1, opacity: 1, y: 0 }}
+                              exit={{ scale: 0.2, opacity: 0, y: -80 }}
+                              transition={{ duration: 0.4, ease: [0.22, 1, 0.36, 1] }}
+                              className="h-[80vh] lg:h-[84vh] w-auto max-w-[45vw] object-contain drop-shadow-[0_40px_60px_rgba(0,0,0,0.8)] z-10"
+                              onError={(e) => { e.target.style.display = "none"; }}
+                            />
 
-                          {/* Product name — bottom left overlay */}
-                          <motion.div
-                            initial={{ opacity: 0, x: -30 }}
-                            animate={{ opacity: 1, x: 0 }}
-                            exit={{ opacity: 0, x: -30 }}
-                            transition={{ duration: 0.25, ease: "easeOut" }}
-                            className="absolute bottom-16 left-6 md:left-12 z-20"
-                          >
-                            <h2 className="text-5xl sm:text-7xl md:text-8xl lg:text-9xl font-black text-white drop-shadow-lg tracking-tight leading-none">
-                              {variant.name}
-                            </h2>
-                          </motion.div>
+                            {/* Product name — bottom left overlay */}
+                            <motion.div
+                              initial={{ opacity: 0, x: -40 }}
+                              animate={{ opacity: 1, x: 0 }}
+                              exit={{ opacity: 0, x: -40 }}
+                              transition={{ duration: 0.3, ease: "easeOut" }}
+                              className="absolute bottom-16 left-12 lg:left-20 z-20"
+                            >
+                              <h2 className="text-7xl lg:text-9xl font-black text-white drop-shadow-lg tracking-tight leading-none">
+                                {variant.name}
+                              </h2>
+                            </motion.div>
 
-                          {/* Buy button — bottom right overlay */}
-                          <motion.button
-                            initial={{ opacity: 0, x: 30 }}
-                            animate={{ opacity: 1, x: 0 }}
-                            exit={{ opacity: 0, x: 30 }}
-                            transition={{ duration: 0.25, ease: "easeOut" }}
-                            whileHover={{ scale: 1.05, y: -4 }}
-                            whileTap={{ scale: 0.95 }}
-                            onClick={() => handleBuyNow(variant)}
-                            className={`absolute bottom-16 right-6 md:right-12 z-20 px-8 py-4 md:px-12 md:py-5 rounded-full font-bold text-lg md:text-xl text-white
-                            bg-gradient-to-r ${variant.accentColor}
-                            backdrop-blur-md border border-white/40
-                            shadow-2xl flex items-center gap-3 group overflow-hidden`}
-                          >
-                            <span className="relative z-10 flex items-center gap-2">
-                              <ShoppingBag size={22} />
+                            {/* Buy button — bottom right overlay with gorgeous spring entrance */}
+                            <motion.button
+                              initial={{ opacity: 0, y: 40, scale: 0.8 }}
+                              animate={{ opacity: 1, y: 0, scale: 1 }}
+                              exit={{ opacity: 0, y: 40, scale: 0.8 }}
+                              transition={{ 
+                                type: "spring",
+                                stiffness: 90,
+                                damping: 12,
+                                delay: 0.2
+                              }}
+                              whileHover={{ scale: 1.06, y: -4 }}
+                              whileTap={{ scale: 0.95 }}
+                              onClick={() => handleBuyNow(variant)}
+                              className={`absolute bottom-16 right-12 lg:right-20 z-20 px-10 py-5 rounded-full font-bold text-xl text-white
+                              bg-gradient-to-r ${variant.accentColor}
+                              backdrop-blur-md border border-white/40
+                              shadow-2xl flex items-center gap-3 group overflow-hidden`}
+                            >
+                              <span className="relative z-10 flex items-center gap-2">
+                                <ShoppingBag size={24} />
+                                Buy Now
+                              </span>
+                              <div className="absolute inset-0 bg-gradient-to-r from-white/0 via-white/20 to-white/0 opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
+                            </motion.button>
+                          </div>
+
+                          {/* Mobile Layout (stacked structure) */}
+                          <div className="flex md:hidden w-full h-full flex-col items-center justify-between py-12 px-6 relative">
+                            {/* Top centered Title */}
+                            <motion.div
+                              initial={{ opacity: 0, y: -20 }}
+                              animate={{ opacity: 1, y: 0 }}
+                              transition={{ duration: 0.35, delay: 0.05 }}
+                              className="text-center z-20"
+                            >
+                              <h2 className="text-4xl font-black text-white tracking-tight drop-shadow-md">
+                                {variant.name}
+                              </h2>
+                            </motion.div>
+
+                            {/* Centered Bottle Image */}
+                            <motion.img
+                              key={`${variant.image}-mobile`}
+                              src={variant.image}
+                              alt={variant.name}
+                              initial={{ scale: 0.4, opacity: 0, y: 40 }}
+                              animate={{ scale: 1, opacity: 1, y: 0 }}
+                              exit={{ scale: 0.4, opacity: 0, y: -40 }}
+                              transition={{ duration: 0.4, ease: "easeOut" }}
+                              className="h-[46vh] sm:h-[50vh] w-auto max-w-[80vw] object-contain drop-shadow-[0_20px_35px_rgba(0,0,0,0.7)] z-10 my-auto"
+                              onError={(e) => { e.target.style.display = "none"; }}
+                            />
+
+                            {/* Bottom Centered Large Buy Button with beautiful spring animation */}
+                            <motion.button
+                              initial={{ opacity: 0, y: 35, scale: 0.85 }}
+                              animate={{ opacity: 1, y: 0, scale: 1 }}
+                              exit={{ opacity: 0, y: 35, scale: 0.85 }}
+                              transition={{ 
+                                type: "spring",
+                                stiffness: 90,
+                                damping: 11,
+                                delay: 0.25
+                              }}
+                              whileHover={{ scale: 1.05 }}
+                              whileTap={{ scale: 0.95 }}
+                              onClick={() => handleBuyNow(variant)}
+                              className={`w-full max-w-[290px] py-4 rounded-full font-bold text-lg text-white text-center
+                              bg-gradient-to-r ${variant.accentColor}
+                              border border-white/30
+                              shadow-2xl flex items-center justify-center gap-2.5 z-20 mb-2`}
+                            >
+                              <ShoppingBag size={20} />
                               Buy Now
-                            </span>
-                            <div className="absolute inset-0 bg-gradient-to-r from-white/0 via-white/20 to-white/0 opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
-                          </motion.button>
-                        </div>
-                      )}
-
-                      {/* Render Order Now Button for Father's Day pack */}
-                      {variant.isSpecialPack && (
-                        <motion.button
-                          initial={{ opacity: 0, scale: 0.95 }}
-                          animate={{ opacity: 1, scale: 1 }}
-                          exit={{ opacity: 0, scale: 0.95 }}
-                          transition={{ duration: 0.25, ease: "easeOut" }}
-                          whileHover={{ scale: 1.05, y: -5 }}
-                          whileTap={{ scale: 0.95 }}
-                          onClick={() => handleBuyNow(variant)}
-                          className={`absolute bottom-6 right-6 z-20 px-10 py-4 lg:px-14 lg:py-5 rounded-full font-bold text-lg lg:text-xl text-white 
-                          bg-gradient-to-r ${variant.accentColor}
-                          border border-white/40
-                          shadow-2xl flex items-center gap-3 group overflow-hidden`}
-                        >
-                          <span className="relative z-10 flex items-center gap-2">
-                            <ShoppingBag size={24} />
-                            Order Now
-                          </span>
-                          <div className="absolute inset-0 bg-gradient-to-r from-white/0 via-white/20 to-white/0 opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
-                        </motion.button>
+                            </motion.button>
+                          </div>
+                        </>
                       )}
                     </div>
                   </motion.div>
