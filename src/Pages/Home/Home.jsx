@@ -1,11 +1,13 @@
 import React, { useState, useEffect, useRef } from 'react';
 import SEO from '../../Components/SEO';
 import { useNavigate } from 'react-router';
-import { motion } from 'framer-motion';
+import { motion, AnimatePresence } from 'framer-motion';
 import { logEvent } from 'firebase/analytics';
 import { analytics } from '../../firebaseConfig';
 import Dee from '../../assets/images/Dee1.webp';
 import InstallPrompt from '../../Components/InstallPrompt';
+import fathersDayPromo from '../../assets/fathers_day_promo.png';
+import { X, Gift } from 'lucide-react';
 
 // Animated Counter Component
 const AnimatedCounter = ({ target, duration = 2000, suffix = '' }) => {
@@ -60,6 +62,28 @@ const AnimatedCounter = ({ target, duration = 2000, suffix = '' }) => {
 function Home() {
   const navigate = useNavigate();
   const videoRef = useRef(null);
+  const [showFathersDayPopup, setShowFathersDayPopup] = useState(false);
+
+  useEffect(() => {
+    const hasSeenPopup = sessionStorage.getItem('hasSeenFathersDayPopup');
+    if (!hasSeenPopup) {
+      const timer = setTimeout(() => {
+        setShowFathersDayPopup(true);
+      }, 1500);
+      return () => clearTimeout(timer);
+    }
+  }, []);
+
+  const handleClosePopup = () => {
+    sessionStorage.setItem('hasSeenFathersDayPopup', 'true');
+    setShowFathersDayPopup(false);
+  };
+
+  const handleNavigateToPromo = () => {
+    sessionStorage.setItem('hasSeenFathersDayPopup', 'true');
+    setShowFathersDayPopup(false);
+    navigate('/fathersday');
+  };
 
   useEffect(() => {
     const videoElement = videoRef.current;
@@ -187,7 +211,6 @@ function Home() {
                 {/* Buttons */}
                 <motion.div variants={fadeUp} className="flex flex-col sm:flex-row gap-4 pt-6">
                   <motion.button
-                    whileHover={{ scale: 1.05, y: -2 }}
                     whileTap={{ scale: 0.95 }}
                     onClick={() => {
                       logEvent(analytics, 'select_content', {
@@ -201,12 +224,11 @@ function Home() {
                     Start My Journey
                   </motion.button>
                   <motion.button
-                    whileHover={{ scale: 1.05, y: -2 }}
                     whileTap={{ scale: 0.95 }}
-                    onClick={() => navigate('/about')}
+                    onClick={() => navigate('/contactus')}
                     className="px-8 py-4 border-2 border-green-600 text-green-700 font-bold rounded-full hover:bg-green-50 transition-all duration-300 hover:shadow-md"
                   >
-                    Learn More
+                    Book a Session
                   </motion.button>
                 </motion.div>
 
@@ -228,8 +250,9 @@ function Home() {
               </motion.div>
             </div>
 
-            {/* Right: Video without glowing green background elements */}
+            {/* Right: Video replaced with Father's Day Campaign Ad (Video commented out) */}
             <div className="flex-1 relative max-w-lg w-full">
+              {/*
               <motion.div
                 className="relative z-10 p-4 lg:p-8"
                 variants={floatingImage}
@@ -250,6 +273,52 @@ function Home() {
                     />
                   </div>
                 </div>
+              </motion.div>
+              */}
+
+              <motion.div
+                variants={floatingImage}
+                initial="hidden"
+                animate="show"
+                className="bg-white border border-zinc-200 p-6 shadow-sm rounded-none text-left relative z-10 space-y-4"
+              >
+                {/* Image Section */}
+                <div 
+                  onClick={() => navigate('/fathersday')} 
+                  className="w-full overflow-hidden bg-zinc-100 border border-zinc-200 cursor-pointer group"
+                >
+                  <img
+                    src={fathersDayPromo}
+                    alt="Father's Day Special Gift"
+                    className="w-full object-cover md:auto"
+                  />
+                </div>
+
+                {/* Text Section */}
+                <div className="space-y-2">
+                  <div className="flex items-center gap-1.5 text-amber-600 font-bold text-[10px] uppercase tracking-wider">
+                    <span className="inline-block w-1.5 h-1.5 bg-amber-500 animate-ping rounded-full"></span>
+                    <span>Temporary Campaign Ad</span>
+                  </div>
+                  <h3 className="text-xl font-bold tracking-tight text-zinc-950 font-serif">
+                    Gift Wellness this Father's Day
+                  </h3>
+                  <p className="text-xs text-zinc-500 leading-relaxed">
+                    Honor your father or a father figure with a premium consultation and custom nutritional roadmap. Make health his best gift.
+                  </p>
+                  <div className="flex justify-between items-baseline pt-2">
+                    <span className="text-3xl font-extrabold text-zinc-950">₵600</span>
+                    <span className="text-xs text-zinc-400 line-through">₵1000 original value</span>
+                  </div>
+                </div>
+
+                {/* Action button */}
+                <button
+                  onClick={() => navigate('/fathersday')}
+                  className="w-full h-10 bg-zinc-900 hover:bg-zinc-800 text-zinc-50 font-bold text-xs rounded-none transition-colors tracking-wide cursor-pointer flex items-center justify-center border-none"
+                >
+                  Book Father's Day Gift
+                </button>
               </motion.div>
             </div>
 
@@ -357,7 +426,6 @@ function Home() {
 
                   <div className="flex flex-wrap justify-center gap-4 pt-2">
                     <motion.button
-                      whileHover={{ scale: 1.05 }}
                       whileTap={{ scale: 0.95 }}
                       onClick={() => navigate('/plans')}
                       className="px-8 py-4 bg-gradient-to-r from-orange-400 to-orange-500 text-white font-bold rounded-full shadow-lg hover:shadow-xl transition-all duration-300 hover:from-green-700 hover:to-emerald-700"
@@ -366,7 +434,6 @@ function Home() {
                     </motion.button>
                     
                     <motion.button
-                      whileHover={{ scale: 1.05 }}
                       whileTap={{ scale: 0.95 }}
                       onClick={() => navigate('/services#events-gallery')}
                       className="px-8 py-4 border-2 border-green-600 text-green-700 font-bold rounded-full hover:bg-green-50 transition-all duration-300"
@@ -420,6 +487,78 @@ function Home() {
           <InstallPrompt />
         </div>
       </div>
+
+      {/* Father's Day Shadcn-styled Pop-up Modal */}
+      <AnimatePresence>
+        {showFathersDayPopup && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-zinc-950/60 backdrop-blur-sm">
+            {/* Modal Backdrop overlay click also closes */}
+            <div className="absolute inset-0 animate-fade-in" onClick={handleClosePopup}></div>
+            
+            {/* Modal Box */}
+            <motion.div
+              initial={{ opacity: 0, scale: 0.95, y: 10 }}
+              animate={{ opacity: 1, scale: 1, y: 0 }}
+              exit={{ opacity: 0, scale: 0.95, y: 10 }}
+              transition={{ duration: 0.2, ease: "easeOut" }}
+              className="relative z-10 bg-white border border-zinc-200 rounded-none shadow-xl max-w-lg w-full flex flex-col md:flex-row overflow-hidden"
+            >
+              {/* Close Button */}
+              <button
+                onClick={handleClosePopup}
+                className="absolute top-3 right-3 text-zinc-400 hover:text-zinc-950 transition-colors p-1 cursor-pointer z-20"
+                aria-label="Close"
+              >
+                <X size={16} />
+              </button>
+
+              {/* Left Side: Square Image */}
+              <div className="w-full md:w-5/12 bg-zinc-100 flex items-center justify-center border-b md:border-b-0 md:border-r border-zinc-200">
+                <img
+                  src={fathersDayPromo}
+                  alt="Father's Day Special Gift"
+                  className="w-full h-48 md:h-full object-cover"
+                />
+              </div>
+
+              {/* Right Side: Copy & Form Redirection */}
+              <div className="w-full md:w-7/12 p-6 flex flex-col justify-between space-y-4">
+                <div className="space-y-2 text-left">
+                  <div className="flex items-center gap-1.5 text-amber-600 font-bold text-[10px] uppercase tracking-wider">
+                    <Gift size={12} />
+                    <span>Father's Day Offer</span>
+                  </div>
+                  <h3 className="text-xl font-bold tracking-tight text-zinc-950 font-serif">
+                    Honor His Health
+                  </h3>
+                  <p className="text-xs text-zinc-500 leading-relaxed">
+                    Gift the father in your life a personalized initial consultation with Registered Dietitian Nana Ama Dwamena. Keep him healthy and strong.
+                  </p>
+                  <div className="bg-zinc-50 border border-zinc-150 p-2.5 flex items-center justify-between text-xs font-semibold text-zinc-800">
+                    <span>Special Package</span>
+                    <span className="text-amber-600">GH₵ 600 <span className="text-[10px] text-zinc-400 line-through">₵1000</span></span>
+                  </div>
+                </div>
+
+                <div className="space-y-2">
+                  <button
+                    onClick={handleNavigateToPromo}
+                    className="w-full h-9 bg-zinc-900 hover:bg-zinc-900/90 text-zinc-50 font-bold text-xs rounded-none transition-colors tracking-wide cursor-pointer flex items-center justify-center gap-1.5 border-none"
+                  >
+                    <span>Gift Consultation</span>
+                  </button>
+                  <button
+                    onClick={handleClosePopup}
+                    className="w-full h-9 bg-white border border-zinc-200 hover:bg-zinc-50 text-zinc-500 hover:text-zinc-800 text-xs rounded-none transition-colors cursor-pointer"
+                  >
+                    No thanks, maybe later
+                  </button>
+                </div>
+              </div>
+            </motion.div>
+          </div>
+        )}
+      </AnimatePresence>
     </>
   );
 }

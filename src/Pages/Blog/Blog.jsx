@@ -261,6 +261,7 @@ function Blog() {
       // Helper to generate the card safely
       const createPlanCard = (url, linkText) => {
         let displayTitle = linkText;
+        const isAllPlans = url.includes('/plans') && !url.includes('#');
         
         // If it's a raw URL with no text (or identical text), format the URL explicitly into a readable title
         if (!displayTitle || displayTitle.trim() === url.trim() || displayTitle.startsWith('http') || displayTitle.startsWith('/plans')) {
@@ -281,6 +282,8 @@ function Blog() {
            }
         }
         
+        const buttonText = isAllPlans ? 'View All Plans' : 'View Plan';
+        
         const wrapper = doc.createElement('div');
         wrapper.className = "my-8 p-5 sm:p-6 rounded-2xl border border-green-100/40 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 not-prose transition-all duration-300 shimmer-card";
         wrapper.innerHTML = `
@@ -290,8 +293,8 @@ function Blog() {
             </div>
             <h4 class="text-lg sm:text-xl font-bold text-gray-800 m-0 leading-tight truncate-whitespace">${displayTitle}</h4>
           </div>
-          <a href="${url}" target="_blank" rel="noopener noreferrer" class="w-full sm:w-auto shrink-0 inline-flex items-center justify-center px-6 py-2.5 sm:py-3 bg-gradient-to-r from-[#F6841F] to-orange-500 text-white text-sm font-bold rounded-full shadow-md hover:shadow-lg hover:-translate-y-0.5 transition-all no-underline gap-2">
-            View Plan
+          <a href="${url}" target="_blank" rel="noopener noreferrer" class="w-full sm:w-auto shrink-0 inline-flex items-center justify-center px-6 py-2.5 sm:py-3 bg-gradient-to-r from-[#F6841F] to-orange-500 text-white text-sm font-bold rounded-full shadow-md hover:shadow-lg no-underline gap-2">
+            ${buttonText}
             <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14"/><path d="m12 5 7 7-7 7"/></svg>
           </a>
         `;
@@ -528,7 +531,7 @@ function Blog() {
                     {selectedArticle.title}
                   </h1>
 
-                  <div className="flex flex-wrap items-center gap-4 lg:gap-6 text-gray-600 mb-6">
+                  <div className="flex flex-wrap items-center gap-4 lg:gap-6 text-gray-600 pb-6 border-b border-gray-200 mb-6">
                     <div className="flex items-center gap-2">
                       <Calendar size={18} />
                       <span className="text-sm lg:text-base">{formatDate(selectedArticle.createdAt)}</span>
@@ -545,37 +548,11 @@ function Blog() {
                       <span className="text-sm lg:text-base">{selectedArticle.likesCount || 0} likes</span>
                     </div>
                   </div>
-
-                  {/* Social Actions */}
-                  <div className="flex flex-wrap items-center gap-2 sm:gap-4 pb-6 border-b border-gray-200">
-                    <button
-                      onClick={() => handleShare(selectedArticle)}
-                      className="flex items-center gap-2 px-3 sm:px-4 py-2 text-gray-600 hover:text-green-600 hover:bg-green-50 rounded-lg transition-all text-sm"
-                    >
-                      <Share2 size={16} />
-                      Share
-                    </button>
-                    <button
-                      onClick={() => handleLike(selectedArticle.id)}
-                      disabled={isLiking}
-                      className={`flex items-center gap-2 px-3 sm:px-4 py-2 rounded-lg transition-all text-sm ${isLiking
-                          ? 'text-gray-400 bg-gray-50 cursor-not-allowed'
-                          : 'text-gray-600 hover:text-red-500 hover:bg-red-50'
-                        }`}
-                    >
-                      <Heart size={16} />
-                      {isLiking ? 'Liking...' : 'Like'}
-                    </button>
-                  </div>
                 </div>
 
                 {/* Article Content */}
                 <div
-                  className="prose prose-sm sm:prose-base lg:prose-lg max-w-none text-gray-800 leading-relaxed"
-                  style={{
-                    fontSize: '18px',
-                    lineHeight: '1.8'
-                  }}
+                  className="prose prose-sm sm:prose-base lg:prose-lg max-w-none text-gray-800 leading-relaxed article-body"
                   dangerouslySetInnerHTML={{ __html: transformArticleContent(selectedArticle.content) }}
                 />
 
@@ -592,61 +569,35 @@ function Blog() {
                 )}
 
                 {/* Article Footer */}
-                <div className="mt-8 lg:mt-12 pt-6 lg:pt-8 border-t border-gray-200">
-                  <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-                    <div className="text-sm text-gray-500">
-                      Was this article helpful?
-                      {(selectedArticle.helpfulCount || 0) > 0 && (
-                        <span className="ml-2 text-green-600 font-medium">
-                          {selectedArticle.helpfulCount} people found this helpful
+                <div className="mt-8 lg:mt-12 pt-6 lg:pt-8 border-t border-gray-200 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+                  <div className="text-sm text-gray-500">
+                    Enjoyed this article? Share it with your friends or show some love!
+                  </div>
+                  <div className="flex flex-wrap items-center gap-2 sm:gap-3">
+                    <button
+                      onClick={() => handleLike(selectedArticle.id)}
+                      disabled={isLiking}
+                      className={`flex items-center gap-2 px-4 py-2 rounded-full border transition-all text-sm font-semibold cursor-pointer ${isLiking
+                          ? 'text-gray-400 bg-gray-50 border-gray-100 cursor-not-allowed'
+                          : 'text-gray-600 hover:text-red-500 hover:bg-red-55 border-gray-200'
+                        }`}
+                    >
+                      <Heart size={16} className={selectedArticle.likesCount > 0 ? "fill-red-500 text-red-500" : ""} />
+                      {isLiking ? 'Liking...' : 'Like'}
+                      {(selectedArticle.likesCount || 0) > 0 && (
+                        <span className="ml-1 bg-gray-100 text-gray-600 px-2 py-0.5 rounded-full text-xs">
+                          {selectedArticle.likesCount}
                         </span>
                       )}
-                    </div>
-                    <div className="flex gap-2">
-                      <button
-                        onClick={() => handleHelpfulFeedback(selectedArticle.id, true)}
-                        disabled={hasFeedback}
-                        className={`px-3 sm:px-4 py-2 rounded-lg transition-colors text-xs sm:text-sm ${hasFeedback
-                            ? 'bg-gray-100 text-gray-400 cursor-not-allowed'
-                            : 'bg-green-100 text-green-700 hover:bg-green-200'
-                          }`}
-                      >
-                        Yes, helpful! 👍
-                      </button>
-                      <button
-                        onClick={() => handleHelpfulFeedback(selectedArticle.id, false)}
-                        disabled={hasFeedback}
-                        className={`px-3 sm:px-4 py-2 rounded-lg transition-colors text-xs sm:text-sm ${hasFeedback
-                            ? 'bg-gray-100 text-gray-400 cursor-not-allowed'
-                            : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
-                          }`}
-                      >
-                        Could be better 👎
-                      </button>
-                    </div>
+                    </button>
+                    <button
+                      onClick={() => handleShare(selectedArticle)}
+                      className="flex items-center gap-2 px-4 py-2 rounded-full border border-gray-200 text-gray-600 hover:text-green-600 hover:bg-green-50 transition-all text-sm font-semibold cursor-pointer"
+                    >
+                      <Share2 size={16} />
+                      Share
+                    </button>
                   </div>
-
-                  {/* Feedback Summary */}
-                  {((selectedArticle.helpfulCount || 0) > 0 || (selectedArticle.notHelpfulCount || 0) > 0) && (
-                    <div className="mt-4 p-3 bg-gray-50 rounded-lg">
-                      <div className="flex items-center justify-between text-sm text-gray-600">
-                        <div className="flex items-center gap-4">
-                          <span className="text-green-600">
-                            👍 {selectedArticle.helpfulCount || 0} helpful
-                          </span>
-                          <span className="text-gray-500">
-                            👎 {selectedArticle.notHelpfulCount || 0} not helpful
-                          </span>
-                        </div>
-                      </div>
-                    </div>
-                  )}
-
-                  {hasFeedback && (
-                    <div className="mt-3 text-sm text-green-600 text-center">
-                      Thank you for your feedback! 🙏
-                    </div>
-                  )}
                 </div>
               </div>
             </div>

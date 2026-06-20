@@ -218,7 +218,9 @@ const BookingsPanel = ({ showNotification }) => {
                 <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-4">
                   <h3 className="text-lg font-bold text-gray-900">{booking.name}</h3>
                   <div className="flex gap-2">
-                    {booking.consultationType === 'followup' ? (
+                    {booking.isFathersDayBooking || booking.consultationType === 'fathersday' ? (
+                      <span className="px-2.5 py-1 bg-amber-50 text-amber-700 text-xs font-bold rounded-lg uppercase tracking-wide border border-amber-100">🎁 Father's Day Gift (₵{booking.amount || '600'})</span>
+                    ) : booking.consultationType === 'followup' ? (
                       <span className="px-2.5 py-1 bg-emerald-50 text-emerald-700 text-xs font-bold rounded-lg uppercase tracking-wide border border-emerald-100">Follow-Up (₵400)</span>
                     ) : (
                       <span className="px-2.5 py-1 bg-blue-50 text-blue-700 text-xs font-bold rounded-lg uppercase tracking-wide border border-blue-100">Initial (₵800)</span>
@@ -254,11 +256,27 @@ const BookingsPanel = ({ showNotification }) => {
                     <span className="text-xs font-bold text-gray-700">BMI:</span>
                     <span className="text-xs text-gray-600">{booking.userResults?.bmi || 'N/A'}</span>
                   </div>
-                  <div className="flex items-start gap-2 w-full mt-1 border-t border-gray-200 pt-2">
-                    <FileText size={14} className="text-orange-400 mt-0.5" />
-                    <span className="text-xs font-bold text-gray-700">Notes:</span>
-                    <span className="text-xs text-gray-600 italic">"{booking.message || 'No additional notes provided.'}"</span>
-                  </div>
+                  {booking.isFathersDayBooking ? (
+                    <div className="flex flex-col gap-1.5 w-full mt-1 border-t border-gray-200 pt-2 text-xs text-left">
+                      <div>
+                        <span className="font-bold text-gray-700">Gift For:</span> <span className="text-gray-950 font-bold">{booking.fatherName}</span> (WhatsApp: <span className="text-zinc-600 font-semibold">{booking.fatherPhone}</span>)
+                      </div>
+                      {booking.isSurprise && (
+                        <div className="flex items-center gap-1 text-amber-800 font-bold bg-amber-50 border border-amber-200 px-2 py-0.5 w-max">
+                          <span>🤫 SURPRISE GIFT: Hold outreach until Father's Day morning</span>
+                        </div>
+                      )}
+                      <div>
+                        <span className="font-bold text-gray-700">Note:</span> <span className="text-gray-600 italic">"{booking.fatherMessage || booking.message || 'No additional message.'}"</span>
+                      </div>
+                    </div>
+                  ) : (
+                    <div className="flex items-start gap-2 w-full mt-1 border-t border-gray-200 pt-2">
+                      <FileText size={14} className="text-orange-400 mt-0.5" />
+                      <span className="text-xs font-bold text-gray-700">Notes:</span>
+                      <span className="text-xs text-gray-600 italic">"{booking.message || 'No additional notes provided.'}"</span>
+                    </div>
+                  )}
                 </div>
               </div>
 

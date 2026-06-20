@@ -1,15 +1,39 @@
-import React, { useMemo, useState, useEffect, useCallback } from 'react';
+import React, { useMemo, useState, useEffect, useCallback, useRef } from 'react';
 import { CheckCircle, ShieldAlert, ArrowLeft, Loader2, RefreshCw } from 'lucide-react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { httpsCallable } from 'firebase/functions';
 import { functions } from '../../firebaseConfig';
 import SEO from '../../Components/SEO';
 import { useToast } from '../../Contexts/ToastContext';
+import html2canvas from 'html2canvas-pro';
+import Logo from '../../assets/LOGO.webp';
+import fathersDayPromo from '../../assets/fathers_day_promo.png';
 
 function PaymentSuccess() {
   const navigate = useNavigate();
   const location = useLocation();
   const { showToast } = useToast();
+  const cardRef = useRef(null);
+
+  const handleDownloadCard = async () => {
+    if (!cardRef.current) return;
+    try {
+      const canvas = await html2canvas(cardRef.current, {
+        scale: 2,
+        useCORS: true,
+        backgroundColor: null
+      });
+      const dataUrl = canvas.toDataURL('image/jpeg', 0.95);
+      const link = document.createElement('a');
+      link.download = `Fathers_Day_Voucher_${formData.fatherName?.replace(/\s+/g, '_') || 'Gift'}.jpg`;
+      link.href = dataUrl;
+      link.click();
+      showToast('Gift Voucher downloaded!', 'success');
+    } catch (err) {
+      console.error('Failed to generate image:', err);
+      showToast('Failed to download voucher card. Please try again.', 'error');
+    }
+  };
 
   const [status, setStatus] = useState('verifying'); // verifying, processing, confirmed, error
   const [errorMessage, setErrorMessage] = useState('');
@@ -75,8 +99,14 @@ function PaymentSuccess() {
       const processBookingFn = httpsCallable(functions, 'processBooking');
 
       // Derive type from amount to be robust against extra charges/fees
+    console.log("This is the amount being charged",verifyResult.data)
       const actualAmount = verifyResult.data.amount / 100;
-      const verifiedType = actualAmount < 600 ? 'followup' : 'initial';
+      let verifiedType = 'initial';
+      if (actualAmount < 500) {
+        verifiedType = 'followup';
+      } else if (actualAmount >= 500 && actualAmount < 700) {
+        verifiedType = 'fathersday';
+      }
       setVerifiedConsultationType(verifiedType);
 
       const payload = {
@@ -231,6 +261,237 @@ function PaymentSuccess() {
   }
 
   // status === 'confirmed'
+  const isFathersDay = !!formData.isFathersDayBooking || 
+                       new URLSearchParams(location.search).get('campaign') === 'fathersday' ||
+                       (verifiedConsultationType || formData.consultationType) === 'fathersday';
+
+  if (isFathersDay) {
+    const searchParams = new URLSearchParams(location.search);
+    const reference = searchParams.get('reference') || searchParams.get('trxref') || 'N/A';
+
+    return (
+      <>
+        <SEO title="Gift Confirmed" description="Thank you for gifting Diet With Dee!" url="/paymentSuccess" noindex />
+        <div className="min-h-screen bg-zinc-50 py-16 flex items-center justify-center p-4">
+          <div className="max-w-xl w-full border border-zinc-200 bg-white shadow-sm rounded-none overflow-hidden space-y-6">
+            
+            {/* Header Section */}
+            <div className="bg-zinc-950 p-8 text-center border-b border-zinc-200 text-white rounded-none">
+              <div className="w-16 h-16 bg-zinc-900 border border-zinc-800 rounded-none flex items-center justify-center mx-auto mb-4 shadow-sm">
+                <CheckCircle className="text-amber-500" size={32} />
+              </div>
+              <div className="inline-block bg-zinc-800 text-zinc-300 text-[10px] font-bold px-3 py-1 rounded-none tracking-widest uppercase mb-2 border border-zinc-700">
+                Father's Day Gift
+              </div>
+              <h1 className="text-2xl font-bold tracking-tight text-white">Gift Verified Successfully!</h1>
+              <p className="text-zinc-400 text-xs mt-1">Thank you for giving the gift of healthy living.</p>
+            </div>
+
+            {/* Body Section */}
+            <div className="px-8 pb-8 space-y-6">
+          {/* Card Preview Container */}
+              <div className="space-y-2">
+                <h3 className="text-xs font-bold uppercase tracking-wider text-zinc-400 text-left">Your Gift Voucher Preview</h3>
+                
+                {/* On-screen visual Voucher representation (simplified for responsive screen sizing) */}
+                <div 
+                  className="w-full bg-gradient-to-br from-[#0b2e1b] to-[#030a06] border border-amber-500/30 p-6 text-white text-left relative overflow-hidden select-none"
+                  style={{ minHeight: '260px', fontFamily: 'Georgia, serif' }}
+                >
+                  {/* Decorative corner patterns */}
+                  <div className="absolute top-0 left-0 w-6 h-6 border-t border-l border-amber-500/30"></div>
+                  <div className="absolute top-0 right-0 w-6 h-6 border-t border-r border-amber-500/30"></div>
+                  <div className="absolute bottom-0 left-0 w-6 h-6 border-b border-l border-amber-500/30"></div>
+                  <div className="absolute bottom-0 right-0 w-6 h-6 border-b border-r border-amber-500/30"></div>
+
+                  <div className="space-y-4">
+                    <div className="flex justify-between items-start border-b border-zinc-950 pb-3">
+                      <div>
+                        <h4 className="text-[10px] font-black text-amber-500 uppercase tracking-widest leading-none">Happy Father's Day</h4>
+                        <h2 className="text-lg font-bold tracking-tight mt-1.5 text-amber-400">Premium Nutrition Consultation</h2>
+                      </div>
+                      <div className="text-[9px] uppercase tracking-widest text-zinc-400 font-bold border border-zinc-900 px-2 py-0.5 shrink-0">
+                        Diet With Dee
+                      </div>
+                    </div>
+
+                    <div className="space-y-3 font-sans">
+                      <div className="flex justify-between items-end gap-4">
+                        <div>
+                          <span className="text-[9px] text-zinc-400 uppercase tracking-wider block leading-none">For</span>
+                          <span className="text-base font-bold text-amber-100">{formData.fatherName}</span>
+                        </div>
+                        <div className="text-right">
+                          <span className="text-[9px] text-zinc-400 uppercase tracking-wider block leading-none">From</span>
+                          <span className="text-xs font-semibold text-zinc-200">{formData.buyerName}</span>
+                        </div>
+                      </div>
+                    </div>
+
+                    <div className="border-t border-zinc-900/60 pt-3 flex justify-between items-center text-[8px] text-zinc-500 font-semibold uppercase tracking-wider font-sans">
+                      <span>Accra, Ghana</span>
+                      <span>dietwithdee.org</span>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Hidden high-fidelity 1080x1080 voucher card for html2canvas download */}
+                <div style={{ position: 'fixed', left: '-9999px', top: 0 }}>
+                  <div 
+                    ref={cardRef} 
+                    style={{
+                      width: '1080px',
+                      height: '1080px',
+                      background: 'linear-gradient(135deg, #0b2e1b 0%, #030a06 100%)',
+                      display: 'flex',
+                      flexDirection: 'column',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      position: 'relative',
+                      fontFamily: 'Georgia, serif',
+                      overflow: 'hidden',
+                      color: '#ffffff',
+                      boxSizing: 'border-box'
+                    }}
+                  >
+                    {/* Decorative glows */}
+                    <div style={{ position: 'absolute', top: '-10%', left: '-10%', width: '500px', height: '500px', background: '#f59e0b', borderRadius: '50%', filter: 'blur(120px)', opacity: 0.12 }} />
+                    <div style={{ position: 'absolute', bottom: '-10%', right: '-10%', width: '600px', height: '600px', background: '#10b981', borderRadius: '50%', filter: 'blur(150px)', opacity: 0.12 }} />
+                    
+                    {/* Outer gold borders */}
+                    <div style={{ position: 'absolute', inset: '40px', border: '2px solid rgba(245, 158, 11, 0.25)', pointerEvents: 'none' }} />
+                    <div style={{ position: 'absolute', inset: '50px', border: '1px solid rgba(245, 158, 11, 0.15)', pointerEvents: 'none' }} />
+                    
+                    {/* Corner accents */}
+                    <div style={{ position: 'absolute', top: '35px', left: '35px', width: '30px', height: '30px', borderTop: '4px solid #f59e0b', borderLeft: '4px solid #f59e0b' }} />
+                    <div style={{ position: 'absolute', top: '35px', right: '35px', width: '30px', height: '30px', borderTop: '4px solid #f59e0b', borderRight: '4px solid #f59e0b' }} />
+                    <div style={{ position: 'absolute', bottom: '35px', left: '35px', width: '30px', height: '30px', borderBottom: '4px solid #f59e0b', borderLeft: '4px solid #f59e0b' }} />
+                    <div style={{ position: 'absolute', bottom: '35px', right: '35px', width: '30px', height: '30px', borderBottom: '4px solid #f59e0b', borderRight: '4px solid #f59e0b' }} />
+
+                    {/* Center Glass panel */}
+                    <div
+                      style={{
+                        background: 'rgba(255, 255, 255, 0.03)',
+                        border: '1px solid rgba(255, 255, 255, 0.08)',
+                        borderRadius: '24px',
+                        padding: '60px 80px',
+                        display: 'flex',
+                        flexDirection: 'column',
+                        alignItems: 'center',
+                        width: '80%',
+                        maxWidth: '850px',
+                        boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.5)',
+                        boxSizing: 'border-box'
+                      }}
+                    >
+                      {/* Promo illustration badge */}
+                      <div style={{ width: '220px', height: '220px', borderRadius: '50%', overflow: 'hidden', border: '3px solid #f59e0b', marginBottom: '30px', boxShadow: '0 10px 20px rgba(0,0,0,0.3)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                        <img src={fathersDayPromo} alt="Promo" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                      </div>
+                      <span style={{ color: '#f59e0b', fontSize: '24px', fontWeight: 'bold', letterSpacing: '4px', textTransform: 'uppercase', marginBottom: '10px', fontFamily: 'sans-serif' }}>
+                        Happy Father's Day
+                      </span>
+                      
+                      <h1 style={{ fontSize: '48px', fontWeight: 800, margin: '0 0 15px 0', textAlign: 'center', color: '#f59e0b' }}>
+                        Premium Consultation
+                      </h1>
+                      
+                      <p style={{ fontSize: '18px', color: 'rgba(255, 255, 255, 0.75)', margin: '0 0 30px 0', fontFamily: 'sans-serif', textAlign: 'center', lineHeight: '1.6' }}>
+                        This voucher entitles you to a comprehensive assessment & customized diet roadmap with Registered Dietitian Nana Ama Dwamena.
+                      </p>
+
+                      {/* Separator line */}
+                      <div style={{ width: '120px', height: '2px', background: 'linear-gradient(90deg, transparent, #f59e0b, transparent)', marginBottom: '40px' }} />
+
+                      {/* Details table */}
+                      <div style={{ width: '100%', display: 'flex', flexDirection: 'column', gap: '20px', fontFamily: 'sans-serif', color: 'rgba(255,255,255,0.9)' }}>
+                        <div style={{ display: 'flex', justifyContent: 'space-between', borderBottom: '1px solid rgba(255,255,255,0.05)', paddingBottom: '8px' }}>
+                          <span style={{ color: 'rgba(255,255,255,0.4)', textTransform: 'uppercase', fontSize: '12px', letterSpacing: '1px' }}>For</span>
+                          <span style={{ fontWeight: 'bold', fontSize: '22px', color: '#fff9f2' }}>{formData.fatherName}</span>
+                        </div>
+                        <div style={{ display: 'flex', justifyContent: 'space-between', paddingBottom: '8px' }}>
+                          <span style={{ color: 'rgba(255,255,255,0.4)', textTransform: 'uppercase', fontSize: '12px', letterSpacing: '1px' }}>From</span>
+                          <span style={{ fontWeight: 'bold', fontSize: '20px', color: '#fff9f2' }}>{formData.buyerName}</span>
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Logo / Footer branding */}
+                    <div style={{ position: 'absolute', bottom: '80px', display: 'flex', alignItems: 'center', gap: '15px' }}>
+                      <img src={Logo} alt="DietWithDee" style={{ width: '48px', height: '48px', borderRadius: '12px' }} />
+                      <div style={{ color: '#ffffff', fontSize: '20px', fontWeight: 'bold', fontFamily: 'sans-serif' }}>
+                        DietWithDee
+                        <span style={{ color: 'rgba(255,255,255,0.3)', margin: '0 10px', fontWeight: 300 }}>|</span>
+                        <span style={{ color: '#f59e0b', fontWeight: 500 }}>dietwithdee.org</span>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Download Button */}
+                <button
+                  onClick={handleDownloadCard}
+                  className="w-full h-10 bg-amber-500 hover:bg-amber-600 text-zinc-950 font-bold text-xs rounded-none transition-colors tracking-wide cursor-pointer flex items-center justify-center gap-1.5 border-none"
+                >
+                  Download Gift Voucher Card
+                </button>
+              </div>
+
+              {/* Gift Outreach details */}
+              <div className="border border-zinc-200 p-5 space-y-4 rounded-none">
+                <h3 className="text-xs font-bold uppercase tracking-wider text-zinc-400 text-left">Outreach Specifications</h3>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-xs text-left">
+                  <div className="space-y-1">
+                    <span className="text-zinc-400 font-semibold block">Giver / Buyer</span>
+                    <span className="text-zinc-950 font-bold block">{formData.buyerName}</span>
+                    <span className="text-zinc-500 block">{formData.buyerPhone}</span>
+                  </div>
+                  <div className="space-y-1">
+                    <span className="text-zinc-400 font-semibold block">Recipient Father</span>
+                    <span className="text-zinc-950 font-bold block">{formData.fatherName}</span>
+                    <span className="text-zinc-500 block">{formData.fatherPhone}</span>
+                  </div>
+                </div>
+                
+                {formData.isSurprise && (
+                  <div className="bg-amber-50 border border-amber-200 p-3 flex items-center gap-2 text-xs text-amber-900 text-left font-semibold">
+                    <span>🤫 Surprise Request:</span>
+                    <span className="font-normal text-zinc-700">We will hold any WhatsApp outreach to the father until Father's Day morning.</span>
+                  </div>
+                )}
+              </div>
+
+              {/* What's next box */}
+              <div className="border-l-2 border-amber-500 bg-amber-50/50 p-4 space-y-1 text-left">
+                <h4 className="text-xs font-bold text-amber-800 uppercase tracking-wide">Next Steps</h4>
+                <p className="text-xs text-zinc-700 leading-relaxed">
+                  Our team will reach out directly to coordinate scheduling.
+                  {formData.isSurprise 
+                    ? " We will coordinate with you first before contacting the father on Father's Day morning." 
+                    : ` We will contact ${formData.fatherName} within the next 24 hours.`}
+                </p>
+              </div>
+
+              {/* Back to Homepage Button */}
+              <div className="pt-4 border-t border-zinc-100 flex flex-col gap-2">
+                <button
+                  onClick={() => navigate('/')}
+                  className="w-full h-10 bg-zinc-900 hover:bg-zinc-900/90 text-zinc-50 font-bold text-xs rounded-none transition-colors tracking-wide cursor-pointer flex items-center justify-center border-none"
+                >
+                  Back to Homepage
+                </button>
+                <div className="text-center text-[10px] text-zinc-400 font-semibold uppercase tracking-wider">
+                  Accra, Ghana • Diet With Dee
+                </div>
+              </div>
+
+            </div>
+          </div>
+        </div>
+      </>
+    );
+  }
+
   return (
     <><SEO title="Booking Confirmed" description="Thank you for booking with Diet With Dee!" url="/paymentSuccess" noindex />
     <div className="min-h-screen bg-gradient-to-br from-green-50 via-white to-emerald-50 py-12 flex items-center justify-center p-6">

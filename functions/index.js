@@ -233,11 +233,13 @@ exports.onNewSubscriber = onDocumentCreated(
         console.log(`New subscriber detected: ${email}. Sending welcome email...`);
 
         try {
+            
             const resendApiKey = process.env.RESEND_API_KEY;
             if (!resendApiKey) {
                 throw new Error("RESEND_API_KEY is not set.");
             }
             const resend = new Resend(resendApiKey);
+            
 
             const welcomeContent = createWelcomeTemplate(data.name);
             
@@ -442,7 +444,12 @@ exports.processBooking = onCall(
         
         // Derive actual type from amount as the source of truth
         const actualAmount = Number(amount);
-        const actualType = actualAmount < 600 ? 'followup' : 'initial';
+        let actualType = 'initial';
+        if (actualAmount < 500) {
+            actualType = 'followup';
+        } else if (actualAmount >= 500 && actualAmount < 700) {
+            actualType = 'fathersday';
+        }
 
         const db = admin.firestore();
         const bookingRef = db.collection("bookings").doc(reference);
@@ -485,19 +492,25 @@ exports.processBooking = onCall(
         try {
             // Email 1: To Admin
             const adminHtml = createAdminBookingEmail(bookingData);
+            const isFathersDay = !!bookingData.isFathersDayBooking || actualType === 'fathersday';
+            const adminSubject = isFathersDay
+                ? `New Father's Day Gift: ${bookingData.buyerName || formData.name} for ${bookingData.fatherName || 'N/A'}`
+                : `New Booking: ${formData.name} (${actualType === 'followup' ? 'Follow-Up' : 'Initial'})`;
+
             await resend.emails.send({
                 from: 'Diet With Dee Bookings <bookings@mail.dietwithdee.org>',
                 to: ['dietwdee@gmail.com'],
-                subject: `New Booking: ${formData.name} (${actualType === 'followup' ? 'Follow-Up' : 'Initial'})`,
+                subject: adminSubject,
                 html: adminHtml
             });
 
             // Email 2: To Client
-            const clientHtml = createClientConfirmationEmail(formData.name, actualType);
+            const clientHtml = createClientConfirmationEmail(formData.name, actualType, bookingData);
+            const clientSubject = isFathersDay ? "Father's Day Gift Confirmed! 🎁" : "Booking Confirmed! ✅";
             await resend.emails.send({
                 from: 'Diet With Dee <hello@mail.dietwithdee.org>',
                 to: [formData.email],
-                subject: 'Booking Confirmed! ✅',
+                subject: clientSubject,
                 html: clientHtml
             });
 

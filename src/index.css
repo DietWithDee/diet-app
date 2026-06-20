@@ -100,3 +100,46 @@
   border: 1px solid rgba(16, 185, 129, 0.15) !important;
 }
 
+/* Standardized Article Body Typography */
+.article-body,
+.article-body p,
+.article-body li,
+.article-body span,
+.article-body div:not(.not-prose *) {
+  font-size: 16px !important;
+  line-height: 1.8 !important;
+}
+@media (min-width: 640px) {
+  .article-body,
+  .article-body p,
+  .article-body li,
+  .article-body span,
+  .article-body div:not(.not-prose *) {
+    font-size: 17px !important;
+  }
+}
+@media (min-width: 1024px) {
+  .article-body,
+  .article-body p,
+  .article-body li,
+  .article-body span,
+  .article-body div:not(.not-prose *) {
+    font-size: 18px !important;
+  }
+}
+
+@keyframes gold-shimmer {
+  0% {
+    background-position: 200% 0;
+  }
+  100% {
+    background-position: -200% 0;
+  }
+}
+.gold-shimmer-card {
+  background: linear-gradient(120deg, #09090b 35%, #27272a 45%, #eab308 50%, #27272a 55%, #09090b 65%);
+  background-size: 200% 100%;
+  animation: gold-shimmer 10s infinite linear;
+  border: 1px solid rgba(234, 179, 8, 0.4) !important;
+}
+

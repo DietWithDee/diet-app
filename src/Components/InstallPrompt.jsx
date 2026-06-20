@@ -1,4 +1,6 @@
 import React, { useEffect, useState, useRef } from "react";
+import { logEvent } from "firebase/analytics";
+import { analytics } from "../firebaseConfig"; 
 
 export default function InstallPrompt() {
   const [show, setShow] = useState(false);
@@ -35,7 +37,10 @@ export default function InstallPrompt() {
 
       if (shouldShow()) {
         setPlatform("android");
-        setTimeout(() => setShow(true), 5000);
+        setTimeout(() => {
+          setShow(true);
+          logEvent(analytics, 'pwa_prompt_viewed', { platform: 'android' });
+        }, 5000);
       }
     };
 
@@ -46,6 +51,7 @@ export default function InstallPrompt() {
       setShow(false);
       deferredPrompt.current = null;
       localStorage.setItem("appInstalled", "true");
+      logEvent(analytics, 'pwa_install_success', { platform: 'android' });
     };
 
     window.addEventListener("appinstalled", handleAppInstalled);
@@ -53,7 +59,10 @@ export default function InstallPrompt() {
     // --- iOS Safari ---
     if (isIos && shouldShow()) {
       setPlatform("ios");
-      setTimeout(() => setShow(true), 12000);
+      setTimeout(() => {
+        setShow(true);
+        logEvent(analytics, 'pwa_prompt_viewed', { platform: 'ios' });
+      }, 12000);
     }
 
     return () => {
@@ -67,10 +76,12 @@ export default function InstallPrompt() {
     const currentCount = parseInt(localStorage.getItem("installPromptCount") || "0");
     localStorage.setItem("installPromptCount", (currentCount + 1).toString());
     localStorage.setItem("installPromptLastDismissed", Date.now().toString());
+    logEvent(analytics, 'pwa_prompt_dismissed', { platform });
   };
 
   const handleInstall = async () => {
     if (!deferredPrompt.current) return;
+    logEvent(analytics, 'pwa_prompt_clicked', { platform });
     deferredPrompt.current.prompt();
     const { outcome } = await deferredPrompt.current.userChoice;
     if (outcome === "accepted") {

@@ -29,13 +29,14 @@ export default defineConfig({
             purpose: "any maskable"
           }
         ],
-        start_url: "/",
+        start_url: "/?utm_source=pwa&utm_medium=standalone",
         display: "standalone",
         theme_color: "#16a34a",
         background_color: "#ffffff"
       },
       workbox: {
         globPatterns: ['**/*.{js,css,html,ico,png,svg,webp}'],
+        maximumFileSizeToCacheInBytes: 3000000,
         runtimeCaching: [
           {
             urlPattern: /^https:\/\/firebasestorage\.googleapis\.com\/.*/i,

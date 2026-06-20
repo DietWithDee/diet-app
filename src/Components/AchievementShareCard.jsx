@@ -1,5 +1,5 @@
 import React, { useRef } from 'react';
-import html2canvas from 'html2canvas';
+import html2canvas from 'html2canvas-pro';
 import Logo from '../assets/LOGO.webp';
 
 // Map each badge ID to a specific beautiful gradient and accent color
