@@ -24,12 +24,12 @@ import ScrollToTop from "../../utils/ScrollToTop";
 import { useTestimonials } from "../../hooks/useTestimonials";
 import { plans } from "../../utils/plansData";
 import { useToast } from "../../Contexts/ToastContext";
-import carousel1 from "../../assets/carousel/1.svg?url";
-import carousel2 from "../../assets/carousel/2.svg?url";
-import carousel3 from "../../assets/carousel/3.svg?url";
-import carousel4 from "../../assets/carousel/4.svg?url";
-import carousel5 from "../../assets/carousel/5.svg?url";
-import carousel6 from "../../assets/carousel/6.svg?url";
+import carousel1 from "../../assets/carousel/1.jpg?url";
+import carousel2 from "../../assets/carousel/2.jpg?url";
+import carousel3 from "../../assets/carousel/3.jpg?url";
+import carousel4 from "../../assets/carousel/4.jpg?url";
+import carousel5 from "../../assets/carousel/5.jpg?url";
+import carousel6 from "../../assets/carousel/6.jpg?url";
 
 const PROMO_CODES = {
   "back-to-basics": "BASICS10",

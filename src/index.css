@@ -143,3 +143,8 @@
   border: 1px solid rgba(234, 179, 8, 0.4) !important;
 }
 
+/* TerraVee Gradient Styles */
+.bg-gradient-radial {
+  background-image: radial-gradient(circle, var(--tw-gradient-stops));
+}
+

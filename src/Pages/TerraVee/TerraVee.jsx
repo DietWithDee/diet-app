@@ -1,370 +1,232 @@
 import React, { useState, useEffect } from "react";
-import { motion } from "framer-motion";
-import { MessageCircle, ChevronLeft, ChevronRight } from "lucide-react";
+import { motion, AnimatePresence } from "framer-motion";
+import { ShoppingBag, ChevronRight } from "lucide-react";
 import SEO from "../../Components/SEO";
 import ScrollToTop from "../../utils/ScrollToTop";
 
 const TerraVee = () => {
   const [currentSlide, setCurrentSlide] = useState(0);
-  const [isAutoPlay, setIsAutoPlay] = useState(true);
+  const [dragStart, setDragStart] = useState(0);
+  const [isDragging, setIsDragging] = useState(false);
 
-  // Product carousel items - placeholders
-  const products = [
+  // Product variants with different colors and images
+  const variants = [
     {
       id: 1,
-      name: "TerraVee Single Pack",
-      price: "GHS 50.00",
-      discountedPrice: "GHS 45.00",
-      image: "🥤",
-      description: "Fresh TerraVee juice pack for daily wellness",
-      features: [
-        "100% Natural",
-        "No Added Sugar",
-        "Refreshing",
-        "Single Bottle",
-      ],
+      name: "Tropical Mango",
+      price: "GHS 45.00",
+      image: "/terravee-variants/15.png",
+      bgGradient: "from-orange-400 via-orange-300 to-yellow-200",
+      accentColor: "from-orange-500 to-orange-300",
+      whatsappText: "Hi! I'm interested in ordering TerraVee Tropical Mango variant. Please send me pricing and details.",
     },
     {
       id: 2,
-      name: "TerraVee Bundle - Premium",
-      price: "GHS 150.00",
-      discountedPrice: "GHS 135.00",
-      image: "📦",
-      description:
-        "Complete bundle with 3 different flavors - exclusive collab",
-      features: [
-        "3 Different Flavors",
-        "Special Father's Day Packaging",
-        "Mix & Match",
-      ],
+      name: "Berry Blast",
+      price: "GHS 45.00",
+      image: "/terravee-variants/16.png",
+      bgGradient: "from-pink-400 via-purple-300 to-purple-200",
+      accentColor: "from-pink-500 to-purple-400",
+      whatsappText: "Hi! I'm interested in ordering TerraVee Berry Blast variant. Please send me pricing and details.",
     },
     {
       id: 3,
-      name: "TerraVee Family Pack",
-      price: "GHS 280.00",
-      discountedPrice: "GHS 252.00",
-      image: "👨‍👩‍👧‍👦",
-      description:
-        "Perfect for the whole family - bulk savings for Father's Day",
-      features: [
-        "6 Bottles Total",
-        "Best Value",
-        "Family Approved",
-        "Free Shipping",
-      ],
+      name: "Citrus Fresh",
+      price: "GHS 45.00",
+      image: "/terravee-variants/17.png",
+      bgGradient: "from-yellow-400 via-lime-300 to-green-200",
+      accentColor: "from-yellow-500 to-lime-400",
+      whatsappText: "Hi! I'm interested in ordering TerraVee Citrus Fresh variant. Please send me pricing and details.",
     },
     {
       id: 4,
-      name: "TerraVee Wellness Bundle",
-      price: "GHS 200.00",
-      discountedPrice: "GHS 180.00",
-      image: "💚",
-      description: "Curated wellness bundle with premium selection",
-      features: [
-        "4 Assorted Flavors",
-        "Premium Packaging",
-        "Health-Focused",
-        "Diet with Dee Approved",
-      ],
+      name: "Mint Cool",
+      price: "GHS 45.00",
+      image: "/terravee-variants/18.png",
+      bgGradient: "from-cyan-400 via-teal-300 to-emerald-200",
+      accentColor: "from-cyan-500 to-teal-400",
+      whatsappText: "Hi! I'm interested in ordering TerraVee Mint Cool variant. Please send me pricing and details.",
+    },
+    {
+      id: 5,
+      name: "Passion Paradise",
+      price: "GHS 45.00",
+      image: "/terravee-variants/19.png",
+      bgGradient: "from-red-400 via-pink-300 to-rose-200",
+      accentColor: "from-red-500 to-pink-400",
+      whatsappText: "Hi! I'm interested in ordering TerraVee Passion Paradise variant. Please send me pricing and details.",
     },
   ];
 
-  // Auto-play carousel
-  useEffect(() => {
-    if (!isAutoPlay) return;
-    const interval = setInterval(() => {
-      setCurrentSlide((prev) => (prev + 1) % products.length);
-    }, 4000);
-    return () => clearInterval(interval);
-  }, [isAutoPlay, products.length]);
+  // Handle touch/drag for slider
+  const handleDragStart = (e) => {
+    setDragStart(e.clientX || e.touches?.[0]?.clientX || 0);
+    setIsDragging(true);
+  };
+
+  const handleDragEnd = (e) => {
+    const dragEnd = e.clientX || e.changedTouches?.[0]?.clientX || 0;
+    const diff = dragStart - dragEnd;
+
+    if (Math.abs(diff) > 50) {
+      if (diff > 0) {
+        // Swiped left, go to next
+        setCurrentSlide((prev) => (prev + 1) % variants.length);
+      } else {
+        // Swiped right, go to prev
+        setCurrentSlide((prev) => (prev - 1 + variants.length) % variants.length);
+      }
+    }
+    setIsDragging(false);
+  };
 
   const nextSlide = () => {
-    setCurrentSlide((prev) => (prev + 1) % products.length);
-    setIsAutoPlay(false);
+    setCurrentSlide((prev) => (prev + 1) % variants.length);
   };
 
-  const prevSlide = () => {
-    setCurrentSlide((prev) => (prev - 1 + products.length) % products.length);
-    setIsAutoPlay(false);
-  };
-
-  const handleWhatsAppOrder = (product) => {
-    const message = `Hi! I'm interested in the ${product.name} (${product.discountedPrice} with 10% Diet with Dee customer discount). 
-
-I'd like to place an order for the Father's Day collaboration. Please confirm availability and next steps.
-
-Thanks!`;
-    const whatsappURL = `https://wa.me/233545930804?text=${encodeURIComponent(message)}`;
+  const handleBuyNow = (variant) => {
+    const whatsappURL = `https://wa.me/233545930804?text=${encodeURIComponent(variant.whatsappText)}`;
     window.open(whatsappURL, "_blank");
   };
 
   return (
     <>
       <SEO
-        title="TerraVee Juice - Order Now"
-        description="Get discounted TerraVee juice packs when you order from Diet with Dee. Fresh, natural, and delicious!"
+        title="TerraVee Juice Variants - Order Now"
+        description="Discover our beautiful collection of TerraVee Juice variants. Tropical Mango, Berry Blast, Citrus Fresh, Mint Cool, and Passion Paradise."
         url="/terravee"
       />
-      <div className="min-h-screen bg-gradient-to-br from-green-50 via-white to-emerald-50">
+      <div className="min-h-screen bg-black overflow-hidden">
         <ScrollToTop />
 
-        {/* Hero Section */}
-        <motion.div
-          className="bg-gradient-to-r from-emerald-600 to-green-600 text-white py-16 px-6 lg:px-12"
-          initial={{ opacity: 0, y: -20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.6 }}
+        {/* Main Slider Container */}
+        <div
+          className="relative w-full h-screen flex items-center justify-center overflow-hidden"
+          onMouseDown={handleDragStart}
+          onMouseUp={handleDragEnd}
+          onTouchStart={handleDragStart}
+          onTouchEnd={handleDragEnd}
         >
-          <div className="max-w-6xl mx-auto text-center">
-            <motion.div
-              initial={{ scale: 0.8 }}
-              animate={{ scale: 1 }}
-              transition={{ duration: 0.5, delay: 0.2 }}
-              className="text-6xl mb-4"
-            >
-              🥤
-            </motion.div>
-            <motion.div
-              initial={{ opacity: 0, y: -10 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.1 }}
-              className="inline-block bg-white/20 backdrop-blur-sm text-white px-4 py-1 rounded-full font-bold text-sm mb-4 border border-white/30"
-            >
-              🎁 Father's Day Collaboration 🎁
-            </motion.div>
-            <h1 className="text-4xl lg:text-5xl font-black mb-4">
-              TerraVee Juice x Diet with Dee
-            </h1>
-            <p className="text-lg lg:text-xl opacity-90 max-w-2xl mx-auto mb-6">
-              Get a discounted pack of TerraVee Juice when you order from Diet
-              with Dee. Fresh, natural, and delicious!
-            </p>
-            <motion.div
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              transition={{ delay: 0.4 }}
-              className="mt-6 space-y-3"
-            >
-              <div className="inline-block bg-red-600 text-white px-6 py-3 rounded-full font-black text-xl shadow-lg border-2 border-white/50">
-                🎉 10% OFF for Diet with Dee Customers! 🎉
-              </div>
-              <p className="text-base font-semibold opacity-95">
-                Exclusive discount for our nutrition community
-              </p>
-            </motion.div>
-          </div>
-        </motion.div>
-
-        {/* Product Carousel */}
-        <div className="max-w-6xl mx-auto px-6 lg:px-12 py-20">
-          <h2 className="text-3xl font-black text-center text-green-700 mb-12">
-            Our Products
-          </h2>
-
-          <div className="relative">
-            {/* Carousel Container */}
-            <div className="overflow-hidden rounded-3xl bg-white shadow-2xl">
-              <motion.div
-                className="flex"
-                animate={{ x: `-${currentSlide * 100}%` }}
-                transition={{ type: "spring", stiffness: 300, damping: 30 }}
-              >
-                {products.map((product, index) => (
-                  <motion.div
-                    key={product.id}
-                    className="min-w-full flex items-center justify-between p-8 lg:p-12 bg-gradient-to-r from-green-50 to-emerald-50"
-                    initial={{ opacity: 0 }}
-                    animate={{ opacity: 1 }}
-                    transition={{ duration: 0.5 }}
-                  >
-                    {/* Image Section */}
-                    <motion.div
-                      className="flex-1 flex items-center justify-center"
-                      initial={{ scale: 0.8, opacity: 0 }}
-                      animate={{ scale: 1, opacity: 1 }}
-                      transition={{ delay: 0.2 }}
-                    >
-                      <div className="text-9xl drop-shadow-lg">
-                        {product.image}
-                      </div>
-                    </motion.div>
-
-                    {/* Content Section */}
-                    <motion.div
-                      className="flex-1 ml-8"
-                      initial={{ x: 50, opacity: 0 }}
-                      animate={{ x: 0, opacity: 1 }}
-                      transition={{ delay: 0.3 }}
-                    >
-                      <h3 className="text-3xl font-bold text-green-700 mb-2">
-                        {product.name}
-                      </h3>
-                      <div className="flex items-center gap-3 mb-4">
-                        <p className="text-lg font-bold text-gray-400 line-through">
-                          {product.price}
-                        </p>
-                        <p className="text-2xl font-black text-red-600">
-                          {product.discountedPrice}
-                        </p>
-                        <span className="inline-block bg-red-600 text-white px-3 py-1 rounded-full text-sm font-bold">
-                          Save 10%
-                        </span>
-                      </div>
-                      <p className="text-gray-600 mb-6 text-lg">
-                        {product.description}
-                      </p>
-
-                      {/* Features */}
-                      <ul className="space-y-2 mb-8">
-                        {product.features.map((feature, idx) => (
-                          <motion.li
-                            key={idx}
-                            className="flex items-center gap-3 text-gray-700"
-                            initial={{ x: -20, opacity: 0 }}
-                            animate={{ x: 0, opacity: 1 }}
-                            transition={{ delay: 0.4 + idx * 0.1 }}
-                          >
-                            <span className="text-2xl">✓</span>
-                            <span className="font-medium">{feature}</span>
-                          </motion.li>
-                        ))}
-                      </ul>
-
-                      {/* CTA Button */}
-                      <motion.button
-                        whileHover={{ scale: 1.05 }}
-                        whileTap={{ scale: 0.95 }}
-                        onClick={() => handleWhatsAppOrder(product)}
-                        className="flex items-center gap-2 bg-gradient-to-r from-green-600 to-emerald-600 text-white px-8 py-4 rounded-full font-bold text-lg shadow-lg hover:shadow-xl transition-all"
-                      >
-                        <MessageCircle size={24} />
-                        Order via WhatsApp
-                      </motion.button>
-                    </motion.div>
-                  </motion.div>
-                ))}
-              </motion.div>
-            </div>
-
-            {/* Navigation Arrows */}
-            <motion.button
-              whileHover={{ scale: 1.1 }}
-              whileTap={{ scale: 0.9 }}
-              onClick={prevSlide}
-              onMouseEnter={() => setIsAutoPlay(false)}
-              className="absolute left-0 top-1/2 -translate-y-1/2 -translate-x-6 p-3 bg-white shadow-lg rounded-full text-green-600 hover:bg-green-50 z-10 transition-all"
-            >
-              <ChevronLeft size={28} />
-            </motion.button>
-            <motion.button
-              whileHover={{ scale: 1.1 }}
-              whileTap={{ scale: 0.9 }}
-              onClick={nextSlide}
-              onMouseEnter={() => setIsAutoPlay(false)}
-              className="absolute right-0 top-1/2 -translate-y-1/2 translate-x-6 p-3 bg-white shadow-lg rounded-full text-green-600 hover:bg-green-50 z-10 transition-all"
-            >
-              <ChevronRight size={28} />
-            </motion.button>
-
-            {/* Pagination Dots */}
-            <div className="flex justify-center gap-3 mt-8">
-              {products.map((_, idx) => (
-                <motion.button
-                  key={idx}
-                  onClick={() => {
-                    setCurrentSlide(idx);
-                    setIsAutoPlay(false);
-                  }}
-                  className={`rounded-full transition-all ${
-                    idx === currentSlide
-                      ? "bg-green-600 w-8 h-3"
-                      : "bg-gray-300 w-3 h-3 hover:bg-gray-400"
-                  }`}
-                  whileHover={{ scale: 1.2 }}
-                />
-              ))}
-            </div>
-          </div>
-        </div>
-
-        {/* Why Choose Section */}
-        <motion.div
-          className="bg-white py-20 px-6 lg:px-12"
-          initial={{ opacity: 0 }}
-          whileInView={{ opacity: 1 }}
-          transition={{ duration: 0.6 }}
-        >
-          <div className="max-w-6xl mx-auto">
-            <h2 className="text-3xl font-black text-center text-green-700 mb-12">
-              Why TerraVee + Diet with Dee?
-            </h2>
-
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-              {[
-                {
-                  icon: "🥤",
-                  title: "Quality Products",
-                  description: "100% natural ingredients, no additives",
-                },
-                {
-                  icon: "💚",
-                  title: "Diet Friendly",
-                  description: "Aligns with healthy nutrition goals",
-                },
-                {
-                  icon: "🎁",
-                  title: "Father's Day Special",
-                  description: "Exclusive 10% discount for our customers",
-                },
-              ].map((item, idx) => (
+          {/* Slides */}
+          <AnimatePresence mode="wait">
+            {variants.map((variant, index) => (
+              index === currentSlide && (
                 <motion.div
-                  key={idx}
-                  className="bg-gradient-to-br from-green-50 to-emerald-50 p-8 rounded-2xl border border-green-200 text-center"
-                  initial={{ y: 20, opacity: 0 }}
-                  whileInView={{ y: 0, opacity: 1 }}
-                  transition={{ delay: idx * 0.2 }}
+                  key={variant.id}
+                  className={`absolute inset-0 bg-gradient-to-b ${variant.bgGradient}`}
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  exit={{ opacity: 0 }}
+                  transition={{ duration: 0.5 }}
                 >
-                  <div className="text-5xl mb-4">{item.icon}</div>
-                  <h3 className="text-xl font-bold text-green-700 mb-2">
-                    {item.title}
-                  </h3>
-                  <p className="text-gray-600">{item.description}</p>
-                </motion.div>
-              ))}
-            </div>
-          </div>
-        </motion.div>
+                  {/* Center Gradient Overlay - White gradient in center */}
+                  <div className="absolute inset-0 bg-gradient-radial from-white via-transparent to-transparent opacity-40"></div>
 
-        {/* CTA Section */}
-        <motion.div
-          className="bg-gradient-to-r from-green-600 to-emerald-600 text-white py-16 px-6 lg:px-12"
-          initial={{ opacity: 0, y: 20 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.6 }}
-        >
-          <div className="max-w-4xl mx-auto text-center">
-            <h2 className="text-3xl lg:text-4xl font-black mb-6">
-              🎁 Father's Day Special - 10% OFF! 🎁
-            </h2>
-            <p className="text-lg mb-2 opacity-90">
-              Exclusive discount for Diet with Dee customers
-            </p>
-            <p className="text-base mb-8 opacity-85">
-              Valid for all TerraVee products during Father's Day collaboration
-            </p>
-            <motion.a
-              href="https://wa.me/233545930804?text=Hi! I'd like to order TerraVee juice for the Father's Day collaboration. I'm a Diet with Dee customer and would like to apply the 10% discount. Please send me the available products and bundle options. Thanks!"
-              target="_blank"
-              rel="noopener noreferrer"
-              whileHover={{ scale: 1.05 }}
-              whileTap={{ scale: 0.95 }}
-              className="inline-flex items-center gap-3 bg-white text-green-600 px-10 py-4 rounded-full font-bold text-lg shadow-lg hover:shadow-xl transition-all"
-            >
-              <MessageCircle size={28} />
-              Chat on WhatsApp - Get Your 10% OFF
-            </motion.a>
+                  {/* Content Container */}
+                  <div className="relative w-full h-full flex flex-col items-center justify-center px-6">
+                    {/* Product Image */}
+                    <motion.div
+                      initial={{ scale: 0.8, opacity: 0, y: 30 }}
+                      animate={{ scale: 1, opacity: 1, y: 0 }}
+                      exit={{ scale: 0.8, opacity: 0, y: -30 }}
+                      transition={{ duration: 0.5, delay: 0.2 }}
+                      className="flex items-center justify-center mb-12"
+                    >
+                      <div className="relative w-64 h-64 lg:w-96 lg:h-96 flex items-center justify-center">
+                        <img
+                          src={variant.image}
+                          alt={variant.name}
+                          className="w-full h-full object-contain drop-shadow-2xl"
+                          onError={(e) => {
+                            // Fallback if image doesn't exist
+                            e.target.style.display = "none";
+                          }}
+                        />
+                      </div>
+                    </motion.div>
+
+                    {/* Product Info */}
+                    <motion.div
+                      initial={{ opacity: 0, y: 20 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      exit={{ opacity: 0, y: -20 }}
+                      transition={{ duration: 0.5, delay: 0.3 }}
+                      className="text-center mb-8"
+                    >
+                      <h2 className="text-5xl lg:text-6xl font-black text-white mb-4 drop-shadow-lg">
+                        {variant.name}
+                      </h2>
+                      <p className="text-3xl lg:text-4xl font-bold text-white drop-shadow-lg">
+                        {variant.price}
+                      </p>
+                    </motion.div>
+
+                    {/* Glass Effect Buy Button */}
+                    <motion.button
+                      initial={{ opacity: 0, scale: 0.8 }}
+                      animate={{ opacity: 1, scale: 1 }}
+                      exit={{ opacity: 0, scale: 0.8 }}
+                      transition={{ duration: 0.5, delay: 0.4 }}
+                      whileHover={{ scale: 1.05, y: -5 }}
+                      whileTap={{ scale: 0.95 }}
+                      onClick={() => handleBuyNow(variant)}
+                      className={`relative px-10 py-4 lg:px-14 lg:py-5 rounded-full font-bold text-lg lg:text-xl text-white 
+                        bg-gradient-to-r ${variant.accentColor}
+                        backdrop-blur-md bg-opacity-30 border border-white border-opacity-50
+                        shadow-lg hover:shadow-2xl transition-all duration-300
+                        flex items-center gap-3 group overflow-hidden`}
+                    >
+                      <span className="relative z-10 flex items-center gap-2">
+                        <ShoppingBag size={24} />
+                        Buy Now
+                      </span>
+                      {/* Glass shine effect */}
+                      <div className="absolute inset-0 bg-gradient-to-r from-white/0 via-white/20 to-white/0 opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
+                    </motion.button>
+                  </div>
+                </motion.div>
+              )
+            ))}
+          </AnimatePresence>
+
+          {/* Navigation - Next Button (Right) */}
+          <motion.button
+            whileHover={{ scale: 1.15 }}
+            whileTap={{ scale: 0.9 }}
+            onClick={nextSlide}
+            className="absolute right-6 lg:right-12 top-1/2 -translate-y-1/2 z-20 
+              p-4 rounded-full bg-white/20 backdrop-blur-md border border-white/50 
+              text-white hover:bg-white/30 transition-all shadow-lg group"
+          >
+            <ChevronRight size={32} className="group-hover:translate-x-1 transition-transform" />
+          </motion.button>
+
+          {/* Slide Indicators */}
+          <div className="absolute bottom-8 left-1/2 -translate-x-1/2 flex gap-3 z-20">
+            {variants.map((_, idx) => (
+              <motion.button
+                key={idx}
+                onClick={() => setCurrentSlide(idx)}
+                className={`rounded-full transition-all ${
+                  idx === currentSlide
+                    ? "bg-white w-8 h-3"
+                    : "bg-white/40 w-3 h-3 hover:bg-white/60"
+                }`}
+                whileHover={{ scale: 1.2 }}
+              />
+            ))}
           </div>
-        </motion.div>
+
+          {/* Info Text - Left bottom */}
+          <motion.div
+            initial={{ opacity: 0, x: -20 }}
+            animate={{ opacity: 1, x: 0 }}
+            transition={{ delay: 0.5 }}
+            className="absolute bottom-8 left-8 z-20 text-white/70 max-w-xs"
+          >
+            <p className="text-sm font-semibold">Slide right to explore all variants →</p>
+          </motion.div>
+        </div>
       </div>
     </>
   );
