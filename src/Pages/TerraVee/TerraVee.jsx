@@ -120,7 +120,7 @@ const TerraVee = () => {
           onTouchEnd={handleDragEnd}
         >
           {/* Slides */}
-          <AnimatePresence mode="wait">
+          <AnimatePresence>
             {variants.map(
               (variant, index) =>
                 index === currentSlide && (
@@ -130,29 +130,29 @@ const TerraVee = () => {
                     initial={{ opacity: 0 }}
                     animate={{ opacity: 1 }}
                     exit={{ opacity: 0 }}
-                    transition={{ duration: 0.5 }}
+                    transition={{ duration: 0.25, ease: "easeInOut" }}
                   >
                     {/* Center Gradient Overlay - White gradient in center */}
                     <div className="absolute inset-0 bg-gradient-radial from-white via-transparent to-transparent opacity-40"></div>
 
                     {/* Content Container */}
-                    <div className="relative w-full h-full flex flex-col items-center justify-center px-6">
+                    <div className="relative w-full h-full flex flex-col md:flex-row items-center justify-center md:justify-around px-6 md:px-20 py-12 md:py-0 overflow-y-auto md:overflow-hidden gap-8 md:gap-16">
                       {variant.isSpecialPack ? (
-                        /* Father's Day Pack Slide Layout */
-                        <div className="flex flex-col items-center justify-center max-w-4xl mx-auto w-full">
+                        /* Father's Day Pack Slide Layout (Grid of 5 bottles) */
+                        <div className="flex flex-col items-center justify-center max-w-5xl mx-auto w-full">
                           {/* Side by side bottles */}
                           <div className="flex items-center justify-center gap-1.5 sm:gap-4 md:gap-6 mb-8 md:mb-12 w-full px-2">
                             {variants.slice(0, 5).map((v) => (
                               <motion.div
                                 key={v.id}
-                                whileHover={{ y: -15, scale: 1.08 }}
+                                whileHover={{ y: -20, scale: 1.12 }}
                                 transition={{ type: "spring", stiffness: 300 }}
-                                className="relative w-14 h-36 sm:w-28 sm:h-72 md:w-36 md:h-80 flex items-center justify-center"
+                                className="relative w-16 h-40 sm:w-32 sm:h-[350px] md:w-40 md:h-[420px] lg:w-48 lg:h-[500px] flex items-center justify-center"
                               >
                                 <img
                                   src={v.image}
                                   alt={v.name}
-                                  className="w-full h-full object-contain drop-shadow-[0_15px_15px_rgba(0,0,0,0.5)]"
+                                  className="w-full h-full object-contain drop-shadow-[0_20px_20px_rgba(0,0,0,0.55)]"
                                 />
                               </motion.div>
                             ))}
@@ -160,7 +160,7 @@ const TerraVee = () => {
 
                           {/* Heading and Pack pricing info */}
                           <div className="text-center mb-8">
-                            <h2 className="text-4xl sm:text-5xl lg:text-6xl font-black text-white mb-3 tracking-wide uppercase drop-shadow-lg">
+                            <h2 className="text-4xl sm:text-5xl lg:text-6xl font-black text-white mb-3 tracking-wide drop-shadow-lg">
                               {variant.name}
                             </h2>
                             <p className="text-lg sm:text-2xl lg:text-3xl font-bold text-amber-400 drop-shadow-md">
@@ -169,21 +169,21 @@ const TerraVee = () => {
                           </div>
                         </div>
                       ) : (
-                        /* Standard Single Variant Slide Layout */
+                        /* Standard Single Variant Slide Layout - Split screen on desktop */
                         <>
-                          {/* Product Image */}
+                          {/* Left Side: Product Image (Large and Centered) */}
                           <motion.div
-                            initial={{ scale: 0.8, opacity: 0, y: 30 }}
-                            animate={{ scale: 1, opacity: 1, y: 0 }}
-                            exit={{ scale: 0.8, opacity: 0, y: -30 }}
-                            transition={{ duration: 0.5, delay: 0.2 }}
-                            className="flex items-center justify-center mb-8"
+                            initial={{ scale: 0.9, opacity: 0 }}
+                            animate={{ scale: 1, opacity: 1 }}
+                            exit={{ scale: 0.9, opacity: 0 }}
+                            transition={{ duration: 0.25, ease: "easeOut" }}
+                            className="flex items-center justify-center w-full md:w-1/2 h-[50vh] md:h-[80vh] max-h-[85vh]"
                           >
-                            <div className="relative w-[280px] h-[280px] sm:w-[350px] h-[350px] md:w-[450px] md:h-[450px] lg:w-[500px] lg:h-[500px] flex items-center justify-center transition-all duration-300">
+                            <div className="relative w-full h-full max-w-[450px] sm:max-w-[550px] md:max-w-[650px] lg:max-w-[800px] flex items-center justify-center transition-all duration-300">
                               <img
                                 src={variant.image}
                                 alt={variant.name}
-                                className="w-full h-full object-contain drop-shadow-[0_25px_25px_rgba(0,0,0,0.65)] hover:scale-105 transition-transform duration-500 ease-out"
+                                className="w-full h-full object-contain drop-shadow-[0_35px_35px_rgba(0,0,0,0.7)] hover:scale-105 transition-transform duration-500 ease-out"
                                 onError={(e) => {
                                   e.target.style.display = "none";
                                 }}
@@ -191,63 +191,90 @@ const TerraVee = () => {
                             </div>
                           </motion.div>
 
-                          {/* Product Info */}
-                          <motion.div
-                            initial={{ opacity: 0, y: 20 }}
-                            animate={{ opacity: 1, y: 0 }}
-                            exit={{ opacity: 0, y: -20 }}
-                            transition={{ duration: 0.5, delay: 0.3 }}
-                            className="text-center mb-8"
-                          >
-                            <h2 className="text-5xl lg:text-7xl font-black text-white mb-2 drop-shadow-lg tracking-wide uppercase">
-                              {variant.name}
-                            </h2>
-                          </motion.div>
+                          {/* Right Side: Product Info (Grouped with CTA on md+) */}
+                          <div className="w-full md:w-1/2 flex flex-col items-center md:items-start text-center md:text-left justify-center gap-6">
+                            <motion.div
+                              initial={{ opacity: 0, y: 10 }}
+                              animate={{ opacity: 1, y: 0 }}
+                              exit={{ opacity: 0, y: -10 }}
+                              transition={{ duration: 0.25, ease: "easeOut" }}
+                            >
+                              <h2 className="text-5xl sm:text-6xl md:text-7xl lg:text-8xl font-black text-white drop-shadow-lg tracking-wide leading-tight">
+                                {variant.name}
+                              </h2>
+                            </motion.div>
+                            
+                            {/* Glass Effect Buy Button (rendered inside the right side for standard products) */}
+                            <motion.button
+                              initial={{ opacity: 0, scale: 0.95 }}
+                              animate={{ opacity: 1, scale: 1 }}
+                              exit={{ opacity: 0, scale: 0.95 }}
+                              transition={{ duration: 0.25, ease: "easeOut" }}
+                              whileHover={{ scale: 1.05, y: -5 }}
+                              whileTap={{ scale: 0.95 }}
+                              onClick={() => handleBuyNow(variant)}
+                              className={`relative px-10 py-4 lg:px-14 lg:py-5 rounded-full font-bold text-lg lg:text-xl text-white 
+                              bg-gradient-to-r ${variant.accentColor}
+                              backdrop-blur-md bg-opacity-30 border border-white border-opacity-50
+                              shadow-lg hover:shadow-2xl transition-all duration-300
+                              flex items-center gap-3 group overflow-hidden`}
+                            >
+                              <span className="relative z-10 flex items-center gap-2">
+                                <ShoppingBag size={24} />
+                                Buy Now
+                              </span>
+                              {/* Glass shine effect */}
+                              <div className="absolute inset-0 bg-gradient-to-r from-white/0 via-white/20 to-white/0 opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
+                            </motion.button>
+                          </div>
                         </>
                       )}
 
-                      {/* Glass Effect Buy Button (shared by both layout types) */}
-                      <motion.button
-                        initial={{ opacity: 0, scale: 0.8 }}
-                        animate={{ opacity: 1, scale: 1 }}
-                        exit={{ opacity: 0, scale: 0.8 }}
-                        transition={{ duration: 0.5, delay: 0.4 }}
-                        whileHover={{ scale: 1.05, y: -5 }}
-                        whileTap={{ scale: 0.95 }}
-                        onClick={() => handleBuyNow(variant)}
-                        className={`relative px-10 py-4 lg:px-14 lg:py-5 rounded-full font-bold text-lg lg:text-xl text-white 
-                        bg-gradient-to-r ${variant.accentColor}
-                        backdrop-blur-md bg-opacity-30 border border-white border-opacity-50
-                        shadow-lg hover:shadow-2xl transition-all duration-300
-                        flex items-center gap-3 group overflow-hidden`}
-                      >
-                        <span className="relative z-10 flex items-center gap-2">
-                          <ShoppingBag size={24} />
-                          {variant.isSpecialPack ? "Order Now" : "Buy Now"}
-                        </span>
-                        {/* Glass shine effect */}
-                        <div className="absolute inset-0 bg-gradient-to-r from-white/0 via-white/20 to-white/0 opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
-                      </motion.button>
+                      {/* Render Buy Button at bottom for Father's Day pack (since it has a full width centered layout) */}
+                      {variant.isSpecialPack && (
+                        <motion.button
+                          initial={{ opacity: 0, scale: 0.95 }}
+                          animate={{ opacity: 1, scale: 1 }}
+                          exit={{ opacity: 0, scale: 0.95 }}
+                          transition={{ duration: 0.25, ease: "easeOut" }}
+                          whileHover={{ scale: 1.05, y: -5 }}
+                          whileTap={{ scale: 0.95 }}
+                          onClick={() => handleBuyNow(variant)}
+                          className={`relative px-10 py-4 lg:px-14 lg:py-5 rounded-full font-bold text-lg lg:text-xl text-white 
+                          bg-gradient-to-r ${variant.accentColor}
+                          backdrop-blur-md bg-opacity-30 border border-white border-opacity-50
+                          shadow-lg hover:shadow-2xl transition-all duration-300
+                          flex items-center gap-3 group overflow-hidden`}
+                        >
+                          <span className="relative z-10 flex items-center gap-2">
+                            <ShoppingBag size={24} />
+                            Order Now
+                          </span>
+                          <div className="absolute inset-0 bg-gradient-to-r from-white/0 via-white/20 to-white/0 opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
+                        </motion.button>
+                      )}
                     </div>
                   </motion.div>
                 ),
             )}
           </AnimatePresence>
 
-          {/* Navigation - Next Button (Right) */}
-          <motion.button
-            whileHover={{ scale: 1.15 }}
-            whileTap={{ scale: 0.9 }}
-            onClick={nextSlide}
-            className="absolute right-6 lg:right-12 top-1/2 -translate-y-1/2 z-20 
-              p-4 rounded-full bg-white/20 backdrop-blur-md border border-white/50 
-              text-white hover:bg-white/30 transition-all shadow-lg group"
-          >
-            <ChevronRight
-              size={32}
-              className="group-hover:translate-x-1 transition-transform"
-            />
-          </motion.button>
+          {/* Navigation - Next Button (Right) - Hidden on Father's Day Pack slide */}
+          {currentSlide !== variants.length - 1 && (
+            <motion.button
+              whileHover={{ scale: 1.15 }}
+              whileTap={{ scale: 0.9 }}
+              onClick={nextSlide}
+              className="absolute right-6 lg:right-12 top-1/2 -translate-y-1/2 z-20 
+                p-4 rounded-full bg-white/20 backdrop-blur-md border border-white/50 
+                text-white hover:bg-white/30 transition-all shadow-lg group"
+            >
+              <ChevronRight
+                size={32}
+                className="group-hover:translate-x-1 transition-transform"
+              />
+            </motion.button>
+          )}
 
           {/* Slide Indicators */}
           <div className="absolute bottom-8 left-1/2 -translate-x-1/2 flex gap-1.5 z-20">
@@ -265,17 +292,19 @@ const TerraVee = () => {
             ))}
           </div>
 
-          {/* Info Text - Left bottom */}
-          <motion.div
-            initial={{ opacity: 0, x: -20 }}
-            animate={{ opacity: 1, x: 0 }}
-            transition={{ delay: 0.5 }}
-            className="absolute bottom-8 left-8 z-20 text-white/70 max-w-xs"
-          >
-            <p className="text-sm font-semibold">
-              Slide right to explore all variants →
-            </p>
-          </motion.div>
+          {/* Info Text - Left bottom - Hidden on Father's Day Pack slide */}
+          {currentSlide !== variants.length - 1 && (
+            <motion.div
+              initial={{ opacity: 0, x: -20 }}
+              animate={{ opacity: 1, x: 0 }}
+              transition={{ duration: 0.25 }}
+              className="absolute bottom-8 left-8 z-20 text-white/70 max-w-xs"
+            >
+              <p className="text-sm font-semibold">
+                Slide right to explore all variants →
+              </p>
+            </motion.div>
+          )}
         </div>
       </div>
     </>
