@@ -24,6 +24,12 @@ import ScrollToTop from "../../utils/ScrollToTop";
 import { useTestimonials } from "../../hooks/useTestimonials";
 import { plans } from "../../utils/plansData";
 import { useToast } from "../../Contexts/ToastContext";
+import carousel1 from "../../assets/carousel/1.svg";
+import carousel2 from "../../assets/carousel/2.svg";
+import carousel3 from "../../assets/carousel/3.svg";
+import carousel4 from "../../assets/carousel/4.svg";
+import carousel5 from "../../assets/carousel/5.svg";
+import carousel6 from "../../assets/carousel/6.svg";
 
 const PROMO_CODES = {
   "back-to-basics": "BASICS10",
@@ -32,6 +38,15 @@ const PROMO_CODES = {
   "pressure-no-dey-catch-me": "PRESSURE10",
   "weight-gain": "WEIGHT10",
 };
+
+const CAROUSEL_IMAGES = [
+  carousel1,
+  carousel2,
+  carousel3,
+  carousel4,
+  carousel5,
+  carousel6,
+];
 
 function Plans() {
   const navigate = useNavigate();
@@ -160,11 +175,11 @@ function Plans() {
     return () => clearInterval(interval);
   }, [isAutoPlaying, loading, nextTestimonial, testimonials.length]);
 
-  // Featured carousel auto-rotate - 1 second interval
+  // Featured carousel auto-rotate - 3 second interval
   useEffect(() => {
     const interval = setInterval(() => {
-      setCurrentTestimonial((prev) => (prev + 1) % 5);
-    }, 1000);
+      setCurrentTestimonial((prev) => (prev + 1) % 6);
+    }, 3000);
     return () => clearInterval(interval);
   }, []);
 
@@ -263,77 +278,32 @@ function Plans() {
         url={activePlan ? `/plans#${activePlan.id}` : "/plans"}
       />
       <div className="min-h-screen bg-gradient-to-br from-green-50 via-white to-emerald-50 py-20 px-6 lg:px-12">
-        {/* Featured Cards Carousel */}
+        {/* Featured Image Carousel */}
         <div className="max-w-6xl mx-auto mb-16">
           <div className="relative overflow-hidden">
             <motion.div
               className="flex"
-              animate={{ x: `-${(currentTestimonial % 5) * 100}%` }}
+              animate={{ x: `-${(currentTestimonial % 6) * 100}%` }}
               transition={{ type: "spring", stiffness: 300, damping: 30 }}
             >
-              {[...Array(5)].map((_, index) => (
-                <div key={index} className="min-w-full px-3">
-                  <div className="bg-white rounded-2xl shadow-lg overflow-hidden border border-gray-100 h-64">
-                    <div className="flex h-full">
-                      {/* Image Placeholder - 40% width */}
-                      <div className="w-2/5 bg-gradient-to-br from-green-100 to-emerald-100 flex items-center justify-center flex-shrink-0">
-                        <div className="text-center">
-                          <div className="text-4xl mb-2">🖼️</div>
-                          <p className="text-xs text-gray-500 font-medium">
-                            Image {index + 1}
-                          </p>
-                          <p className="text-[10px] text-gray-400 mt-1">
-                            Placeholder
-                          </p>
-                        </div>
-                      </div>
-
-                      {/* Content Section - 60% width */}
-                      <div className="w-3/5 p-6 flex flex-col justify-between">
-                        <div>
-                          <h3 className="text-lg font-bold text-green-700 mb-2">
-                            Card Title {index + 1}
-                          </h3>
-                          <p className="text-sm text-gray-600 line-clamp-2">
-                            Add your card description here. This is a
-                            placeholder for your featured content.
-                          </p>
-                        </div>
-                        <div className="flex gap-2">
-                          <span className="inline-block px-3 py-1 bg-green-50 text-green-700 text-xs font-semibold rounded-full border border-green-200">
-                            Tag {index + 1}
-                          </span>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
+              {CAROUSEL_IMAGES.map((image, index) => (
+                <div key={index} className="min-w-full">
+                  <img
+                    src={image}
+                    alt={`Carousel ${index + 1}`}
+                    className="w-full h-auto object-cover"
+                  />
                 </div>
               ))}
             </motion.div>
 
-            {/* Navigation Arrows */}
-            <button
-              onClick={() =>
-                setCurrentTestimonial((prev) => (prev - 1 + 5) % 5)
-              }
-              className="absolute left-0 top-1/2 -translate-y-1/2 -translate-x-4 p-2 bg-white shadow-lg rounded-full text-green-600 hover:bg-green-50 z-10 transition-all"
-            >
-              <ChevronLeft className="w-5 h-5" />
-            </button>
-            <button
-              onClick={() => setCurrentTestimonial((prev) => (prev + 1) % 5)}
-              className="absolute right-0 top-1/2 -translate-y-1/2 translate-x-4 p-2 bg-white shadow-lg rounded-full text-green-600 hover:bg-green-50 z-10 transition-all"
-            >
-              <ChevronRight className="w-5 h-5" />
-            </button>
-
             {/* Pagination Dots */}
             <div className="flex justify-center gap-2 mt-4">
-              {[...Array(5)].map((_, idx) => (
+              {CAROUSEL_IMAGES.map((_, idx) => (
                 <button
                   key={idx}
                   onClick={() => setCurrentTestimonial(idx)}
-                  className={`w-2.5 h-2.5 rounded-full transition-all duration-300 ${idx === currentTestimonial % 5 ? "bg-green-600 w-8" : "bg-gray-300 hover:bg-gray-400"}`}
+                  className={`w-2.5 h-2.5 rounded-full transition-all duration-300 ${idx === currentTestimonial % 6 ? "bg-green-600 w-8" : "bg-gray-300 hover:bg-gray-400"}`}
                 />
               ))}
             </div>
