@@ -24,12 +24,12 @@ import ScrollToTop from "../../utils/ScrollToTop";
 import { useTestimonials } from "../../hooks/useTestimonials";
 import { plans } from "../../utils/plansData";
 import { useToast } from "../../Contexts/ToastContext";
-import carousel1 from "../../assets/carousel/1.svg";
-import carousel2 from "../../assets/carousel/2.svg";
-import carousel3 from "../../assets/carousel/3.svg";
-import carousel4 from "../../assets/carousel/4.svg";
-import carousel5 from "../../assets/carousel/5.svg";
-import carousel6 from "../../assets/carousel/6.svg";
+import carousel1 from "../../assets/carousel/1.svg?url";
+import carousel2 from "../../assets/carousel/2.svg?url";
+import carousel3 from "../../assets/carousel/3.svg?url";
+import carousel4 from "../../assets/carousel/4.svg?url";
+import carousel5 from "../../assets/carousel/5.svg?url";
+import carousel6 from "../../assets/carousel/6.svg?url";
 
 const PROMO_CODES = {
   "back-to-basics": "BASICS10",
@@ -287,13 +287,18 @@ function Plans() {
               transition={{ type: "spring", stiffness: 300, damping: 30 }}
             >
               {CAROUSEL_IMAGES.map((image, index) => (
-                <div key={index} className="min-w-full">
+                <motion.div
+                  key={index}
+                  className="min-w-full cursor-pointer group"
+                  onClick={() => navigate("/terravee")}
+                  whileHover={{ scale: 1.02 }}
+                >
                   <img
                     src={image}
                     alt={`Carousel ${index + 1}`}
-                    className="w-full h-auto object-cover"
+                    className="w-full h-auto object-cover transition-opacity group-hover:opacity-90"
                   />
-                </div>
+                </motion.div>
               ))}
             </motion.div>
 

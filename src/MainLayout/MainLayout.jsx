@@ -8,7 +8,7 @@ import Blog from "../Pages/Blog/Blog";
 import ContactUs from "../Pages/ContactUs/ContactUs";
 import Services from "../Pages/Services/Services";
 import Error from "../Pages/Error/Error";
-import Footer from '../Components/Footer/footer';
+import Footer from "../Components/Footer/footer";
 import KnowYourBody from "../Pages/KnowYourBody/KnowYourBody";
 import AdminApp from "../Pages/Admin/AdminApp";
 import Plans from "../Pages/Plans/Plans";
@@ -28,6 +28,7 @@ import SubmitTestimonial from "../Pages/SubmitTestimonial/SubmitTestimonial";
 import SuccessStories from "../Pages/SuccessStories/SuccessStories";
 import TestimonialAdmin from "../Pages/Admin/components/TestimonialAdmin";
 import FathersDay from "../Pages/FathersDay/FathersDay";
+import TerraVee from "../Pages/TerraVee/TerraVee";
 
 // Inner component so usePageTracking can access the router context
 const AppRoutes = () => {
@@ -51,6 +52,7 @@ const AppRoutes = () => {
         <Route path="/admin/testimonials" element={<TestimonialAdmin />} />
         <Route path="/plans" element={<Plans />} />
         <Route path="/fathersday" element={<FathersDay />} />
+        <Route path="/terravee" element={<TerraVee />} />
         <Route path="/checkout-success" element={<CheckoutSuccess />} />
         <Route path="/submit-testimonial" element={<SubmitTestimonial />} />
         <Route path="/success-stories" element={<SuccessStories />} />
@@ -84,4 +86,3 @@ const MainLayout = () => {
 };
 
 export default MainLayout;
-
