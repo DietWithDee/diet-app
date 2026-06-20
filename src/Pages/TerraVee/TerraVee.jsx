@@ -154,7 +154,7 @@ const TerraVee = () => {
                                   className="flex-1 flex items-end justify-center h-[55vh] max-h-[520px]"
                                 >
                                   <img
-                                    src={v.image}
+                                    src={`${v.image}?v=3`}
                                     alt={v.name}
                                     className="w-full h-full object-contain drop-shadow-[0_20px_40px_rgba(0,0,0,0.7)]"
                                     onError={(e) => { e.target.style.display = "none"; }}
@@ -212,7 +212,7 @@ const TerraVee = () => {
                                   className="flex-1 flex items-end justify-center h-[38vh]"
                                 >
                                   <img
-                                    src={v.image}
+                                    src={`${v.image}?v=3`}
                                     alt={v.name}
                                     className="w-full h-full object-contain drop-shadow-[0_12px_24px_rgba(0,0,0,0.6)]"
                                     onError={(e) => { e.target.style.display = "none"; }}
@@ -263,7 +263,7 @@ const TerraVee = () => {
                             {/* Bottle */}
                             <motion.img
                               key={`${variant.image}-desktop`}
-                              src={variant.image}
+                              src={`${variant.image}?v=3`}
                               alt={variant.name}
                               initial={{ scale: 0.2, opacity: 0, y: 80 }}
                               animate={{ scale: 1, opacity: 1, y: 0 }}
@@ -273,20 +273,20 @@ const TerraVee = () => {
                               onError={(e) => { e.target.style.display = "none"; }}
                             />
 
-                            {/* Product name — bottom left overlay */}
+                            {/* Product name — bottom left overlay (brought down a bit) */}
                             <motion.div
                               initial={{ opacity: 0, x: -40 }}
                               animate={{ opacity: 1, x: 0 }}
                               exit={{ opacity: 0, x: -40 }}
                               transition={{ duration: 0.3, ease: "easeOut" }}
-                              className="absolute bottom-16 left-12 lg:left-20 z-20"
+                              className="absolute bottom-10 left-12 lg:left-20 z-20"
                             >
                               <h2 className="text-7xl lg:text-9xl font-black text-white drop-shadow-lg tracking-tight leading-none">
                                 {variant.name}
                               </h2>
                             </motion.div>
 
-                            {/* Buy button — bottom right overlay with gorgeous spring entrance */}
+                            {/* Buy button — bottom right overlay (moved up a bit) */}
                             <motion.button
                               initial={{ opacity: 0, y: 40, scale: 0.8 }}
                               animate={{ opacity: 1, y: 0, scale: 1 }}
@@ -300,7 +300,7 @@ const TerraVee = () => {
                               whileHover={{ scale: 1.06, y: -4 }}
                               whileTap={{ scale: 0.95 }}
                               onClick={() => handleBuyNow(variant)}
-                              className={`absolute bottom-16 right-12 lg:right-20 z-20 px-10 py-5 rounded-full font-bold text-xl text-white
+                              className={`absolute bottom-24 right-12 lg:right-20 z-20 px-10 py-5 rounded-full font-bold text-xl text-white
                               bg-gradient-to-r ${variant.accentColor}
                               backdrop-blur-md border border-white/40
                               shadow-2xl flex items-center gap-3 group overflow-hidden`}
@@ -315,12 +315,12 @@ const TerraVee = () => {
 
                           {/* Mobile Layout (stacked structure) */}
                           <div className="flex md:hidden w-full h-full flex-col items-center justify-between py-12 px-6 relative">
-                            {/* Top centered Title */}
+                            {/* Top centered Title (brought down a bit) */}
                             <motion.div
                               initial={{ opacity: 0, y: -20 }}
                               animate={{ opacity: 1, y: 0 }}
                               transition={{ duration: 0.35, delay: 0.05 }}
-                              className="text-center z-20"
+                              className="text-center z-20 pt-20"
                             >
                               <h2 className="text-4xl font-black text-white tracking-tight drop-shadow-md">
                                 {variant.name}
@@ -330,7 +330,7 @@ const TerraVee = () => {
                             {/* Centered Bottle Image */}
                             <motion.img
                               key={`${variant.image}-mobile`}
-                              src={variant.image}
+                              src={`${variant.image}?v=3`}
                               alt={variant.name}
                               initial={{ scale: 0.4, opacity: 0, y: 40 }}
                               animate={{ scale: 1, opacity: 1, y: 0 }}
@@ -340,7 +340,7 @@ const TerraVee = () => {
                               onError={(e) => { e.target.style.display = "none"; }}
                             />
 
-                            {/* Bottom Centered Large Buy Button with beautiful spring animation */}
+                            {/* Bottom Centered Large Buy Button with beautiful spring animation (moved up a bit) */}
                             <motion.button
                               initial={{ opacity: 0, y: 35, scale: 0.85 }}
                               animate={{ opacity: 1, y: 0, scale: 1 }}
@@ -357,7 +357,7 @@ const TerraVee = () => {
                               className={`w-full max-w-[290px] py-4 rounded-full font-bold text-lg text-white text-center
                               bg-gradient-to-r ${variant.accentColor}
                               border border-white/30
-                              shadow-2xl flex items-center justify-center gap-2.5 z-20 mb-2`}
+                              shadow-2xl flex items-center justify-center gap-2.5 z-20 mb-10`}
                             >
                               <ShoppingBag size={20} />
                               Buy Now
@@ -371,19 +371,18 @@ const TerraVee = () => {
             )}
           </AnimatePresence>
 
-          {/* Navigation - Next Button (Right) - Hidden on Father's Day Pack slide */}
+          {/* Navigation - Next Button (Right) - Faded and minimal borderless layout */}
           {currentSlide !== variants.length - 1 && (
             <motion.button
-              whileHover={{ scale: 1.15 }}
+              whileHover={{ scale: 1.2, x: 4 }}
               whileTap={{ scale: 0.9 }}
               onClick={nextSlide}
-              className="absolute right-6 lg:right-12 top-1/2 -translate-y-1/2 z-20 
-                p-4 rounded-full bg-white/20 backdrop-blur-md border border-white/50 
-                text-white hover:bg-white/30 transition-all shadow-lg group"
+              className="absolute right-4 lg:right-8 top-1/2 -translate-y-1/2 z-20 
+                p-2 text-white/50 hover:text-white transition-all border-none bg-transparent cursor-pointer"
             >
               <ChevronRight
-                size={32}
-                className="group-hover:translate-x-1 transition-transform"
+                size={40}
+                className="stroke-[1.5]"
               />
             </motion.button>
           )}
