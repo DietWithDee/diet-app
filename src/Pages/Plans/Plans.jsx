@@ -1,32 +1,43 @@
-import React, { useState, useEffect, useCallback } from 'react';
-import { useNavigate, useLocation } from 'react-router-dom';
-import { Share2, Check, ChevronLeft, ChevronRight, CreditCard, Sparkles, Gift, ShoppingCart, Copy, CheckCheck } from 'lucide-react';
-import { motion } from 'framer-motion';
-import SEO from '../../Components/SEO';
-import PlanImg from '../../assets/Salad.webp'; // you can replace this with actual plan images
-import B2B from '../../assets/images/B2B.webp'; // example image for Back to Basics plan
-import Gain from '../../assets/images/Gain.webp'; // example image for Weight Gain plan
-import Weightloss from '../../assets/images/Weightloss.webp'; // example image for Weight Loss plan
-import Diabetes from '../../assets/images/Diabetes.webp'; // example image for Diabetes plan
-import Pressure from '../../assets/images/Pressure.webp'; // example image for Hypertension plan
+import React, { useState, useEffect, useCallback } from "react";
+import { useNavigate, useLocation } from "react-router-dom";
+import {
+  Share2,
+  Check,
+  ChevronLeft,
+  ChevronRight,
+  CreditCard,
+  Sparkles,
+  Gift,
+  ShoppingCart,
+  Copy,
+  CheckCheck,
+} from "lucide-react";
+import { motion } from "framer-motion";
+import SEO from "../../Components/SEO";
+import PlanImg from "../../assets/Salad.webp"; // you can replace this with actual plan images
+import B2B from "../../assets/images/B2B.webp"; // example image for Back to Basics plan
+import Gain from "../../assets/images/Gain.webp"; // example image for Weight Gain plan
+import Weightloss from "../../assets/images/Weightloss.webp"; // example image for Weight Loss plan
+import Diabetes from "../../assets/images/Diabetes.webp"; // example image for Diabetes plan
+import Pressure from "../../assets/images/Pressure.webp"; // example image for Hypertension plan
 import ScrollToTop from "../../utils/ScrollToTop";
-import { useTestimonials } from '../../hooks/useTestimonials';
-import { plans } from '../../utils/plansData';
-import { useToast } from '../../Contexts/ToastContext';
-
+import { useTestimonials } from "../../hooks/useTestimonials";
+import { plans } from "../../utils/plansData";
+import { useToast } from "../../Contexts/ToastContext";
 
 const PROMO_CODES = {
-  'back-to-basics': 'BASICS10',
-  'snatched-nourished': 'SNATCH10',
-  'blood-sugar-balance': 'SUGAR10',
-  'pressure-no-dey-catch-me': 'PRESSURE10',
-  'weight-gain': 'WEIGHT10',
+  "back-to-basics": "BASICS10",
+  "snatched-nourished": "SNATCH10",
+  "blood-sugar-balance": "SUGAR10",
+  "pressure-no-dey-catch-me": "PRESSURE10",
+  "weight-gain": "WEIGHT10",
 };
 
 function Plans() {
   const navigate = useNavigate();
   const location = useLocation();
-  const { testimonials: firestoreTestimonials, fetchApprovedTestimonials } = useTestimonials();
+  const { testimonials: firestoreTestimonials, fetchApprovedTestimonials } =
+    useTestimonials();
   const [shareToast, setShareToast] = useState(null);
   const [currentTestimonial, setCurrentTestimonial] = useState(0);
   const [isAutoPlaying, setIsAutoPlaying] = useState(true);
@@ -36,95 +47,104 @@ function Plans() {
   // Click-to-copy promo code helper for mobile
   const [copiedCode, setCopiedCode] = useState(null);
   const handleCopyCode = (code) => {
-    navigator.clipboard.writeText(code).then(() => {
-      setCopiedCode(code);
-      showToast('Promo code copied successfully!', 'success');
-      setTimeout(() => setCopiedCode(null), 1500);
-    }).catch(err => {
-      console.error('Failed to copy code:', err);
-      showToast('Failed to copy promo code.', 'error');
-    });
+    navigator.clipboard
+      .writeText(code)
+      .then(() => {
+        setCopiedCode(code);
+        showToast("Promo code copied successfully!", "success");
+        setTimeout(() => setCopiedCode(null), 1500);
+      })
+      .catch((err) => {
+        console.error("Failed to copy code:", err);
+        showToast("Failed to copy promo code.", "error");
+      });
   };
 
   const handleBuyClick = (plan) => {
-    window.open(plan.Url, '_blank', 'noopener,noreferrer');
+    window.open(plan.Url, "_blank", "noopener,noreferrer");
     navigate(`/checkout-success?plan=${plan.id}`);
   };
 
   const scrollUp = () => {
     setTimeout(() => {
-      window.scrollTo({ top: 0, behavior: 'smooth' });
+      window.scrollTo({ top: 0, behavior: "smooth" });
     }, 100); // Delay slightly to ensure DOM has updated
-  }
-
-
+  };
 
   // Default testimonials (fallback - corrected AI layout mixups)
   const defaultTestimonials = [
     {
-      name: 'Michael Asare',
+      name: "Michael Asare",
       img: Gain,
-      content: "Nana Ama's Weight Gain guide helped me go from 56kg to 78kg in just 5 months. Before that her 5 week follow up period psyched my mind for the task ahead. Her encouragement, step-by-step approach, and constant motivation made all the difference. I feel healthier, more confident, and energized than ever before. I couldn't have done it without her support.",
+      content:
+        "Nana Ama's Weight Gain guide helped me go from 56kg to 78kg in just 5 months. Before that her 5 week follow up period psyched my mind for the task ahead. Her encouragement, step-by-step approach, and constant motivation made all the difference. I feel healthier, more confident, and energized than ever before. I couldn't have done it without her support.",
       stars: 5,
-      profession: 'Structural Engineer',
-      plan: 'The Weight Gain',
-      location: 'Accra, Ghana'
+      profession: "Structural Engineer",
+      plan: "The Weight Gain",
+      location: "Accra, Ghana",
     },
     {
-      name: 'Grace Blankson',
+      name: "Grace Blankson",
       img: Pressure,
-      content: "I've struggled with hypertension for well over 2 years. Thanks to Dee's Pressure No Dey Catch Me Plan, I now have a trusted source of meals that actually work for me. Her warm demeanor and constant willingness to listen made all the difference. I definitely recommend her to anyone managing hypertension.",
+      content:
+        "I've struggled with hypertension for well over 2 years. Thanks to Dee's Pressure No Dey Catch Me Plan, I now have a trusted source of meals that actually work for me. Her warm demeanor and constant willingness to listen made all the difference. I definitely recommend her to anyone managing hypertension.",
       stars: 5,
-      profession: 'Retail Trader',
-      plan: 'Pressure No Dey Catch Me',
-      location: 'Takoradi, Ghana'
+      profession: "Retail Trader",
+      plan: "Pressure No Dey Catch Me",
+      location: "Takoradi, Ghana",
     },
     {
-      name: 'Kobby Breeze',
+      name: "Kobby Breeze",
       img: Diabetes,
-      content: 'When I was diagnosed with diabetes in October 2024, it felt like a death sentence. I was scared and overwhelmed. But with the guidance of my Doctor and my Dietician, Nana Ama Dwamena, I learned that with the right lifestyle changes, exercise and a proper diet, I could live a normal life. For six weeks, I committed to the plan, not just for myself, but for my daughter Nicole. Through the Blood Sugar Balancing plan, today, I feel healthier, stronger, and more hopeful than ever. Glory be to God!',
+      content:
+        "When I was diagnosed with diabetes in October 2024, it felt like a death sentence. I was scared and overwhelmed. But with the guidance of my Doctor and my Dietician, Nana Ama Dwamena, I learned that with the right lifestyle changes, exercise and a proper diet, I could live a normal life. For six weeks, I committed to the plan, not just for myself, but for my daughter Nicole. Through the Blood Sugar Balancing plan, today, I feel healthier, stronger, and more hopeful than ever. Glory be to God!",
       stars: 5,
-      profession: 'Software Developer',
-      plan: 'Blood Sugar Balance',
-      location: 'Accra, Ghana'
+      profession: "Software Developer",
+      plan: "Blood Sugar Balance",
+      location: "Accra, Ghana",
     },
     {
-      name: 'Lawrencia Kwakye',
+      name: "Lawrencia Kwakye",
       img: B2B,
-      content: "Before I started Diet with Dee's 5-Day Reset, my body felt totally out of sync and sluggish. Seriously, I was dragging myself through the day! But after just five days, it's like my body hit the reset button – pun totally intended. My system feels cleaner, and I'm pretty sure my skin is glowing. Dee, you've worked some kind of magic! This isn't just a diet; it's a total life upgrade.",
+      content:
+        "Before I started Diet with Dee's 5-Day Reset, my body felt totally out of sync and sluggish. Seriously, I was dragging myself through the day! But after just five days, it's like my body hit the reset button – pun totally intended. My system feels cleaner, and I'm pretty sure my skin is glowing. Dee, you've worked some kind of magic! This isn't just a diet; it's a total life upgrade.",
       stars: 5,
-      profession: 'High School Teacher',
-      plan: 'Back to Basics',
-      location: 'Accra, Ghana'
+      profession: "High School Teacher",
+      plan: "Back to Basics",
+      location: "Accra, Ghana",
     },
     {
-      name: 'Richard Oti',
+      name: "Richard Oti",
       img: Weightloss,
-      content: "This was my very first encounter with a dietitian, and the objective of my visit was to lose weight. I must say, the results over the past few weeks have been amazing! She gave me a personalized meal plan with familiar foods that are protein-rich, low in carbs, and full of healthy fats. Since following it, my digestion has improved, my bloating has reduced, I wake up more energized, and I've been able to cut out late-night snacking and junk food. I feel healthier and more active than ever!",
+      content:
+        "This was my very first encounter with a dietitian, and the objective of my visit was to lose weight. I must say, the results over the past few weeks have been amazing! She gave me a personalized meal plan with familiar foods that are protein-rich, low in carbs, and full of healthy fats. Since following it, my digestion has improved, my bloating has reduced, I wake up more energized, and I've been able to cut out late-night snacking and junk food. I feel healthier and more active than ever!",
       stars: 5,
-      profession: 'Senior Accountant',
-      plan: 'Snatched & Nourished',
-      location: 'Tema, Ghana'
-    }
+      profession: "Senior Accountant",
+      plan: "Snatched & Nourished",
+      location: "Tema, Ghana",
+    },
   ];
 
+  const liveFeatured = firestoreTestimonials
+    .filter((t) => t.isFeatured)
+    .map((t) => ({
+      ...t,
+      stars: t.rating,
+    }));
 
-
-  const liveFeatured = firestoreTestimonials.filter(t => t.isFeatured).map(t => ({
-    ...t,
-    stars: t.rating
-  }));
-
-  const testimonials = liveFeatured.length >= 5
-    ? liveFeatured
-    : [...liveFeatured, ...defaultTestimonials].slice(0, 5);
+  const testimonials =
+    liveFeatured.length >= 5
+      ? liveFeatured
+      : [...liveFeatured, ...defaultTestimonials].slice(0, 5);
 
   const nextTestimonial = useCallback(() => {
     setCurrentTestimonial((prev) => (prev + 1) % testimonials.length);
   }, [testimonials.length]);
 
   const prevTestimonial = useCallback(() => {
-    setCurrentTestimonial((prev) => (prev - 1 + testimonials.length) % testimonials.length);
+    setCurrentTestimonial(
+      (prev) => (prev - 1 + testimonials.length) % testimonials.length,
+    );
   }, [testimonials.length]);
 
   // Fetch featured testimonials from Firestore
@@ -143,7 +163,7 @@ function Plans() {
   // Featured carousel auto-rotate - 1 second interval
   useEffect(() => {
     const interval = setInterval(() => {
-      setCurrentTestimonial(prev => (prev + 1) % 5);
+      setCurrentTestimonial((prev) => (prev + 1) % 5);
     }, 1000);
     return () => clearInterval(interval);
   }, []);
@@ -155,7 +175,7 @@ function Plans() {
         {[...Array(5)].map((_, i) => (
           <svg
             key={i}
-            className={`w-4 h-4 ${i < rating ? 'text-yellow-400' : 'text-gray-300'}`}
+            className={`w-4 h-4 ${i < rating ? "text-yellow-400" : "text-gray-300"}`}
             fill="currentColor"
             viewBox="0 0 20 20"
           >
@@ -176,11 +196,11 @@ function Plans() {
   // Handle hash scrolling on initial load
   useEffect(() => {
     if (!loading && location.hash) {
-      const id = location.hash.replace('#', '');
+      const id = location.hash.replace("#", "");
       const element = document.getElementById(id);
       if (element) {
         setTimeout(() => {
-          element.scrollIntoView({ behavior: 'smooth', block: 'center' });
+          element.scrollIntoView({ behavior: "smooth", block: "center" });
         }, 100);
       }
     }
@@ -198,7 +218,7 @@ function Plans() {
       try {
         await navigator.share(shareData);
       } catch (err) {
-        console.error('Error sharing:', err);
+        console.error("Error sharing:", err);
       }
     } else {
       try {
@@ -206,7 +226,7 @@ function Plans() {
         setShareToast(plan.id);
         setTimeout(() => setShareToast(null), 3000);
       } catch (err) {
-        console.error('Error copying to clipboard:', err);
+        console.error("Error copying to clipboard:", err);
       }
     }
   };
@@ -226,46 +246,61 @@ function Plans() {
     </div>
   );
 
-  const activePlan = location.hash ? plans.find(p => p.id === location.hash.replace('#', '')) : null;
+  const activePlan = location.hash
+    ? plans.find((p) => p.id === location.hash.replace("#", ""))
+    : null;
 
   return (
     <>
-      <SEO 
+      <SEO
         title={activePlan ? activePlan.title : "Diet Plans"}
-        description={activePlan ? activePlan.Subtitle : "Tailored nutrition solutions for every lifestyle and goal."}
+        description={
+          activePlan
+            ? activePlan.Subtitle
+            : "Tailored nutrition solutions for every lifestyle and goal."
+        }
         image={activePlan ? activePlan.img : undefined}
         url={activePlan ? `/plans#${activePlan.id}` : "/plans"}
       />
-      <div className='min-h-screen bg-gradient-to-br from-green-50 via-white to-emerald-50 py-20 px-6 lg:px-12'>
+      <div className="min-h-screen bg-gradient-to-br from-green-50 via-white to-emerald-50 py-20 px-6 lg:px-12">
         {/* Featured Cards Carousel */}
-        <div className='max-w-6xl mx-auto mb-16'>
-          <div className='relative overflow-hidden'>
+        <div className="max-w-6xl mx-auto mb-16">
+          <div className="relative overflow-hidden">
             <motion.div
-              className='flex'
-              animate={{ x: `-${currentTestimonial % 5 * 100}%` }}
-              transition={{ type: 'spring', stiffness: 300, damping: 30 }}
+              className="flex"
+              animate={{ x: `-${(currentTestimonial % 5) * 100}%` }}
+              transition={{ type: "spring", stiffness: 300, damping: 30 }}
             >
               {[...Array(5)].map((_, index) => (
-                <div key={index} className='min-w-full px-3'>
-                  <div className='bg-white rounded-2xl shadow-lg overflow-hidden border border-gray-100 h-64'>
-                    <div className='flex h-full'>
+                <div key={index} className="min-w-full px-3">
+                  <div className="bg-white rounded-2xl shadow-lg overflow-hidden border border-gray-100 h-64">
+                    <div className="flex h-full">
                       {/* Image Placeholder - 40% width */}
-                      <div className='w-2/5 bg-gradient-to-br from-green-100 to-emerald-100 flex items-center justify-center flex-shrink-0'>
-                        <div className='text-center'>
-                          <div className='text-4xl mb-2'>🖼️</div>
-                          <p className='text-xs text-gray-500 font-medium'>Image {index + 1}</p>
-                          <p className='text-[10px] text-gray-400 mt-1'>Placeholder</p>
+                      <div className="w-2/5 bg-gradient-to-br from-green-100 to-emerald-100 flex items-center justify-center flex-shrink-0">
+                        <div className="text-center">
+                          <div className="text-4xl mb-2">🖼️</div>
+                          <p className="text-xs text-gray-500 font-medium">
+                            Image {index + 1}
+                          </p>
+                          <p className="text-[10px] text-gray-400 mt-1">
+                            Placeholder
+                          </p>
                         </div>
                       </div>
-                      
+
                       {/* Content Section - 60% width */}
-                      <div className='w-3/5 p-6 flex flex-col justify-between'>
+                      <div className="w-3/5 p-6 flex flex-col justify-between">
                         <div>
-                          <h3 className='text-lg font-bold text-green-700 mb-2'>Card Title {index + 1}</h3>
-                          <p className='text-sm text-gray-600 line-clamp-2'>Add your card description here. This is a placeholder for your featured content.</p>
+                          <h3 className="text-lg font-bold text-green-700 mb-2">
+                            Card Title {index + 1}
+                          </h3>
+                          <p className="text-sm text-gray-600 line-clamp-2">
+                            Add your card description here. This is a
+                            placeholder for your featured content.
+                          </p>
                         </div>
-                        <div className='flex gap-2'>
-                          <span className='inline-block px-3 py-1 bg-green-50 text-green-700 text-xs font-semibold rounded-full border border-green-200'>
+                        <div className="flex gap-2">
+                          <span className="inline-block px-3 py-1 bg-green-50 text-green-700 text-xs font-semibold rounded-full border border-green-200">
                             Tag {index + 1}
                           </span>
                         </div>
@@ -278,39 +313,42 @@ function Plans() {
 
             {/* Navigation Arrows */}
             <button
-              onClick={() => setCurrentTestimonial(prev => (prev - 1 + 5) % 5)}
-              className='absolute left-0 top-1/2 -translate-y-1/2 -translate-x-4 p-2 bg-white shadow-lg rounded-full text-green-600 hover:bg-green-50 z-10 transition-all'
+              onClick={() =>
+                setCurrentTestimonial((prev) => (prev - 1 + 5) % 5)
+              }
+              className="absolute left-0 top-1/2 -translate-y-1/2 -translate-x-4 p-2 bg-white shadow-lg rounded-full text-green-600 hover:bg-green-50 z-10 transition-all"
             >
               <ChevronLeft className="w-5 h-5" />
             </button>
             <button
-              onClick={() => setCurrentTestimonial(prev => (prev + 1) % 5)}
-              className='absolute right-0 top-1/2 -translate-y-1/2 translate-x-4 p-2 bg-white shadow-lg rounded-full text-green-600 hover:bg-green-50 z-10 transition-all'
+              onClick={() => setCurrentTestimonial((prev) => (prev + 1) % 5)}
+              className="absolute right-0 top-1/2 -translate-y-1/2 translate-x-4 p-2 bg-white shadow-lg rounded-full text-green-600 hover:bg-green-50 z-10 transition-all"
             >
               <ChevronRight className="w-5 h-5" />
             </button>
 
             {/* Pagination Dots */}
-            <div className='flex justify-center gap-2 mt-4'>
+            <div className="flex justify-center gap-2 mt-4">
               {[...Array(5)].map((_, idx) => (
                 <button
                   key={idx}
                   onClick={() => setCurrentTestimonial(idx)}
-                  className={`w-2.5 h-2.5 rounded-full transition-all duration-300 ${idx === currentTestimonial % 5 ? 'bg-green-600 w-8' : 'bg-gray-300 hover:bg-gray-400'}`}
+                  className={`w-2.5 h-2.5 rounded-full transition-all duration-300 ${idx === currentTestimonial % 5 ? "bg-green-600 w-8" : "bg-gray-300 hover:bg-gray-400"}`}
                 />
               ))}
             </div>
           </div>
         </div>
 
-        <div className='text-center space-y-4 max-w-3xl mx-auto mb-12'>
-          <h1 className='text-3xl font-black text-transparent bg-clip-text bg-gradient-to-r from-green-700 via-emerald-600 to-green-600'>
+        <div className="text-center space-y-4 max-w-3xl mx-auto mb-12">
+          <h1 className="text-3xl font-black text-transparent bg-clip-text bg-gradient-to-r from-green-700 via-emerald-600 to-green-600">
             Diet Plans
           </h1>
-          <p className='text-gray-700 text-md'>
-            Tailored nutrition solutions for every lifestyle and goal. Pick a plan and begin your transformation.
+          <p className="text-gray-700 text-md">
+            Tailored nutrition solutions for every lifestyle and goal. Pick a
+            plan and begin your transformation.
           </p>
-          <div className='w-20 h-1 bg-gradient-to-r from-green-500 to-emerald-500 mx-auto rounded-full'></div>
+          <div className="w-20 h-1 bg-gradient-to-r from-green-500 to-emerald-500 mx-auto rounded-full"></div>
         </div>
 
         {/* Father's Day Promo Banner */}
@@ -320,163 +358,193 @@ function Plans() {
               <Gift size={20} className="text-white" />
             </div>
             <div>
-              <p className="text-sm font-bold tracking-tight text-gray-800">🎁 Father's Day Special — <span className="text-red-600">10% OFF</span> all plans starting on 20th June!</p>
-              <p className="text-xs text-gray-500 font-medium mt-0.5">Tap the promo code on any card below and enter it at checkout.</p>
+              <p className="text-sm font-bold tracking-tight text-gray-800">
+                🎁 Father's Day Special —{" "}
+                <span className="text-red-600">10% OFF</span> all plans starting
+                on 20th June!
+              </p>
+              <p className="text-xs text-gray-500 font-medium mt-0.5">
+                Tap the promo code on any card below and enter it at checkout.
+              </p>
             </div>
           </div>
           <button
-            onClick={() => navigate('/fathersday')}
+            onClick={() => navigate("/fathersday")}
             className="text-xs font-bold text-white bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-700 hover:to-emerald-700 px-4 py-2 rounded-lg transition-all shrink-0 shadow-sm cursor-pointer border-none"
           >
             Gift a Consultation →
           </button>
         </div>
 
-        <div className='grid grid-cols-1 md:grid-cols-3 gap-8 max-w-6xl mx-auto'>
-          {loading ? (
-            // Show 5 skeleton cards (one for each plan)
-            [...Array(5)].map((_, index) => <SkeletonCard key={index} />)
-          ) : (
-            plans.map((plan, index) => (
-              <div
-                key={index}
-                id={plan.id}
-                className="bg-white rounded-3xl shadow-xl hover:shadow-2xl transition-transform hover:-translate-y-1 p-6 relative border border-gray-100 scroll-mt-24"
-              >
-                {/* Slanted 10% OFF ribbon */}
-                <div className="absolute top-0 right-0 z-20 overflow-hidden w-24 h-24 pointer-events-none">
-                  <div className="absolute top-[14px] right-[-30px] w-[140px] bg-red-600 text-white text-[10px] font-black text-center py-1 rotate-45 shadow-md tracking-wider">
-                    10% OFF
-                  </div>
-                </div>
-
-                {plan.isPopular && (
-                  <div className="absolute -top-3 left-1/2 -translate-x-1/2 bg-gradient-to-r from-orange-400 to-orange-500 text-white text-[10px] font-black px-4 py-1 rounded-full shadow-lg z-10 whitespace-nowrap tracking-widest border-2 border-white">
-                    🔥 MOST POPULAR
-                  </div>
-                )}
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-8 max-w-6xl mx-auto">
+          {loading
+            ? // Show 5 skeleton cards (one for each plan)
+              [...Array(5)].map((_, index) => <SkeletonCard key={index} />)
+            : plans.map((plan, index) => (
                 <div
-                  className={`w-full h-44 bg-gradient-to-br ${plan.gradient} flex items-center justify-center mb-6`}
+                  key={index}
+                  id={plan.id}
+                  className="bg-white rounded-3xl shadow-xl hover:shadow-2xl transition-transform hover:-translate-y-1 p-6 relative border border-gray-100 scroll-mt-24"
                 >
-                  <img src={plan.img} alt={plan.title} className='h-auto object-contain' />
-                </div>
-
-                <h3 className='text-2xl font-bold text-green-700 mb-2'>{plan.title}</h3>
-                <h2 className='text-sm font-bold text-black mb-3'>{plan.Subtitle}</h2>
-                <p className='text-xl font-semibold text-gray-600 mb-2'>{plan.price}</p>
-
-                {/* Father's Day Promo Code — warm inline pill */}
-                <div
-                  onClick={() => handleCopyCode(PROMO_CODES[plan.id])}
-                  className="group bg-gradient-to-r from-amber-50 to-orange-50 border border-amber-200/80 rounded-lg px-3 py-2 flex items-center justify-between text-xs mb-4 cursor-pointer hover:border-amber-300 hover:shadow-sm transition-all select-none"
-                  title="Tap to copy promo code"
-                >
-                  <div className="flex items-center gap-1.5">
-                    <span className="text-base leading-none">🎁</span>
-                    <span className="font-semibold text-gray-600">Father's Day</span>
+                  {/* Slanted 10% OFF ribbon */}
+                  <div className="absolute top-0 right-0 z-20 overflow-hidden w-24 h-24 pointer-events-none">
+                    <div className="absolute top-[14px] right-[-30px] w-[140px] bg-red-600 text-white text-[10px] font-black text-center py-1 rotate-45 shadow-md tracking-wider">
+                      10% OFF
+                    </div>
                   </div>
-                  <div className="flex items-center gap-1.5">
-                    <span className="font-mono font-black text-sm text-orange-600 bg-white border border-amber-200 px-2 py-0.5 rounded">
-                      {PROMO_CODES[plan.id]}
-                    </span>
-                    {copiedCode === PROMO_CODES[plan.id] ? (
-                      <CheckCheck size={14} className="text-green-600" />
-                    ) : (
-                      <Copy size={14} className="text-gray-400 group-hover:text-orange-500 transition-colors" />
-                    )}
+
+                  {plan.isPopular && (
+                    <div className="absolute -top-3 left-1/2 -translate-x-1/2 bg-gradient-to-r from-orange-400 to-orange-500 text-white text-[10px] font-black px-4 py-1 rounded-full shadow-lg z-10 whitespace-nowrap tracking-widest border-2 border-white">
+                      🔥 MOST POPULAR
+                    </div>
+                  )}
+                  <div
+                    className={`w-full h-44 bg-gradient-to-br ${plan.gradient} flex items-center justify-center mb-6`}
+                  >
+                    <img
+                      src={plan.img}
+                      alt={plan.title}
+                      className="h-auto object-contain"
+                    />
+                  </div>
+
+                  <h3 className="text-2xl font-bold text-green-700 mb-2">
+                    {plan.title}
+                  </h3>
+                  <h2 className="text-sm font-bold text-black mb-3">
+                    {plan.Subtitle}
+                  </h2>
+                  <p className="text-xl font-semibold text-gray-600 mb-2">
+                    {plan.price}
+                  </p>
+
+                  {/* Father's Day Promo Code — warm inline pill */}
+                  <div
+                    onClick={() => handleCopyCode(PROMO_CODES[plan.id])}
+                    className="group bg-gradient-to-r from-amber-50 to-orange-50 border border-amber-200/80 rounded-lg px-3 py-2 flex items-center justify-between text-xs mb-4 cursor-pointer hover:border-amber-300 hover:shadow-sm transition-all select-none"
+                    title="Tap to copy promo code"
+                  >
+                    <div className="flex items-center gap-1.5">
+                      <span className="text-base leading-none">🎁</span>
+                      <span className="font-semibold text-gray-600">
+                        Father's Day
+                      </span>
+                    </div>
+                    <div className="flex items-center gap-1.5">
+                      <span className="font-mono font-black text-sm text-orange-600 bg-white border border-amber-200 px-2 py-0.5 rounded">
+                        {PROMO_CODES[plan.id]}
+                      </span>
+                      {copiedCode === PROMO_CODES[plan.id] ? (
+                        <CheckCheck size={14} className="text-green-600" />
+                      ) : (
+                        <Copy
+                          size={14}
+                          className="text-gray-400 group-hover:text-orange-500 transition-colors"
+                        />
+                      )}
+                    </div>
+                  </div>
+
+                  <ul className="space-y-2 text-gray-700 text-sm mb-6">
+                    {plan.features.map((feature, idx) => (
+                      <li key={idx} className="flex items-center gap-2">
+                        <div className="w-2 h-2 bg-green-300 rounded-full"></div>
+                        {feature}
+                      </li>
+                    ))}
+                  </ul>
+
+                  <div className="flex gap-3">
+                    <button
+                      onClick={() => handleBuyClick(plan)}
+                      className={`flex-1 px-6 py-3 bg-gradient-to-r ${plan.gradient} text-white font-bold rounded-full transition-all hover:shadow-lg`}
+                    >
+                      Buy Now
+                    </button>
+                    <button
+                      onClick={() => handleShare(plan)}
+                      className="p-3 bg-gray-50 text-gray-600 rounded-full hover:bg-gray-100 transition-all border border-gray-200 flex items-center justify-center relative group"
+                      title="Share this plan"
+                    >
+                      {shareToast === plan.id ? (
+                        <Check size={20} className="text-green-600" />
+                      ) : (
+                        <Share2
+                          size={20}
+                          className="group-hover:scale-110 transition-transform"
+                        />
+                      )}
+                      {shareToast === plan.id && (
+                        <span className="absolute -top-10 left-1/2 -translate-x-1/2 bg-gray-800 text-white text-[10px] px-2 py-1 rounded shadow-lg whitespace-nowrap animate-bounce">
+                          Link Copied!
+                        </span>
+                      )}
+                    </button>
                   </div>
                 </div>
-
-                <ul className='space-y-2 text-gray-700 text-sm mb-6'>
-                  {plan.features.map((feature, idx) => (
-                    <li key={idx} className='flex items-center gap-2'>
-                      <div className='w-2 h-2 bg-green-300 rounded-full'></div>
-                      {feature}
-                    </li>
-                  ))}
-                </ul>
-
-                <div className="flex gap-3">
-                  <button
-                    onClick={() => handleBuyClick(plan)}
-                    className={`flex-1 px-6 py-3 bg-gradient-to-r ${plan.gradient} text-white font-bold rounded-full transition-all hover:shadow-lg`}
-                  >
-                    Buy Now
-                  </button>
-                  <button
-                    onClick={() => handleShare(plan)}
-                    className="p-3 bg-gray-50 text-gray-600 rounded-full hover:bg-gray-100 transition-all border border-gray-200 flex items-center justify-center relative group"
-                    title="Share this plan"
-                  >
-                    {shareToast === plan.id ? (
-                      <Check size={20} className="text-green-600" />
-                    ) : (
-                      <Share2 size={20} className="group-hover:scale-110 transition-transform" />
-                    )}
-                    {shareToast === plan.id && (
-                      <span className="absolute -top-10 left-1/2 -translate-x-1/2 bg-gray-800 text-white text-[10px] px-2 py-1 rounded shadow-lg whitespace-nowrap animate-bounce">
-                        Link Copied!
-                      </span >
-                    )}
-                  </button>
-                </div>
-              </div>
-            ))
-          )}
+              ))}
         </div>
 
         {/* Trust Indicator Section */}
-        <div className='mt-20 text-center space-y-4'>
-          <h2 className='text-3xl font-bold text-green-700'>Why Choose DietWithDee?</h2>
-          <div className='flex justify-center flex-wrap gap-8 mt-6 text-gray-700 font-medium'>
-            <div className='flex items-center gap-2'>
-              <div className='w-3 h-3 bg-green-500 rounded-full'></div>
+        <div className="mt-20 text-center space-y-4">
+          <h2 className="text-3xl font-bold text-green-700">
+            Why Choose DietWithDee?
+          </h2>
+          <div className="flex justify-center flex-wrap gap-8 mt-6 text-gray-700 font-medium">
+            <div className="flex items-center gap-2">
+              <div className="w-3 h-3 bg-green-500 rounded-full"></div>
               Certified Experts
             </div>
-            <div className='flex items-center gap-2'>
-              <div className='w-3 h-3 bg-emerald-500 rounded-full'></div>
+            <div className="flex items-center gap-2">
+              <div className="w-3 h-3 bg-emerald-500 rounded-full"></div>
               300+ Success Stories
             </div>
-            <div className='flex items-center gap-2'>
-              <div className='w-3 h-3 bg-green-400 rounded-full'></div>
+            <div className="flex items-center gap-2">
+              <div className="w-3 h-3 bg-green-400 rounded-full"></div>
               Custom Nutrition Plans
             </div>
           </div>
         </div>
 
         {/* Did You Know? CTA Section moved up */}
-        <div className='text-center mt-20 mb-8'>
+        <div className="text-center mt-20 mb-8">
           <div className="text-center mb-8 lg:mb-12 space-y-8 max-w-3xl mx-auto">
             <h1 className="text-3xl sm:text-4xl lg:text-5xl font-black text-transparent bg-clip-text bg-gradient-to-r from-green-700 via-emerald-600 to-green-600">
-             Did you Know?
+              Did you Know?
             </h1>
           </div>
-          <p className='text-gray-600 text-lg mb-6'>You can Book a Consultation session that comes with a free, custom Diet Plan from our Dietitian. Book a session to start now!</p>
-          <button onClick={() => navigate('/contactus')}
-            className='px-8 py-3 bg-gradient-to-r from-[#F6841F] to-[#F6841F] text-white font-bold rounded-full hover:shadow-lg transition-all hover:scale-105'>
+          <p className="text-gray-600 text-lg mb-6">
+            You can Book a Consultation session that comes with a free, custom
+            Diet Plan from our Dietitian. Book a session to start now!
+          </p>
+          <button
+            onClick={() => navigate("/contactus")}
+            className="px-8 py-3 bg-gradient-to-r from-[#F6841F] to-[#F6841F] text-white font-bold rounded-full hover:shadow-lg transition-all hover:scale-105"
+          >
             Book a Session
           </button>
         </div>
 
         {/* Improved Testimonials Section */}
-        <div id="success-stories" className='mt-12 mb-12'>
-          <div className='text-center space-y-4 max-w-3xl mx-auto mb-12'>
-            <h2 className='text-4xl font-black text-transparent bg-clip-text bg-gradient-to-r from-green-700 via-emerald-600 to-green-600'>
+        <div id="success-stories" className="mt-12 mb-12">
+          <div className="text-center space-y-4 max-w-3xl mx-auto mb-12">
+            <h2 className="text-4xl font-black text-transparent bg-clip-text bg-gradient-to-r from-green-700 via-emerald-600 to-green-600">
               Success Stories
             </h2>
-            <p className='text-gray-600 text-lg'>
-              Real people, real results. Swipe to see what our clients have to say about their transformation journey.
+            <p className="text-gray-600 text-lg">
+              Real people, real results. Swipe to see what our clients have to
+              say about their transformation journey.
             </p>
-            <div className='w-16 h-1 bg-gradient-to-r from-green-500 to-emerald-500 mx-auto rounded-full'></div>
+            <div className="w-16 h-1 bg-gradient-to-r from-green-500 to-emerald-500 mx-auto rounded-full"></div>
           </div>
 
-          <div className='relative max-w-6xl mx-auto px-4 sm:px-12'>
+          <div className="relative max-w-6xl mx-auto px-4 sm:px-12">
             {/* Carousel Container */}
-            <div className='overflow-hidden py-10'>
+            <div className="overflow-hidden py-10">
               <motion.div
-                className={`flex ${testimonials.length > 1 ? 'cursor-grab active:cursor-grabbing' : ''}`}
+                className={`flex ${testimonials.length > 1 ? "cursor-grab active:cursor-grabbing" : ""}`}
                 animate={{ x: `-${currentTestimonial * 100}%` }}
-                transition={{ type: 'spring', stiffness: 300, damping: 30 }}
+                transition={{ type: "spring", stiffness: 300, damping: 30 }}
                 drag={testimonials.length > 1 ? "x" : false}
                 dragConstraints={{ left: 0, right: 0 }}
                 onDragStart={() => setIsAutoPlaying(false)}
@@ -488,47 +556,67 @@ function Plans() {
                 }}
               >
                 {testimonials.map((testimonial, index) => (
-                  <div key={index} className='min-w-full px-0'>
-                    <div className='bg-white rounded-3xl shadow-xl hover:shadow-2xl transition-all duration-300 p-6 sm:p-8 relative border border-green-50 group max-w-4xl mx-auto'>
+                  <div key={index} className="min-w-full px-0">
+                    <div className="bg-white rounded-3xl shadow-xl hover:shadow-2xl transition-all duration-300 p-6 sm:p-8 relative border border-green-50 group max-w-4xl mx-auto">
                       {/* Quote Icon */}
-                      <div className='absolute top-6 right-6 text-green-200 group-hover:text-green-300 transition-colors'>
-                        <svg className='w-8 h-8' fill='currentColor' viewBox='0 0 24 24'>
-                          <path d='M14.017 21v-7.391c0-5.704 3.731-9.57 8.983-10.609l.995 2.151c-2.432.917-3.995 3.638-3.995 5.849h4v10h-9.983zm-14.017 0v-7.391c0-5.704 3.748-9.57 9-10.609l.996 2.151c-2.433.917-3.996 3.638-3.996 5.849h4v10h-10z' />
+                      <div className="absolute top-6 right-6 text-green-200 group-hover:text-green-300 transition-colors">
+                        <svg
+                          className="w-8 h-8"
+                          fill="currentColor"
+                          viewBox="0 0 24 24"
+                        >
+                          <path d="M14.017 21v-7.391c0-5.704 3.731-9.57 8.983-10.609l.995 2.151c-2.432.917-3.995 3.638-3.995 5.849h4v10h-9.983zm-14.017 0v-7.391c0-5.704 3.748-9.57 9-10.609l.996 2.151c-2.433.917-3.996 3.638-3.996 5.849h4v10h-10z" />
                         </svg>
                       </div>
 
                       {/* Profile Section */}
-                      <div className='flex items-center gap-4 mb-6'>
-                        <div className='relative'>
+                      <div className="flex items-center gap-4 mb-6">
+                        <div className="relative">
                           {testimonial.img ? (
                             <img
                               src={testimonial.img}
                               alt={testimonial.name}
-                              className='h-16 w-16 object-cover rounded-full border-4 border-emerald-100 shadow-md'
+                              className="h-16 w-16 object-cover rounded-full border-4 border-emerald-100 shadow-md"
                             />
                           ) : (
-                            <div className='h-16 w-16 rounded-full border-4 border-emerald-100 shadow-md bg-gradient-to-br from-green-400 to-emerald-500 flex items-center justify-center text-white font-black text-xl select-none'>
-                              {(testimonial.name || 'A').charAt(0).toUpperCase()}
+                            <div className="h-16 w-16 rounded-full border-4 border-emerald-100 shadow-md bg-gradient-to-br from-green-400 to-emerald-500 flex items-center justify-center text-white font-black text-xl select-none">
+                              {(testimonial.name || "A")
+                                .charAt(0)
+                                .toUpperCase()}
                             </div>
                           )}
-                          <div className='absolute -bottom-1 -right-1 bg-green-500 rounded-full p-1'>
-                            <svg className='w-3 h-3 text-white' fill='currentColor' viewBox='0 0 20 20'>
-                              <path fillRule='evenodd' d='M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z' clipRule='evenodd' />
+                          <div className="absolute -bottom-1 -right-1 bg-green-500 rounded-full p-1">
+                            <svg
+                              className="w-3 h-3 text-white"
+                              fill="currentColor"
+                              viewBox="0 0 20 20"
+                            >
+                              <path
+                                fillRule="evenodd"
+                                d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z"
+                                clipRule="evenodd"
+                              />
                             </svg>
                           </div>
                         </div>
                         <div>
-                          <h4 className='font-bold text-gray-800 text-xl'>{testimonial.name}</h4>
-                          <p className='text-green-600 text-base font-semibold'>{testimonial.plan}</p>
-                          <p className='text-gray-500 text-sm'>{testimonial.location}</p>
+                          <h4 className="font-bold text-gray-800 text-xl">
+                            {testimonial.name}
+                          </h4>
+                          <p className="text-green-600 text-base font-semibold">
+                            {testimonial.plan}
+                          </p>
+                          <p className="text-gray-500 text-sm">
+                            {testimonial.location}
+                          </p>
                         </div>
                       </div>
 
                       <StarRating rating={testimonial.stars} />
-                      <p className='text-gray-700 text-base leading-relaxed mb-4 italic'>
+                      <p className="text-gray-700 text-base leading-relaxed mb-4 italic">
                         "{testimonial.content}"
                       </p>
-                      <div className='w-12 h-1 bg-gradient-to-r from-green-400 to-emerald-400 rounded-full'></div>
+                      <div className="w-12 h-1 bg-gradient-to-r from-green-400 to-emerald-400 rounded-full"></div>
                     </div>
                   </div>
                 ))}
@@ -536,11 +624,14 @@ function Plans() {
             </div>
 
             {/* Testimonials Call to Actions */}
-            <div className='flex flex-col sm:flex-row items-center justify-center gap-4 max-w-2xl mx-auto mb-6 px-4'>
+            <div className="flex flex-col sm:flex-row items-center justify-center gap-4 max-w-2xl mx-auto mb-6 px-4">
               <motion.button
                 whileHover={{ scale: 1.03 }}
                 whileTap={{ scale: 0.97 }}
-                onClick={() => { scrollUp(); navigate('/submit-testimonial'); }}
+                onClick={() => {
+                  scrollUp();
+                  navigate("/submit-testimonial");
+                }}
                 className="group inline-flex items-center justify-center gap-3 bg-gradient-to-r from-green-700 via-emerald-600 to-green-600 text-white px-8 py-4 rounded-full font-bold shadow-md hover:shadow-xl transition-all duration-300 hover:-translate-y-0.5 w-full sm:w-auto text-center text-sm sm:text-base cursor-pointer"
               >
                 <span>Share Your Success Story</span>
@@ -562,7 +653,10 @@ function Plans() {
               <motion.button
                 whileHover={{ scale: 1.03 }}
                 whileTap={{ scale: 0.97 }}
-                onClick={() => { scrollUp(); navigate('/success-stories'); }}
+                onClick={() => {
+                  scrollUp();
+                  navigate("/success-stories");
+                }}
                 className="group inline-flex items-center justify-center gap-3 bg-green-50 text-green-700 px-8 py-4 rounded-full font-bold hover:bg-green-700 hover:text-white transition-all duration-300 shadow-md hover:-translate-y-0.5 w-full sm:w-auto text-center text-sm sm:text-base cursor-pointer"
               >
                 <span>View Success Stories</span>
@@ -583,19 +677,24 @@ function Plans() {
               </motion.button>
             </div>
 
-
             {/* Navigation Arrows */}
             {testimonials.length > 1 && (
               <>
                 <button
-                  onClick={() => { setIsAutoPlaying(false); prevTestimonial(); }}
-                  className='absolute left-1 sm:left-0 top-1/2 -translate-y-1/2 p-2 sm:p-3 bg-white shadow-md sm:shadow-lg rounded-full text-green-600 hover:bg-green-50 z-10 transition-all focus:outline-none'
+                  onClick={() => {
+                    setIsAutoPlaying(false);
+                    prevTestimonial();
+                  }}
+                  className="absolute left-1 sm:left-0 top-1/2 -translate-y-1/2 p-2 sm:p-3 bg-white shadow-md sm:shadow-lg rounded-full text-green-600 hover:bg-green-50 z-10 transition-all focus:outline-none"
                 >
                   <ChevronLeft className="w-5 h-5 sm:w-6 sm:h-6" />
                 </button>
                 <button
-                  onClick={() => { setIsAutoPlaying(false); nextTestimonial(); }}
-                  className='absolute right-1 sm:right-0 top-1/2 -translate-y-1/2 p-2 sm:p-3 bg-white shadow-md sm:shadow-lg rounded-full text-green-600 hover:bg-green-50 z-10 transition-all focus:outline-none'
+                  onClick={() => {
+                    setIsAutoPlaying(false);
+                    nextTestimonial();
+                  }}
+                  className="absolute right-1 sm:right-0 top-1/2 -translate-y-1/2 p-2 sm:p-3 bg-white shadow-md sm:shadow-lg rounded-full text-green-600 hover:bg-green-50 z-10 transition-all focus:outline-none"
                 >
                   <ChevronRight className="w-5 h-5 sm:w-6 sm:h-6" />
                 </button>
@@ -604,12 +703,15 @@ function Plans() {
 
             {/* Pagination Dots */}
             {testimonials.length > 1 && (
-              <div className='flex justify-center gap-2 mt-4'>
+              <div className="flex justify-center gap-2 mt-4">
                 {testimonials.map((_, idx) => (
                   <button
                     key={idx}
-                    onClick={() => { setIsAutoPlaying(false); setCurrentTestimonial(idx); }}
-                    className={`w-2.5 h-2.5 rounded-full transition-all duration-300 ${idx === currentTestimonial ? 'bg-green-600 w-8' : 'bg-gray-300 hover:bg-gray-400'}`}
+                    onClick={() => {
+                      setIsAutoPlaying(false);
+                      setCurrentTestimonial(idx);
+                    }}
+                    className={`w-2.5 h-2.5 rounded-full transition-all duration-300 ${idx === currentTestimonial ? "bg-green-600 w-8" : "bg-gray-300 hover:bg-gray-400"}`}
                   />
                 ))}
               </div>
@@ -617,17 +719,21 @@ function Plans() {
           </div>
 
           {/* Call to Action */}
-          <div className='text-center mt-12'>
-            <p className='text-gray-600 text-lg mb-6'>Ready to start your transformation?</p>
-            <button onClick={() => { scrollUp() }}
-              className='px-8 py-3 bg-gradient-to-r from-[#F6841F] to-[#F6841F] text-white font-bold rounded-full hover:shadow-lg transition-all hover:scale-105'>
+          <div className="text-center mt-12">
+            <p className="text-gray-600 text-lg mb-6">
+              Ready to start your transformation?
+            </p>
+            <button
+              onClick={() => {
+                scrollUp();
+              }}
+              className="px-8 py-3 bg-gradient-to-r from-[#F6841F] to-[#F6841F] text-white font-bold rounded-full hover:shadow-lg transition-all hover:scale-105"
+            >
               Choose Your Plan
             </button>
           </div>
         </div>
       </div>
-
-
     </>
   );
 }
