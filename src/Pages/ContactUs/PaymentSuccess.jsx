@@ -2,7 +2,8 @@ import React, { useMemo, useState, useEffect, useCallback, useRef } from 'react'
 import { CheckCircle, ShieldAlert, ArrowLeft, Loader2, RefreshCw } from 'lucide-react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { httpsCallable } from 'firebase/functions';
-import { functions } from '../../firebaseConfig';
+import { functions, analytics } from '../../firebaseConfig';
+import { logEvent } from 'firebase/analytics';
 import SEO from '../../Components/SEO';
 import { useToast } from '../../Contexts/ToastContext';
 import html2canvas from 'html2canvas-pro';
@@ -120,6 +121,36 @@ function PaymentSuccess() {
       const processResult = await processBookingFn(payload);
       
       if (processResult.data.success) {
+        try {
+          if (verifiedType === 'fathersday') {
+            logEvent(analytics, 'purchase', {
+              transaction_id: reference,
+              value: actualAmount || 600,
+              currency: 'GHS',
+              items: [{
+                item_name: "Father's Day Special Gift Consultation",
+                item_category: "Campaign",
+                price: actualAmount || 600,
+                quantity: 1
+              }]
+            });
+          } else {
+            logEvent(analytics, 'purchase', {
+              transaction_id: reference,
+              value: actualAmount,
+              currency: 'GHS',
+              items: [{
+                item_name: verifiedType === 'followup' ? "Follow-Up Consultation" : "Initial Consultation",
+                item_category: "Consultation",
+                price: actualAmount,
+                quantity: 1
+              }]
+            });
+          }
+        } catch (err) {
+          console.warn('Analytics purchase logging failed:', err);
+        }
+
         // Clear sensitive local storage
         try {
             localStorage.removeItem('consultationFormData');

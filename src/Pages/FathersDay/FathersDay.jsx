@@ -1,9 +1,11 @@
-import React, { useState, useRef } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import SEO from '../../Components/SEO';
 import { ArrowLeft, Send, Shield, CheckCircle, CreditCard, HelpCircle, ChevronDown } from 'lucide-react';
 import { useNavigate } from 'react-router';
 import fathersDayPromo from '../../assets/fathers_day_promo.png';
 import { isValidEmail } from '../../utils/validation';
+import { logEvent } from 'firebase/analytics';
+import { analytics } from '../../firebaseConfig';
 
 // Collapsible FAQ item
 const FaqItem = ({ question, answer }) => {
@@ -46,6 +48,19 @@ const FathersDay = () => {
 
   const [isSubmitting, setIsSubmitting] = useState(false);
 
+  useEffect(() => {
+    try {
+      logEvent(analytics, 'view_promotion', {
+        promotion_id: 'fathers_day_campaign',
+        promotion_name: 'Father\'s Day Gift Consultation',
+        creative_name: 'Honor His Health Promo Card',
+        location_id: 'fathers_day_page'
+      });
+    } catch (err) {
+      console.warn('Analytics logging failed:', err);
+    }
+  }, []);
+
   const handleInputChange = (e) => {
     const { name, value } = e.target;
     setFormData(prev => ({
@@ -69,6 +84,21 @@ const FathersDay = () => {
     }
 
     setIsSubmitting(true);
+
+    try {
+      logEvent(analytics, 'begin_checkout', {
+        value: 600,
+        currency: 'GHS',
+        items: [{
+          item_name: "Father's Day Special Gift Consultation",
+          item_category: "Campaign",
+          price: 600,
+          quantity: 1
+        }]
+      });
+    } catch (err) {
+      console.warn('Analytics logging failed:', err);
+    }
 
     // 2. Format custom payload for local storage (used in PaymentSuccess.jsx)
     const fathersDayData = {
@@ -98,10 +128,28 @@ const FathersDay = () => {
     <>
       <SEO
         title="Father's Day Special Gift Consultation | DietWithDee"
-        description="Gift a personalized diet & wellness consultation to a special father in your life this Father's Day. Special GH₵ 800 promo package by Registered Dietitian Nana Ama Dwamena."
+        description="Gift a personalized diet & wellness consultation to a special father in your life this Father's Day. Special GH₵ 600 promo package by Registered Dietitian Nana Ama Dwamena."
         keywords="Fathers Day, Gift Consultation, Dietitian Ghana, DietWithDee, Nana Ama Dwamena, Healthy Gift"
         image="https://dietwithdee.org/LOGO.webp"
         url="https://dietwithdee.org/fathersday"
+        jsonLd={{
+          "@context": "https://schema.org",
+          "@type": "Product",
+          "name": "Father's Day Special Gift Consultation Package",
+          "image": "https://dietwithdee.org/LOGO.webp",
+          "description": "Gift the father figure in your life a comprehensive 45-minute nutrition assessment, custom personal meal plan, and downloadable gift voucher card with Registered Dietitian Nana Ama Dwamena.",
+          "brand": {
+            "@type": "Brand",
+            "name": "DietWithDee"
+          },
+          "offers": {
+            "@type": "Offer",
+            "price": "600",
+            "priceCurrency": "GHS",
+            "availability": "https://schema.org/InStock",
+            "url": "https://dietwithdee.org/fathersday"
+          }
+        }}
       />
 
       <div className="min-h-screen bg-zinc-50 py-16 px-4 md:px-8 border-t border-zinc-200">

@@ -3,6 +3,8 @@ import { motion, AnimatePresence } from "framer-motion";
 import { ShoppingBag, ChevronRight } from "lucide-react";
 import SEO from "../../Components/SEO";
 import ScrollToTop from "../../utils/ScrollToTop";
+import { logEvent } from "firebase/analytics";
+import { analytics } from "../../firebaseConfig";
 
 const TerraVee = () => {
   const [currentSlide, setCurrentSlide] = useState(0);
@@ -96,7 +98,58 @@ const TerraVee = () => {
     setCurrentSlide((prev) => (prev + 1) % variants.length);
   };
 
+  // 1. Log view_item_list on mount
+  useEffect(() => {
+    try {
+      logEvent(analytics, 'view_item_list', {
+        item_list_id: 'terravee_variants',
+        item_list_name: 'TerraVee Juice Variants',
+        items: variants.map(v => ({
+          item_id: String(v.id),
+          item_name: v.name,
+          item_category: v.isSpecialPack ? 'Special Pack' : 'Standard Variant'
+        }))
+      });
+    } catch (err) {
+      console.warn('Analytics logging failed:', err);
+    }
+  }, []);
+
+  // 2. Log select_item on variant change
+  useEffect(() => {
+    const activeVariant = variants[currentSlide];
+    if (!activeVariant) return;
+    try {
+      logEvent(analytics, 'select_item', {
+        item_list_id: 'terravee_variants',
+        item_list_name: 'TerraVee Juice Variants',
+        items: [{
+          item_id: String(activeVariant.id),
+          item_name: activeVariant.name,
+          item_category: activeVariant.isSpecialPack ? 'Special Pack' : 'Standard Variant'
+        }]
+      });
+    } catch (err) {
+      console.warn('Analytics logging failed:', err);
+    }
+  }, [currentSlide]);
+
   const handleBuyNow = (variant) => {
+    try {
+      logEvent(analytics, 'begin_checkout', {
+        value: variant.isSpecialPack ? 120 : undefined,
+        currency: 'GHS',
+        items: [{
+          item_id: String(variant.id),
+          item_name: variant.name,
+          item_category: variant.isSpecialPack ? 'Special Pack' : 'Standard Variant',
+          quantity: 1
+        }]
+      });
+    } catch (err) {
+      console.warn('Analytics logging failed:', err);
+    }
+
     const whatsappURL = `https://wa.me/233545930804?text=${encodeURIComponent(variant.whatsappText)}`;
     window.open(whatsappURL, "_blank");
   };
@@ -104,9 +157,49 @@ const TerraVee = () => {
   return (
     <>
       <SEO
-        title="TerraVee Juice Variants - Order Now"
-        description="Discover our beautiful collection of TerraVee Juice variants. Beetropine, Caropine, Tigernut, Mintypine, Mintyberry, and Father's Day Specials."
-        url="/terravee"
+        title="TerraVee Premium Fresh Juice Variants | DietWithDee"
+        description="Discover our beautiful collection of TerraVee cold-pressed juice variants in Ghana: Beetropine, Caropine, Tigernut, Mintypine, Mintyberry, and Father's Day Specials. Order online today!"
+        keywords="TerraVee, cold pressed juice Ghana, healthy juices Accra, Beetropine, Caropine, Tigernut juice, Mintypine, DietWithDee juices"
+        image="https://dietwithdee.org/terravee-variants/15.png"
+        url="https://dietwithdee.org/terravee"
+        jsonLd={{
+          "@context": "https://schema.org",
+          "@type": "ItemList",
+          "name": "TerraVee Premium Juice Variants",
+          "description": "Our selection of cold-pressed, nutrient-dense fresh juices and specials.",
+          "itemListElement": [
+            {
+              "@type": "ListItem",
+              "position": 1,
+              "name": "Beetropine"
+            },
+            {
+              "@type": "ListItem",
+              "position": 2,
+              "name": "Caropine"
+            },
+            {
+              "@type": "ListItem",
+              "position": 3,
+              "name": "Tigernut"
+            },
+            {
+              "@type": "ListItem",
+              "position": 4,
+              "name": "Mintypine"
+            },
+            {
+              "@type": "ListItem",
+              "position": 5,
+              "name": "Mintyberry"
+            },
+            {
+              "@type": "ListItem",
+              "position": 6,
+              "name": "Father's Day Packs"
+            }
+          ]
+        }}
       />
       <div className="min-h-screen bg-black overflow-hidden">
         <ScrollToTop />

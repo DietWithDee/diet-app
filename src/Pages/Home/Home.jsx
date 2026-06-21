@@ -97,15 +97,68 @@ function Home() {
     }
   }, []);
 
+  useEffect(() => {
+    if (showFathersDayPopup) {
+      try {
+        logEvent(analytics, 'view_promotion', {
+          promotion_id: 'fathers_day_popup',
+          promotion_name: 'Father\'s Day Special Gift Popup',
+          creative_name: 'Honor His Health Promo Popup',
+          location_id: 'homepage_popup'
+        });
+      } catch (err) {
+        console.warn('Analytics logging failed:', err);
+      }
+    }
+  }, [showFathersDayPopup]);
+
   const handleClosePopup = () => {
     sessionStorage.setItem('hasSeenFathersDayPopup', 'true');
     setShowFathersDayPopup(false);
   };
 
   const handleNavigateToPromo = () => {
+    try {
+      logEvent(analytics, 'select_promotion', {
+        promotion_id: 'fathers_day_popup',
+        promotion_name: 'Father\'s Day Special Gift Popup',
+        creative_name: 'Honor His Health Promo Popup',
+        location_id: 'homepage_popup'
+      });
+    } catch (err) {
+      console.warn('Analytics logging failed:', err);
+    }
     sessionStorage.setItem('hasSeenFathersDayPopup', 'true');
     setShowFathersDayPopup(false);
     navigate('/fathersday');
+  };
+
+  const handleNavigateToFathersDayCard = () => {
+    try {
+      logEvent(analytics, 'select_promotion', {
+        promotion_id: 'fathers_day_ad_card',
+        promotion_name: 'Father\'s Day Gift Consultation Banner',
+        creative_name: 'Honor His Health Promo Card',
+        location_id: 'homepage_right_card'
+      });
+    } catch (err) {
+      console.warn('Analytics logging failed:', err);
+    }
+    navigate('/fathersday');
+  };
+
+  const handleNavigateToTerraVee = () => {
+    try {
+      logEvent(analytics, 'select_promotion', {
+        promotion_id: 'terravee_carousel_card',
+        promotion_name: 'TerraVee Carousel',
+        creative_name: 'TerraVee Juice Slide Showcase',
+        location_id: 'homepage_right_carousel'
+      });
+    } catch (err) {
+      console.warn('Analytics logging failed:', err);
+    }
+    navigate('/terravee');
   };
 
   useEffect(() => {
@@ -283,7 +336,7 @@ function Home() {
               >
                 {/* Image Section */}
                 <div 
-                  onClick={() => navigate('/fathersday')} 
+                  onClick={handleNavigateToFathersDayCard} 
                   className="w-full overflow-hidden bg-zinc-100 border border-zinc-200 cursor-pointer group"
                 >
                   <img
@@ -313,7 +366,7 @@ function Home() {
 
                 {/* Action button */}
                 <button
-                  onClick={() => navigate('/fathersday')}
+                  onClick={handleNavigateToFathersDayCard}
                   className="w-full h-10 bg-zinc-900 hover:bg-zinc-800 text-zinc-50 font-bold text-xs rounded-none transition-colors tracking-wide cursor-pointer flex items-center justify-center border-none"
                 >
                   Book Father's Day Gift
@@ -322,7 +375,7 @@ function Home() {
 
               {/* Sliding Carousel Card leading to /terravee */}
               <div className="relative overflow-hidden w-full bg-white border border-zinc-200 p-2 shadow-sm">
-                <div className="relative overflow-hidden cursor-pointer" onClick={() => navigate('/terravee')}>
+                <div className="relative overflow-hidden cursor-pointer" onClick={handleNavigateToTerraVee}>
                   <motion.div
                     className="flex animate-none"
                     animate={{ x: `-${carouselIndex * 100}%` }}

@@ -14,6 +14,8 @@ import {
 } from "lucide-react";
 import { motion } from "framer-motion";
 import SEO from "../../Components/SEO";
+import { logEvent } from "firebase/analytics";
+import { analytics } from "../../firebaseConfig";
 import PlanImg from "../../assets/Salad.webp"; // you can replace this with actual plan images
 import B2B from "../../assets/images/B2B.webp"; // example image for Back to Basics plan
 import Gain from "../../assets/images/Gain.webp"; // example image for Weight Gain plan
@@ -66,6 +68,15 @@ function Plans() {
       .writeText(code)
       .then(() => {
         setCopiedCode(code);
+        try {
+          logEvent(analytics, 'use_promotion', {
+            promotion_id: 'fathers_day_promo_code',
+            promotion_name: 'Father\'s Day Discount Code',
+            coupon: code
+          });
+        } catch (err) {
+          console.warn('Analytics logging failed:', err);
+        }
         showToast("Promo code copied successfully!", "success");
         setTimeout(() => setCopiedCode(null), 1500);
       })
@@ -75,7 +86,36 @@ function Plans() {
       });
   };
 
+  const handleGiftConsultationClick = () => {
+    try {
+      logEvent(analytics, 'select_promotion', {
+        promotion_id: 'fathers_day_plans_banner',
+        promotion_name: 'Father\'s Day Special Banner',
+        creative_name: 'Gift a Consultation Button',
+        location_id: 'plans_page_header'
+      });
+    } catch (err) {
+      console.warn('Analytics logging failed:', err);
+    }
+    navigate("/fathersday");
+  };
+
   const handleBuyClick = (plan) => {
+    try {
+      logEvent(analytics, 'begin_checkout', {
+        value: parseFloat(plan.price.replace(/[^0-9.]/g, '')),
+        currency: 'GHS',
+        items: [{
+          item_id: plan.id,
+          item_name: plan.title,
+          item_category: "Diet Plan",
+          price: parseFloat(plan.price.replace(/[^0-9.]/g, '')),
+          quantity: 1
+        }]
+      });
+    } catch (err) {
+      console.warn('Analytics logging failed:', err);
+    }
     window.open(plan.Url, "_blank", "noopener,noreferrer");
     navigate(`/checkout-success?plan=${plan.id}`);
   };
@@ -344,7 +384,7 @@ function Plans() {
             </div>
           </div>
           <button
-            onClick={() => navigate("/fathersday")}
+            onClick={handleGiftConsultationClick}
             className="text-xs font-bold text-white bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-700 hover:to-emerald-700 px-4 py-2 rounded-lg transition-all shrink-0 shadow-sm cursor-pointer border-none"
           >
             Gift a Consultation →
