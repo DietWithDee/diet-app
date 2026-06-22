@@ -259,6 +259,7 @@ const Footer = () => {
                   href="https://www.instagram.com/diet.withdee?igsh=MW03bXpwMjhyZWEyNA%3D%3D&utm_source=qr"
                   onClick={(e) => handleSocialClick(e, 'Instagram', 'https://www.instagram.com/diet.withdee?igsh=MW03bXpwMjhyZWEyNA%3D%3D&utm_source=qr', <Instagram size={24} />, 'from-pink-500 to-purple-600')}
                   className="text-green-100 hover:text-pink-400 transition-colors hover:scale-110 transform"
+                  aria-label="Visit our Instagram page"
                 >
                   <Instagram size={20} />
                 </a>
@@ -267,6 +268,7 @@ const Footer = () => {
                   href="https://www.linkedin.com/company/dietwithdee/"
                   onClick={(e) => handleSocialClick(e, 'LinkedIn', 'https://www.linkedin.com/company/dietwithdee/', <Linkedin size={24} />, 'from-blue-600 to-cyan-500')}
                   className="text-green-100 hover:text-blue-400 transition-colors hover:scale-110 transform"
+                  aria-label="Visit our LinkedIn page"
                 >
                   <Linkedin size={20} />
                 </a>
@@ -275,6 +277,7 @@ const Footer = () => {
                   href="https://www.tiktok.com/@dietwithdee?_t=ZM-8yWNZKQGM8G&_r=1"
                   onClick={(e) => handleSocialClick(e, 'TikTok', 'https://www.tiktok.com/@dietwithdee?_t=ZM-8yWNZKQGM8G&_r=1', <Music2 size={24} />, 'from-gray-900 to-gray-700')}
                   className="text-green-100 hover:text-gray-200 transition-colors hover:scale-110 transform"
+                  aria-label="Visit our TikTok page"
                 >
                   <Music2 size={20} />
                 </a>
@@ -302,6 +305,7 @@ const Footer = () => {
         >
           <button
             onClick={handleWhatsAppClick}
+            aria-label="Open WhatsApp chat"
             className={`
               bg-green-500 hover:bg-green-600 text-white rounded-full shadow-lg 
               transition-all duration-500 ease-in-out transform hover:scale-105
