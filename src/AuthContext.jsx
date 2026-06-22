@@ -332,7 +332,8 @@ export const AuthProvider = ({ children }) => {
                
                <button 
                  onClick={() => setNotification(null)}
-                 className="p-1 hover:bg-gray-100 rounded-full transition-colors text-gray-400"
+                 className="p-1 hover:bg-gray-100 rounded-full transition-colors text-gray-400 focus:outline-none focus-visible:ring-2 focus-visible:ring-green-500"
+                 aria-label="Close notification"
                >
                  <FiX size={20} />
                </button>
