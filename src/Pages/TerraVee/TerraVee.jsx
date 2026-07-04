@@ -58,6 +58,7 @@ const TerraVee = () => {
       whatsappText:
         "Hi! I'm interested in ordering TerraVee Mintyberry variant. Please send me details.",
     },
+    /* Commented out Father's Day Packs variant for future campaigns
     {
       id: 6,
       name: "Father's Day Packs",
@@ -68,6 +69,7 @@ const TerraVee = () => {
       whatsappText:
         "Hi! I'm interested in ordering a TerraVee Father's Day pack. Please send me options and details.",
     },
+    */
   ];
 
   // Handle touch/drag for slider

@@ -7,11 +7,11 @@ import logo from "../../assets/LOGO.webp"
 import { useNavigate } from 'react-router'
 import { useAuth } from '../../AuthContext'
 
-// Playful bouncing icon that transitions between shopping cart and gift emoji
+// Playful bouncing icon that transitions between shopping cart and gift emoji (Commented out for reuse)
+/*
 const PlayfulNavBarIcon = () => {
   return (
     <div className="relative w-8 h-8 flex items-center justify-center select-none">
-      {/* Shopping Cart Icon */}
       <motion.div
         initial={{ scale: 0, rotate: -180, opacity: 0 }}
         animate={{ 
@@ -31,7 +31,6 @@ const PlayfulNavBarIcon = () => {
         <FiShoppingCart size={22} />
       </motion.div>
 
-      {/* Gift Emoji */}
       <motion.div
         initial={{ scale: 0, rotate: 180, opacity: 0 }}
         animate={{ 
@@ -53,6 +52,7 @@ const PlayfulNavBarIcon = () => {
     </div>
   );
 };
+*/
 
 export default function NavBar() {
   const [menuOpen, setMenuOpen] = useState(false)
@@ -175,11 +175,11 @@ export default function NavBar() {
                   />
                 )}
                 <motion.div
-                  whileHover={{ scale: 1.1 }}
+                  whileHover={{ scale: 1.15 }}
                   whileTap={{ scale: 0.9 }}
                   className="relative z-10 flex items-center justify-center"
                 >
-                  <PlayfulNavBarIcon />
+                  <FiShoppingCart size={23} className="transition-transform duration-300" />
                 </motion.div>
               </>
             )}

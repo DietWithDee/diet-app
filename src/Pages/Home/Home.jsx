@@ -87,6 +87,7 @@ function Home() {
     return () => clearInterval(interval);
   }, []);
 
+  /* Commented out Father's Day popup automatic trigger
   useEffect(() => {
     const hasSeenPopup = sessionStorage.getItem('hasSeenFathersDayPopup');
     if (!hasSeenPopup) {
@@ -96,6 +97,7 @@ function Home() {
       return () => clearTimeout(timer);
     }
   }, []);
+  */
 
   useEffect(() => {
     if (showFathersDayPopup) {
@@ -326,7 +328,32 @@ function Home() {
               </motion.div>
             </div>
 
-            {/* Right: Video replaced with Father's Day Campaign Ad (Video commented out) */}
+            {/* Right: Video without glowing green background elements (Original restored, Campaign/Carousel commented out below) */}
+            <div className="flex-1 relative max-w-lg w-full">
+              <motion.div
+                className="relative z-10 p-4 lg:p-8"
+                variants={floatingImage}
+                initial="hidden"
+                animate="show"
+              >
+                <div className="bg-transparent rounded-3xl transition-all duration-500 hover:scale-[1.02]">
+                  <div className="w-full flex items-center justify-center relative">
+                    <video
+                      ref={videoRef}
+                      src="/Hero_animation.mp4"
+                      className="object-contain w-[120%] max-w-none relative z-10 mix-blend-multiply"
+                      style={{ mixBlendMode: 'multiply' }}
+                      playsInline
+                      muted
+                      controls={false}
+                      preload="auto"
+                    />
+                  </div>
+                </div>
+              </motion.div>
+            </div>
+
+            {/* Commented out Campaign / Carousel Updates for Reusability
             <div className="flex-1 relative max-w-lg w-full flex flex-col gap-6">
               <motion.div
                 variants={floatingImage}
@@ -334,7 +361,6 @@ function Home() {
                 animate="show"
                 className="bg-white border border-zinc-200 p-6 shadow-sm rounded-none text-left relative z-10 space-y-4"
               >
-                {/* Image Section */}
                 <div 
                   onClick={handleNavigateToFathersDayCard} 
                   className="w-full overflow-hidden bg-zinc-100 border border-zinc-200 cursor-pointer group"
@@ -346,7 +372,6 @@ function Home() {
                   />
                 </div>
 
-                {/* Text Section */}
                 <div className="space-y-2">
                   <div className="flex items-center gap-1.5 text-amber-600 font-bold text-[10px] uppercase tracking-wider">
                     <span className="inline-block w-1.5 h-1.5 bg-amber-500 animate-ping rounded-full"></span>
@@ -364,7 +389,6 @@ function Home() {
                   </div>
                 </div>
 
-                {/* Action button */}
                 <button
                   onClick={handleNavigateToFathersDayCard}
                   className="w-full h-10 bg-zinc-900 hover:bg-zinc-800 text-zinc-50 font-bold text-xs rounded-none transition-colors tracking-wide cursor-pointer flex items-center justify-center border-none"
@@ -373,7 +397,6 @@ function Home() {
                 </button>
               </motion.div>
 
-              {/* Sliding Carousel Card leading to /terravee */}
               <div className="relative overflow-hidden w-full bg-white border border-zinc-200 p-2 shadow-sm">
                 <div className="relative overflow-hidden cursor-pointer" onClick={handleNavigateToTerraVee}>
                   <motion.div
@@ -392,7 +415,6 @@ function Home() {
                     ))}
                   </motion.div>
                   
-                  {/* Indicators */}
                   <div className="flex justify-center gap-1.5 mt-2">
                     {CAROUSEL_IMAGES.map((_, idx) => (
                       <button
@@ -412,6 +434,7 @@ function Home() {
                 </div>
               </div>
             </div>
+            */}
 
             {/* Trust Indicators (Mobile - visible below the image) */}
             <motion.div
@@ -577,16 +600,12 @@ function Home() {
 
           <InstallPrompt />
         </div>
-      </div>
-
-      {/* Father's Day Shadcn-styled Pop-up Modal */}
+      </div>      {/* Commented out Father's Day popup modal for future reusability
       <AnimatePresence>
         {showFathersDayPopup && (
           <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-zinc-950/60 backdrop-blur-sm">
-            {/* Modal Backdrop overlay click also closes */}
             <div className="absolute inset-0 animate-fade-in" onClick={handleClosePopup}></div>
             
-            {/* Modal Box */}
             <motion.div
               initial={{ opacity: 0, scale: 0.95, y: 10 }}
               animate={{ opacity: 1, scale: 1, y: 0 }}
@@ -594,7 +613,6 @@ function Home() {
               transition={{ duration: 0.2, ease: "easeOut" }}
               className="relative z-10 bg-white border border-zinc-200 rounded-none shadow-xl max-w-lg w-full flex flex-col md:flex-row overflow-hidden"
             >
-              {/* Close Button */}
               <button
                 onClick={handleClosePopup}
                 className="absolute top-3 right-3 text-zinc-400 hover:text-zinc-950 transition-colors p-1 cursor-pointer z-20"
@@ -603,7 +621,6 @@ function Home() {
                 <X size={16} />
               </button>
 
-              {/* Left Side: Square Image */}
               <div className="w-full md:w-5/12 bg-zinc-100 flex items-center justify-center border-b md:border-b-0 md:border-r border-zinc-200">
                 <img
                   src={fathersDayPromo}
@@ -612,7 +629,6 @@ function Home() {
                 />
               </div>
 
-              {/* Right Side: Copy & Form Redirection */}
               <div className="w-full md:w-7/12 p-6 flex flex-col justify-between space-y-4">
                 <div className="space-y-2 text-left">
                   <div className="flex items-center gap-1.5 text-amber-600 font-bold text-[10px] uppercase tracking-wider">
@@ -646,10 +662,10 @@ function Home() {
                   </button>
                 </div>
               </div>
-            </motion.div>
           </div>
         )}
       </AnimatePresence>
+      */}
     </>
   );
 }

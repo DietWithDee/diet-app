@@ -302,7 +302,7 @@ const ContactUs = () => {
             {/* Main Booking Section - Centered and Wider */}
             <div className="max-w-4xl mx-auto w-full px-4 sm:px-0 space-y-6">
 
-              {/* Father's Day Promotion Banner */}
+              {/* Commented out Father's Day Promotion Banner for future reusability
               <div className="bg-white border border-zinc-200 shadow-sm rounded-none overflow-hidden flex flex-col md:flex-row items-stretch">
                 <div className="w-full md:w-5/12 bg-zinc-100 flex items-center justify-center border-b md:border-b-0 md:border-r border-zinc-200">
                   <img
@@ -317,7 +317,7 @@ const ContactUs = () => {
                       <Gift size={12} className="animate-bounce" />
                       <span>Limited Father's Day Offer</span>
                     </div>
-                    <h3 className="text-xl font-bold tracking-tight text-zinc-950 font-serif">
+                    <h3 className="text-xl font-bold tracking-tight text-zinc-955 font-serif">
                       Gift Wellness this Father's Day
                     </h3>
                     <p className="text-xs text-zinc-500 leading-relaxed">
@@ -337,11 +337,12 @@ const ContactUs = () => {
                   </button>
                 </div>
               </div>
+              */}
 
-              {/* Three Consultation Cards */}
-              <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+              {/* Consultation Cards (Changed from lg:grid-cols-3 to md:grid-cols-2) */}
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
 
-                {/* Father's Day Campaign Promo Card */}
+                {/* Commented out Father's Day Campaign Promo Card for future reusability
                 <div className="gold-shimmer-card rounded-3xl p-7 text-white shadow-2xl border border-amber-500/30 flex flex-col justify-between">
                   <div className="flex-1">
                     <div className="flex items-center gap-2 mb-1 flex-wrap">
@@ -369,12 +370,13 @@ const ContactUs = () => {
                   </div>
                   <button
                     onClick={() => navigate('/fathersday')}
-                    className="mt-4 w-full py-3.5 bg-amber-500 text-zinc-950 hover:bg-amber-600 font-bold rounded-xl shadow-lg transition-colors flex items-center justify-center gap-2 border-none cursor-pointer"
+                    className="mt-4 w-full py-3.5 bg-amber-500 text-zinc-955 text-zinc-950 hover:bg-amber-600 font-bold rounded-xl shadow-lg transition-colors flex items-center justify-center gap-2 border-none cursor-pointer"
                   >
                     <Gift size={16} />
                     Gift This Package
                   </button>
                 </div>
+                */}
 
                 {/* Initial Consultation Card */}
                 <div className="bg-gradient-to-br from-green-500 via-green-600 to-emerald-700 rounded-3xl p-7 text-white shadow-2xl shadow-green-500/30 border border-green-400/20 flex flex-col justify-between">
@@ -520,7 +522,8 @@ const ContactUs = () => {
                               <span className="text-[10px] opacity-80 italic">₵400</span>
                             </button>
                           </div>
-                          {selectedType === 'initial' && (
+                          {/* Commented out Father's Day booking upsell alert
+                          selectedType === 'initial' && (
                             <motion.div
                               initial={{ opacity: 0, y: -5 }}
                               animate={{ opacity: 1, y: 0 }}
@@ -538,7 +541,8 @@ const ContactUs = () => {
                                 to save ₵200 (₵600 total) and get a downloadable voucher card!
                               </span>
                             </motion.div>
-                          )}
+                          )
+                          */}
                         </div>
 
                         {/* Phone */}

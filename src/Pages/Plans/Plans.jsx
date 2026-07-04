@@ -318,7 +318,7 @@ function Plans() {
         url={activePlan ? `/plans#${activePlan.id}` : "/plans"}
       />
       <div className="min-h-screen bg-gradient-to-br from-green-50 via-white to-emerald-50 py-20 px-6 lg:px-12">
-        {/* Featured Image Carousel */}
+        {/* Commented out Featured Image Carousel for future campaigns
         <div className="max-w-6xl mx-auto mb-4">
           <div className="relative overflow-hidden">
             <motion.div
@@ -329,20 +329,19 @@ function Plans() {
               {CAROUSEL_IMAGES.map((image, index) => (
                 <motion.div
                   key={index}
-                  className="min-w-full cursor-pointer group"
-                  onClick={() => navigate("/terravee")}
-                  whileHover={{ scale: 1.02 }}
+                  className="min-w-full"
+                  // onClick={() => navigate("/terravee")}
+                  // whileHover={{ scale: 1.02 }}
                 >
                   <img
                     src={image}
                     alt={`Carousel ${index + 1}`}
-                    className="w-full h-auto object-cover transition-opacity group-hover:opacity-90"
+                    className="w-full h-auto object-cover"
                   />
                 </motion.div>
               ))}
             </motion.div>
 
-            {/* Pagination Dots */}
             <div className="flex justify-center gap-2 mt-4">
               {CAROUSEL_IMAGES.map((_, idx) => (
                 <button
@@ -354,6 +353,7 @@ function Plans() {
             </div>
           </div>
         </div>
+        */}
 
         <div className="text-center space-y-4 max-w-3xl mx-auto mb-12">
           <h1 className="text-3xl font-black text-transparent bg-clip-text bg-gradient-to-r from-green-700 via-emerald-600 to-green-600">
@@ -366,7 +366,7 @@ function Plans() {
           <div className="w-20 h-1 bg-gradient-to-r from-green-500 to-emerald-500 mx-auto rounded-full"></div>
         </div>
 
-        {/* Father's Day Promo Banner */}
+        {/* Commented out Father's Day Promo Banner for future reusability
         <div className="max-w-6xl mx-auto mb-8 bg-gradient-to-r from-emerald-50 to-amber-50 border border-emerald-200/60 p-5 rounded-2xl flex flex-col sm:flex-row items-center justify-between gap-4 text-center sm:text-left shadow-sm">
           <div className="flex items-center gap-3">
             <div className="w-10 h-10 bg-gradient-to-br from-amber-400 to-orange-500 rounded-xl flex items-center justify-center shrink-0 shadow-md">
@@ -390,6 +390,7 @@ function Plans() {
             Gift a Consultation →
           </button>
         </div>
+        */}
 
         <div className="grid grid-cols-1 md:grid-cols-3 gap-8 max-w-6xl mx-auto">
           {loading
@@ -401,12 +402,13 @@ function Plans() {
                   id={plan.id}
                   className="bg-white rounded-3xl shadow-xl hover:shadow-2xl transition-transform hover:-translate-y-1 p-6 relative border border-gray-100 scroll-mt-24"
                 >
-                  {/* Slanted 10% OFF ribbon */}
+                  {/* Commented out Slanted 10% OFF ribbon for future reusability
                   <div className="absolute top-0 right-0 z-20 overflow-hidden w-24 h-24 pointer-events-none">
                     <div className="absolute top-[14px] right-[-30px] w-[140px] bg-red-600 text-white text-[10px] font-black text-center py-1 rotate-45 shadow-md tracking-wider">
                       10% OFF
                     </div>
                   </div>
+                  */}
 
                   {plan.isPopular && (
                     <div className="absolute -top-3 left-1/2 -translate-x-1/2 bg-gradient-to-r from-orange-400 to-orange-500 text-white text-[10px] font-black px-4 py-1 rounded-full shadow-lg z-10 whitespace-nowrap tracking-widest border-2 border-white">
@@ -433,7 +435,7 @@ function Plans() {
                     {plan.price}
                   </p>
 
-                  {/* Father's Day Promo Code — warm inline pill */}
+                  {/* Commented out Father's Day Promo Code — warm inline pill for future reusability
                   <div
                     onClick={() => handleCopyCode(PROMO_CODES[plan.id])}
                     className="group bg-gradient-to-r from-amber-50 to-orange-50 border border-amber-200/80 rounded-lg px-3 py-2 flex items-center justify-between text-xs mb-4 cursor-pointer hover:border-amber-300 hover:shadow-sm transition-all select-none"
@@ -459,6 +461,7 @@ function Plans() {
                       )}
                     </div>
                   </div>
+                  */}
 
                   <ul className="space-y-2 text-gray-700 text-sm mb-6">
                     {plan.features.map((feature, idx) => (
