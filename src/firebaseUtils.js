@@ -300,7 +300,7 @@ export const getArticleBySlugOrId = async (slugOrId, includeUnpublished = false)
   }
 };
 
-export const saveEmailToFirestore = async (email) => {
+export const saveEmailToFirestore = async (email, extraData = {}) => {
   try {
     const trimmedEmail = email.trim().toLowerCase();
     const docRef = doc(db, "emails", trimmedEmail);
@@ -314,7 +314,8 @@ export const saveEmailToFirestore = async (email) => {
 
     await setDoc(docRef, {
       email: trimmedEmail,
-      createdAt: Timestamp.now()
+      createdAt: Timestamp.now(),
+      ...extraData
     });
     
     return { success: true, id: trimmedEmail };
