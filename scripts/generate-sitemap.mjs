@@ -12,7 +12,8 @@ const routes = [
   "/plans/",
   "/my-journey/",
   "/terms/",
-  "/privacy/"
+  "/privacy/",
+  "/subscribe/"
 ];
 
 const urls = routes.map(

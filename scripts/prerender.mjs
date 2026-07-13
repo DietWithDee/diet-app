@@ -18,6 +18,7 @@ const ROUTES = [
   "/my-journey/",
   "/terms/",
   "/privacy/",
+  "/subscribe/",
 ];
 
 function outPathFor(route) {
