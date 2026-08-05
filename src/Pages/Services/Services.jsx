@@ -128,6 +128,35 @@ function ServicesContactSection() {
     setTouchEndX(0);
   }, [touchStartX, touchEndX, goToNextImage, goToPreviousImage, minSwipeDistance]);
 
+  // Background Preloading: Instantly preload ALL event images into browser cache upon fetch
+  useEffect(() => {
+    if (allEvents.length > 0) {
+      allEvents.forEach((event) => {
+        if (event.imageUrl) {
+          const img = new Image();
+          img.src = event.imageUrl;
+        }
+      });
+    }
+  }, [allEvents]);
+
+  // Lightbox Preloading: Preload adjacent (next/previous) images in full screen for 0ms swipe latency
+  useEffect(() => {
+    if (isLightboxOpen && lightboxImages.length > 0) {
+      const indicesToPreload = [
+        (currentImageIndex + 1) % lightboxImages.length,
+        (currentImageIndex - 1 + lightboxImages.length) % lightboxImages.length,
+        (currentImageIndex + 2) % lightboxImages.length,
+      ];
+      indicesToPreload.forEach(idx => {
+        if (lightboxImages[idx]?.src) {
+          const img = new Image();
+          img.src = lightboxImages[idx].src;
+        }
+      });
+    }
+  }, [isLightboxOpen, currentImageIndex, lightboxImages]);
+
   // Keyboard support for lightbox
   useEffect(() => {
     const handleKeyDown = (event) => {
@@ -356,6 +385,8 @@ function ServicesContactSection() {
                               <img 
                                 src={event.imageUrl} 
                                 alt={event.title} 
+                                decoding="async"
+                                loading="eager"
                                 className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105" 
                               />
                               <div className="absolute inset-0 bg-gradient-to-t from-black/85 via-black/30 to-transparent"></div>
@@ -546,6 +577,8 @@ function ServicesContactSection() {
                 key={currentImageIndex}
                 src={lightboxImages[currentImageIndex]?.src}
                 alt={lightboxImages[currentImageIndex]?.alt || 'Event image'}
+                decoding="async"
+                fetchPriority="high"
                 className={`max-w-full max-h-[75vh] object-contain rounded-xl shadow-2xl transition-all duration-300 ${slideDirection === 'right' ? 'slide-in-right' : 'slide-in-left'}`}
               />
 
