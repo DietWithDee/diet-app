@@ -7,66 +7,80 @@ import WhatsAppPopup from '../../Components/WhatsAppPopup';
 import Slider from 'react-slick';
 import "slick-carousel/slick/slick.css";
 import "slick-carousel/slick/slick-theme.css";
-import { Calendar, MapPin } from 'lucide-react';
+import { Calendar, MapPin, ExternalLink } from 'lucide-react';
 import { getAllEvents } from '../../firebaseEventsUtils';
-import Event1 from '../../assets/images/Events/Event1.webp';
-import Event2 from '../../assets/images/Events/Event2.webp';
-import Event3 from '../../assets/images/Events/Event3.webp';
-import Event4 from '../../assets/images/Events/Event4.webp';
-import Event5 from '../../assets/images/Events/Event5.webp';
-import Event5_5 from '../../assets/images/Events/Event5.5.webp';
-import Event6 from '../../assets/images/Events/Event6.webp';
-import Event7 from '../../assets/images/Events/Event7.webp';
-import Event8 from '../../assets/images/Events/Event8.webp';
-import Event9 from '../../assets/images/Events/Event9.webp';
-import Event11 from '../../assets/images/Events/Event11.webp';
-import Event12 from '../../assets/images/Events/Event12.webp';
-import Event13 from '../../assets/images/Events/Event13.webp';
-import Event14 from '../../assets/images/Events/Event14.webp';
-import Event15 from '../../assets/images/Events/Event15.webp';
-import Event16 from '../../assets/images/Events/Event16.webp';
-import Event17 from '../../assets/images/Events/Event17.webp';
-import Event18 from '../../assets/images/Events/Event18.webp';
-import Event19 from '../../assets/images/Events/Event19.webp';
-import Event5_6 from '../../assets/images/Events/Event5.6.webp';
+import SocialRedirectPopup from '../../Components/SocialRedirectPopup';
 
 function ServicesContactSection() {
   const navigate = useNavigate();
   const Url = "https://wa.me/233592330870?text=Hello%2C%20I%E2%80%99d%20like%20to%20book%20a%20session%20with%20Diet%20with%20Dee"
 
-  const [isLightboxOpen, setIsLightboxOpen] = useState(false);
   const [showWhatsAppPopup, setShowWhatsAppPopup] = useState(false);
+  
+  // Unified events state
+  const [allEvents, setAllEvents] = useState([]);
+  const [isEventsLoading, setIsEventsLoading] = useState(true);
+  const [activeTab, setActiveTab] = useState('upcoming'); // 'upcoming' | 'past'
+  
+  // Lightbox state
+  const [isLightboxOpen, setIsLightboxOpen] = useState(false);
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
+  const [slideDirection, setSlideDirection] = useState('right');
   const [touchStartX, setTouchStartX] = useState(0);
   const [touchEndX, setTouchEndX] = useState(0);
-  const [slideDirection, setSlideDirection] = useState('right');
-  const [isPaused, setIsPaused] = useState(false);
-
+  const lightboxRef = useRef(null);
   const minSwipeDistance = 50;
 
-  const lightboxRef = useRef(null);
-  
-  const [upcomingEvents, setUpcomingEvents] = useState([]);
-  const [isEventsLoading, setIsEventsLoading] = useState(true);
+  // Event redirect modal state
+  const [eventRedirect, setEventRedirect] = useState({ isOpen: false, url: '' });
 
+  // Fetch all events from Firebase
   useEffect(() => {
     const fetchEvents = async () => {
       setIsEventsLoading(true);
       const res = await getAllEvents();
       if (res.success) {
-        const today = new Date();
-        today.setHours(0, 0, 0, 0);
-        const filtered = res.data.filter(e => new Date(e.date) >= today);
-        setUpcomingEvents(filtered);
+        setAllEvents(res.data || []);
       }
       setIsEventsLoading(false);
     };
     fetchEvents();
   }, []);
 
+  // Parse YYYY-MM-DD cleanly in local timezone to guarantee accurate past/upcoming categorization
+  const parseEventDate = (dateStr) => {
+    if (!dateStr) return new Date(0);
+    const parts = dateStr.split('-').map(Number);
+    if (parts.length < 3) return new Date(dateStr);
+    return new Date(parts[0], parts[1] - 1, parts[2]);
+  };
+
+  // Split events into upcoming and past
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+  const upcomingEvents = allEvents.filter(e => parseEventDate(e.date) >= today);
+  const pastEvents = allEvents.filter(e => parseEventDate(e.date) < today);
+  const displayedEvents = activeTab === 'upcoming' ? upcomingEvents : pastEvents;
+
+  // Seamless lightbox images list: upcoming events first, followed seamlessly by past events
+  const combinedEventsSequence = [...upcomingEvents, ...pastEvents];
+  const lightboxImages = combinedEventsSequence
+    .filter(e => e.imageUrl)
+    .map(e => ({
+      src: e.imageUrl,
+      alt: e.title,
+      date: e.date,
+      location: e.location,
+      isUpcoming: parseEventDate(e.date) >= today
+    }));
+
   const sliderSettings = {
     dots: true,
     infinite: false,
+    autoplay: true,
+    autoplaySpeed: 2500,
+    pauseOnHover: true,
+    pauseOnFocus: true,
     speed: 500,
     slidesToShow: 3,
     slidesToScroll: 1,
@@ -76,55 +90,26 @@ function ServicesContactSection() {
     ]
   };
 
-  const eventImages = [
-    { src: Event1, alt: "Event Landscape 1" },
-    { src: Event2, alt: "Event Portrait 1" },
-    { src: Event3, alt: "Event Portrait 2" },
-    { src: Event4, alt: "Event Landscape 2" },
-    { src: Event5, alt: "Event Landscape 3" },
-    { src: Event5_6, alt: "Event Gallery 6" },
-    { src: Event5_5, alt: "Event Portrait 3" },
-    { src: Event6, alt: "Event Landscape 4" },
-    { src: Event7, alt: "Event Portrait 4" },
-    { src: Event8, alt: "Event Landscape 5" },
-    { src: Event9, alt: "Event Portrait 5" },
-    { src: Event11, alt: "Event Gallery 12" },
-    { src: Event12, alt: "Event Gallery 13" },
-    { src: Event13, alt: "Event Gallery 14" },
-    { src: Event14, alt: "Event Gallery 15" },
-    { src: Event15, alt: "Event Gallery 16" },
-    { src: Event16, alt: "Event Gallery 17" },
-    { src: Event17, alt: "Event Gallery 18" },
-    { src: Event18, alt: "Event Gallery 19" },
-    { src: Event19, alt: "Event Gallery 20" },
-  ];
-
-  const goToNextImage = React.useCallback((isManual = false) => {
-    setSlideDirection('right');
-    setCurrentImageIndex((prevIndex) =>
-      prevIndex === eventImages.length - 1 ? 0 : prevIndex + 1
-    );
-    if (isManual) {
-      setIsPaused(true);
-    }
-  }, [eventImages.length]);
-
-  const goToPreviousImage = React.useCallback(() => {
-    setSlideDirection('left');
-    setCurrentImageIndex((prevIndex) =>
-      prevIndex === 0 ? eventImages.length - 1 : prevIndex - 1
-    );
-    setIsPaused(true);
-  }, [eventImages.length]);
-
-  const openLightbox = React.useCallback((index) => {
-    setCurrentImageIndex(index);
+  // Lightbox handlers
+  const openLightbox = React.useCallback((imageUrl) => {
+    const idx = lightboxImages.findIndex(img => img.src === imageUrl);
+    setCurrentImageIndex(idx >= 0 ? idx : 0);
     setIsLightboxOpen(true);
-  }, []);
+  }, [lightboxImages]);
 
   const closeLightbox = React.useCallback(() => {
     setIsLightboxOpen(false);
   }, []);
+
+  const goToNextImage = React.useCallback(() => {
+    setSlideDirection('right');
+    setCurrentImageIndex((prev) => prev === lightboxImages.length - 1 ? 0 : prev + 1);
+  }, [lightboxImages.length]);
+
+  const goToPreviousImage = React.useCallback(() => {
+    setSlideDirection('left');
+    setCurrentImageIndex((prev) => prev === 0 ? lightboxImages.length - 1 : prev - 1);
+  }, [lightboxImages.length]);
 
   const handleTouchStart = React.useCallback((e) => {
     setTouchStartX(e.targetTouches[0].clientX);
@@ -136,66 +121,28 @@ function ServicesContactSection() {
 
   const handleTouchEnd = React.useCallback(() => {
     if (touchStartX === 0 || touchEndX === 0) return;
-
     const distance = touchStartX - touchEndX;
-    const isLeftSwipe = distance > minSwipeDistance;
-    const isRightSwipe = distance < -minSwipeDistance;
-
-    if (isLeftSwipe) {
-      goToNextImage(true);
-    } else if (isRightSwipe) {
-      goToPreviousImage();
-    }
-
+    if (distance > minSwipeDistance) goToNextImage();
+    else if (distance < -minSwipeDistance) goToPreviousImage();
     setTouchStartX(0);
     setTouchEndX(0);
   }, [touchStartX, touchEndX, goToNextImage, goToPreviousImage, minSwipeDistance]);
 
+  // Keyboard support for lightbox
   useEffect(() => {
     const handleKeyDown = (event) => {
-      if (event.key === 'Escape') {
-        closeLightbox();
-      }
+      if (event.key === 'Escape') closeLightbox();
+      if (event.key === 'ArrowRight') goToNextImage();
+      if (event.key === 'ArrowLeft') goToPreviousImage();
     };
-
     if (isLightboxOpen) {
       document.addEventListener('keydown', handleKeyDown);
-      if (lightboxRef.current) {
-        lightboxRef.current.focus();
-      }
+      if (lightboxRef.current) lightboxRef.current.focus();
     } else {
       document.removeEventListener('keydown', handleKeyDown);
     }
-
-    return () => {
-      document.removeEventListener('keydown', handleKeyDown);
-    };
-  }, [isLightboxOpen, closeLightbox]);
-
-  useEffect(() => {
-    let slideInterval;
-    if (!isLightboxOpen && !isPaused) {
-      slideInterval = setInterval(() => {
-        goToNextImage(false);
-      }, 3000);
-    }
-    return () => {
-      clearInterval(slideInterval);
-    };
-  }, [isLightboxOpen, isPaused, goToNextImage]);
-
-  // Resume auto-slide after 6 seconds of manual navigation(3+3)
-  useEffect(() => {
-    let resumeTimeout;
-    if (isPaused) {
-      resumeTimeout = setTimeout(() => {
-        setIsPaused(false);
-      }, 3000);
-    }
-    return () => {
-      clearTimeout(resumeTimeout);
-    };
-  }, [isPaused]);
+    return () => document.removeEventListener('keydown', handleKeyDown);
+  }, [isLightboxOpen, closeLightbox, goToNextImage, goToPreviousImage]);
 
   // Animation Variants
   const staggerContainer = {
@@ -324,6 +271,158 @@ function ServicesContactSection() {
           </div>
         </div>
 
+        {/* Unified Events Section */}
+        <div id="events-gallery" className='py-12 sm:py-16 lg:py-20 bg-green-50/50'>
+          <div className='container mx-auto px-4 sm:px-6 lg:px-12'>
+            <motion.div 
+              initial={{ opacity: 0, y: 30 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true, margin: "-100px" }}
+              transition={{ duration: 0.6 }}
+            >
+              <h2 className='text-3xl sm:text-4xl lg:text-5xl font-black text-center text-transparent bg-clip-text bg-gradient-to-r from-green-700 via-emerald-600 to-green-600 leading-tight mb-4'>
+                Our Events
+              </h2>
+              <p className='text-center text-gray-600 mb-8 max-w-xl mx-auto text-sm sm:text-base'>
+                Explore our upcoming community programs or browse through past outreaches and workshops.
+              </p>
+
+              {/* Tab Toggle: Upcoming | Past Events */}
+              <div className="flex justify-center mb-10">
+                <div className="bg-white p-1.5 rounded-full shadow-sm border border-emerald-100 flex items-center gap-1">
+                  <button
+                    onClick={() => setActiveTab('upcoming')}
+                    className={`px-6 py-2 rounded-full text-xs sm:text-sm font-bold transition-all duration-300 ${
+                      activeTab === 'upcoming'
+                        ? 'bg-gradient-to-r from-green-600 to-emerald-600 text-white shadow-md'
+                        : 'text-gray-600 hover:text-green-700'
+                    }`}
+                  >
+                    Upcoming ({upcomingEvents.length})
+                  </button>
+                  <button
+                    onClick={() => setActiveTab('past')}
+                    className={`px-6 py-2 rounded-full text-xs sm:text-sm font-bold transition-all duration-300 ${
+                      activeTab === 'past'
+                        ? 'bg-gradient-to-r from-green-600 to-emerald-600 text-white shadow-md'
+                        : 'text-gray-600 hover:text-green-700'
+                    }`}
+                  >
+                    Past Events ({pastEvents.length})
+                  </button>
+                </div>
+              </div>
+
+              {isEventsLoading ? (
+                <div className="flex justify-center py-16"><div className="w-8 h-8 border-4 border-green-500 border-t-transparent rounded-full animate-spin"></div></div>
+              ) : displayedEvents.length === 0 ? (
+                <div className="text-center p-6 bg-white rounded-2xl shadow-lg border border-emerald-50 max-w-lg mx-auto h-80 flex flex-col items-center justify-center gap-4 relative overflow-hidden">
+                  <div className="absolute -top-10 -right-10 w-24 h-24 bg-emerald-50 rounded-full opacity-50 blur-2xl"></div>
+                  <div className="relative">
+                    <motion.div 
+                      animate={{ y: [0, -5, 0] }}
+                      transition={{ duration: 4, repeat: Infinity, ease: "easeInOut" }}
+                      className="w-20 h-20 bg-gradient-to-br from-emerald-50 to-green-100 rounded-2xl flex items-center justify-center text-emerald-600 shadow-sm transform -rotate-3 transition-transform duration-500"
+                    >
+                      <Calendar size={36} strokeWidth={1.5} />
+                    </motion.div>
+                    <div className="absolute -top-1 -right-1 w-3 h-3 bg-orange-400 rounded-full border-2 border-white shadow-sm animate-pulse"></div>
+                  </div>
+
+                  <div className="space-y-2 relative z-10 px-4">
+                    <h3 className="text-xl font-black text-gray-900 leading-tight">
+                      {activeTab === 'upcoming' ? 'Next event brewing...' : 'No past events found'}
+                    </h3>
+                    <p className="text-gray-600 text-sm leading-relaxed max-w-xs mx-auto">
+                      {activeTab === 'upcoming' 
+                        ? "We're currently handcrafting our next community wellness experience. Stay tuned!"
+                        : "Check back later to browse photos and recaps from our wellness events."}
+                    </p>
+                  </div>
+                  
+                  <div className="w-12 h-1 bg-gradient-to-r from-transparent via-emerald-200 to-transparent rounded-full"></div>
+                </div>
+              ) : (
+                <div className="mx-auto max-w-5xl slider-container group relative">
+                  <Slider {...sliderSettings}>
+                    {displayedEvents.map(event => (
+                      <div key={event.id} className="outline-none px-3 py-2">
+                        <div className="bg-white rounded-2xl shadow-lg border border-green-100 h-96 flex flex-col overflow-hidden group relative transition-transform duration-300 hover:-translate-y-1">
+                          {event.imageUrl ? (
+                            <div 
+                              className="absolute inset-0 w-full h-full cursor-pointer"
+                              onClick={() => openLightbox(event.imageUrl)}
+                            >
+                              <img 
+                                src={event.imageUrl} 
+                                alt={event.title} 
+                                className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105" 
+                              />
+                              <div className="absolute inset-0 bg-gradient-to-t from-black/85 via-black/30 to-transparent"></div>
+                            </div>
+                          ) : (
+                            <div className="absolute inset-0 w-full h-full bg-gradient-to-br from-green-700 to-emerald-900 flex items-center justify-center p-6 text-white text-center">
+                              <Calendar size={48} className="opacity-30" />
+                            </div>
+                          )}
+
+                          <div className="mt-auto p-6 relative z-10 text-white flex flex-col justify-end">
+                            <div className="flex items-center gap-2 mb-2 flex-wrap">
+                              <span className={`px-3 py-1 rounded-full text-[10px] font-bold inline-flex items-center gap-1 backdrop-blur-sm ${
+                                activeTab === 'upcoming' 
+                                  ? 'bg-emerald-500/95 text-white' 
+                                  : 'bg-gray-800/80 text-gray-200'
+                              }`}>
+                                <Calendar size={10}/> {event.date}
+                              </span>
+                              {activeTab === 'past' && (
+                                <span className="bg-gray-700/80 backdrop-blur-sm px-2.5 py-0.5 rounded-full text-[10px] font-medium text-gray-300">
+                                  Past Event
+                                </span>
+                              )}
+                            </div>
+
+                            <h3 className="text-xl font-bold mb-1 leading-tight text-white drop-shadow-sm">{event.title}</h3>
+                            
+                            {event.location && (
+                              <div className="flex items-center gap-1 text-xs font-medium opacity-90 mb-3 text-emerald-200">
+                                <MapPin size={14} className="text-emerald-400 flex-shrink-0" />
+                                <span className="truncate">{event.location}</span>
+                              </div>
+                            )}
+
+                            {/* Join Event Button (if event has link and is upcoming) */}
+                            {activeTab === 'upcoming' && event.eventLink && (
+                              <button
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  setEventRedirect({ isOpen: true, url: event.eventLink });
+                                }}
+                                className="mt-2 inline-flex items-center justify-center gap-2 px-4 py-2 bg-gradient-to-r from-orange-400 to-orange-500 text-white text-xs font-bold rounded-xl shadow-md hover:from-green-600 hover:to-emerald-600 transition-all duration-300 active:scale-95"
+                              >
+                                Join Event <ExternalLink size={12} />
+                              </button>
+                            )}
+                          </div>
+                        </div>
+                      </div>
+                    ))}
+                  </Slider>
+                </div>
+              )}
+
+              {lightboxImages.length > 0 && (
+                <div className='mt-8 text-center'>
+                  <div className='inline-flex items-center gap-2 text-gray-500 bg-emerald-50 px-4 py-2 rounded-full border border-emerald-100 shadow-sm text-xs sm:text-sm font-medium'>
+                    <div className='w-2 h-2 bg-green-500 rounded-full animate-pulse'></div>
+                    <p>Click any event photo to expand in full screen</p>
+                  </div>
+                </div>
+              )}
+            </motion.div>
+          </div>
+        </div>
+
         {/* Services Grid */}
         <div className='py-12 sm:py-16 lg:py-20 bg-white relative'>
           <div className="absolute top-0 w-full h-px bg-gradient-to-r from-transparent via-green-200 to-transparent"></div>
@@ -408,77 +507,10 @@ function ServicesContactSection() {
           </div>
         </div>
 
-        {/* Events Gallery */}
-        <div id="events-gallery" className='py-12 sm:py-16 lg:py-20 bg-white'>
-          <div className='container mx-auto px-4 sm:px-6 lg:px-12'>
-            <motion.div 
-              initial={{ opacity: 0, y: 30 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true, margin: "-100px" }}
-              transition={{ duration: 0.6 }}
-            >
-              <h2 className='text-3xl sm:text-4xl lg:text-5xl font-black text-center text-transparent bg-clip-text bg-gradient-to-r from-green-700 via-emerald-600 to-green-600 leading-tight mb-12'>
-                Events Gallery
-              </h2>
-              <p className='text-center text-gray-600 mb-12'>Browse through our various community engagement and outreach programs</p>
-              <div
-              className="relative w-full max-w-lg mx-auto h-80 cursor-grab"
-              onTouchStart={handleTouchStart}
-              onTouchMove={handleTouchMove}
-              onTouchEnd={handleTouchEnd}
-              role="group"
-              aria-roledescription="carousel"
-            >
-              <div className="absolute inset-0 w-full h-full overflow-hidden shadow-lg rounded-2xl bg-gray-100">
-                {eventImages.map((image, index) => (
-                  <div
-                    key={index}
-                    className={`absolute inset-0 w-full h-full bg-cover bg-center transition-all duration-1000 ease-in-out ${
-                      index === currentImageIndex 
-                        ? 'opacity-100 scale-100' 
-                        : 'opacity-0 scale-105 pointer-events-none'
-                    }`}
-                    style={{ backgroundImage: `url(${image.src})` }}
-                    aria-hidden={index !== currentImageIndex}
-                    aria-label={`Image ${index + 1} of ${eventImages.length}`}
-                  />
-                ))}
-              </div>
-              <button
-                onClick={() => openLightbox(currentImageIndex)}
-                className="absolute bottom-4 right-4 z-30 bg-green-600 text-white rounded-full px-4 py-2 text-sm font-semibold shadow-md"
-              >
-                {currentImageIndex + 1} / {eventImages.length} Photos
-              </button>
-              <button
-                onClick={() => goToPreviousImage()}
-                className="absolute left-4 top-1/2 transform -translate-y-1/2 text-white text-5xl z-30"
-                aria-label="Previous image"
-              >
-                &lsaquo;
-              </button>
-              <button
-                onClick={() => goToNextImage(true)}
-                className="absolute right-4 top-1/2 transform -translate-y-1/2 text-white text-5xl z-30"
-                aria-label="Next image"
-              >
-                &rsaquo;
-              </button>
-            </div>
-            <div className='mt-8 text-center'>
-              <div className='inline-flex items-center gap-2 text-gray-500 bg-emerald-50 px-4 py-2 rounded-full border border-emerald-100 shadow-sm'>
-                <div className='w-2 h-2 bg-green-500 rounded-full animate-pulse'></div>
-                <p className='text-sm font-medium'>Click the green button to view in full screen</p>
-              </div>
-            </div>
-            </motion.div>
-          </div>
-        </div>
-
         {/* Lightbox Modal */}
-        {isLightboxOpen && (
+        {isLightboxOpen && lightboxImages.length > 0 && (
           <div
-            className="fixed inset-0 bg-black bg-opacity-75 flex items-center justify-center z-[100] p-4"
+            className="fixed inset-0 bg-black/90 backdrop-blur-md flex items-center justify-center z-[100] p-4 animate-in fade-in duration-200"
             role="dialog"
             aria-modal="true"
             aria-label="Image gallery lightbox"
@@ -487,117 +519,79 @@ function ServicesContactSection() {
           >
             <button
               onClick={closeLightbox}
-              className="absolute top-4 right-4 text-white text-3xl font-bold"
+              className="absolute top-6 right-6 text-white/80 hover:text-white text-4xl font-light transition-colors z-50"
               aria-label="Close image gallery"
             >
               &times;
             </button>
+
+            <div className="absolute top-6 left-6 text-white/80 text-xs sm:text-sm font-semibold bg-white/10 px-4 py-1.5 rounded-full backdrop-blur-sm z-50 flex items-center gap-2">
+              <span>{currentImageIndex + 1} / {lightboxImages.length}</span>
+              <span className="opacity-40">•</span>
+              <span className={`px-2 py-0.5 rounded-md text-[11px] font-bold ${lightboxImages[currentImageIndex]?.isUpcoming ? 'bg-emerald-500 text-white' : 'bg-gray-700 text-gray-200'}`}>
+                {lightboxImages[currentImageIndex]?.isUpcoming ? 'Upcoming' : 'Past Event'}
+              </span>
+              {lightboxImages[currentImageIndex]?.date && (
+                <span className="opacity-80 text-[12px] hidden sm:inline">{lightboxImages[currentImageIndex].date}</span>
+              )}
+            </div>
+
             <div
-              className="relative max-w-4xl max-h-full"
+              className="relative max-w-5xl max-h-[85vh] flex flex-col items-center justify-center w-full h-full"
               onTouchStart={handleTouchStart}
               onTouchMove={handleTouchMove}
               onTouchEnd={handleTouchEnd}
             >
               <img
                 key={currentImageIndex}
-                src={eventImages[currentImageIndex].src}
-                alt={eventImages[currentImageIndex].alt}
-                className={`max-w-full max-h-full object-contain ${slideDirection === 'right' ? 'slide-in-right' : 'slide-in-left'}`}
-                aria-label={`Image ${currentImageIndex + 1} of ${eventImages.length}`}
+                src={lightboxImages[currentImageIndex]?.src}
+                alt={lightboxImages[currentImageIndex]?.alt || 'Event image'}
+                className={`max-w-full max-h-[75vh] object-contain rounded-xl shadow-2xl transition-all duration-300 ${slideDirection === 'right' ? 'slide-in-right' : 'slide-in-left'}`}
               />
-              <button
-                onClick={goToPreviousImage}
-                className="absolute left-4 top-1/2 transform -translate-y-1/2 text-white text-5xl"
-                aria-label="Previous image"
-              >
-                &lsaquo;
-              </button>
-              <button
-                onClick={() => goToNextImage(true)}
-                className="absolute right-4 top-1/2 transform -translate-y-1/2 text-white text-5xl"
-                aria-label="Next image"
-              >
-                &rsaquo;
-              </button>
+
+              {lightboxImages[currentImageIndex]?.alt && (
+                <p className="mt-4 text-white/90 text-sm font-semibold text-center bg-black/40 px-4 py-1.5 rounded-full max-w-lg truncate">
+                  {lightboxImages[currentImageIndex].alt}
+                </p>
+              )}
+
+              {lightboxImages.length > 1 && (
+                <>
+                  <button
+                    onClick={goToPreviousImage}
+                    className="absolute left-2 sm:left-4 top-1/2 -translate-y-1/2 w-12 h-12 rounded-full bg-white/10 hover:bg-white/20 text-white flex items-center justify-center text-3xl backdrop-blur-sm transition-all duration-200"
+                    aria-label="Previous image"
+                  >
+                    &lsaquo;
+                  </button>
+                  <button
+                    onClick={goToNextImage}
+                    className="absolute right-2 sm:right-4 top-1/2 -translate-y-1/2 w-12 h-12 rounded-full bg-white/10 hover:bg-white/20 text-white flex items-center justify-center text-3xl backdrop-blur-sm transition-all duration-200"
+                    aria-label="Next image"
+                  >
+                    &rsaquo;
+                  </button>
+                </>
+              )}
             </div>
           </div>
         )}
 
-        {/* Upcoming Events Section */}
-        <div id="upcoming-events" className='py-12 sm:py-16 lg:py-20 bg-green-50'>
-          <div className='container mx-auto px-4 sm:px-6 lg:px-12'>
-            <motion.div 
-              initial={{ opacity: 0, y: 30 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true, margin: "-100px" }}
-              transition={{ duration: 0.6 }}
-            >
-              <h2 className='text-3xl sm:text-4xl lg:text-5xl font-black text-center text-transparent bg-clip-text bg-gradient-to-r from-green-700 via-emerald-600 to-green-600 leading-tight mb-12'>
-                Upcoming Events
-              </h2>
-              {isEventsLoading ? (
-                <div className="flex justify-center"><div className="w-8 h-8 border-4 border-green-500 border-t-transparent rounded-full animate-spin"></div></div>
-              ) : upcomingEvents.length === 0 ? (
-                <div className="text-center p-6 bg-white rounded-2xl shadow-lg border border-emerald-50 max-w-lg mx-auto h-80 flex flex-col items-center justify-center gap-4 relative overflow-hidden">
-                  {/* Decorative background circle */}
-                  <div className="absolute -top-10 -right-10 w-24 h-24 bg-emerald-50 rounded-full opacity-50 blur-2xl"></div>
-                  
-                  <div className="relative">
-                    <motion.div 
-                      animate={{ y: [0, -5, 0] }}
-                      transition={{ duration: 4, repeat: Infinity, ease: "easeInOut" }}
-                      className="w-20 h-20 bg-gradient-to-br from-emerald-50 to-green-100 rounded-2xl flex items-center justify-center text-emerald-600 shadow-sm transform -rotate-3 transition-transform duration-500"
-                    >
-                      <Calendar size={36} strokeWidth={1.5} />
-                    </motion.div>
-                    {/* Tiny pulsing dot */}
-                    <div className="absolute -top-1 -right-1 w-3 h-3 bg-orange-400 rounded-full border-2 border-white shadow-sm animate-pulse"></div>
-                  </div>
-
-                  <div className="space-y-2 relative z-10 px-4">
-                    <h3 className="text-xl font-black text-gray-900 leading-tight">Next event brewing...</h3>
-                    <p className="text-gray-600 text-sm leading-relaxed max-w-xs mx-auto">
-                      We're currently handcrafting our next community wellness experience. stay tuned!
-                    </p>
-                  </div>
-                  
-                  <div className="w-12 h-1 bg-gradient-to-r from-transparent via-emerald-200 to-transparent rounded-full"></div>
-                </div>
-              ) : (
-                <div className="mx-auto max-w-lg slider-container group relative">
-                  <div className="h-80">
-                    <Slider {...{...sliderSettings, slidesToShow: 1, slidesToScroll: 1, dotsClass: "slick-dots !bottom-4"}}>
-                      {upcomingEvents.map(event => (
-                        <div key={event.id} className="outline-none h-80">
-                          <div className="bg-white rounded-2xl shadow-lg border border-green-100 h-full flex flex-col overflow-hidden group relative">
-                            {event.imageUrl && (
-                              <div className="absolute inset-0 w-full h-full">
-                                <img src={event.imageUrl} alt={event.title} className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105" />
-                                <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent"></div>
-                              </div>
-                            )}
-                            <div className="mt-auto p-6 relative z-10 text-white">
-                              <div className="bg-emerald-500/95 backdrop-blur-sm px-3 py-1 rounded-full text-[10px] font-bold inline-flex items-center gap-1 mb-2">
-                                <Calendar size={10}/> {event.date}
-                              </div>
-                              <h3 className="text-xl font-bold mb-1 leading-tight">{event.title}</h3>
-                              {event.location && (
-                                <div className="flex items-center gap-1 text-xs font-medium opacity-90">
-                                  <MapPin size={14} className="text-emerald-400" />
-                                  <span>{event.location}</span>
-                                </div>
-                              )}
-                            </div>
-                          </div>
-                        </div>
-                      ))}
-                    </Slider>
-                  </div>
-                </div>
-              )}
-            </motion.div>
-          </div>
-        </div>
+        {/* Event Redirect Modal */}
+        <SocialRedirectPopup
+          isOpen={eventRedirect.isOpen}
+          platformName="Online Event"
+          icon={<ExternalLink size={24} />}
+          colorClass="from-green-500 to-emerald-600"
+          message="You are about to leave this site to join our online event. Would you like to proceed?"
+          onClose={() => setEventRedirect({ isOpen: false, url: '' })}
+          onConfirm={() => {
+            if (eventRedirect.url) {
+              window.open(eventRedirect.url, "_blank", "noopener,noreferrer");
+            }
+            setEventRedirect({ isOpen: false, url: '' });
+          }}
+        />
 
         {/* Contact Section */}
         <div className='py-12 sm:py-16 lg:py-20 bg-gradient-to-br from-green-50 to-emerald-50'>

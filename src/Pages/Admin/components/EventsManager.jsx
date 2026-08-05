@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Plus, Edit2, Trash2, Save, X, Loader, Calendar, MapPin } from 'lucide-react';
+import { Plus, Edit2, Trash2, Save, X, Loader, Calendar, MapPin, Link as LinkIcon } from 'lucide-react';
 import { createEvent, updateEvent, deleteEvent, getAllEvents } from '../../../firebaseEventsUtils';
 import RichTextEditor from './RichTextEditor';
 import ProgressBar from './ProgressBar';
@@ -16,7 +16,8 @@ const EventsManager = React.memo(({ showNotification }) => {
     date: '',
     location: '',
     description: '',
-    imageUrl: ''
+    imageUrl: '',
+    eventLink: ''
   });
   const [uploadProgress, setUploadProgress] = useState(0);
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -78,9 +79,9 @@ const EventsManager = React.memo(({ showNotification }) => {
       let result;
 
       if (editingId) {
-        result = await updateEvent(editingId, formData.title, formData.date, formData.location, formData.description, formData.imageUrl);
+        result = await updateEvent(editingId, formData.title, formData.date, formData.location, formData.description, formData.imageUrl, formData.eventLink);
       } else {
-        result = await createEvent(formData.title, formData.date, formData.location, formData.description, formData.imageUrl);
+        result = await createEvent(formData.title, formData.date, formData.location, formData.description, formData.imageUrl, formData.eventLink);
       }
 
       clearInterval(interval);
@@ -108,12 +109,14 @@ const EventsManager = React.memo(({ showNotification }) => {
   };
 
   const resetForm = () => {
-    setFormData({ title: '', date: '', location: '', description: '', imageUrl: '' });
+    setFormData({ title: '', date: '', location: '', description: '', imageUrl: '', eventLink: '' });
     setImagePreview('');
     setIsEditing(false);
     setEditingId(null);
     setUploadProgress(0);
   };
+
+  const formRef = React.useRef(null);
 
   const handleEdit = (event) => {
     setFormData({
@@ -121,11 +124,15 @@ const EventsManager = React.memo(({ showNotification }) => {
       date: event.date || '',
       location: event.location || '',
       description: event.description || '',
-      imageUrl: event.imageUrl || ''
+      imageUrl: event.imageUrl || '',
+      eventLink: event.eventLink || ''
     });
     setImagePreview(event.imageUrl || '');
     setEditingId(event.id);
     setIsEditing(true);
+    setTimeout(() => {
+      formRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }, 50);
   };
 
   const handleDeleteClick = (event) => {
@@ -153,7 +160,13 @@ const EventsManager = React.memo(({ showNotification }) => {
       <div className="flex justify-between items-center">
         <h2 className="text-xl font-bold text-green-700">Events Management</h2>
         <button
-          onClick={() => setIsEditing(true)}
+          onClick={() => {
+            resetForm();
+            setIsEditing(true);
+            setTimeout(() => {
+              formRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+            }, 50);
+          }}
           className="flex items-center gap-2 bg-gradient-to-r from-green-600 to-emerald-600 text-white px-4 py-2 rounded-lg hover:from-green-700 hover:to-emerald-700 transition-all duration-300 font-bold"
         >
           <Plus size={20} />
@@ -162,7 +175,7 @@ const EventsManager = React.memo(({ showNotification }) => {
       </div>
 
       {isEditing && (
-        <div className="bg-white rounded-xl shadow-lg p-6 border border-green-100">
+        <div ref={formRef} className="bg-white rounded-xl shadow-lg p-6 border border-green-100">
           <div className="flex justify-between items-center mb-6">
             <h3 className="text-xl font-semibold text-gray-800">
               {editingId ? 'Edit Event' : 'Create New Event'}
@@ -212,6 +225,18 @@ const EventsManager = React.memo(({ showNotification }) => {
                   disabled={isSubmitting}
                 />
               </div>
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">Event Link (optional)</label>
+              <input
+                type="url"
+                value={formData.eventLink}
+                onChange={(e) => setFormData({ ...formData, eventLink: e.target.value })}
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 text-gray-800"
+                placeholder="e.g. https://zoom.us/j/123, https://forms.gle/..."
+                disabled={isSubmitting}
+              />
             </div>
 
             <div>
@@ -312,6 +337,7 @@ const EventsManager = React.memo(({ showNotification }) => {
                     <div className="flex items-center gap-4 text-sm text-gray-600 mt-2">
                        <span className="flex items-center gap-1"><Calendar size={14}/> {event.date}</span>
                        {event.location && <span className="flex items-center gap-1"><MapPin size={14}/> {event.location}</span>}
+                       {event.eventLink && <span className="flex items-center gap-1 text-blue-600"><LinkIcon size={14}/> <a href={event.eventLink} target="_blank" rel="noopener noreferrer" className="hover:underline truncate max-w-[200px]">{event.eventLink}</a></span>}
                     </div>
                   </div>
                   <div className="flex gap-2 mt-4 self-end">

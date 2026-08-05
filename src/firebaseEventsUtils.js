@@ -13,7 +13,7 @@ import {
 import { ref, uploadBytes, getDownloadURL, deleteObject } from "firebase/storage";
 
 // CREATE event
-export const createEvent = async (title, date, location, description, imageInput) => {
+export const createEvent = async (title, date, location, description, imageInput, eventLink = '') => {
   try {
     let imageUrl = "";
 
@@ -32,6 +32,7 @@ export const createEvent = async (title, date, location, description, imageInput
       location,
       description,
       imageUrl,
+      eventLink: eventLink || '',
       createdAt: Timestamp.now(),
       updatedAt: Timestamp.now()
     });
@@ -62,13 +63,14 @@ export const getAllEvents = async () => {
   };
 
 // UPDATE event
-export const updateEvent = async (eventId, title, date, location, description, imageInput) => {
+export const updateEvent = async (eventId, title, date, location, description, imageInput, eventLink = '') => {
   try {
     let updateData = {
       title,
       date,
       location,
       description,
+      eventLink: eventLink || '',
       updatedAt: Timestamp.now()
     };
 

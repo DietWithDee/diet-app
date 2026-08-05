@@ -11,7 +11,7 @@ import React from "react";
  * @param {React.ReactNode} props.icon - Lucide icon component or SVG
  * @param {string} props.colorClass - Tailwind CSS classes for the icon's background gradient
  */
-export default function SocialRedirectPopup({ isOpen, onClose, onConfirm, platformName, icon, colorClass }) {
+export default function SocialRedirectPopup({ isOpen, onClose, onConfirm, platformName, icon, colorClass, message }) {
     if (!isOpen) return null;
 
     return (
@@ -35,7 +35,7 @@ export default function SocialRedirectPopup({ isOpen, onClose, onConfirm, platfo
                         </div>
                         <h3 className="text-xl font-black text-gray-900 mb-2">{platformName} Redirect</h3>
                         <p className="text-gray-600 leading-relaxed text-[13px]">
-                            You are about to leave this website to visit our {platformName} page. Would you like to proceed?
+                            {message || `You are about to leave this website to visit our ${platformName} page. Would you like to proceed?`}
                         </p>
                     </div>
 
