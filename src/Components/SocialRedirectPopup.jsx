@@ -43,13 +43,13 @@ export default function SocialRedirectPopup({ isOpen, onClose, onConfirm, platfo
                     <div className="flex flex-col gap-2.5">
                         <button
                             onClick={onConfirm}
-                            className={`w-full py-3 bg-gradient-to-r ${colorClass} text-white font-bold rounded-xl shadow-lg shadow-black/5 hover:opacity-90 active:scale-[0.98] transition-all duration-200 text-sm`}
+                            className={`w-full py-3 bg-gradient-to-r ${colorClass} text-white font-bold rounded-xl shadow-lg shadow-black/5 hover:opacity-90 active:scale-[0.98] transition-all duration-200 text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-gray-400 focus-visible:ring-offset-2`}
                         >
                             Yes, Proceed
                         </button>
                         <button
                             onClick={onClose}
-                            className="w-full py-3 bg-gray-100 text-gray-700 font-bold rounded-xl hover:bg-gray-200 active:scale-[0.98] transition-all duration-200 text-sm"
+                            className="w-full py-3 bg-gray-100 text-gray-700 font-bold rounded-xl hover:bg-gray-200 active:scale-[0.98] transition-all duration-200 text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-gray-400 focus-visible:ring-offset-2"
                         >
                             Back to Browsing
                         </button>
