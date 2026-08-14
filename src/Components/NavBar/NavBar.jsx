@@ -71,7 +71,7 @@ export default function NavBar() {
     { path: '/about', label: 'About' },
     { path: '/plans', label: 'Plans' },
     { path: '/blog', label: 'Blog' },
-    { path: '/services', label: 'Services' },
+    { path: '/services', label: 'Services & Event' },
     { path: '/contactus', label: 'Book a Session' },
   ]
 
