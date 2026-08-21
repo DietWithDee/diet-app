@@ -17,6 +17,7 @@ export const plans = [
       'Grocery List & Prep Guide',
       'Perfect for busy professionals, healthy eating beginners.'
     ],
+    tags: ['Reset', 'Beginners', 'Healthy Eating', 'Detox', 'Meal Prep', 'Clean Eating', 'Nutrition Reset'],
     gradient: 'from-orange-400 to-orange-500',
     isPopular: true,
   },
@@ -32,6 +33,7 @@ export const plans = [
       'Workout & Nutrition Sync',
       'Self-guided tools'
     ],
+    tags: ['Weight Loss', 'Fat Loss', 'Slimming', 'Nourished', 'Body Transformation', 'Toning', 'Calorie Deficit'],
     gradient: 'from-orange-400 to-orange-500',
   },
   {
@@ -44,8 +46,9 @@ export const plans = [
     features: [
       'Easy to follow meal plan',
       'Healthy Lifestyle Tips',
-      'Blood Sugar Tracker',
+      'Use with OnTrack App for best results',
     ],
+    tags: ['Diabetes', 'Type 2 Diabetes', 'Blood Sugar', 'Insulin Resistance', 'Low Glycemic', 'Pre-diabetes', 'Glucose Balance'],
     gradient: 'from-orange-400 to-orange-500',
   },
   {
@@ -60,6 +63,7 @@ export const plans = [
       'Blood Pressure-Friendly Habits',
       'Track & Tweak Toolkit',
     ],
+    tags: ['Hypertension', 'Blood Pressure', 'Heart Health', 'Low Sodium', 'Cardio Health', 'DASH Diet'],
     gradient: 'from-orange-400 to-orange-500',
   },
   {
@@ -74,6 +78,7 @@ export const plans = [
       'Snack list',
       'Progress-monitoring tools',
     ],
+    tags: ['Weight Gain', 'Muscle Gain', 'High Calorie', 'Bulking', 'Underweight', 'Healthy Mass'],
     gradient: 'from-orange-400 to-orange-500',
   }
 ];

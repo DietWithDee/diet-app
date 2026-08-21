@@ -11,9 +11,15 @@ export function usePageTracking() {
   const location = useLocation();
 
   useEffect(() => {
-    logEvent(analytics, 'page_view', {
-      page_path: location.pathname + location.search,
-      page_title: document.title,
-    });
+    try {
+      if (analytics) {
+        logEvent(analytics, 'page_view', {
+          page_path: location.pathname + location.search,
+          page_title: document.title,
+        });
+      }
+    } catch (e) {
+      // Silently ignore tracking prevention errors
+    }
   }, [location]);
 }

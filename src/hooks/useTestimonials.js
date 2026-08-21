@@ -21,44 +21,64 @@ export const useTestimonials = () => {
   // Fetch approved testimonials (public)
   const fetchApprovedTestimonials = useCallback(() => {
     setLoading(true);
-    const q = query(
-      collection(db, 'testimonials'),
-      where('status', '==', 'approved'),
-      orderBy('approvedAt', 'desc')
-    );
-    
-    return onSnapshot(q, 
-      (snapshot) => {
-        setTestimonials(snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() })));
+    try {
+      if (!db) {
         setLoading(false);
-      },
-      (err) => {
-        console.error('Error fetching testimonials:', err);
-        setError(err.message);
-        setLoading(false);
+        return () => {};
       }
-    );
+      const q = query(
+        collection(db, 'testimonials'),
+        where('status', '==', 'approved'),
+        orderBy('approvedAt', 'desc')
+      );
+      
+      return onSnapshot(q, 
+        (snapshot) => {
+          setTestimonials(snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() })));
+          setLoading(false);
+        },
+        (err) => {
+          console.error('Error fetching testimonials:', err);
+          setError(err.message);
+          setLoading(false);
+        }
+      );
+    } catch (err) {
+      console.warn('Testimonials query error:', err);
+      setLoading(false);
+      return () => {};
+    }
   }, []);
 
   // Fetch all testimonials (admin only)
   const fetchAllTestimonials = useCallback(() => {
     setLoading(true);
-    const q = query(
-      collection(db, 'testimonials'),
-      orderBy('submittedAt', 'desc')
-    );
-    
-    return onSnapshot(q,
-      (snapshot) => {
-        setTestimonials(snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() })));
+    try {
+      if (!db) {
         setLoading(false);
-      },
-      (err) => {
-        console.error('Error fetching all testimonials:', err);
-        setError(err.message);
-        setLoading(false);
+        return () => {};
       }
-    );
+      const q = query(
+        collection(db, 'testimonials'),
+        orderBy('submittedAt', 'desc')
+      );
+      
+      return onSnapshot(q,
+        (snapshot) => {
+          setTestimonials(snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() })));
+          setLoading(false);
+        },
+        (err) => {
+          console.error('Error fetching all testimonials:', err);
+          setError(err.message);
+          setLoading(false);
+        }
+      );
+    } catch (err) {
+      console.warn('All testimonials query error:', err);
+      setLoading(false);
+      return () => {};
+    }
   }, []);
 
   // Submit new testimonial
