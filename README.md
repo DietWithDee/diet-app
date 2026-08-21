@@ -31,7 +31,10 @@ The application is built as a **Progressive Web App (PWA)** with offline capabil
 
 ### User-Facing Features
 - **📅 Appointment Booking System** - Interactive calendar-based booking interface
-- **🎯 Personalized Plans** - Browse and select nutrition plans
+- **🥗 Diet Plans & Guides** - Glassmorphic wellness tier cards with instant plan sharing (`#plan-id`) and smooth deep-linking
+- **🤝 OnTrack App Partnership** - Integrated companion diabetes tracker flow for the *Blood Sugar Balance* guide with interactive download modal (Android Google Play & iOS preview)
+- **🧾 Minimalist Checkout Flow** - Receipt-style post-checkout screen with Paystack payment verification and instant download instructions
+- **🔍 Smart Search** - Instant prefix and fuzzy search with clean separation for other available plans
 - **💪 Body Analysis** - "Know Your Body" assessment tool with personalized recommendations
 - **📚 Blog & Resources** - SEO-optimized blog articles with rich content
 - **📞 Contact & Support** - Email contact system with automated responses
