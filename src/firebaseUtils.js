@@ -265,9 +265,9 @@ export const getArticleBySlugOrId = async (slugOrId, includeUnpublished = false)
     // 1. Try fetching by slug field
     let q;
     if (includeUnpublished) {
-      q = query(collection(db, "articles"), where("slug", "==", slugOrId));
+      q = query(collection(db, "articles"), where("slug", "==", slugOrId), limit(1));
     } else {
-      q = query(collection(db, "articles"), where("slug", "==", slugOrId), where("status", "==", "published"));
+      q = query(collection(db, "articles"), where("slug", "==", slugOrId), where("status", "==", "published"), limit(1));
     }
     
     const querySnapshot = await getDocs(q);

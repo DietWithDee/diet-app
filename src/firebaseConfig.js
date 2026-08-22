@@ -1,7 +1,12 @@
 // Import the functions you need from the SDKs you need
 import { initializeApp, getApps, getApp } from "firebase/app";
 import { getAnalytics, logEvent } from "firebase/analytics";
-import { getFirestore } from "firebase/firestore";
+import { 
+  initializeFirestore, 
+  getFirestore, 
+  persistentLocalCache, 
+  persistentMultipleTabManager 
+} from "firebase/firestore";
 import { getStorage } from "firebase/storage";
 import { getAuth } from "firebase/auth";
 import { getFunctions } from "firebase/functions";
@@ -20,8 +25,21 @@ const firebaseConfig = {
 // Initialize Firebase (singleton pattern safe for Vite HMR)
 const app = getApps().length === 0 ? initializeApp(firebaseConfig) : getApp();
 
+// Initialize Firestore with persistent IndexedDB multi-tab cache
+let dbInstance;
+try {
+  dbInstance = initializeFirestore(app, {
+    localCache: persistentLocalCache({
+      tabManager: persistentMultipleTabManager()
+    })
+  });
+} catch (e) {
+  // If already initialized (e.g. during HMR or in unsupported environments), fallback to getFirestore
+  dbInstance = getFirestore(app);
+}
+
 // Initialize and export Firestore, Storage, Auth, and Functions
-export const db = getFirestore(app);
+export const db = dbInstance;
 export const storage = getStorage(app);
 export const auth = getAuth(app);
 export const functions = getFunctions(app);

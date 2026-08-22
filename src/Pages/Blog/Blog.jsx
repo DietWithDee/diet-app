@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import SEO from '../../Components/SEO';
-import { useNavigate, useParams } from 'react-router-dom';
+import { useNavigate, useParams, useLocation } from 'react-router-dom';
 import { Loader, Calendar, User, ArrowRight, ArrowLeft, Share2, Heart, MessageCircle, Tag } from 'lucide-react';
 import { getArticlesPaged, getArticleBySlugOrId, likeNews, markArticleHelpful } from '../../firebaseUtils';
 import BlogImage from '../../assets/LOGO.webp'; // Fallback image (Logo)
@@ -14,6 +14,7 @@ import { analytics } from '../../firebaseConfig';
 
 function Blog() {
   const navigate = useNavigate();
+  const location = useLocation();
   const { slugOrId: routeId } = useParams();
   const [blogPosts, setBlogPosts] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -29,27 +30,47 @@ function Blog() {
   const [isInitialLoadingArticle, setIsInitialLoadingArticle] = useState(false);
 
   useEffect(() => {
-    loadArticles();
-  }, []);
+    // Only load blog list if we're not navigating to a specific article
+    // This avoids render-blocking queries when viewing single articles
+    if (!routeId) {
+      loadArticles();
+    }
+  }, [routeId]);
 
-  // When articles load or route changes, open the right article if there's an :id
+  // When route changes, open the right article if there's an :id
   useEffect(() => {
     if (!routeId) {
       if (viewMode === 'article') {
         setViewMode('list');
         setSelectedArticle(null);
       }
+      // Load blog list when no routeId
+      if (!isLoading) {
+        loadArticles();
+      }
       return;
     }
 
     // If we're already viewing this article, do nothing
-    if (selectedArticle && selectedArticle.id === routeId) {
+    if (selectedArticle && (selectedArticle.id === routeId || selectedArticle.slug === routeId)) {
       if (viewMode !== 'article') setViewMode('article');
       return;
     }
 
-    // Try to find it in current blogPosts list
-    const found = blogPosts.find(p => p.id === routeId);
+    // Check if article data was passed via navigation state (instant render, zero queries)
+    if (location.state?.article) {
+      setSelectedArticle(location.state.article);
+      setViewMode('article');
+      logEvent(analytics, 'view_item', {
+        item_id: location.state.article.id,
+        item_name: location.state.article.title,
+        item_category: 'Blog Article'
+      });
+      return;
+    }
+
+    // Try to find it in current blogPosts list (check both slug and id)
+    const found = blogPosts.find(p => p.slug === routeId || p.id === routeId);
     if (found) {
       setSelectedArticle(found);
       if (viewMode !== 'article') setViewMode('article');
@@ -81,7 +102,7 @@ function Blog() {
     };
     
     fetchSingleArticle();
-  }, [routeId, blogPosts]);
+  }, [routeId]);
 
   const loadArticles = async () => {
     setIsLoading(true);
@@ -371,7 +392,8 @@ function Blog() {
   const handleReadMore = (article) => {
     setSelectedArticle(article);
     setViewMode('article');
-    navigate(`/blog/${article.slug || article.id}`);
+    // Pass article data via navigation state for instant rendering (zero Firestore queries)
+    navigate(`/blog/${article.slug || article.id}`, { state: { article } });
     // Scroll to top when opening article
     window.scrollTo({ top: 0, behavior: 'smooth' });
     
@@ -409,7 +431,10 @@ function Blog() {
   };
 
   // Skeleton Loader for initial load
-  if (isLoading || isInitialLoadingArticle) {
+  // When viewing an article: only show skeleton while article is loading
+  // When viewing list: only show skeleton while list is loading
+  const shouldShowSkeleton = routeId ? isInitialLoadingArticle : isLoading;
+  if (shouldShowSkeleton) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-green-50 via-white to-emerald-50 py-18 lg:py-20 px-4 sm:px-6 lg:px-12">
         <div className="max-w-5xl mx-auto">
