@@ -588,16 +588,19 @@ function KnowYourBody() {
     const age = parseFloat(formData.age);
     const genderFactor = formData.gender === 'male' ? 5 : -161;
     const bmr = 10 * weight + 6.25 * height - 5 * age + genderFactor;
+    // Slightly stricter activity multipliers and smaller caloric adjustments
+    // to better reflect regional/dietary context and reduce overestimation.
     const activityMultipliers = {
-      sedentary: 1.2,
-      light: 1.375,
-      moderate: 1.55,
-      active: 1.725
+      sedentary: 1.15,
+      light: 1.325,
+      moderate: 1.475,
+      active: 1.6
     };
-    const tdee = bmr * (activityMultipliers[formData.activityLevel] || 1.2);
+    const tdee = bmr * (activityMultipliers[formData.activityLevel] || 1.15);
     let goalCalories = tdee;
-    if (formData.goal === 'lose') goalCalories = tdee - 500;
-    else if (formData.goal === 'gain') goalCalories = tdee + 500;
+    const calorieDelta = 300; // use 300 kcal for cut/bulk instead of 500
+    if (formData.goal === 'lose') goalCalories = tdee - calorieDelta;
+    else if (formData.goal === 'gain') goalCalories = tdee + calorieDelta;
     const macros = {
       protein: Math.round((goalCalories * 0.3) / 4),
       carbs: Math.round((goalCalories * 0.4) / 4),

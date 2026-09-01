@@ -262,6 +262,16 @@ export const getArticleById = async (articleId, includeUnpublished = false) => {
 // GET single article by Slug or ID (fallback)
 export const getArticleBySlugOrId = async (slugOrId, includeUnpublished = false) => {
   try {
+    // If the incoming value looks like a Firestore document ID, try a direct getDoc first.
+    // This avoids a failed slug query followed by an ID fetch, saving one round-trip.
+    const isLikelyId = typeof slugOrId === 'string' && /^[A-Za-z0-9_-]{20,}$/.test(slugOrId);
+
+    if (isLikelyId) {
+      const byId = await getArticleById(slugOrId, includeUnpublished);
+      if (byId?.success) return byId;
+      // If lookup by ID failed, continue to try by slug below.
+    }
+
     // 1. Try fetching by slug field
     let q;
     if (includeUnpublished) {
@@ -269,7 +279,7 @@ export const getArticleBySlugOrId = async (slugOrId, includeUnpublished = false)
     } else {
       q = query(collection(db, "articles"), where("slug", "==", slugOrId), where("status", "==", "published"), limit(1));
     }
-    
+
     const querySnapshot = await getDocs(q);
 
     if (!querySnapshot.empty) {
@@ -292,8 +302,12 @@ export const getArticleBySlugOrId = async (slugOrId, includeUnpublished = false)
       };
     }
 
-    // 2. Fallback to fetching by ID
-    return await getArticleById(slugOrId, includeUnpublished);
+    // If we haven't returned yet and we didn't already try ID (or it failed), attempt ID as final fallback
+    if (!isLikelyId) {
+      return await getArticleById(slugOrId, includeUnpublished);
+    }
+
+    return { success: false, error: 'Article not found' };
   } catch (error) {
     console.error("Error fetching article by slug/id:", error);
     return { success: false, error: error.message };
