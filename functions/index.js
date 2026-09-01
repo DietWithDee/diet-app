@@ -132,80 +132,140 @@ exports.onArticlePublished = onDocumentWritten(
       }
       const resend = new Resend(resendApiKey);
 
-      const emailsQuery = await db.collection("emails").get();
-      if (emailsQuery.empty) {
-        console.log("No subscribers found. Skipping emails.");
-        return;
-      }
+            // Paginate subscribers to avoid loading entire collection into memory
+            const subscriberMap = new Map();
+            const emailsRef = db.collection("emails");
+            const pageLimit = parseInt(process.env.NEWSLETTER_PAGE_LIMIT || '500', 10);
+            let lastDoc = null;
+            let totalFetched = 0;
 
-      const subscriberMap = new Map();
-      emailsQuery.forEach(doc => {
-        const docData = doc.data();
-        const email = docData.email?.trim()?.toLowerCase();
-        if (email && /^\S+@\S+\.\S+$/.test(email)) {
-          subscriberMap.set(email, docData.name || "");
-        }
-      });
-
-      const subscriberEmails = Array.from(subscriberMap.keys());
-      console.log(`Found ${subscriberEmails.length} unique subscribers.`);
-
-      if (subscriberEmails.length === 0) return;
-
-      const subject = `New from Diet With Dee: ${afterData.title}`;
-      const coverImage = afterData.coverImage || "";
-      const emailHtml = createEmailTemplate(afterData.title, coverImage, articleId);
-      const emailText = `New Article: ${afterData.title}\n\nRead more at: https://dietwithdee.org/blog/${articleId}\n\nTo unsubscribe: https://dietwithdee.org/unsubscribe`;
-
-      let sentCount = 0;
-      let failCount = 0;
-
-      const batchSize = 50;
-      for (let i = 0; i < subscriberEmails.length; i += batchSize) {
-        const batchEmails = subscriberEmails.slice(i, i + batchSize);
-        
-        const batchedPayloads = batchEmails.map(email => {
-             const name = subscriberMap.get(email);
-             const personalizedHtml = emailHtml
-                  .split('Hi there,').join(`Hi ${name || 'there'},`)
-                  .split('https://dietwithdee.org/unsubscribe').join(`https://dietwithdee.org/unsubscribe?email=${encodeURIComponent(email)}`);
-             
-             return {
-                 from: 'Diet With Dee <newsletter@mail.dietwithdee.org>',
-                 to: [email],
-                 reply_to: 'hello@dietwithdee.org',
-                 subject: subject,
-                 html: personalizedHtml,
-                 text: emailText + `?email=${encodeURIComponent(email)}`,
-                 headers: {
-                   'List-Unsubscribe': `<https://dietwithdee.org/unsubscribe?email=${encodeURIComponent(email)}>`
-                 }
-             };
-        });
-
-        try {
-            const { data, error } = await resend.batch.send(batchedPayloads);
-            if (error) {
-                console.error("Batch send error:", error);
-                failCount += batchEmails.length;
-            } else {
-                sentCount += batchEmails.length;
+            while (true) {
+                let q = emailsRef.orderBy(admin.firestore.FieldPath.documentId()).limit(pageLimit);
+                if (lastDoc) q = q.startAfter(lastDoc);
+                const snapshot = await q.get();
+                if (snapshot.empty) break;
+                snapshot.forEach(doc => {
+                    const docData = doc.data();
+                    const email = docData.email?.trim()?.toLowerCase();
+                    if (email && /^\S+@\S+\.\S+$/.test(email)) {
+                        subscriberMap.set(email, docData.name || "");
+                    }
+                });
+                totalFetched += snapshot.size;
+                lastDoc = snapshot.docs[snapshot.docs.length - 1];
+                if (snapshot.size < pageLimit) break;
             }
-        } catch (err) {
-            console.error("Batch send failed completely:", err);
-            failCount += batchEmails.length;
-        }
-        
-        await new Promise(r => setTimeout(r, 500));
-      }
 
-      console.log(`Newsletter task complete: ${sentCount} sent, ${failCount} failed.`);
+            const subscriberEmails = Array.from(subscriberMap.keys());
+            console.log(`Found ${subscriberEmails.length} unique subscribers (fetched ${totalFetched} docs).`);
+            if (subscriberEmails.length === 0) return;
 
-      if (sentCount > 0) {
-          await db.collection("articles").doc(articleId).update({
-              newsletterSent: true
-          });
-      }
+            // Prevent duplicate sends: mark article as in_progress atomically
+            const articleRef = db.collection('articles').doc(articleId);
+            const nowTs = admin.firestore.Timestamp.now();
+            try {
+                await db.runTransaction(async (tx) => {
+                    const docSnap = await tx.get(articleRef);
+                    if (!docSnap.exists) throw new Error('Article not found');
+                    const data = docSnap.data() || {};
+                    if (data.newsletterSent === true || data.newsletterSent === 'in_progress') {
+                        throw new Error('Newsletter already sent or in progress');
+                    }
+                    tx.update(articleRef, { newsletterSent: 'in_progress', newsletterStartedAt: nowTs });
+                });
+            } catch (err) {
+                console.log('Aborting newsletter: ', err.message);
+                return;
+            }
+
+            const subject = `New from Diet With Dee: ${afterData.title}`;
+            const coverImage = afterData.coverImage || "";
+            // Use a simple placeholder {{name}} for safe personalization
+            const emailHtmlTemplate = createEmailTemplate(afterData.title, coverImage, articleId).replace('Hi there,', 'Hi {{name}},');
+            const unsubscribeBase = 'https://dietwithdee.org/unsubscribe';
+
+            const emailTextBase = `New Article: ${afterData.title}\n\nRead more at: https://dietwithdee.org/blog/${articleId}\n\nTo unsubscribe: ${unsubscribeBase}`;
+
+            let sentCount = 0;
+            let failCount = 0;
+
+            const batchSize = parseInt(process.env.NEWSLETTER_BATCH_SIZE || '50', 10);
+            const pauseMs = parseInt(process.env.NEWSLETTER_PAUSE_MS || '500', 10);
+            const maxRetries = parseInt(process.env.NEWSLETTER_MAX_RETRIES || '3', 10);
+
+            // Helper to send with retries
+            const sendBatchWithRetry = async (payloads) => {
+                let attempt = 0;
+                while (attempt < maxRetries) {
+                    try {
+                        const { data, error } = await resend.batch.send(payloads);
+                        if (error) {
+                            throw error;
+                        }
+                        return { success: true };
+                    } catch (err) {
+                        attempt++;
+                        const backoff = Math.pow(2, attempt) * 250;
+                        console.error(`Batch send attempt ${attempt} failed:`, err?.message || err);
+                        if (attempt >= maxRetries) return { success: false, error: err };
+                        await new Promise(r => setTimeout(r, backoff));
+                    }
+                }
+                return { success: false };
+            };
+
+            for (let i = 0; i < subscriberEmails.length; i += batchSize) {
+                const batchEmails = subscriberEmails.slice(i, i + batchSize);
+                const batchedPayloads = batchEmails.map(email => {
+                    const name = subscriberMap.get(email) || 'there';
+                    const personalizedHtml = emailHtmlTemplate.split('{{name}}').join(name);
+                    const personalizedHtmlWithUnsub = personalizedHtml.split(unsubscribeBase).join(`${unsubscribeBase}?email=${encodeURIComponent(email)}`);
+                    return {
+                        from: 'Diet With Dee <newsletter@mail.dietwithdee.org>',
+                        to: [email],
+                        reply_to: 'hello@dietwithdee.org',
+                        subject: subject,
+                        html: personalizedHtmlWithUnsub,
+                        text: emailTextBase + `?email=${encodeURIComponent(email)}`,
+                        headers: {
+                            'List-Unsubscribe': `<${unsubscribeBase}?email=${encodeURIComponent(email)}>`
+                        }
+                    };
+                });
+
+                const res = await sendBatchWithRetry(batchedPayloads);
+                if (res.success) sentCount += batchEmails.length;
+                else failCount += batchEmails.length;
+
+                await new Promise(r => setTimeout(r, pauseMs));
+            }
+
+            console.log(`Newsletter task complete: ${sentCount} sent, ${failCount} failed.`);
+
+            // Mark sent (or failed) with timestamp
+            try {
+                await articleRef.update({ newsletterSent: sentCount > 0 ? true : 'failed', newsletterSentAt: admin.firestore.Timestamp.now(), newsletterSentCount: sentCount, newsletterFailCount: failCount });
+            } catch (err) {
+                console.error('Failed to update article newsletter status:', err);
+            }
+
+            // Compute monthly subscriber growth (best-effort using createdAt)
+            try {
+                const now = new Date();
+                const startOfThisMonth = new Date(now.getFullYear(), now.getMonth(), 1);
+                const startOfLastMonth = new Date(now.getFullYear(), now.getMonth() - 1, 1);
+                const thisMonthSnap = await db.collection('emails').where('createdAt', '>=', admin.firestore.Timestamp.fromDate(startOfThisMonth)).get();
+                const lastMonthSnap = await db.collection('emails').where('createdAt', '>=', admin.firestore.Timestamp.fromDate(startOfLastMonth)).where('createdAt', '<', admin.firestore.Timestamp.fromDate(startOfThisMonth)).get();
+                const thisCount = thisMonthSnap.size || 0;
+                const lastCount = lastMonthSnap.size || 0;
+                let growth = null;
+                if (lastCount > 0) growth = ((thisCount - lastCount) / lastCount) * 100;
+                console.log(`Subscriber growth month-over-month: ${growth === null ? 'N/A' : growth.toFixed(2) + '%'} (thisMonth=${thisCount}, lastMonth=${lastCount})`);
+                // Optionally store metric
+                await db.collection('metrics').doc('newsletter_subscribers').set({ lastRun: admin.firestore.Timestamp.now(), thisMonthCount: thisCount, lastMonthCount: lastCount, growthPct: growth }, { merge: true });
+            } catch (err) {
+                console.error('Error computing subscriber growth metric:', err);
+            }
     } catch (error) {
       console.error("Error in newsletter distribution:", error);
     }
