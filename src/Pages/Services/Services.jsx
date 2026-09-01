@@ -413,14 +413,42 @@ function ServicesContactSection() {
                               )}
                             </div>
 
-                            <h3 className="text-xl font-bold mb-1 leading-tight text-white drop-shadow-sm">{event.title}</h3>
+                            <h3 className="text-xl font-bold mb-1 leading-tight text-white drop-shadow-sm">
+                              {activeTab === 'past' && event.eventLink ? (
+                                <button
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    setEventRedirect({ isOpen: true, url: event.eventLink, title: event.title });
+                                  }}
+                                  className="text-left w-full text-white underline-offset-2 hover:underline"
+                                >
+                                  {event.title}
+                                </button>
+                              ) : (
+                                event.title
+                              )}
+                            </h3>
                             
-                            {event.location && (
-                              <div className="flex items-center gap-1 text-xs font-medium opacity-90 mb-3 text-emerald-200">
-                                <MapPin size={14} className="text-emerald-400 flex-shrink-0" />
-                                <span className="truncate">{event.location}</span>
-                              </div>
-                            )}
+                            <div className="flex items-center justify-between gap-2 mb-3">
+                              {event.location ? (
+                                <div className="flex items-center gap-1 text-xs font-medium opacity-90 text-emerald-200 min-w-0">
+                                  <MapPin size={14} className="text-emerald-400 flex-shrink-0" />
+                                  <span className="truncate">{event.location}</span>
+                                </div>
+                              ) : <div />}
+
+                              {activeTab === 'past' && event.eventLink && (
+                                <button
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    setEventRedirect({ isOpen: true, url: event.eventLink, title: event.title });
+                                  }}
+                                  className="ml-2 inline-flex items-center gap-2 px-3 py-1.5 bg-gradient-to-r from-pink-400 to-pink-500 text-white text-xs font-bold rounded-full shadow-sm hover:from-pink-500 hover:to-pink-600 transition-all duration-150"
+                                >
+                                  Watch Now <ExternalLink size={12} />
+                                </button>
+                              )}
+                            </div>
 
                             {/* Join Event Button (if event has link and is upcoming) */}
                             {activeTab === 'upcoming' && event.eventLink && (
@@ -450,6 +478,19 @@ function ServicesContactSection() {
                   </div>
                 </div>
               )}
+              {/* Confirmation popup for external event recordings */}
+              <SocialRedirectPopup
+                isOpen={eventRedirect.isOpen}
+                onClose={() => setEventRedirect({ isOpen: false, url: '' })}
+                onConfirm={() => {
+                  if (eventRedirect.url) window.open(eventRedirect.url, '_blank', 'noopener');
+                  setEventRedirect({ isOpen: false, url: '' });
+                }}
+                platformName="Event Recording"
+                icon={<ExternalLink size={22} />}
+                colorClass="from-orange-400 to-orange-500"
+                message={eventRedirect.title ? `This event "${eventRedirect.title}" was held online. Would you like to watch the recording now?` : undefined}
+              />
             </motion.div>
           </div>
         </div>
