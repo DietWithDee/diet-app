@@ -19,35 +19,39 @@ function Blog() {
   const [blogPosts, setBlogPosts] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState(null);
-  const [selectedArticle, setSelectedArticle] = useState(null);
-  const [viewMode, setViewMode] = useState('list'); // 'list' or 'article'
+  const [selectedArticle, setSelectedArticle] = useState(() => location.state?.article || null);
+  const [viewMode, setViewMode] = useState(() => (routeId ? 'article' : 'list')); // 'list' or 'article'
   const [likingArticles, setLikingArticles] = useState(new Set());
   const [feedbackArticles, setFeedbackArticles] = useState(new Set());
   const [isLoadingArticles, setIsLoadingArticles] = useState(false);
   const [lastVisibleDoc, setLastVisibleDoc] = useState(null);
   const [hasMore, setHasMore] = useState(true);
   const [isLoadingMore, setIsLoadingMore] = useState(false);
-  const [isInitialLoadingArticle, setIsInitialLoadingArticle] = useState(false);
+  const [isInitialLoadingArticle, setIsInitialLoadingArticle] = useState(
+    () => Boolean(routeId && !location.state?.article)
+  );
 
-  useEffect(() => {
-    // Only load blog list if we're not navigating to a specific article
-    // This avoids render-blocking queries when viewing single articles
-    if (!routeId) {
-      loadArticles();
-    }
-  }, [routeId]);
-
-  // When route changes, open the right article if there's an :id
   useEffect(() => {
     if (!routeId) {
       if (viewMode === 'article') {
         setViewMode('list');
         setSelectedArticle(null);
       }
-      // Load blog list when no routeId
-      if (!isLoading) {
-        loadArticles();
+      if (blogPosts.length === 0) {
+        loadArticles({ scrollToTop: true });
       }
+    } else {
+      // Direct navigation to an article (e.g. from email link):
+      // Fetch the blog list in the background so "More Articles" appears
+      if (blogPosts.length === 0) {
+        loadArticles({ scrollToTop: false });
+      }
+    }
+  }, [routeId]);
+
+  // When route changes, open the right article if there's an :id
+  useEffect(() => {
+    if (!routeId) {
       return;
     }
 
@@ -61,6 +65,7 @@ function Blog() {
     if (location.state?.article) {
       setSelectedArticle(location.state.article);
       setViewMode('article');
+      setIsInitialLoadingArticle(false);
       logEvent(analytics, 'view_item', {
         item_id: location.state.article.id,
         item_name: location.state.article.title,
@@ -74,6 +79,7 @@ function Blog() {
     if (found) {
       setSelectedArticle(found);
       if (viewMode !== 'article') setViewMode('article');
+      setIsInitialLoadingArticle(false);
       return;
     }
 
@@ -102,16 +108,20 @@ function Blog() {
     };
     
     fetchSingleArticle();
-  }, [routeId]);
+  }, [routeId, blogPosts]);
 
-  const loadArticles = async () => {
+  const loadArticles = async (options = { scrollToTop: true }) => {
     setIsLoading(true);
-    setError(null);
+    if (!routeId) {
+      setError(null);
+    }
 
-    // ✅ Scroll to top on load
-    setTimeout(() => {
-      window.scrollTo({ top: 0, behavior: 'smooth' });
-    }, 100);
+    // Only scroll to top if requested (e.g. initial blog list visit)
+    if (options?.scrollToTop) {
+      setTimeout(() => {
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+      }, 100);
+    }
 
     try {
       const result = await getArticlesPaged(6);
@@ -121,16 +131,21 @@ function Blog() {
         setLastVisibleDoc(result.lastVisible);
         setHasMore(result.hasMore);
       } else {
-        setError('Failed to load articles');
+        if (!routeId) {
+          setError('Failed to load articles');
+        }
         console.error('Error loading articles:', result.error);
       }
     } catch (error) {
       console.error('Error loading articles:', error);
-      setError('Something went wrong while loading articles');
+      if (!routeId) {
+        setError('Something went wrong while loading articles');
+      }
     } finally {
       setIsLoading(false);
     }
   };
+
 
   const loadMoreArticles = async () => {
     if (isLoadingMore || !hasMore) return;
@@ -433,7 +448,9 @@ function Blog() {
   // Skeleton Loader for initial load
   // When viewing an article: only show skeleton while article is loading
   // When viewing list: only show skeleton while list is loading
-  const shouldShowSkeleton = routeId ? isInitialLoadingArticle : isLoading;
+  const shouldShowSkeleton = routeId
+    ? (isInitialLoadingArticle && !selectedArticle)
+    : (isLoading && blogPosts.length === 0);
   if (shouldShowSkeleton) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-green-50 via-white to-emerald-50 py-18 lg:py-20 px-4 sm:px-6 lg:px-12">
@@ -476,8 +493,8 @@ function Blog() {
     );
   }
 
-  // Error state
-  if (error) {
+  // Error state - only block the page if no article is loaded
+  if (error && !selectedArticle) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-green-50 via-white to-emerald-50 flex items-center justify-center px-4">
         <div className="text-center space-y-4 max-w-md mx-auto">
@@ -499,6 +516,23 @@ function Blog() {
   if (viewMode === 'article' && selectedArticle) {
     const isLiking = likingArticles.has(selectedArticle.id);
     const hasFeedback = feedbackArticles.has(selectedArticle.id);
+
+    // Compute related articles
+    const relatedArticles = blogPosts
+      .filter(post => post.id !== selectedArticle.id && (selectedArticle.slug ? post.slug !== selectedArticle.slug : true))
+      .sort((a, b) => {
+        // Prioritize articles with matching tags
+        const aMatchingTags = a.tags ? a.tags.filter(tag => selectedArticle.tags?.includes(tag)).length : 0;
+        const bMatchingTags = b.tags ? b.tags.filter(tag => selectedArticle.tags?.includes(tag)).length : 0;
+        
+        if (bMatchingTags !== aMatchingTags) {
+          return bMatchingTags - aMatchingTags;
+        }
+        
+        // Secondary sort by likes
+        return (b.likesCount || 0) - (a.likesCount || 0);
+      })
+      .slice(0, 4);
 
     // SEO values from article
     const articleTitle = selectedArticle.title;
@@ -628,75 +662,80 @@ function Blog() {
             </div>
 
             {/* Related Articles Section */}
-            <div className="mt-8 lg:mt-12">
-              <h3 className="text-xl lg:text-2xl font-bold text-green-700 mb-4 lg:mb-6">More Articles</h3>
-              <div className="grid sm:grid-cols-2 gap-4 lg:gap-6">
-                {[...blogPosts]
-                  .filter(post => post.id !== selectedArticle.id)
-                  .sort((a, b) => {
-                    // Prioritize articles with matching tags
-                    const aMatchingTags = a.tags ? a.tags.filter(tag => selectedArticle.tags?.includes(tag)).length : 0;
-                    const bMatchingTags = b.tags ? b.tags.filter(tag => selectedArticle.tags?.includes(tag)).length : 0;
-                    
-                    if (bMatchingTags !== aMatchingTags) {
-                      return bMatchingTags - aMatchingTags;
-                    }
-                    
-                    // Secondary sort by likes
-                    return (b.likesCount || 0) - (a.likesCount || 0);
-                  })
-                  .slice(0, 4)
-                  .map((post) => (
-                    <div
-                      key={post.id}
-                      className="bg-white rounded-xl shadow-md hover:shadow-lg transition-all p-4 lg:p-6 cursor-pointer group"
-                      onClick={() => handleReadMore(post)}
-                    >
-                      <div className="flex gap-3 lg:gap-4">
-                        <div className="w-16 h-16 lg:w-20 lg:h-20 bg-gradient-to-br from-green-100 to-emerald-100 rounded-lg flex items-center justify-center overflow-hidden flex-shrink-0">
-                          {post.coverImage ? (
-                            <SafeImage
-                              src={post.coverImage}
-                              alt={post.title}
-                              fallback={BlogImage}
-                              className="w-full h-full object-cover"
-                              wrapperClassName="w-full h-full"
-                            />
-                          ) : (
-                            <img
-                              src={BlogImage}
-                              alt={post.title}
-                              className="w-8 h-8 lg:w-12 lg:h-12 object-contain opacity-70"
-                            />
-                          )}
+            {(relatedArticles.length > 0 || isLoading) && (
+              <div className="mt-8 lg:mt-12">
+                <h3 className="text-xl lg:text-2xl font-bold text-green-700 mb-4 lg:mb-6">More Articles</h3>
+                {isLoading && relatedArticles.length === 0 ? (
+                  <div className="grid sm:grid-cols-2 gap-4 lg:gap-6">
+                    {[1, 2, 3, 4].map((item) => (
+                      <div
+                        key={item}
+                        className="bg-white rounded-xl shadow-md p-4 lg:p-6 border border-gray-100 flex gap-3 lg:gap-4 items-center animate-pulse"
+                      >
+                        <div className="w-16 h-16 lg:w-20 lg:h-20 bg-gray-200 rounded-lg flex-shrink-0" />
+                        <div className="flex-1 space-y-2.5 py-1">
+                          <div className="h-4 bg-gray-200 rounded w-3/4" />
+                          <div className="h-3 bg-gray-200 rounded w-full" />
+                          <div className="h-3 bg-gray-200 rounded w-1/3" />
                         </div>
-                        <div className="flex-1 min-w-0">
-                          <h4 className="font-semibold text-green-700 group-hover:text-green-800 transition-colors mb-1 text-sm lg:text-base line-clamp-2">
-                            {post.title}
-                          </h4>
-                          <p className="text-xs lg:text-sm text-gray-600 mb-2 line-clamp-2">
-                            {createSummary(post.content, 80)}
-                          </p>
-                          <div className="mb-2 flex flex-wrap gap-1">
-                            {post.tags?.slice(0, 2).map(tag => (
-                              <span key={tag} className="inline-flex items-center gap-1 bg-gray-50 text-gray-500 px-1.5 py-0.5 rounded text-[10px] font-medium border border-gray-100">
-                                {tag}
-                              </span>
-                            ))}
+                      </div>
+                    ))}
+                  </div>
+                ) : (
+                  <div className="grid sm:grid-cols-2 gap-4 lg:gap-6">
+                    {relatedArticles.map((post) => (
+                      <div
+                        key={post.id}
+                        className="bg-white rounded-xl shadow-md hover:shadow-lg transition-all p-4 lg:p-6 cursor-pointer group"
+                        onClick={() => handleReadMore(post)}
+                      >
+                        <div className="flex gap-3 lg:gap-4">
+                          <div className="w-16 h-16 lg:w-20 lg:h-20 bg-gradient-to-br from-green-100 to-emerald-100 rounded-lg flex items-center justify-center overflow-hidden flex-shrink-0">
+                            {post.coverImage ? (
+                              <SafeImage
+                                src={post.coverImage}
+                                alt={post.title}
+                                fallback={BlogImage}
+                                className="w-full h-full object-cover"
+                                wrapperClassName="w-full h-full"
+                              />
+                            ) : (
+                              <img
+                                src={BlogImage}
+                                alt={post.title}
+                                className="w-8 h-8 lg:w-12 lg:h-12 object-contain opacity-70"
+                              />
+                            )}
                           </div>
-                          <div className="flex items-center justify-between text-xs text-gray-500">
-                            <span>{formatDate(post.createdAt)}</span>
-                            <div className="flex items-center gap-1">
-                              <Heart size={12} className="text-red-500" />
-                              <span>{post.likesCount || 0}</span>
+                          <div className="flex-1 min-w-0">
+                            <h4 className="font-semibold text-green-700 group-hover:text-green-800 transition-colors mb-1 text-sm lg:text-base line-clamp-2">
+                              {post.title}
+                            </h4>
+                            <p className="text-xs lg:text-sm text-gray-600 mb-2 line-clamp-2">
+                              {createSummary(post.content, 80)}
+                            </p>
+                            <div className="mb-2 flex flex-wrap gap-1">
+                              {post.tags?.slice(0, 2).map(tag => (
+                                <span key={tag} className="inline-flex items-center gap-1 bg-gray-50 text-gray-500 px-1.5 py-0.5 rounded text-[10px] font-medium border border-gray-100">
+                                  {tag}
+                                </span>
+                              ))}
+                            </div>
+                            <div className="flex items-center justify-between text-xs text-gray-500">
+                              <span>{formatDate(post.createdAt)}</span>
+                              <div className="flex items-center gap-1">
+                                <Heart size={12} className="text-red-500" />
+                                <span>{post.likesCount || 0}</span>
+                              </div>
                             </div>
                           </div>
                         </div>
                       </div>
-                    </div>
-                  ))}
+                    ))}
+                  </div>
+                )}
               </div>
-            </div>
+            )}
           </article>
         </div>
       </>
