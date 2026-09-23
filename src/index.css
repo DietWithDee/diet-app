@@ -136,7 +136,7 @@
   0% {
     background-position: 200% 0;
   }
-  100% {
+  20%, 100% {
     background-position: -200% 0;
   }
 }
@@ -150,7 +150,7 @@
     #09090b 65%
   );
   background-size: 200% 100%;
-  animation: gold-shimmer 10s infinite linear;
+  animation: gold-shimmer 20s infinite ease-in-out;
   border: 1px solid rgba(234, 179, 8, 0.4) !important;
 }
 

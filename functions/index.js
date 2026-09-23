@@ -502,12 +502,15 @@ exports.processBooking = onCall(
             throw new HttpsError("invalid-argument", "Missing required booking data.");
         }
         
+        // Check if booking originated from OnTrack
+        const isOntrack = !!(formData?.isOntrack || formData?.source === 'ontrack');
+
         // Derive actual type from amount as the source of truth
         const actualAmount = Number(amount);
         let actualType = 'initial';
         if (actualAmount < 500) {
             actualType = 'followup';
-        } else if (actualAmount >= 500 && actualAmount < 700) {
+        } else if (actualAmount >= 500 && actualAmount < 700 && !isOntrack && !formData?.isFathersDayBooking) {
             actualType = 'fathersday';
         }
 
@@ -529,7 +532,8 @@ exports.processBooking = onCall(
             paystackReference: reference,
             status: 'pending',
             createdAt: admin.firestore.FieldValue.serverTimestamp(),
-            userResults: userResults || {}
+            userResults: userResults || {},
+            ...(isOntrack ? { isOntrack: true, source: 'ontrack' } : {})
         };
 
         try {
@@ -552,10 +556,12 @@ exports.processBooking = onCall(
         try {
             // Email 1: To Admin
             const adminHtml = createAdminBookingEmail(bookingData);
-            const isFathersDay = !!bookingData.isFathersDayBooking || actualType === 'fathersday';
+            const isFathersDay = !isOntrack && (!!bookingData.isFathersDayBooking || actualType === 'fathersday');
             const adminSubject = isFathersDay
                 ? `New Father's Day Gift: ${bookingData.buyerName || formData.name} for ${bookingData.fatherName || 'N/A'}`
-                : `New Booking: ${formData.name} (${actualType === 'followup' ? 'Follow-Up' : 'Initial'})`;
+                : isOntrack
+                    ? `New OnTrack Booking: ${formData.name} (${actualType === 'followup' ? 'Follow-Up - ₵300' : 'Initial - ₵600'})`
+                    : `New Booking: ${formData.name} (${actualType === 'followup' ? 'Follow-Up' : 'Initial'})`;
 
             await resend.emails.send({
                 from: 'Diet With Dee Bookings <bookings@mail.dietwithdee.org>',
@@ -566,7 +572,11 @@ exports.processBooking = onCall(
 
             // Email 2: To Client
             const clientHtml = createClientConfirmationEmail(formData.name, actualType, bookingData);
-            const clientSubject = isFathersDay ? "Father's Day Gift Confirmed! 🎁" : "Booking Confirmed! ✅";
+            const clientSubject = isFathersDay 
+                ? "Father's Day Gift Confirmed! 🎁" 
+                : isOntrack 
+                    ? "Your OnTrack Consultation is Confirmed! ✅" 
+                    : "Booking Confirmed! ✅";
             await resend.emails.send({
                 from: 'Diet With Dee <hello@mail.dietwithdee.org>',
                 to: [formData.email],

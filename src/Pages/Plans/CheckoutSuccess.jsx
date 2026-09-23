@@ -20,6 +20,9 @@ import playstoreIcon from "../../assets/playstore.webp";
 // Live Android URL for OnTrack App
 const ONTRACK_ANDROID_URL =
   "https://play.google.com/store/apps/details?id=com.ontrack.app";
+// Live iOS App Store URL for OnTrack App
+const ONTRACK_IOS_URL =
+  "https://apps.apple.com/us/app/ontrack-ai-diabetes-manager/id6797802105";
 
 export default function CheckoutSuccess() {
   const navigate = useNavigate();
@@ -329,29 +332,33 @@ export default function CheckoutSuccess() {
                   />
                 </a>
 
-                {/* iPhone — blurred / coming soon */}
-                <div className="relative rounded-2xl border border-gray-100 p-3.5 overflow-hidden select-none cursor-not-allowed">
-                  <div className="absolute inset-0 z-10 bg-white/50 backdrop-blur-[2px] flex items-center justify-center">
-                    <span className="text-[11px] font-bold text-gray-500 bg-gray-100 px-3 py-1 rounded-full">
-                      iOS — Coming Soon
+                {/* iPhone — active link */}
+                <a
+                  href={ONTRACK_IOS_URL}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="group flex items-center gap-3 p-3.5 rounded-2xl border border-slate-200 bg-slate-50/50 hover:bg-slate-100/60 transition-all shadow-xs"
+                >
+                  <div className="w-10 h-10 rounded-xl bg-white border border-gray-100 flex items-center justify-center shrink-0 shadow-xs group-hover:scale-105 transition-transform p-1.5">
+                    <img
+                      src={appleIcon}
+                      alt="Apple App Store"
+                      className="w-full h-full object-contain"
+                    />
+                  </div>
+                  <div className="flex-1 text-left">
+                    <span className="text-[10px] font-bold uppercase tracking-wider text-slate-600">
+                      Available on App Store
                     </span>
+                    <h4 className="text-sm font-bold text-slate-900">
+                      Download for iPhone
+                    </h4>
                   </div>
-
-                  <div className="flex items-center gap-3 filter blur-[1px] opacity-50">
-                    <div className="w-10 h-10 rounded-xl bg-white border border-gray-100 flex items-center justify-center shrink-0 p-1.5">
-                      <img
-                        src={appleIcon}
-                        alt="Apple App Store"
-                        className="w-full h-full object-contain"
-                      />
-                    </div>
-                    <div className="flex-1 text-left">
-                      <h4 className="text-sm font-bold text-slate-900">
-                        Download for iPhone
-                      </h4>
-                    </div>
-                  </div>
-                </div>
+                  <ExternalLink
+                    size={15}
+                    className="text-slate-400 group-hover:text-slate-600 group-hover:translate-x-0.5 transition-all shrink-0"
+                  />
+                </a>
 
                 {/* Dismiss */}
                 <button

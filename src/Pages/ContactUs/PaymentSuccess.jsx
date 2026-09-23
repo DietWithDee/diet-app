@@ -99,19 +99,25 @@ function PaymentSuccess() {
       setStatus('processing');
       const processBookingFn = httpsCallable(functions, 'processBooking');
 
+      // Check if booking originated from OnTrack
+      const isOntrackBooking = !!(formData?.isOntrack || formData?.source === 'ontrack');
+
       // Derive type from amount to be robust against extra charges/fees
-    console.log("This is the amount being charged",verifyResult.data)
+      console.log("This is the amount being charged", verifyResult.data);
       const actualAmount = verifyResult.data.amount / 100;
       let verifiedType = 'initial';
       if (actualAmount < 500) {
         verifiedType = 'followup';
-      } else if (actualAmount >= 500 && actualAmount < 700) {
+      } else if (actualAmount >= 500 && actualAmount < 700 && !isOntrackBooking && !formData?.isFathersDayBooking) {
         verifiedType = 'fathersday';
       }
       setVerifiedConsultationType(verifiedType);
 
       const payload = {
-          formData,
+          formData: {
+            ...formData,
+            ...(isOntrackBooking ? { isOntrack: true, source: 'ontrack' } : {})
+          },
           userResults,
           reference,
           amount: actualAmount,
@@ -135,13 +141,18 @@ function PaymentSuccess() {
               }]
             });
           } else {
+            const itemName = isOntrackBooking
+              ? (verifiedType === 'followup' ? "OnTrack Follow-Up Consultation" : "OnTrack Initial Consultation")
+              : (verifiedType === 'followup' ? "Follow-Up Consultation" : "Initial Consultation");
+            const itemCategory = isOntrackBooking ? "OnTrack Consultation" : "Consultation";
+
             logEvent(analytics, 'purchase', {
               transaction_id: reference,
               value: actualAmount,
               currency: 'GHS',
               items: [{
-                item_name: verifiedType === 'followup' ? "Follow-Up Consultation" : "Initial Consultation",
-                item_category: "Consultation",
+                item_name: itemName,
+                item_category: itemCategory,
                 price: actualAmount,
                 quantity: 1
               }]
@@ -292,9 +303,11 @@ function PaymentSuccess() {
   }
 
   // status === 'confirmed'
-  const isFathersDay = !!formData.isFathersDayBooking || 
+  const isOntrack = !!(formData?.isOntrack || formData?.source === 'ontrack');
+  const isFathersDay = !isOntrack && (
+                       !!formData.isFathersDayBooking || 
                        new URLSearchParams(location.search).get('campaign') === 'fathersday' ||
-                       (verifiedConsultationType || formData.consultationType) === 'fathersday';
+                       (verifiedConsultationType || formData.consultationType) === 'fathersday');
 
   if (isFathersDay) {
     const searchParams = new URLSearchParams(location.search);
@@ -539,7 +552,11 @@ function PaymentSuccess() {
                 <div className="w-20 h-20 bg-white rounded-full flex items-center justify-center mx-auto mb-6 shadow-lg">
                   <CheckCircle className="text-green-600" size={48} />
                 </div>
-                {isFollowUp ? (
+                {isOntrack ? (
+                  <div className="inline-block bg-emerald-900 text-emerald-100 text-xs font-bold px-4 py-1.5 rounded-full tracking-widest uppercase mb-3 shadow-sm border border-emerald-400/30">
+                    📱 OnTrack {isFollowUp ? 'Follow-Up (₵300)' : 'Initial Consultation (₵600)'}
+                  </div>
+                ) : isFollowUp ? (
                   <div className="inline-block bg-green-800 text-green-100 text-xs font-bold px-4 py-1.5 rounded-full tracking-widest uppercase mb-3 shadow-sm border border-green-500/30">Follow-Up Consultation</div>
                 ) : (
                   <div className="inline-block bg-green-800 text-green-100 text-xs font-bold px-4 py-1.5 rounded-full tracking-widest uppercase mb-3 shadow-sm border border-green-500/30">Initial Consultation</div>

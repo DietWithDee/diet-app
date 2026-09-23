@@ -30,6 +30,7 @@ import TestimonialAdmin from "../Pages/Admin/components/TestimonialAdmin";
 // import FathersDay from "../Pages/FathersDay/FathersDay";
 import TerraVee from "../Pages/TerraVee/TerraVee";
 import Subscribe from "../Pages/Subscribe/Subscribe";
+import OnTrack from "../Pages/OnTrack/OnTrack";
 
 // Inner component so usePageTracking can access the router context
 const AppRoutes = () => {
@@ -53,6 +54,8 @@ const AppRoutes = () => {
         <Route path="/admin/testimonials" element={<TestimonialAdmin />} />
         <Route path="/plans" element={<Plans />} />
         {/* <Route path="/fathersday" element={<FathersDay />} /> */}
+        <Route path="/ontrack" element={<OnTrack />} />
+        <Route path="/OnTrack" element={<OnTrack />} />
         <Route path="/terravee" element={<TerraVee />} />
         <Route path="/subscribe" element={<Subscribe />} />
         <Route path="/checkout-success" element={<CheckoutSuccess />} />

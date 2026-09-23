@@ -58,18 +58,21 @@ const createAdminBookingEmail = (bookingData) => {
     `;
   }
 
+  const isOntrack = !!(bookingData.isOntrack || bookingData.source === 'ontrack');
+
   return `
     <!DOCTYPE html>
     <html lang="en">
     <head>
         <meta charset="UTF-8">
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
-        <title>New Booking Notification</title>
+        <title>${isOntrack ? 'New OnTrack Booking Notification' : 'New Booking Notification'}</title>
         <style>
             body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; line-height: 1.6; color: #1f2937; background-color: #f9f9f9; padding: 20px; }
             .container { max-width: 600px; margin: 0 auto; background-color: #ffffff; border-radius: 12px; padding: 30px; box-shadow: 0 4px 6px rgba(0,0,0,0.05); }
-            .header { border-bottom: 2px solid #16a34a; padding-bottom: 15px; margin-bottom: 25px; }
-            h1 { color: #16a34a; font-size: 24px; margin: 0; }
+            .header { border-bottom: 2px solid ${isOntrack ? '#059669' : '#16a34a'}; padding-bottom: 15px; margin-bottom: 25px; }
+            h1 { color: ${isOntrack ? '#059669' : '#16a34a'}; font-size: 24px; margin: 0; }
+            .badge { display: inline-block; background-color: #f3e8ff; color: #6b21a8; font-size: 11px; font-weight: bold; padding: 3px 8px; border-radius: 6px; text-transform: uppercase; margin-bottom: 8px; }
             .section { margin-bottom: 25px; }
             .section-title { font-size: 16px; font-weight: bold; color: #4b5563; margin-bottom: 10px; border-bottom: 1px solid #e5e7eb; padding-bottom: 5px; }
             .data-row { display: flex; margin-bottom: 8px; }
@@ -80,22 +83,28 @@ const createAdminBookingEmail = (bookingData) => {
     <body>
         <div class="container">
             <div class="header">
-                <h1>New Consultation Booking! 🎉</h1>
+                ${isOntrack ? '<div class="badge">📱 OnTrack App Booking</div>' : ''}
+                <h1>${isOntrack ? 'New OnTrack Consultation Booking! 🚀' : 'New Consultation Booking! 🎉'}</h1>
             </div>
             
             <div class="section">
                 <div class="section-title">Client Details</div>
-                <div class="data-row"><div class="label">Name:</div><div class="value">${bookingData.name}</div></div>
+                <div class="data-row"><div class="label">Name:</div><div class="value"><strong>${bookingData.name}</strong></div></div>
                 <div class="data-row"><div class="label">Email:</div><div class="value"><a href="mailto:${bookingData.email}">${bookingData.email}</a></div></div>
-                <div class="data-row"><div class="label">Phone:</div><div class="value">${bookingData.phone}</div></div>
+                <div class="data-row"><div class="label">Phone:</div><div class="value"><a href="tel:${bookingData.phone}">${bookingData.phone}</a></div></div>
                 <div class="data-row"><div class="label">Message:</div><div class="value">${bookingData.message || 'No additional message'}</div></div>
             </div>
 
             <div class="section">
                 <div class="section-title">Booking Info</div>
-                <div class="data-row"><div class="label">Type:</div><div class="value">${bookingData.consultationType === 'followup' ? 'Follow-Up (₵400)' : 'Initial Consultation (₵800)'}</div></div>
-                <div class="data-row"><div class="label">Amount Paid:</div><div class="value">GHS ${bookingData.amount}</div></div>
-                <div class="data-row"><div class="label">Status:</div><div class="value">Paid & pending contact</div></div>
+                <div class="data-row"><div class="label">Type:</div><div class="value"><strong>${
+                  isOntrack 
+                    ? (bookingData.consultationType === 'followup' ? 'OnTrack Follow-Up (₵300)' : 'OnTrack Initial Consultation (₵600)')
+                    : (bookingData.consultationType === 'followup' ? 'Follow-Up (₵400)' : 'Initial Consultation (₵800)')
+                }</strong></div></div>
+                <div class="data-row"><div class="label">Amount Paid:</div><div class="value"><strong>GHS ${bookingData.amount}</strong></div></div>
+                <div class="data-row"><div class="label">Paystack Ref:</div><div class="value">${bookingData.paystackReference || 'N/A'}</div></div>
+                <div class="data-row"><div class="label">Status:</div><div class="value">Paid & pending WhatsApp contact</div></div>
             </div>
 
             <div class="section">
@@ -164,19 +173,22 @@ const createClientConfirmationEmail = (name, consultationType, bookingData) => {
     `;
   }
 
+  const isOntrack = !!(bookingData && (bookingData.isOntrack || bookingData.source === 'ontrack'));
+
   return `
     <!DOCTYPE html>
     <html lang="en">
     <head>
         <meta charset="UTF-8">
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
-        <title>Booking Confirmed</title>
+        <title>${isOntrack ? 'OnTrack Consultation Confirmed' : 'Booking Confirmed'}</title>
         <style>
             body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; line-height: 1.6; color: #1f2937; background-color: #f0fdf4; padding: 20px 0; margin: 0; }
             .container { max-width: 600px; margin: 0 auto; background-color: #ffffff; border-radius: 20px; text-align: center; overflow: hidden; box-shadow: 0 10px 25px rgba(0,0,0,0.05); }
             img.logo { width: 140px; margin: 30px auto 20px; display: block; }
             .content { padding: 20px 40px 40px; text-align: left; }
             h1 { color: #16a34a; font-size: 24px; text-align: center; margin-top: 0; }
+            .badge { display: inline-block; background-color: #f3e8ff; color: #6b21a8; font-size: 11px; font-weight: bold; padding: 4px 10px; border-radius: 9999px; text-transform: uppercase; margin: 0 auto 12px auto; }
             p { margin-bottom: 16px; font-size: 16px; color: #374151; }
             .footer { background-color: #f8fafc; padding: 20px; text-align: center; font-size: 14px; color: #64748b; border-top: 1px solid #e5e7eb; }
             .highlight-box { background-color: #f0fdf4; border-left: 4px solid #16a34a; padding: 15px; margin: 20px 0; border-radius: 0 8px 8px 0; }
@@ -186,18 +198,21 @@ const createClientConfirmationEmail = (name, consultationType, bookingData) => {
         <div class="container">
             <img src="https://dietwithdee.org/LOGO.png" alt="Diet With Dee" class="logo" />
             <div class="content">
-                <h1>Booking Confirmed! ✅</h1>
+                <div style="text-align: center;">
+                    ${isOntrack ? '<span class="badge">📱 Exclusive OnTrack Consultation</span>' : ''}
+                    <h1>Booking Confirmed! ✅</h1>
+                </div>
                 <p>Hi ${name},</p>
-                <p>Thank you for booking your ${isFollowUp ? 'follow-up' : 'initial'} consultation with <strong>Diet With Dee</strong>! Your payment has been successfully received.</p>
+                <p>Thank you for booking your ${isOntrack ? 'OnTrack ' : ''}${isFollowUp ? 'follow-up' : 'initial'} consultation with <strong>Diet With Dee</strong>! Your payment has been successfully received.</p>
                 
                 <div class="highlight-box">
                     <p style="margin:0; font-weight:600; color:#16a34a;">What happens next?</p>
-                    <p style="margin:8px 0 0 0; font-size:15px;">My team will reach out to you directly via phone or email within the next 24 hours to schedule the exact date and time for our session.</p>
+                    <p style="margin:8px 0 0 0; font-size:15px;">My team will reach out to you directly via WhatsApp or phone within the next 24 hours to schedule the exact date and time for our session.${isOntrack ? ' We will also align your customized meal plan directly with your OnTrack goals.' : ''}</p>
                 </div>
 
                 <p>Please note that our consultation hours are: <strong>Tuesday – Sunday, 10:00 AM – 3:00 PM</strong>.</p>
                 
-                <p>I'm looking forward to working with you to achieve your health goals!</p>
+                <p>I'm looking forward to working with you to achieve your health and nutrition goals!</p>
                 
                 <p>Warmly,<br><strong>Nana Ama Dwamena</strong><br>Registered Dietitian</p>
             </div>
