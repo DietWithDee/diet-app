@@ -120,6 +120,15 @@ const QUESTIONS = [
       { id: "never-heard", label: "I didn't know this feature existed on the website" },
     ],
   },
+  {
+    id: "website_ease",
+    type: "scale",
+    required: true,
+    title: "8. How easy is it to navigate and use the DietWithDee website?",
+    subtitle: "Rate your overall experience on a scale of 1 to 5.",
+    min: 1,
+    max: 5,
+  },
 ];
 
 export default function Survey() {
@@ -131,6 +140,7 @@ export default function Survey() {
     newsletter_readership: "",
     sharing_habits: "",
     my_journey_usage: "",
+    website_ease: null,
     feedback: "",
     email: "",
   });
@@ -246,6 +256,7 @@ export default function Survey() {
           newsletter_readership: answers.newsletter_readership,
           sharing_habits: answers.sharing_habits,
           my_journey_usage: answers.my_journey_usage,
+          website_ease: answers.website_ease,
           feedback: answers.feedback.trim() || null,
         },
         durationSeconds,
@@ -508,15 +519,54 @@ export default function Survey() {
                         })}
                       </div>
                     )}
+                    {/* Scale (1 to 5) Options */}
+                    {q.type === "scale" && (
+                      <div className="pt-2">
+                        <div className="grid grid-cols-5 gap-2 sm:gap-3.5 my-2">
+                          {[1, 2, 3, 4, 5].map((num) => {
+                            const isSelected = currentVal === num;
+                            return (
+                              <button
+                                key={num}
+                                type="button"
+                                onClick={() => handleRadioChange(q.id, num)}
+                                className={`py-4 sm:py-5 px-1 sm:px-3 rounded-2xl border-2 flex flex-col items-center justify-center transition-all cursor-pointer font-bold ${
+                                  isSelected
+                                    ? "bg-emerald-600 text-white border-emerald-600 shadow-md scale-105 ring-2 ring-emerald-400/30"
+                                    : "border-gray-200 hover:border-emerald-300 hover:bg-emerald-50/40 text-gray-700 bg-white"
+                                }`}
+                              >
+                                <span className="text-xl sm:text-2xl font-black">{num}</span>
+                                <span className="text-[10px] sm:text-xs mt-1 font-semibold opacity-85">
+                                  {num === 1
+                                    ? "Hard"
+                                    : num === 2
+                                    ? "Tricky"
+                                    : num === 3
+                                    ? "Okay"
+                                    : num === 4
+                                    ? "Easy"
+                                    : "Smooth"}
+                                </span>
+                              </button>
+                            );
+                          })}
+                        </div>
+                        <div className="flex justify-between items-center text-xs text-gray-500 font-semibold px-1 mt-2.5">
+                          <span>1 — Very Difficult</span>
+                          <span>5 — Very Easy / Effortless</span>
+                        </div>
+                      </div>
+                    )}
                   </div>
                 );
               })}
 
-              {/* Single Optional Open Textarea (Question 8) */}
+              {/* Single Optional Open Textarea (Question 9) */}
               <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-6 sm:p-7">
                 <div className="mb-3">
                   <h2 className="text-base sm:text-lg font-bold text-gray-900 leading-snug">
-                    8. What is one thing we could do or improve to make DietWithDee better for you?
+                    9. What is one thing we could do or improve to make DietWithDee better for you?
                   </h2>
                   <p className="text-xs sm:text-sm text-gray-500 mt-1">
                     Completely optional — any suggestion or idea is welcome!
@@ -531,7 +581,7 @@ export default function Survey() {
                 />
               </div>
 
-              {/* Required Email & Auto-Subscribe Card (Question 9) */}
+              {/* Required Email & Auto-Subscribe Card (Question 10) */}
               <div
                 id="q-email"
                 className={`bg-white rounded-2xl shadow-sm border transition-all duration-200 p-6 sm:p-7 ${
@@ -544,7 +594,7 @@ export default function Survey() {
                     <span>Final Step & 15% Reward</span>
                   </div>
                   <h2 className="text-base sm:text-lg font-bold text-gray-900 leading-snug">
-                    9. Enter your email address to submit <span className="text-red-500">*</span>
+                    10. Enter your email address to submit <span className="text-red-500">*</span>
                   </h2>
                   <p className="text-xs sm:text-sm text-gray-600 mt-1.5 leading-relaxed">
                     We'll email you your exclusive 15% discount voucher. Entering your email also automatically subscribes you to our free weekly newsletter for healthy Ghanaian meal plans and dietitian advice (you can unsubscribe anytime).

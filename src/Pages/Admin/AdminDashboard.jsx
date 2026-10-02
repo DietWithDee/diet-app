@@ -183,7 +183,7 @@ const AdminDashboard = () => {
 
       <div className="container mx-auto px-4 py-8">
         {/* Metrics */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
           <button
             onClick={() => setActiveTab('subscribers')}
             className={`bg-white rounded-xl shadow-md p-5 border flex items-center gap-4 transition-all hover:shadow-lg text-left ${activeTab === 'subscribers' ? 'border-green-500 ring-2 ring-green-100' : 'border-green-100'}`}
@@ -236,6 +236,18 @@ const AdminDashboard = () => {
             </div>
           </button>
 
+          <button 
+            onClick={() => setActiveTab('surveys')}
+            className={`bg-white rounded-xl shadow-md p-5 border flex items-center gap-4 transition-all hover:shadow-lg text-left ${activeTab === 'surveys' ? 'border-emerald-500 ring-2 ring-emerald-100' : 'border-emerald-100'}`}
+          >
+            <div className="w-12 h-12 rounded-full bg-emerald-100 flex items-center justify-center text-emerald-600 text-xl font-bold flex-shrink-0">
+              📋
+            </div>
+            <div>
+              <p className="text-2xl font-bold text-gray-800">{surveyCount}</p>
+              <p className="text-sm text-emerald-600 font-medium">Survey Responses</p>
+            </div>
+          </button>
         </div>
 
 
@@ -306,9 +318,14 @@ const AdminDashboard = () => {
             </button>
             <button 
               onClick={() => setActiveTab('surveys')}
-              className={`flex-1 py-4 px-6 text-center font-bold transition-all ${activeTab === 'surveys' ? 'text-emerald-600 border-b-2 border-emerald-600 bg-emerald-50' : 'text-gray-400 hover:text-gray-600 hover:bg-gray-50'}`}
+              className={`flex-1 flex justify-center items-center gap-2 py-4 px-6 text-center font-bold transition-all ${activeTab === 'surveys' ? 'text-emerald-600 border-b-2 border-emerald-600 bg-emerald-50' : 'text-gray-400 hover:text-gray-600 hover:bg-gray-50'}`}
             >
               Surveys
+              {surveyCount > 0 && (
+                <span className="px-2 py-0.5 bg-emerald-100 text-emerald-800 text-[10px] rounded-full font-bold">
+                  {surveyCount}
+                </span>
+              )}
             </button>
           </div>
 

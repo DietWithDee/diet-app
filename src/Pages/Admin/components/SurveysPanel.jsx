@@ -32,6 +32,7 @@ import {
   AlertTriangle,
   HeartHandshake,
   Share2,
+  Star,
 } from "lucide-react";
 
 export default function SurveysPanel() {
@@ -106,6 +107,25 @@ export default function SurveysPanel() {
   const sharingCounts = useMemo(() => computeBreakdown("sharing_habits"), [surveys]);
   const myJourneyCounts = useMemo(() => computeBreakdown("my_journey_usage"), [surveys]);
 
+  // Usability score (1 to 5 scale)
+  const websiteEaseStats = useMemo(() => {
+    let totalScore = 0;
+    let ratedCount = 0;
+    const distribution = { 5: 0, 4: 0, 3: 0, 2: 0, 1: 0 };
+
+    surveys.forEach((s) => {
+      const val = Number(s.answers?.website_ease);
+      if (val >= 1 && val <= 5) {
+        totalScore += val;
+        ratedCount += 1;
+        distribution[val] = (distribution[val] || 0) + 1;
+      }
+    });
+
+    const average = ratedCount > 0 ? (totalScore / ratedCount).toFixed(1) : "N/A";
+    return { average, ratedCount, distribution };
+  }, [surveys]);
+
   const totalCount = surveys.length;
   const withFeedbackCount = surveys.filter((s) => s.answers?.feedback).length;
 
@@ -132,6 +152,28 @@ export default function SurveysPanel() {
   const actionableRecommendations = useMemo(() => {
     if (!totalCount) return [];
     const list = [];
+
+    // Usability Recommendation
+    if (websiteEaseStats.ratedCount > 0 && websiteEaseStats.average !== "N/A") {
+      const avg = parseFloat(websiteEaseStats.average);
+      if (avg < 3.8) {
+        list.push({
+          type: "usability",
+          title: `Website Ease Rating is Low (${avg} / 5.0)`,
+          action: "Visitors are experiencing friction or confusion navigating the site. Prioritize simplifying the mobile menu and making Meal Plan and WhatsApp booking buttons larger and more prominent.",
+          badge: "UX Friction Alert",
+          color: "rose",
+        });
+      } else if (avg >= 4.5) {
+        list.push({
+          type: "usability",
+          title: `High Website Usability (${avg} / 5.0 ⭐)`,
+          action: "Visitors find the website smooth and effortless. Sales bottlenecks are not due to site navigation, so focus on pricing tiers, sample plan previews, and WhatsApp direct consultation links.",
+          badge: "UX Strength",
+          color: "emerald",
+        });
+      }
+    }
 
     // 1. Sales barrier recommendation
     if (topHesitationEntry) {
@@ -267,6 +309,7 @@ export default function SurveysPanel() {
       "Plan Awareness",
       "Hesitation Reason",
       "Buying Catalysts",
+      "Website Ease (1-5)",
       "Newsletter Readership",
       "Sharing Habits",
       "My Journey Usage",
@@ -281,6 +324,7 @@ export default function SurveysPanel() {
       `"${s.answers?.plan_awareness || ""}"`,
       `"${s.answers?.plan_hesitation || ""}"`,
       `"${(s.answers?.plan_catalyst || []).join(", ")}"`,
+      `"${s.answers?.website_ease || "N/A"}"`,
       `"${s.answers?.newsletter_readership || ""}"`,
       `"${s.answers?.sharing_habits || ""}"`,
       `"${s.answers?.my_journey_usage || ""}"`,
@@ -404,20 +448,20 @@ export default function SurveysPanel() {
           </div>
         </div>
 
-        {/* 4 Quick Stat KPIs */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mt-6">
+        {/* 5 Quick Stat KPIs */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-3.5 mt-6">
           <div className="bg-emerald-50/60 border border-emerald-100/80 rounded-2xl p-4">
             <div className="flex items-center justify-between text-xs font-bold uppercase tracking-wider text-emerald-700 mb-1">
-              <span>Total Submissions</span>
+              <span>Submissions</span>
               <Users size={16} />
             </div>
             <p className="text-2xl font-black text-emerald-950">{totalCount}</p>
-            <p className="text-xs text-emerald-700/80 mt-1">All auto-subscribed to newsletter</p>
+            <p className="text-xs text-emerald-700/80 mt-1">Auto-subscribed</p>
           </div>
 
           <div className="bg-amber-50/60 border border-amber-100/80 rounded-2xl p-4">
             <div className="flex items-center justify-between text-xs font-bold uppercase tracking-wider text-amber-700 mb-1">
-              <span>Top Sales Barrier</span>
+              <span>Top Barrier</span>
               <AlertTriangle size={16} />
             </div>
             <p className="text-lg font-black text-amber-950 capitalize truncate">
@@ -425,27 +469,41 @@ export default function SurveysPanel() {
             </p>
             <p className="text-xs text-amber-700/80 mt-1">
               {topHesitationEntry
-                ? `${Math.round((topHesitationEntry[1] / totalCount) * 100)}% of people cited this`
-                : "No data yet"}
+                ? `${Math.round((topHesitationEntry[1] / totalCount) * 100)}% of visitors`
+                : "No data"}
+            </p>
+          </div>
+
+          <div className="bg-blue-50/60 border border-blue-100/80 rounded-2xl p-4">
+            <div className="flex items-center justify-between text-xs font-bold uppercase tracking-wider text-blue-700 mb-1">
+              <span>Website Ease</span>
+              <Star size={16} />
+            </div>
+            <p className="text-2xl font-black text-blue-950 flex items-baseline gap-1">
+              <span>{websiteEaseStats.average}</span>
+              <span className="text-xs text-blue-600 font-bold">/ 5.0</span>
+            </p>
+            <p className="text-xs text-blue-700/80 mt-1">
+              {websiteEaseStats.ratedCount} ratings recorded
             </p>
           </div>
 
           <div className="bg-teal-50/60 border border-teal-100/80 rounded-2xl p-4">
             <div className="flex items-center justify-between text-xs font-bold uppercase tracking-wider text-teal-700 mb-1">
-              <span>Newsletter Engagement</span>
+              <span>Newsletter Read</span>
               <Mail size={16} />
             </div>
             <p className="text-2xl font-black text-teal-950">{activeReaderPct}%</p>
-            <p className="text-xs text-teal-700/80 mt-1">Read regularly or occasionally</p>
+            <p className="text-xs text-teal-700/80 mt-1">Regular or casual</p>
           </div>
 
           <div className="bg-purple-50/60 border border-purple-100/80 rounded-2xl p-4">
             <div className="flex items-center justify-between text-xs font-bold uppercase tracking-wider text-purple-700 mb-1">
-              <span>Word of Mouth Rate</span>
+              <span>Sharing Rate</span>
               <Share2 size={16} />
             </div>
             <p className="text-2xl font-black text-purple-950">{sharingPct}%</p>
-            <p className="text-xs text-purple-700/80 mt-1">Share content with others</p>
+            <p className="text-xs text-purple-700/80 mt-1">Share with friends</p>
           </div>
         </div>
       </div>
@@ -543,6 +601,7 @@ export default function SurveysPanel() {
                       <th className="pb-3 px-3">Primary Goal</th>
                       <th className="pb-3 px-3">Main Hesitation</th>
                       <th className="pb-3 px-3">What They Want</th>
+                      <th className="pb-3 px-3">Ease (1-5)</th>
                       <th className="pb-3 px-3">Feedback</th>
                       <th className="pb-3 pl-4 text-right">Actions</th>
                     </tr>
@@ -583,6 +642,24 @@ export default function SurveysPanel() {
                               </span>
                             ) : (
                               <span className="text-gray-400">—</span>
+                            )}
+                          </td>
+
+                          <td className="py-3.5 px-3">
+                            {s.answers?.website_ease ? (
+                              <span
+                                className={`px-2 py-0.5 rounded-full text-[11px] font-bold border ${
+                                  s.answers.website_ease >= 4
+                                    ? "bg-emerald-50 text-emerald-800 border-emerald-200"
+                                    : s.answers.website_ease === 3
+                                    ? "bg-gray-100 text-gray-700 border-gray-200"
+                                    : "bg-rose-50 text-rose-800 border-rose-200 font-black"
+                                }`}
+                              >
+                                ⭐ {s.answers.website_ease}/5
+                              </span>
+                            ) : (
+                              <span className="text-gray-300">—</span>
                             )}
                           </td>
 
@@ -771,6 +848,49 @@ export default function SurveysPanel() {
                         </div>
                         <div className="w-full bg-gray-100 h-2 rounded-full overflow-hidden">
                           <div className="bg-green-600 h-full rounded-full" style={{ width: `${pct}%` }} />
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
+
+              {/* Question 8: Website Usability (1-5 Scale) */}
+              <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-5">
+                <div className="flex items-center justify-between mb-4">
+                  <div>
+                    <h3 className="font-bold text-gray-900 text-sm">Website Usability (1 to 5 Scale)</h3>
+                    <p className="text-xs text-gray-500 mt-0.5">Average Score: <strong className="text-blue-700">{websiteEaseStats.average} / 5.0 ⭐</strong> ({websiteEaseStats.ratedCount} ratings)</p>
+                  </div>
+                  <Star size={16} className="text-blue-600" />
+                </div>
+                <div className="space-y-3">
+                  {[5, 4, 3, 2, 1].map((rating) => {
+                    const count = websiteEaseStats.distribution[rating] || 0;
+                    const pct = websiteEaseStats.ratedCount ? Math.round((count / websiteEaseStats.ratedCount) * 100) : 0;
+                    const label =
+                      rating === 5
+                        ? "5 Stars - Very Easy"
+                        : rating === 4
+                        ? "4 Stars - Easy"
+                        : rating === 3
+                        ? "3 Stars - Okay / Average"
+                        : rating === 2
+                        ? "2 Stars - Difficult"
+                        : "1 Star - Very Difficult";
+                    return (
+                      <div key={rating} className="space-y-1">
+                        <div className="flex justify-between text-xs font-semibold text-gray-700">
+                          <span>{label}</span>
+                          <span className="text-blue-700">{count} ({pct}%)</span>
+                        </div>
+                        <div className="w-full bg-gray-100 h-2 rounded-full overflow-hidden">
+                          <div
+                            className={`h-full rounded-full ${
+                              rating >= 4 ? "bg-emerald-500" : rating === 3 ? "bg-blue-500" : "bg-rose-500"
+                            }`}
+                            style={{ width: `${pct}%` }}
+                          />
                         </div>
                       </div>
                     );
