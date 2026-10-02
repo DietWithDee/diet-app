@@ -4,7 +4,7 @@ const { onDocumentUpdated, onDocumentCreated, onDocumentWritten } = require("fir
 const { setGlobalOptions } = require("firebase-functions/v2");
 const admin = require("firebase-admin");
 const { Resend } = require("resend");
-const { createEmailTemplate, createWelcomeTemplate } = require("./emailTemplate");
+const { createEmailTemplate, createWelcomeTemplate, createSurveyVoucherTemplate } = require("./emailTemplate");
 const { createAdminBookingEmail, createClientConfirmationEmail } = require("./bookingEmailTemplates");
 const { createAdminTestimonialEmail } = require("./testimonialEmailTemplate");
 
@@ -290,33 +290,42 @@ exports.onNewSubscriber = onDocumentCreated(
             return;
         }
 
-        console.log(`New subscriber detected: ${email}. Sending welcome email...`);
+        const isSurvey = data.source === "survey";
+        const emailSubject = isSurvey
+            ? `Your 20% Discount Voucher for ${data.planTitle || 'DietWithDee'} is Here! 🎁`
+            : "Welcome to Diet With Dee! 🌿";
+
+        console.log(`New subscriber detected: ${email} (source: ${data.source || 'default'}, plan: ${data.selectedPlan || 'none'}). Sending ${isSurvey ? 'survey voucher' : 'welcome'} email...`);
 
         try {
-            
             const resendApiKey = process.env.RESEND_API_KEY;
             if (!resendApiKey) {
                 throw new Error("RESEND_API_KEY is not set.");
             }
             const resend = new Resend(resendApiKey);
-            
 
-            const welcomeContent = createWelcomeTemplate(data.name);
+            const emailContent = isSurvey
+                ? createSurveyVoucherTemplate({
+                    email,
+                    selectedPlan: data.selectedPlan || data.primaryGoal,
+                    discountCode: data.discountCode
+                })
+                : createWelcomeTemplate(data.name);
             
             const { data: result, error } = await resend.emails.send({
                 from: 'Nana Ama from Diet With Dee <hello@mail.dietwithdee.org>',
                 to: [email],
-                subject: 'Welcome to Diet With Dee! 🌿',
-                html: welcomeContent.split('https://dietwithdee.org/unsubscribe').join(`https://dietwithdee.org/unsubscribe?email=${encodeURIComponent(email)}`)
+                subject: emailSubject,
+                html: emailContent.split('https://dietwithdee.org/unsubscribe').join(`https://dietwithdee.org/unsubscribe?email=${encodeURIComponent(email)}`)
             });
 
             if (error) {
-                console.error(`Error sending welcome email to ${email}:`, error);
+                console.error(`Error sending email to ${email}:`, error);
             } else {
-                console.log(`Welcome email successfully sent to ${email}. ID: ${result.id}`);
+                console.log(`Email successfully sent to ${email}. ID: ${result.id}`);
             }
         } catch (error) {
-            console.error("Error in onNewSubscriber welcome email logic:", error);
+            console.error("Error in onNewSubscriber email logic:", error);
         }
     }
 );

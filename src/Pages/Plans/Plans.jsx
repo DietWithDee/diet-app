@@ -18,6 +18,7 @@ import {
 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import SEO from "../../Components/SEO";
+import InAppBrowserNotice from "../../Components/InAppBrowserNotice";
 import { logEvent } from "firebase/analytics";
 import { analytics } from "../../firebaseConfig";
 import PlanImg from "../../assets/Salad.webp"; // you can replace this with actual plan images
@@ -407,6 +408,7 @@ function Plans() {
         image={activePlan ? activePlan.img : undefined}
         url={activePlan ? `/plans#${activePlan.id}` : "/plans"}
       />
+      <InAppBrowserNotice />
       <div className="min-h-screen bg-gradient-to-br from-green-50 via-white to-emerald-50 py-20 px-6 lg:px-12">
         {/* Commented out Featured Image Carousel for future campaigns
         <div className="max-w-6xl mx-auto mb-4">

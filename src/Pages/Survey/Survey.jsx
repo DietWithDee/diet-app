@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import {
   CheckCircle2,
   AlertCircle,
@@ -14,12 +14,19 @@ import {
   Mail,
   ArrowRight,
   Star,
+  ExternalLink,
+  MessageCircle,
+  Tag,
+  ChevronDown,
 } from "lucide-react";
 import SEO from "../../Components/SEO";
 import ScrollToTop from "../../utils/ScrollToTop";
+import InAppBrowserNotice from "../../Components/InAppBrowserNotice";
 import { db, safeLogEvent } from "../../firebaseConfig";
 import { collection, addDoc, serverTimestamp } from "firebase/firestore";
 import { saveEmailToFirestore } from "../../firebaseUtils";
+import { plans } from "../../utils/plansData";
+import { useToast } from "../../Contexts/ToastContext";
 
 const QUESTIONS = [
   {
@@ -149,7 +156,72 @@ const getEaseDescription = (val) => {
   }
 };
 
+export const DISCOUNT_PLANS = {
+  "weight-loss": {
+    id: "weight-loss",
+    dropdownLabel: "Weight Loss",
+    planTitle: "Snatched & Nourished",
+    subtitle: "Gentle Weight Loss Guide with Familiar Ghanaian Meals",
+    code: "SNATCHED20",
+    normalPrice: "₵249",
+    discountPrice: "₵199.20",
+    savings: "₵49.80",
+    paystackUrl: "https://paystack.com/buy/snatched-and-nourished",
+    planId: "snatched-nourished",
+  },
+  "diabetes": {
+    id: "diabetes",
+    dropdownLabel: "Blood Sugar",
+    planTitle: "Blood Sugar Balance",
+    subtitle: "A Type 2 Diabetes & Pre-Diabetes Friendly Guide",
+    code: "SUGAR20",
+    normalPrice: "₵299",
+    discountPrice: "₵239.20",
+    savings: "₵59.80",
+    paystackUrl: "https://paystack.com/buy/blood-sugar-balance-plan",
+    planId: "blood-sugar-balance",
+  },
+  "hypertension": {
+    id: "hypertension",
+    dropdownLabel: "Hypertension Plan",
+    planTitle: "Pressure No Dey Catch Me",
+    subtitle: "A Hypertension-Friendly Plan & Heart-Smart Habits",
+    code: "PRESSURE20",
+    normalPrice: "₵299",
+    discountPrice: "₵239.20",
+    savings: "₵59.80",
+    paystackUrl: "https://paystack.com/buy/pressure-no-dey",
+    planId: "pressure-no-dey-catch-me",
+  },
+  "weight-gain": {
+    id: "weight-gain",
+    dropdownLabel: "Weight Gain",
+    planTitle: "The Weight Gain",
+    subtitle: "Wahala-Free High-Calorie Meal Plan",
+    code: "WEIGHT20",
+    normalPrice: "₵249",
+    discountPrice: "₵199.20",
+    savings: "₵49.80",
+    paystackUrl: "https://paystack.com/buy/the-weight-gain",
+    planId: "weight-gain",
+  },
+  "healthy-eating": {
+    id: "healthy-eating",
+    dropdownLabel: "Healthy Eating",
+    planTitle: "Back to Basics",
+    subtitle: "A 5-Day Healthy Eating Reset",
+    code: "HEALTHY20",
+    normalPrice: "₵349",
+    discountPrice: "₵279.20",
+    savings: "₵69.80",
+    paystackUrl: "https://paystack.com/buy/back-to-basics",
+    planId: "back-to-basics",
+  },
+};
+
 export default function Survey() {
+  const navigate = useNavigate();
+  const { showToast } = useToast();
   const [answers, setAnswers] = useState({
     goal: "",
     plan_awareness: "",
@@ -160,6 +232,7 @@ export default function Survey() {
     my_journey_usage: "",
     website_ease: 4,
     feedback: "",
+    selected_plan: "",
     email: "",
   });
 
@@ -173,11 +246,27 @@ export default function Survey() {
     safeLogEvent("survey_viewed", { page: "/survey" });
   }, []);
 
+  const getPlanConfig = (key) => {
+    return DISCOUNT_PLANS[key] || DISCOUNT_PLANS["healthy-eating"];
+  };
+
   const handleRadioChange = (questionId, value) => {
-    setAnswers((prev) => ({
-      ...prev,
-      [questionId]: value,
-    }));
+    setAnswers((prev) => {
+      const updated = {
+        ...prev,
+        [questionId]: value,
+      };
+      // If user selected Question 1 goal and hasn't picked a discount plan yet,
+      // intelligently pre-select the matching plan in the dropdown
+      if (questionId === "goal" && !prev.selected_plan) {
+        if (value === "weight-loss") updated.selected_plan = "weight-loss";
+        else if (value === "diabetes") updated.selected_plan = "diabetes";
+        else if (value === "hypertension") updated.selected_plan = "hypertension";
+        else if (value === "weight-gain") updated.selected_plan = "weight-gain";
+        else if (value === "healthy-habits" || value === "exploring") updated.selected_plan = "healthy-eating";
+      }
+      return updated;
+    });
     setErrorMessage("");
   };
 
@@ -207,9 +296,9 @@ export default function Survey() {
     setErrorMessage("");
   };
 
-  // 7 survey questions + 1 email question = 8 required fields
+  // 7 survey questions + 1 plan selection + 1 email question = 9 required fields
   const requiredQuestions = QUESTIONS.filter((q) => q.required);
-  const totalRequired = requiredQuestions.length + 1; // +1 for required email
+  const totalRequired = requiredQuestions.length + 2; // +1 plan dropdown + 1 required email
 
   const answeredSurveyCount = requiredQuestions.filter((q) => {
     const val = answers[q.id];
@@ -217,9 +306,10 @@ export default function Survey() {
     return Boolean(val);
   }).length;
 
+  const isPlanSelected = Boolean(answers.selected_plan);
   const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
   const isEmailValid = answers.email && emailRegex.test(answers.email.trim());
-  const answeredTotalCount = answeredSurveyCount + (isEmailValid ? 1 : 0);
+  const answeredTotalCount = answeredSurveyCount + (isPlanSelected ? 1 : 0) + (isEmailValid ? 1 : 0);
   const progressPercent = Math.round((answeredTotalCount / totalRequired) * 100);
 
   const handleSubmit = async (e) => {
@@ -239,6 +329,16 @@ export default function Survey() {
       }
     }
 
+    // Validate Selected Plan for 20% discount
+    if (!answers.selected_plan) {
+      setErrorMessage("Please select a plan you would be most interested in for your 20% discount.");
+      const planElem = document.getElementById("q-plan-dropdown");
+      if (planElem) {
+        planElem.scrollIntoView({ behavior: "smooth", block: "center" });
+      }
+      return;
+    }
+
     // Validate Email Address
     const cleanEmail = answers.email.trim().toLowerCase();
     if (!cleanEmail || !emailRegex.test(cleanEmail)) {
@@ -252,20 +352,27 @@ export default function Survey() {
 
     setIsSubmitting(true);
     const durationSeconds = Math.round((Date.now() - startTime) / 1000);
+    const chosenPlanConfig = getPlanConfig(answers.selected_plan);
 
     try {
-      // 1. Auto-subscribe email to newsletter collection
+      // 1. Auto-subscribe email to newsletter collection with selected plan & 20% code
       await saveEmailToFirestore(cleanEmail, {
         source: "survey",
+        selectedPlan: chosenPlanConfig.id,
+        planTitle: chosenPlanConfig.planTitle,
+        discountCode: chosenPlanConfig.code,
+        discountPercent: 20,
+        paystackUrl: chosenPlanConfig.paystackUrl,
         primaryGoal: answers.goal || "not-specified",
         planHesitation: answers.plan_hesitation || "not-specified",
-        discountCode: "SURVEY15",
         subscribedVia: "DietWithDee Community Survey",
       });
 
       // 2. Save full survey payload into surveys collection
       const surveyPayload = {
         email: cleanEmail,
+        selectedPlan: chosenPlanConfig.id,
+        discountCode: chosenPlanConfig.code,
         answers: {
           goal: answers.goal,
           plan_awareness: answers.plan_awareness,
@@ -276,6 +383,7 @@ export default function Survey() {
           my_journey_usage: answers.my_journey_usage,
           website_ease: answers.website_ease,
           feedback: answers.feedback.trim() || null,
+          selected_plan: chosenPlanConfig.id,
         },
         durationSeconds,
         submittedAt: serverTimestamp(),
@@ -287,7 +395,7 @@ export default function Survey() {
         await addDoc(collection(db, "surveys"), surveyPayload);
       }
 
-      safeLogEvent("survey_completed", { durationSeconds, email: cleanEmail });
+      safeLogEvent("survey_completed", { durationSeconds, email: cleanEmail, plan: chosenPlanConfig.id });
       setIsSubmitted(true);
       window.scrollTo({ top: 0, behavior: "smooth" });
     } catch (err) {
@@ -300,9 +408,12 @@ export default function Survey() {
     }
   };
 
-  const copyPromoCode = () => {
-    navigator.clipboard.writeText("SURVEY15");
+  const copyPromoCode = (code, withToast = true) => {
+    navigator.clipboard.writeText(code);
     setCopiedCode(true);
+    if (withToast) {
+      showToast(`Code ${code} copied! Paste under 'Have a discount code?' on Paystack.`, "success");
+    }
     setTimeout(() => setCopiedCode(false), 3000);
   };
 
@@ -311,9 +422,10 @@ export default function Survey() {
       <ScrollToTop />
       <SEO
         title="Community Survey & Feedback | DietWithDee"
-        description="Help us improve DietWithDee services. Answer a quick 2-minute survey and get an exclusive 15% discount on our meal plans and consultations."
+        description="Help us improve DietWithDee services. Answer a quick 2-minute survey and get an exclusive 20% discount on your chosen meal plan."
         url="/survey"
       />
+      <InAppBrowserNotice />
 
       <div className="min-h-screen bg-[#f8faf9] text-gray-800 py-10 sm:py-16 px-4 sm:px-6">
         <div className="max-w-2xl mx-auto">
@@ -340,73 +452,179 @@ export default function Survey() {
 
           {/* Submission Success View */}
           {isSubmitted ? (
-            <div className="bg-white rounded-3xl shadow-xl border border-emerald-100 overflow-hidden text-center p-8 sm:p-12 animate-fadeIn">
-              <div className="w-16 h-16 bg-emerald-100 text-emerald-600 rounded-full flex items-center justify-center mx-auto mb-6 shadow-inner">
-                <CheckCircle2 size={36} />
-              </div>
+            (() => {
+              const chosenPlanConfig = getPlanConfig(answers.selected_plan);
+              const matchedPlanObject = plans.find((p) => p.id === chosenPlanConfig.planId) || plans[0];
 
-              <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wider bg-emerald-50 text-emerald-700 border border-emerald-200 mb-3">
-                <Sparkles size={13} />
-                Thank you so much!
-              </span>
+              return (
+                <div className="bg-white rounded-3xl shadow-xl border border-blue-100 overflow-hidden text-center p-6 sm:p-10 animate-fadeIn">
+                  <div className="w-16 h-16 bg-blue-100 text-blue-600 rounded-full flex items-center justify-center mx-auto mb-5 shadow-inner">
+                    <CheckCircle2 size={36} />
+                  </div>
 
-              <h1 className="text-2xl sm:text-3xl font-black text-gray-900 mb-2">
-                Your feedback has been saved!
-              </h1>
-              <p className="text-gray-600 max-w-lg mx-auto text-sm sm:text-base leading-relaxed mb-6">
-                You're now subscribed to our weekly newsletter. Nana Ama and the DietWithDee team truly appreciate your thoughts and will use them to build better meal plans and content for you.
-              </p>
-
-              {/* Thank you bonus card */}
-              <div className="bg-gradient-to-br from-emerald-50 to-green-50/50 rounded-2xl border-2 border-dashed border-emerald-300 p-6 sm:p-7 max-w-md mx-auto mb-8 text-left relative overflow-hidden">
-                <div className="flex items-center gap-2 text-emerald-800 font-bold text-sm mb-1">
-                  <Gift size={18} className="text-emerald-600" />
-                  <span>Your 15% Thank-You Gift Voucher</span>
-                </div>
-                <p className="text-xs text-emerald-700 mb-4">
-                  Use this coupon code at checkout for 15% off any personalized Meal Plan or 1-on-1 Consultation:
-                </p>
-
-                <div className="flex items-center justify-between bg-white px-4 py-3 rounded-xl border border-emerald-200 shadow-sm">
-                  <span className="font-mono font-black text-lg tracking-widest text-emerald-800">
-                    SURVEY15
+                  <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wider bg-blue-50 text-blue-700 border border-blue-200 mb-3">
+                    <Sparkles size={13} />
+                    Thank you so much!
                   </span>
-                  <button
-                    onClick={copyPromoCode}
-                    className="flex items-center gap-1.5 px-3 py-1.5 bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-semibold rounded-lg transition-colors cursor-pointer"
-                  >
-                    {copiedCode ? (
-                      <>
-                        <Check size={14} />
-                        Copied!
-                      </>
-                    ) : (
-                      <>
-                        <Copy size={14} />
-                        Copy Code
-                      </>
-                    )}
-                  </button>
-                </div>
-              </div>
 
-              <div className="flex flex-col sm:flex-row items-center justify-center gap-3">
-                <Link
-                  to="/plans"
-                  className="w-full sm:w-auto px-6 py-3 bg-gradient-to-r from-green-600 to-emerald-600 text-white font-bold rounded-xl shadow-md hover:shadow-lg transition-all text-sm flex items-center justify-center gap-2"
-                >
-                  Explore Meal Plans <ArrowRight size={16} />
-                </Link>
-                <a
-                  href="https://wa.me/233592330870?text=Hello%20Dee%2C%20I%20just%20completed%20the%20survey%20and%20would%20like%20to%20ask%20about%20a%20consultation!"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="w-full sm:w-auto px-6 py-3 bg-white text-emerald-700 font-bold border border-emerald-300 rounded-xl hover:bg-emerald-50 transition-colors text-sm flex items-center justify-center gap-2"
-                >
-                  Chat with Dee on WhatsApp
-                </a>
-              </div>
-            </div>
+                  <h1 className="text-2xl sm:text-3xl font-black text-gray-900 mb-2">
+                    Your feedback has been saved!
+                  </h1>
+                  <p className="text-gray-600 max-w-lg mx-auto text-sm sm:text-base leading-relaxed mb-4">
+                    You're now subscribed to our weekly newsletter. Nana Ama and the DietWithDee team truly appreciate your thoughts!
+                  </p>
+
+                  {/* Email backup confirmation chip */}
+                  <div className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-blue-50/70 border border-blue-200 text-xs text-blue-900 max-w-lg mx-auto mb-6 text-left">
+                    <Mail size={16} className="text-blue-600 flex-shrink-0" />
+                    <span>
+                      We have sent your <strong>20% discount code ({chosenPlanConfig.code})</strong> and direct Paystack link to <strong className="text-blue-950 font-bold">{answers.email}</strong>.
+                    </span>
+                  </div>
+
+                  {/* 20% Voucher Box */}
+                  <div className="bg-gradient-to-br from-blue-50 via-sky-50 to-indigo-50/40 rounded-2xl border-2 border-dashed border-blue-300 p-5 sm:p-6 max-w-lg mx-auto mb-6 text-left relative overflow-hidden shadow-sm">
+                    <div className="flex items-center justify-between gap-2 mb-1.5">
+                      <div className="flex items-center gap-1.5 text-blue-900 font-bold text-xs uppercase tracking-wider">
+                        <Gift size={16} className="text-blue-600" />
+                        <span>Your 20% Discount Code</span>
+                      </div>
+                      <span className="bg-blue-600 text-white font-black text-[10px] px-2.5 py-0.5 rounded-full uppercase tracking-wider">
+                        20% OFF
+                      </span>
+                    </div>
+                    <p className="text-xs text-blue-800 mb-3">
+                      Valid on your selected plan: <strong>{chosenPlanConfig.planTitle}</strong>
+                    </p>
+
+                    <div className="flex items-center justify-between bg-white px-4 py-3 rounded-xl border border-blue-200 shadow-sm">
+                      <span className="font-mono font-black text-xl tracking-widest text-blue-900">
+                        {chosenPlanConfig.code}
+                      </span>
+                      <button
+                        onClick={() => copyPromoCode(chosenPlanConfig.code, true)}
+                        className="flex items-center gap-1.5 px-3 py-1.5 bg-blue-600 hover:bg-blue-700 text-white text-xs font-semibold rounded-lg transition-colors cursor-pointer"
+                      >
+                        {copiedCode ? (
+                          <>
+                            <Check size={14} />
+                            Copied!
+                          </>
+                        ) : (
+                          <>
+                            <Copy size={14} />
+                            Copy Code
+                          </>
+                        )}
+                      </button>
+                    </div>
+                  </div>
+
+                  {/* Selected Plan Card with BLUE BUTTON to Paystack */}
+                  <div className="bg-white rounded-2xl border-2 border-blue-200 p-5 sm:p-6 max-w-lg mx-auto mb-6 text-left shadow-md relative overflow-hidden">
+                    <div className="flex items-center justify-between gap-2 mb-3">
+                      <span className="bg-blue-100 text-blue-800 text-[11px] font-bold px-2.5 py-1 rounded-md inline-flex items-center gap-1">
+                        🎯 Selected: {chosenPlanConfig.dropdownLabel}
+                      </span>
+                      <span className="text-xs font-bold text-blue-700 bg-blue-50 px-2 py-0.5 rounded border border-blue-100">
+                        Save {chosenPlanConfig.savings} (20%)
+                      </span>
+                    </div>
+
+                    <div className="flex gap-4 items-start mb-4">
+                      {matchedPlanObject.img && (
+                        <img
+                          src={matchedPlanObject.img}
+                          alt={chosenPlanConfig.planTitle}
+                          className="w-20 h-20 sm:w-24 sm:h-24 object-cover rounded-xl border border-blue-100 flex-shrink-0 shadow-sm"
+                        />
+                      )}
+                      <div className="flex-1 min-w-0">
+                        <h2 className="text-lg sm:text-xl font-black text-gray-900 leading-snug">
+                          {chosenPlanConfig.planTitle}
+                        </h2>
+                        <p className="text-xs text-gray-500 mb-2">
+                          {chosenPlanConfig.subtitle}
+                        </p>
+                        <div className="flex items-baseline gap-2">
+                          <span className="text-gray-400 line-through text-sm font-semibold">
+                            {chosenPlanConfig.normalPrice}
+                          </span>
+                          <span className="text-xl sm:text-2xl font-black text-blue-700">
+                            {chosenPlanConfig.discountPrice}
+                          </span>
+                          <span className="text-[11px] font-bold text-blue-600 uppercase tracking-wide">
+                            (With {chosenPlanConfig.code})
+                          </span>
+                        </div>
+                      </div>
+                    </div>
+
+                    {matchedPlanObject.features && (
+                      <ul className="text-xs text-gray-600 space-y-1.5 mb-5 bg-gray-50/70 p-3 rounded-xl border border-gray-100">
+                        {matchedPlanObject.features.slice(0, 3).map((feat, idx) => (
+                          <li key={idx} className="flex items-center gap-2">
+                            <CheckCircle2 size={13} className="text-blue-600 flex-shrink-0" />
+                            <span>{feat}</span>
+                          </li>
+                        ))}
+                      </ul>
+                    )}
+
+                    {/* BLUE BUTTON directly linked to Paystack */}
+                    <a
+                      href={chosenPlanConfig.paystackUrl}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      onClick={() => {
+                        navigator.clipboard.writeText(chosenPlanConfig.code);
+                        showToast(`Code ${chosenPlanConfig.code} copied! Opening Paystack...`, "success");
+                      }}
+                      className="w-full py-4 bg-blue-600 hover:bg-blue-700 text-white font-extrabold rounded-xl shadow-md hover:shadow-lg transition-all text-sm flex items-center justify-center gap-2 cursor-pointer uppercase tracking-wider"
+                    >
+                      <span>Claim 20% Off & Pay on Paystack</span>
+                      <ExternalLink size={16} />
+                    </a>
+                  </div>
+
+                  {/* Clear Paystack Checkout Instructions */}
+                  <div className="bg-blue-50/80 border border-blue-200 rounded-2xl p-4 max-w-lg mx-auto mb-6 text-left text-xs text-blue-900 leading-relaxed">
+                    <p className="font-bold flex items-center gap-1.5 mb-2 text-blue-950 text-sm">
+                      <Tag size={15} className="text-blue-700" />
+                      Clear Instructions: How to use your code on Paystack
+                    </p>
+                    <ol className="list-decimal pl-4 space-y-1.5 text-blue-900 font-medium">
+                      <li>Click the <strong>blue button above</strong> to open your Paystack payment page.</li>
+                      <li>On Paystack, tap <strong className="underline">"Have a discount code?"</strong> right below the plan price.</li>
+                      <li>Paste your code <code className="bg-white border border-blue-300 font-bold px-1.5 py-0.5 rounded text-blue-800">{chosenPlanConfig.code}</code> and tap Apply.</li>
+                      <li>Your price will drop to <strong>{chosenPlanConfig.discountPrice}</strong> (saving 20%). Pay via Mobile Money (MTN / Telecel) or Bank Card to receive your plan!</li>
+                    </ol>
+                  </div>
+
+                  {/* Consultation & Browse All Plans Actions */}
+                  <div className="flex flex-col sm:flex-row items-center justify-center gap-3 max-w-lg mx-auto">
+                    <a
+                      href={`https://wa.me/233592330870?text=${encodeURIComponent(
+                        `Hello Dee, I just completed your survey and got discount code ${chosenPlanConfig.code}! I'd like to ask about booking a 1-on-1 consultation.`
+                      )}`}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="w-full sm:w-1/2 px-4 py-3 bg-[#25D366] hover:bg-[#20ba5a] text-white font-bold rounded-xl shadow-sm transition-colors text-xs flex items-center justify-center gap-1.5"
+                    >
+                      <MessageCircle size={15} />
+                      <span>1-on-1 Consultation (WhatsApp)</span>
+                    </a>
+                    <Link
+                      to="/plans"
+                      className="w-full sm:w-1/2 px-4 py-3 bg-white text-gray-800 font-bold border border-gray-300 rounded-xl hover:bg-gray-50 transition-colors text-xs flex items-center justify-center gap-1.5 shadow-sm"
+                    >
+                      <span>Browse All 5 Plans</span>
+                      <ExternalLink size={14} />
+                    </Link>
+                  </div>
+                </div>
+              );
+            })()
           ) : (
             <form onSubmit={handleSubmit} className="space-y-4 sm:space-y-5">
               {/* Header Card (Google Forms Minimal Signature) */}
@@ -439,7 +657,7 @@ export default function Survey() {
                     </span>
                     <span className="flex items-center gap-1 text-emerald-700 font-semibold">
                       <Gift size={14} />
-                      Includes 15% discount bonus
+                      Includes 20% discount bonus
                     </span>
                   </div>
                 </div>
@@ -613,41 +831,115 @@ export default function Survey() {
                 />
               </div>
 
-              {/* Required Email & Auto-Subscribe Card (Question 10) */}
+              {/* Plan Dropdown & Email Submission Card (Question 10) */}
               <div
-                id="q-email"
+                id="q-plan-dropdown"
                 className={`bg-white rounded-2xl shadow-sm border transition-all duration-200 p-6 sm:p-7 ${
-                  isEmailValid ? "border-emerald-200/80 bg-white" : "border-gray-100"
+                  isPlanSelected && isEmailValid ? "border-emerald-200/80 bg-white ring-1 ring-emerald-100" : "border-gray-100"
                 }`}
               >
-                <div className="mb-4">
-                  <div className="flex items-center gap-1.5 text-xs font-bold uppercase tracking-wider text-emerald-700 mb-1">
-                    <Mail size={14} />
-                    <span>Final Step & 15% Reward</span>
+                <div className="mb-5">
+                  <div className="flex items-center gap-1.5 text-xs font-bold uppercase tracking-wider text-blue-700 mb-1">
+                    <Gift size={15} />
+                    <span>Final Step & 20% Discount Reward</span>
                   </div>
                   <h2 className="text-base sm:text-lg font-bold text-gray-900 leading-snug">
-                    10. Enter your email address to submit <span className="text-red-500">*</span>
+                    10. Claim Your 20% Discount Voucher <span className="text-red-500">*</span>
                   </h2>
                   <p className="text-xs sm:text-sm text-gray-600 mt-1.5 leading-relaxed">
-                    We'll email you your exclusive 15% discount voucher. Entering your email also automatically subscribes you to our free weekly newsletter for healthy Ghanaian meal plans and dietitian advice (you can unsubscribe anytime).
+                    Choose the plan you want 20% off on, then enter your email. We'll instantly generate your code and email your voucher with a direct link to Paystack!
                   </p>
                 </div>
 
-                <div className="relative">
-                  <input
-                    type="email"
-                    required
-                    value={answers.email}
-                    onChange={(e) => handleTextChange("email", e.target.value)}
-                    placeholder="e.g. yourname@gmail.com"
-                    className="w-full px-4 py-3.5 pl-11 rounded-xl border border-gray-200 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-transparent transition-all placeholder:text-gray-400 bg-gray-50/50 focus:bg-white"
-                  />
-                  <Mail size={18} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-gray-400" />
+                {/* Prompt & Dropdown as requested */}
+                <div className="space-y-2 mb-5">
+                  <label
+                    htmlFor="survey-plan-select"
+                    className="block text-xs sm:text-sm font-bold text-gray-800"
+                  >
+                    Select a plan you would be most interested in for a 20% discount:{" "}
+                    <span className="text-red-500">*</span>
+                  </label>
+                  <div className="relative">
+                    <select
+                      id="survey-plan-select"
+                      required
+                      value={answers.selected_plan}
+                      onChange={(e) => handleTextChange("selected_plan", e.target.value)}
+                      className={`w-full px-4 py-3.5 pr-10 rounded-xl border text-sm font-medium appearance-none transition-all cursor-pointer ${
+                        answers.selected_plan
+                          ? "border-blue-300 bg-blue-50/30 text-gray-900 focus:ring-2 focus:ring-blue-500 focus:bg-white"
+                          : "border-gray-200 bg-gray-50/50 text-gray-500 focus:ring-2 focus:ring-emerald-500 focus:bg-white"
+                      }`}
+                    >
+                      <option value="" disabled>
+                        -- Select a plan for 20% discount --
+                      </option>
+                      <option value="weight-loss">Weight Loss (Snatched & Nourished)</option>
+                      <option value="diabetes">Blood Sugar (Diabetes Management)</option>
+                      <option value="hypertension">Hypertension Plan (Blood Pressure)</option>
+                      <option value="weight-gain">Weight Gain (The Weight Gain)</option>
+                      <option value="healthy-eating">Healthy Eating (Back to Basics)</option>
+                    </select>
+                    <ChevronDown
+                      size={18}
+                      className="absolute right-3.5 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none"
+                    />
+                  </div>
+
+                  {/* Selected Plan 20% Preview Pill */}
+                  {answers.selected_plan && DISCOUNT_PLANS[answers.selected_plan] && (
+                    <div className="p-3 bg-blue-50/80 border border-blue-200 rounded-xl flex items-center justify-between gap-3 text-xs animate-fadeIn mt-2.5">
+                      <div className="flex items-center gap-2">
+                        <Tag size={15} className="text-blue-600 flex-shrink-0" />
+                        <div>
+                          <span className="font-bold text-blue-950">
+                            {DISCOUNT_PLANS[answers.selected_plan].planTitle}
+                          </span>
+                          <span className="text-blue-700 ml-1.5 font-medium">
+                            • Code: <strong className="font-mono font-bold text-blue-900 bg-white px-1.5 py-0.5 rounded border border-blue-200">{DISCOUNT_PLANS[answers.selected_plan].code}</strong>
+                          </span>
+                        </div>
+                      </div>
+                      <div className="text-right flex-shrink-0">
+                        <span className="text-gray-400 line-through text-[11px] mr-1">
+                          {DISCOUNT_PLANS[answers.selected_plan].normalPrice}
+                        </span>
+                        <span className="text-blue-800 font-extrabold text-xs">
+                          {DISCOUNT_PLANS[answers.selected_plan].discountPrice}
+                        </span>
+                      </div>
+                    </div>
+                  )}
                 </div>
 
-                <div className="mt-3 flex items-center gap-2 text-xs text-gray-500">
-                  <CheckCircle2 size={14} className="text-emerald-600 flex-shrink-0" />
-                  <span>Subscribes to free weekly newsletter • No spam, ever</span>
+                {/* Email Input Field */}
+                <div id="q-email" className="space-y-2">
+                  <label
+                    htmlFor="survey-email-input"
+                    className="block text-xs sm:text-sm font-bold text-gray-800"
+                  >
+                    Enter your email address: <span className="text-red-500">*</span>
+                  </label>
+                  <div className="relative">
+                    <input
+                      id="survey-email-input"
+                      type="email"
+                      required
+                      value={answers.email}
+                      onChange={(e) => handleTextChange("email", e.target.value)}
+                      placeholder="e.g. yourname@gmail.com"
+                      className="w-full px-4 py-3.5 pl-11 rounded-xl border border-gray-200 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-transparent transition-all placeholder:text-gray-400 bg-gray-50/50 focus:bg-white"
+                    />
+                    <Mail size={18} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-gray-400" />
+                  </div>
+
+                  <div className="mt-3 flex items-center gap-2 text-xs text-gray-500">
+                    <CheckCircle2 size={14} className="text-emerald-600 flex-shrink-0" />
+                    <span>
+                      We'll send your 20% coupon & Paystack link to this email • Free weekly newsletter • No spam
+                    </span>
+                  </div>
                 </div>
               </div>
 
@@ -673,7 +965,7 @@ export default function Survey() {
                     </>
                   ) : (
                     <>
-                      <span>Submit Survey & Claim 15% Code</span>
+                      <span>Submit Survey & Claim 20% Code</span>
                       <ChevronRight size={18} />
                     </>
                   )}

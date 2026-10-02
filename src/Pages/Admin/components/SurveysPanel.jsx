@@ -359,9 +359,11 @@ export default function SurveysPanel() {
         ? "healthy weight gain"
         : "healthy eating with Ghanaian foods";
 
+    const userCode = survey.discountCode || (survey.answers?.selected_plan === "weight-loss" ? "SNATCHED20" : survey.answers?.selected_plan === "diabetes" ? "SUGAR20" : survey.answers?.selected_plan === "hypertension" ? "PRESSURE20" : survey.answers?.selected_plan === "weight-gain" ? "WEIGHT20" : "HEALTHY20");
+
     const subject = encodeURIComponent("Thank you for your DietWithDee feedback — quick note from Dee!");
     const body = encodeURIComponent(
-      `Hi there,\n\nThank you so much for taking a moment to complete our DietWithDee survey! I noticed your main health goal is ${goalName}.\n\nI saw your note regarding our meal plans and consultations. If you ever have any questions about which plan fits your daily routine best, or if you'd like a quick 5-minute chat to get clear guidance, please feel free to reply to this email or reach out on WhatsApp at +233 59 233 0870.\n\nAlso, don't forget you can use code SURVEY15 for 15% off any plan or consultation at checkout!\n\nWarm regards,\nNana Ama Dwamena (Dee)\nRegistered Dietitian, DietWithDee`
+      `Hi there,\n\nThank you so much for taking a moment to complete our DietWithDee survey! I noticed your main health goal is ${goalName}.\n\nI saw your note regarding our meal plans and consultations. If you ever have any questions about which plan fits your daily routine best, or if you'd like a quick 5-minute chat to get clear guidance, please feel free to reply to this email or reach out on WhatsApp at +233 59 233 0870.\n\nAlso, don't forget you can use your exclusive 20% discount code ${userCode} for 20% off your plan at checkout!\n\nWarm regards,\nNana Ama Dwamena (Dee)\nRegistered Dietitian, DietWithDee`
     );
 
     return `mailto:${email}?subject=${subject}&body=${body}`;
@@ -616,9 +618,16 @@ export default function SurveysPanel() {
                               <Mail size={13} className="text-emerald-600 flex-shrink-0" />
                               <span className="truncate max-w-[160px] sm:max-w-none">{email}</span>
                             </div>
-                            <span className="text-[10px] text-gray-400 block mt-0.5">
-                              {s.submittedAt?.toDate?.()?.toLocaleDateString() || "Recently"}
-                            </span>
+                            <div className="flex items-center gap-1.5 flex-wrap mt-0.5">
+                              <span className="text-[10px] text-gray-400">
+                                {s.submittedAt?.toDate?.()?.toLocaleDateString() || "Recently"}
+                              </span>
+                              {(s.discountCode || s.selectedPlan || s.answers?.selected_plan) && (
+                                <span className="px-1.5 py-0.2 rounded text-[10px] font-bold bg-blue-50 text-blue-700 border border-blue-200">
+                                  🎟️ {s.discountCode || (s.answers?.selected_plan === "weight-loss" ? "SNATCHED20" : s.answers?.selected_plan === "diabetes" ? "SUGAR20" : s.answers?.selected_plan === "hypertension" ? "PRESSURE20" : s.answers?.selected_plan === "weight-gain" ? "WEIGHT20" : "HEALTHY20")}
+                                </span>
+                              )}
+                            </div>
                           </td>
 
                           <td className="py-3.5 px-3">
