@@ -13,7 +13,8 @@ const routes = [
   "/my-journey/",
   "/terms/",
   "/privacy/",
-  "/subscribe/"
+  "/subscribe/",
+  "/survey/"
 ];
 
 const urls = routes.map(

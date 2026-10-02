@@ -31,6 +31,7 @@ import TestimonialAdmin from "../Pages/Admin/components/TestimonialAdmin";
 import TerraVee from "../Pages/TerraVee/TerraVee";
 import Subscribe from "../Pages/Subscribe/Subscribe";
 import OnTrack from "../Pages/OnTrack/OnTrack";
+import Survey from "../Pages/Survey/Survey";
 
 // Inner component so usePageTracking can access the router context
 const AppRoutes = () => {
@@ -58,6 +59,8 @@ const AppRoutes = () => {
         <Route path="/OnTrack" element={<OnTrack />} />
         <Route path="/terravee" element={<TerraVee />} />
         <Route path="/subscribe" element={<Subscribe />} />
+        <Route path="/survey" element={<Survey />} />
+        <Route path="/Survey" element={<Survey />} />
         <Route path="/checkout-success" element={<CheckoutSuccess />} />
         <Route path="/submit-testimonial" element={<SubmitTestimonial />} />
         <Route path="/success-stories" element={<SuccessStories />} />

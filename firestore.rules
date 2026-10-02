@@ -65,6 +65,13 @@ service cloud.firestore {
       allow update, delete: if isAdmin();
     }
 
+    match /surveys/{surveyId} {
+      // Anyone can submit survey responses
+      allow create: if true;
+      // Admin only - can view, export, or delete survey responses
+      allow read, update, delete: if isAdmin();
+    }
+
     // Default deny for anything not explicitly specified above
     match /{document=**} {
       allow read, write: if false;

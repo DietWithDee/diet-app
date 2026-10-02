@@ -10,6 +10,7 @@ import BookingsPanel from './components/BookingsPanel';
 import EventsManager from './components/EventsManager';
 import SubscribersPanel from './components/SubscribersPanel';
 import TestimonialAdmin from './components/TestimonialAdmin';
+import SurveysPanel from './components/SurveysPanel';
 import { collection, query, where, onSnapshot } from 'firebase/firestore';
 import { db } from '../../firebaseConfig';
 
@@ -295,6 +296,12 @@ const AdminDashboard = () => {
             >
               Subscribers
             </button>
+            <button 
+              onClick={() => setActiveTab('surveys')}
+              className={`flex-1 py-4 px-6 text-center font-bold transition-all ${activeTab === 'surveys' ? 'text-emerald-600 border-b-2 border-emerald-600 bg-emerald-50' : 'text-gray-400 hover:text-gray-600 hover:bg-gray-50'}`}
+            >
+              Surveys
+            </button>
           </div>
 
 
@@ -327,6 +334,8 @@ const AdminDashboard = () => {
               <TestimonialAdmin />
             ) : activeTab === 'subscribers' ? (
               <SubscribersPanel showNotification={showNotification} />
+            ) : activeTab === 'surveys' ? (
+              <SurveysPanel />
             ) : (
               <BookingsPanel showNotification={showNotification} />
             )}

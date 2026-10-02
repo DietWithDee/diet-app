@@ -19,6 +19,7 @@ const ROUTES = [
   "/terms/",
   "/privacy/",
   "/subscribe/",
+  "/survey/",
 ];
 
 function outPathFor(route) {
