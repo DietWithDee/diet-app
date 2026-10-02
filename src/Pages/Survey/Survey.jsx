@@ -22,8 +22,9 @@ import {
 import SEO from "../../Components/SEO";
 import ScrollToTop from "../../utils/ScrollToTop";
 import InAppBrowserNotice from "../../Components/InAppBrowserNotice";
-import { db, safeLogEvent } from "../../firebaseConfig";
+import { db, functions, safeLogEvent } from "../../firebaseConfig";
 import { collection, addDoc, serverTimestamp } from "firebase/firestore";
+import { httpsCallable } from "firebase/functions";
 import { saveEmailToFirestore } from "../../firebaseUtils";
 import { plans } from "../../utils/plansData";
 import { useToast } from "../../Contexts/ToastContext";
@@ -395,6 +396,22 @@ export default function Survey() {
         await addDoc(collection(db, "surveys"), surveyPayload);
       }
 
+      // 3. Directly trigger email dispatch via callable function for instant delivery
+      if (functions) {
+        try {
+          const sendVoucher = httpsCallable(functions, "sendSurveyDiscountEmail");
+          sendVoucher({
+            email: cleanEmail,
+            selectedPlan: chosenPlanConfig.id,
+            discountCode: chosenPlanConfig.code,
+          }).catch((callErr) => {
+            console.log("Callable email dispatch deferred to Cloud Function trigger:", callErr?.message);
+          });
+        } catch (callErr) {
+          // onNewSurveySubmission trigger handles it
+        }
+      }
+
       safeLogEvent("survey_completed", { durationSeconds, email: cleanEmail, plan: chosenPlanConfig.id });
       setIsSubmitted(true);
       window.scrollTo({ top: 0, behavior: "smooth" });
@@ -450,128 +467,108 @@ export default function Survey() {
             </div>
           )}
 
-          {/* Submission Success View */}
+          {/* Submission Success View — Clean, Intentional, On-Brand */}
           {isSubmitted ? (
             (() => {
               const chosenPlanConfig = getPlanConfig(answers.selected_plan);
               const matchedPlanObject = plans.find((p) => p.id === chosenPlanConfig.planId) || plans[0];
 
               return (
-                <div className="bg-white rounded-3xl shadow-xl border border-blue-100 overflow-hidden text-center p-6 sm:p-10 animate-fadeIn">
-                  <div className="w-16 h-16 bg-blue-100 text-blue-600 rounded-full flex items-center justify-center mx-auto mb-5 shadow-inner">
-                    <CheckCircle2 size={36} />
-                  </div>
-
-                  <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wider bg-blue-50 text-blue-700 border border-blue-200 mb-3">
-                    <Sparkles size={13} />
-                    Thank you so much!
-                  </span>
-
-                  <h1 className="text-2xl sm:text-3xl font-black text-gray-900 mb-2">
-                    Your feedback has been saved!
-                  </h1>
-                  <p className="text-gray-600 max-w-lg mx-auto text-sm sm:text-base leading-relaxed mb-4">
-                    You're now subscribed to our weekly newsletter. Nana Ama and the DietWithDee team truly appreciate your thoughts!
-                  </p>
-
-                  {/* Email backup confirmation chip */}
-                  <div className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-blue-50/70 border border-blue-200 text-xs text-blue-900 max-w-lg mx-auto mb-6 text-left">
-                    <Mail size={16} className="text-blue-600 flex-shrink-0" />
-                    <span>
-                      We have sent your <strong>20% discount code ({chosenPlanConfig.code})</strong> and direct Paystack link to <strong className="text-blue-950 font-bold">{answers.email}</strong>.
+                <div className="bg-white rounded-3xl shadow-sm border border-emerald-100 overflow-hidden p-5 sm:p-8 animate-fadeIn max-w-xl mx-auto">
+                  {/* Subtle Success Check & Heading */}
+                  <div className="text-center mb-6">
+                    <div className="w-12 h-12 bg-emerald-50 text-emerald-600 rounded-full flex items-center justify-center mx-auto mb-3 border border-emerald-100">
+                      <CheckCircle2 size={26} />
+                    </div>
+                    <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[11px] font-bold uppercase tracking-wider bg-emerald-50 text-emerald-800 border border-emerald-200 mb-2">
+                      <Sparkles size={12} />
+                      Survey Completed
                     </span>
+                    <h1 className="text-xl sm:text-2xl font-black text-gray-900 tracking-tight">
+                      Here is your 20% Discount Voucher
+                    </h1>
+                    <p className="text-xs sm:text-sm text-gray-500 mt-1 max-w-md mx-auto">
+                      A copy has also been sent to <strong className="text-gray-800 font-semibold">{answers.email}</strong>.
+                    </p>
                   </div>
 
-                  {/* 20% Voucher Box */}
-                  <div className="bg-gradient-to-br from-blue-50 via-sky-50 to-indigo-50/40 rounded-2xl border-2 border-dashed border-blue-300 p-5 sm:p-6 max-w-lg mx-auto mb-6 text-left relative overflow-hidden shadow-sm">
-                    <div className="flex items-center justify-between gap-2 mb-1.5">
-                      <div className="flex items-center gap-1.5 text-blue-900 font-bold text-xs uppercase tracking-wider">
-                        <Gift size={16} className="text-blue-600" />
-                        <span>Your 20% Discount Code</span>
-                      </div>
-                      <span className="bg-blue-600 text-white font-black text-[10px] px-2.5 py-0.5 rounded-full uppercase tracking-wider">
+                  {/* UNIFIED TICKET CARD (Clean, On-Brand, Single Container) */}
+                  <div className="bg-gradient-to-b from-[#fbfdfc] to-white rounded-2xl border border-emerald-200/90 shadow-sm p-5 sm:p-6 mb-5 relative overflow-hidden">
+                    {/* Top Decorative Header */}
+                    <div className="flex items-center justify-between gap-2 mb-4 pb-3 border-b border-dashed border-emerald-100">
+                      <span className="text-[11px] font-bold text-emerald-800 uppercase tracking-wider flex items-center gap-1.5">
+                        <Tag size={13} className="text-emerald-600" />
+                        Selected Plan Voucher
+                      </span>
+                      <span className="bg-emerald-600 text-white text-[11px] font-black px-2.5 py-0.5 rounded-full uppercase tracking-wider shadow-sm">
                         20% OFF
                       </span>
                     </div>
-                    <p className="text-xs text-blue-800 mb-3">
-                      Valid on your selected plan: <strong>{chosenPlanConfig.planTitle}</strong>
-                    </p>
 
-                    <div className="flex items-center justify-between bg-white px-4 py-3 rounded-xl border border-blue-200 shadow-sm">
-                      <span className="font-mono font-black text-xl tracking-widest text-blue-900">
-                        {chosenPlanConfig.code}
-                      </span>
-                      <button
-                        onClick={() => copyPromoCode(chosenPlanConfig.code, true)}
-                        className="flex items-center gap-1.5 px-3 py-1.5 bg-blue-600 hover:bg-blue-700 text-white text-xs font-semibold rounded-lg transition-colors cursor-pointer"
-                      >
-                        {copiedCode ? (
-                          <>
-                            <Check size={14} />
-                            Copied!
-                          </>
-                        ) : (
-                          <>
-                            <Copy size={14} />
-                            Copy Code
-                          </>
-                        )}
-                      </button>
-                    </div>
-                  </div>
-
-                  {/* Selected Plan Card with BLUE BUTTON to Paystack */}
-                  <div className="bg-white rounded-2xl border-2 border-blue-200 p-5 sm:p-6 max-w-lg mx-auto mb-6 text-left shadow-md relative overflow-hidden">
-                    <div className="flex items-center justify-between gap-2 mb-3">
-                      <span className="bg-blue-100 text-blue-800 text-[11px] font-bold px-2.5 py-1 rounded-md inline-flex items-center gap-1">
-                        🎯 Selected: {chosenPlanConfig.dropdownLabel}
-                      </span>
-                      <span className="text-xs font-bold text-blue-700 bg-blue-50 px-2 py-0.5 rounded border border-blue-100">
-                        Save {chosenPlanConfig.savings} (20%)
-                      </span>
-                    </div>
-
-                    <div className="flex gap-4 items-start mb-4">
+                    {/* Plan Summary Row */}
+                    <div className="flex items-center gap-3.5 mb-4">
                       {matchedPlanObject.img && (
                         <img
                           src={matchedPlanObject.img}
                           alt={chosenPlanConfig.planTitle}
-                          className="w-20 h-20 sm:w-24 sm:h-24 object-cover rounded-xl border border-blue-100 flex-shrink-0 shadow-sm"
+                          className="w-16 h-16 sm:w-18 sm:h-18 object-cover rounded-xl border border-emerald-100 flex-shrink-0 shadow-xs"
                         />
                       )}
                       <div className="flex-1 min-w-0">
-                        <h2 className="text-lg sm:text-xl font-black text-gray-900 leading-snug">
+                        <h2 className="text-base sm:text-lg font-bold text-gray-900 leading-snug">
                           {chosenPlanConfig.planTitle}
                         </h2>
-                        <p className="text-xs text-gray-500 mb-2">
+                        <p className="text-xs text-gray-500 truncate mb-1">
                           {chosenPlanConfig.subtitle}
                         </p>
                         <div className="flex items-baseline gap-2">
-                          <span className="text-gray-400 line-through text-sm font-semibold">
+                          <span className="text-gray-400 line-through text-xs sm:text-sm">
                             {chosenPlanConfig.normalPrice}
                           </span>
-                          <span className="text-xl sm:text-2xl font-black text-blue-700">
+                          <span className="text-lg sm:text-xl font-black text-emerald-700">
                             {chosenPlanConfig.discountPrice}
                           </span>
-                          <span className="text-[11px] font-bold text-blue-600 uppercase tracking-wide">
-                            (With {chosenPlanConfig.code})
+                          <span className="text-[11px] font-semibold text-emerald-600">
+                            (Save {chosenPlanConfig.savings})
                           </span>
                         </div>
                       </div>
                     </div>
 
-                    {matchedPlanObject.features && (
-                      <ul className="text-xs text-gray-600 space-y-1.5 mb-5 bg-gray-50/70 p-3 rounded-xl border border-gray-100">
-                        {matchedPlanObject.features.slice(0, 3).map((feat, idx) => (
-                          <li key={idx} className="flex items-center gap-2">
-                            <CheckCircle2 size={13} className="text-blue-600 flex-shrink-0" />
-                            <span>{feat}</span>
-                          </li>
-                        ))}
-                      </ul>
-                    )}
+                    {/* High-Contrast Copyable Coupon Box */}
+                    <div className="bg-white rounded-xl border-2 border-dashed border-emerald-300 p-3 sm:p-4 mb-4 text-center">
+                      <div className="text-[10px] sm:text-xs font-bold uppercase tracking-wider text-gray-400 mb-1">
+                        Your Discount Code
+                      </div>
+                      <div className="flex items-center justify-between gap-2 bg-emerald-50/50 p-2 sm:p-2.5 rounded-lg border border-emerald-100">
+                        <span className="font-mono font-black text-lg sm:text-xl text-emerald-950 tracking-widest pl-2">
+                          {chosenPlanConfig.code}
+                        </span>
+                        <button
+                          type="button"
+                          onClick={() => copyPromoCode(chosenPlanConfig.code, true)}
+                          className={`flex items-center gap-1.5 px-3 py-2 rounded-md text-xs font-bold transition-all cursor-pointer ${
+                            copiedCode
+                              ? "bg-emerald-600 text-white shadow-sm"
+                              : "bg-emerald-700 hover:bg-emerald-800 text-white"
+                          }`}
+                        >
+                          {copiedCode ? (
+                            <>
+                              <Check size={14} />
+                              <span>Copied!</span>
+                            </>
+                          ) : (
+                            <>
+                              <Copy size={14} />
+                              <span>Copy Code</span>
+                            </>
+                          )}
+                        </button>
+                      </div>
+                    </div>
 
-                    {/* BLUE BUTTON directly linked to Paystack */}
+                    {/* Primary Action Button (On-Brand Emerald Green, Clean & Confident) */}
                     <a
                       href={chosenPlanConfig.paystackUrl}
                       target="_blank"
@@ -580,43 +577,44 @@ export default function Survey() {
                         navigator.clipboard.writeText(chosenPlanConfig.code);
                         showToast(`Code ${chosenPlanConfig.code} copied! Opening Paystack...`, "success");
                       }}
-                      className="w-full py-4 bg-blue-600 hover:bg-blue-700 text-white font-extrabold rounded-xl shadow-md hover:shadow-lg transition-all text-sm flex items-center justify-center gap-2 cursor-pointer uppercase tracking-wider"
+                      className="w-full py-3.5 px-5 bg-emerald-700 hover:bg-emerald-800 active:bg-emerald-900 text-white font-bold rounded-xl shadow-md hover:shadow-lg transition-all text-sm flex items-center justify-center gap-2 cursor-pointer"
                     >
-                      <span>Claim 20% Off & Pay on Paystack</span>
+                      <span>Continue to Paystack Checkout</span>
                       <ExternalLink size={16} />
                     </a>
+
+                    {/* Compact 3-Step Guide (Inside the card, clear & helpful) */}
+                    <div className="mt-4 pt-3 border-t border-gray-100 text-left text-xs text-gray-600">
+                      <p className="font-bold text-gray-800 mb-1.5 flex items-center gap-1.5 text-[11px] uppercase tracking-wide">
+                        <span>How to apply your 20% discount on Paystack:</span>
+                      </p>
+                      <ol className="list-decimal pl-4 space-y-1 text-gray-600 text-[11px] sm:text-xs">
+                        <li>Click the <strong>green button above</strong> to open your Paystack checkout.</li>
+                        <li>Click <span className="text-emerald-700 font-bold underline">"Have a discount code?"</span> right below the price.</li>
+                        <li>Paste <code className="bg-emerald-50 px-1 py-0.5 rounded text-emerald-800 font-bold border border-emerald-200">{chosenPlanConfig.code}</code> and your price automatically drops to <strong>{chosenPlanConfig.discountPrice}</strong>.</li>
+                      </ol>
+                      <p className="text-[10px] text-gray-400 mt-2">
+                        🔒 Safe payment via MTN Mobile Money, Telecel Cash, or Card.
+                      </p>
+                    </div>
                   </div>
 
-                  {/* Clear Paystack Checkout Instructions */}
-                  <div className="bg-blue-50/80 border border-blue-200 rounded-2xl p-4 max-w-lg mx-auto mb-6 text-left text-xs text-blue-900 leading-relaxed">
-                    <p className="font-bold flex items-center gap-1.5 mb-2 text-blue-950 text-sm">
-                      <Tag size={15} className="text-blue-700" />
-                      Clear Instructions: How to use your code on Paystack
-                    </p>
-                    <ol className="list-decimal pl-4 space-y-1.5 text-blue-900 font-medium">
-                      <li>Click the <strong>blue button above</strong> to open your Paystack payment page.</li>
-                      <li>On Paystack, tap <strong className="underline">"Have a discount code?"</strong> right below the plan price.</li>
-                      <li>Paste your code <code className="bg-white border border-blue-300 font-bold px-1.5 py-0.5 rounded text-blue-800">{chosenPlanConfig.code}</code> and tap Apply.</li>
-                      <li>Your price will drop to <strong>{chosenPlanConfig.discountPrice}</strong> (saving 20%). Pay via Mobile Money (MTN / Telecel) or Bank Card to receive your plan!</li>
-                    </ol>
-                  </div>
-
-                  {/* Consultation & Browse All Plans Actions */}
-                  <div className="flex flex-col sm:flex-row items-center justify-center gap-3 max-w-lg mx-auto">
+                  {/* Secondary Actions: WhatsApp & Other Plans */}
+                  <div className="flex flex-col sm:flex-row items-center justify-center gap-2.5">
                     <a
                       href={`https://wa.me/233592330870?text=${encodeURIComponent(
                         `Hello Dee, I just completed your survey and got discount code ${chosenPlanConfig.code}! I'd like to ask about booking a 1-on-1 consultation.`
                       )}`}
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="w-full sm:w-1/2 px-4 py-3 bg-[#25D366] hover:bg-[#20ba5a] text-white font-bold rounded-xl shadow-sm transition-colors text-xs flex items-center justify-center gap-1.5"
+                      className="w-full sm:w-1/2 px-4 py-2.5 bg-[#25D366] hover:bg-[#20ba5a] text-white font-bold rounded-xl shadow-xs transition-colors text-xs flex items-center justify-center gap-1.5 cursor-pointer"
                     >
                       <MessageCircle size={15} />
-                      <span>1-on-1 Consultation (WhatsApp)</span>
+                      <span>Chat with Dee on WhatsApp</span>
                     </a>
                     <Link
                       to="/plans"
-                      className="w-full sm:w-1/2 px-4 py-3 bg-white text-gray-800 font-bold border border-gray-300 rounded-xl hover:bg-gray-50 transition-colors text-xs flex items-center justify-center gap-1.5 shadow-sm"
+                      className="w-full sm:w-1/2 px-4 py-2.5 bg-gray-50 text-gray-700 font-bold border border-gray-200 rounded-xl hover:bg-gray-100 transition-colors text-xs flex items-center justify-center gap-1.5 shadow-xs"
                     >
                       <span>Browse All 5 Plans</span>
                       <ExternalLink size={14} />

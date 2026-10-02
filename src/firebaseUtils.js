@@ -323,7 +323,17 @@ export const saveEmailToFirestore = async (email, extraData = {}) => {
     const docSnap = await getDoc(docRef);
     
     if (docSnap.exists()) {
-      return { success: true, exists: true };
+      if (Object.keys(extraData).length > 0) {
+        await setDoc(
+          docRef,
+          {
+            ...extraData,
+            updatedAt: Timestamp.now(),
+          },
+          { merge: true }
+        );
+      }
+      return { success: true, exists: true, id: trimmedEmail };
     }
 
     await setDoc(docRef, {

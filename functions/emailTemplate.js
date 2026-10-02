@@ -408,117 +408,106 @@ const createSurveyVoucherTemplate = ({ email, selectedPlan, discountCode }) => {
       <head>
           <meta charset="UTF-8">
           <meta name="viewport" content="width=device-width, initial-scale=1.0">
-          <title>Your 20% Discount Voucher for ${planTitle}</title>
+          <title>Your 20% Discount Voucher for ${planTitle} — Diet With Dee</title>
           <style>
               body {
                   font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
                   line-height: 1.6;
                   color: #1f2937;
-                  background-color: #f0fdf4;
-                  padding: 20px 0;
+                  background-color: #f8faf9;
+                  padding: 24px 12px;
                   margin: 0;
               }
               .container {
-                  max-width: 600px;
+                  max-width: 560px;
                   margin: 0 auto;
                   background-color: #ffffff;
-                  border-radius: 24px;
+                  border-radius: 20px;
                   overflow: hidden;
-                  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.08);
+                  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.05);
                   border: 1px solid #e5e7eb;
               }
               .header {
                   background-color: #ffffff;
-                  padding: 35px 25px 20px;
+                  padding: 32px 24px 16px;
                   text-align: center;
               }
               .logo {
-                  width: 150px;
-                  max-width: 80%;
+                  width: 140px;
+                  max-width: 75%;
                   margin: 0 auto;
                   display: block;
               }
               .badge {
                   display: inline-block;
-                  background-color: #dbeafe;
-                  color: #1d4ed8;
-                  font-size: 12px;
+                  background-color: #ecfdf5;
+                  color: #065f46;
+                  font-size: 11px;
                   font-weight: 800;
                   text-transform: uppercase;
                   letter-spacing: 1px;
                   padding: 6px 14px;
                   border-radius: 9999px;
-                  border: 1px solid #bfdbfe;
-                  margin-top: 15px;
+                  border: 1px solid #a7f3d0;
+                  margin-top: 14px;
               }
               .content {
-                  padding: 25px 35px 35px;
+                  padding: 20px 28px 32px;
               }
-              .voucher-box {
-                  background: linear-gradient(135deg, #eff6ff 0%, #dbeafe 100%);
-                  border: 2px dashed #2563eb;
+              .ticket-card {
+                  background: #fbfdfc;
+                  border: 1px solid #d1fae5;
                   border-radius: 16px;
-                  padding: 24px;
+                  padding: 22px;
+                  margin: 22px 0;
                   text-align: center;
-                  margin: 25px 0;
+                  box-shadow: 0 4px 14px rgba(5, 150, 105, 0.04);
               }
-              .voucher-code {
+              .code-pill {
                   font-family: 'Courier New', Courier, monospace;
-                  font-size: 30px;
+                  font-size: 26px;
                   font-weight: 900;
-                  letter-spacing: 4px;
-                  color: #1e40af;
+                  letter-spacing: 3px;
+                  color: #064e3b;
                   background: #ffffff;
-                  padding: 10px 24px;
-                  border-radius: 12px;
+                  padding: 10px 22px;
+                  border-radius: 10px;
                   display: inline-block;
-                  border: 2px solid #93c5fd;
-                  margin: 10px 0;
-                  box-shadow: 0 2px 8px rgba(37, 99, 235, 0.1);
+                  border: 2px dashed #059669;
+                  margin: 10px 0 6px;
               }
-              .plan-card {
-                  background-color: #ffffff;
-                  border: 1px solid #e2e8f0;
-                  border-radius: 16px;
-                  padding: 24px;
-                  margin: 25px 0;
-                  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.04);
-              }
-              .blue-button {
+              .btn-primary {
                   display: block;
-                  background-color: #2563eb;
-                  background: linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%);
+                  background-color: #059669;
+                  background: linear-gradient(135deg, #059669 0%, #047857 100%);
                   color: #ffffff !important;
                   text-decoration: none;
                   font-weight: 800;
-                  font-size: 16px;
-                  padding: 18px 24px;
+                  font-size: 15px;
+                  padding: 16px 22px;
                   border-radius: 12px;
                   text-align: center;
-                  text-transform: uppercase;
-                  letter-spacing: 0.5px;
                   margin-top: 18px;
-                  box-shadow: 0 8px 20px rgba(37, 99, 235, 0.35);
+                  box-shadow: 0 6px 16px rgba(5, 150, 105, 0.25);
               }
-              .cta-whatsapp {
-                  display: block;
-                  background-color: #25D366;
-                  color: #ffffff !important;
-                  text-decoration: none;
-                  font-weight: 700;
-                  font-size: 14px;
-                  padding: 14px 20px;
+              .steps-box {
+                  background-color: #f9fafb;
+                  border: 1px solid #e5e7eb;
                   border-radius: 12px;
-                  text-align: center;
-                  margin-top: 12px;
+                  padding: 16px 18px;
+                  margin-top: 20px;
+                  text-align: left;
+                  font-size: 13px;
+                  color: #374151;
+                  line-height: 1.5;
               }
               .footer {
-                  background-color: #f8fafc;
-                  padding: 25px;
+                  background-color: #f9fafb;
+                  padding: 22px;
                   text-align: center;
-                  font-size: 13px;
-                  color: #64748b;
-                  border-top: 1px solid #e2e8f0;
+                  font-size: 12px;
+                  color: #6b7280;
+                  border-top: 1px solid #f3f4f6;
               }
           </style>
       </head>
@@ -527,98 +516,92 @@ const createSurveyVoucherTemplate = ({ email, selectedPlan, discountCode }) => {
               <div class="header">
                   <img src="https://dietwithdee.org/LOGO.png" alt="DietWithDee Logo" class="logo" />
                   <div class="badge">🎁 20% DISCOUNT VOUCHER</div>
-                  <h1 style="color: #111827; font-size: 24px; font-weight: 800; margin: 15px 0 5px;">Your 20% Discount is Ready!</h1>
+                  <h1 style="color: #111827; font-size: 22px; font-weight: 800; margin: 14px 0 4px;">Your 20% Discount is Ready!</h1>
               </div>
 
               <div class="content">
-                  <p style="font-size: 15px; color: #374151; margin-bottom: 16px;">
+                  <p style="font-size: 14px; color: #4b5563; margin: 0 0 14px;">
                       Hi there,
                   </p>
-                  <p style="font-size: 15px; color: #374151; line-height: 1.6;">
-                      Thank you so much for taking the time to share your feedback in our community survey. Here is your exclusive <strong>20% discount code</strong> for <strong>${planTitle}</strong>!
+                  <p style="font-size: 14px; color: #4b5563; line-height: 1.6; margin: 0 0 18px;">
+                      Thank you so much for taking a moment to complete our community survey. As a token of our appreciation, here is your exclusive <strong>20% discount voucher</strong> for <strong>${planTitle}</strong>!
                   </p>
 
-                  <!-- 20% Voucher Box -->
-                  <div class="voucher-box">
-                      <div style="font-size: 12px; font-weight: 800; color: #1e40af; text-transform: uppercase; letter-spacing: 1.5px;">
-                          Your 20% Coupon Code
+                  <!-- Unified Ticket Card -->
+                  <div class="ticket-card">
+                      <div style="font-size: 11px; font-weight: 800; color: #059669; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 2px;">
+                          Your Selected Plan
                       </div>
-                      <div class="voucher-code">${code}</div>
-                      <div style="font-size: 13px; color: #1e3a8a; font-weight: 600;">
-                          Valid for 20% off your purchase of ${planTitle}
-                      </div>
-                  </div>
-
-                  <!-- Selected Plan Card with Blue Button -->
-                  <div class="plan-card">
-                      <div style="font-size: 11px; font-weight: 800; color: #2563eb; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 4px;">
-                          Selected Meal Plan
-                      </div>
-                      <h2 style="font-size: 22px; font-weight: 800; color: #111827; margin: 4px 0 6px;">
+                      <h2 style="font-size: 20px; font-weight: 800; color: #111827; margin: 2px 0 4px;">
                           ${planTitle}
                       </h2>
-                      <p style="font-size: 13px; color: #64748b; margin: 0 0 14px;">
+                      <p style="font-size: 12px; color: #6b7280; margin: 0 0 12px;">
                           ${planSubtitle}
                       </p>
 
-                      <div style="margin: 14px 0; font-size: 16px;">
-                          <span style="text-decoration: line-through; color: #94a3b8; font-weight: 600; margin-right: 8px;">${normalPrice}</span>
-                          <span style="color: #1e40af; font-weight: 900; font-size: 24px;">${discountPrice}</span>
-                          <span style="background-color: #dbeafe; color: #1d4ed8; font-size: 11px; font-weight: 800; padding: 3px 10px; border-radius: 9999px; margin-left: 8px;">
+                      <div style="margin: 10px 0 14px;">
+                          <span style="text-decoration: line-through; color: #9ca3af; font-size: 14px; margin-right: 6px;">${normalPrice}</span>
+                          <span style="color: #047857; font-weight: 900; font-size: 24px;">${discountPrice}</span>
+                          <span style="background-color: #ecfdf5; color: #065f46; font-size: 11px; font-weight: 800; padding: 2px 8px; border-radius: 9999px; margin-left: 6px; border: 1px solid #a7f3d0;">
                               SAVE 20%
                           </span>
                       </div>
 
-                      <!-- Blue Button directly linked to Paystack -->
-                      <a href="${paystackDirectUrl}" class="blue-button">
-                          CLAIM 20% OFF ON PAYSTACK →
+                      <div style="font-size: 11px; font-weight: 700; color: #6b7280; text-transform: uppercase; letter-spacing: 1px; margin-top: 8px;">
+                          Your Coupon Code
+                      </div>
+                      <div class="code-pill">${code}</div>
+
+                      <!-- Clean on-brand CTA button directly to Paystack -->
+                      <a href="${paystackDirectUrl}" class="btn-primary">
+                          Open Paystack & Claim 20% Off →
                       </a>
                   </div>
 
-                  <!-- Clear Paystack Checkout Instructions -->
-                  <div style="background-color: #f0f7ff; border: 1px solid #bfdbfe; border-left: 5px solid #2563eb; padding: 18px 20px; border-radius: 12px; margin-top: 25px; text-align: left; font-size: 14px; color: #1e3a8a; line-height: 1.6;">
-                      <div style="font-weight: 800; font-size: 15px; margin-bottom: 10px; color: #1e40af;">
-                          📋 Clear Instructions: How to apply your code on Paystack
+                  <!-- Simple 3-step Instructions -->
+                  <div class="steps-box">
+                      <div style="font-weight: 800; font-size: 13px; margin-bottom: 8px; color: #111827;">
+                          📋 How to apply your 20% code on Paystack:
                       </div>
-                      <ol style="margin: 0; padding-left: 20px; color: #1e3a8a;">
-                          <li style="margin-bottom: 8px;">
-                              Click the <strong>blue button above</strong> to open your Paystack payment page.
+                      <ol style="margin: 0; padding-left: 18px; color: #4b5563; font-size: 13px;">
+                          <li style="margin-bottom: 6px;">
+                              Click the <strong>green button above</strong> to open your Paystack checkout page.
                           </li>
-                          <li style="margin-bottom: 8px;">
-                              Right below the price summary, click <strong style="color: #2563eb; text-decoration: underline;">"Have a discount code?"</strong>.
+                          <li style="margin-bottom: 6px;">
+                              Tap <strong style="color: #059669; text-decoration: underline;">"Have a discount code?"</strong> right below the price.
                           </li>
-                          <li style="margin-bottom: 8px;">
-                              Type or paste your code: <strong style="font-family: monospace; font-size: 16px; color: #1e40af; background: #ffffff; padding: 2px 8px; border-radius: 6px; border: 1px solid #93c5fd;">${code}</strong> and tap Apply.
+                          <li style="margin-bottom: 6px;">
+                              Type or paste: <strong style="font-family: monospace; color: #064e3b; background: #ecfdf5; padding: 1px 6px; border-radius: 4px; border: 1px solid #a7f3d0;">${code}</strong> and tap <strong>Apply</strong>.
                           </li>
                           <li style="margin-bottom: 0;">
-                              Your price will automatically reduce to <strong>${discountPrice}</strong>. Pay conveniently using MTN Mobile Money, Telecel Cash, or Bank Card to receive your complete plan!
+                              The price drops to <strong>${discountPrice}</strong>. Pay securely via Mobile Money (MTN / Telecel) or Bank Card!
                           </li>
                       </ol>
                   </div>
 
-                  <!-- WhatsApp 1-on-1 Consultation CTA -->
-                  <div style="margin-top: 30px; text-align: center;">
-                      <p style="font-size: 14px; color: #475569; margin-bottom: 8px;">
-                          Have questions or want a 1-on-1 private consultation with Dee?
+                  <!-- WhatsApp consultation -->
+                  <div style="margin-top: 24px; text-align: center;">
+                      <p style="font-size: 13px; color: #6b7280; margin: 0 0 10px;">
+                          Have a question or want to chat with Dee first?
                       </p>
-                      <a href="${whatsappUrl}" class="cta-whatsapp">
-                          💬 Chat with Dee on WhatsApp
+                      <a href="${whatsappUrl}" style="display: inline-block; background-color: #25D366; color: #ffffff !important; text-decoration: none; font-weight: 700; font-size: 13px; padding: 10px 18px; border-radius: 10px;">
+                          💬 Chat on WhatsApp (+233 59 233 0870)
                       </a>
                   </div>
 
-                  <p style="margin-top: 32px; font-size: 14px; color: #475569;">
+                  <p style="margin-top: 28px; font-size: 13px; color: #6b7280;">
                       To your wellness,<br>
                       <strong>Nana Ama Dwamena</strong><br>
-                      <span style="color: #64748b; font-size: 13px;">Founder & Dietitian, Diet With Dee</span>
+                      <span style="color: #9ca3af; font-size: 12px;">Founder & Dietitian, Diet With Dee</span>
                   </p>
               </div>
 
               <div class="footer">
-                  <p style="margin: 0 0 6px;">&copy; ${new Date().getFullYear()} Diet With Dee. All rights reserved.</p>
-                  <p style="margin: 0 0 6px;">Accra, Ghana • Helping you build healthier habits for life.</p>
-                  <p style="margin: 16px 0 0; font-size: 11px; opacity: 0.8;">
+                  <p style="margin: 0 0 4px;">&copy; ${new Date().getFullYear()} Diet With Dee. All rights reserved.</p>
+                  <p style="margin: 0 0 6px;">Accra, Ghana • Practical nutrition for everyday healthy living.</p>
+                  <p style="margin: 12px 0 0; font-size: 11px;">
                       You received this email because you submitted the DietWithDee survey.<br>
-                      <a href="https://dietwithdee.org/unsubscribe" style="color: #64748b; text-decoration: underline;">Unsubscribe</a>
+                      <a href="https://dietwithdee.org/unsubscribe" style="color: #9ca3af; text-decoration: underline;">Unsubscribe</a>
                   </p>
               </div>
           </div>

@@ -330,6 +330,104 @@ exports.onNewSubscriber = onDocumentCreated(
     }
 );
 
+// 3.1. Dedicated Trigger on surveys/{surveyId} for 100% Reliable Delivery
+exports.onNewSurveySubmission = onDocumentCreated(
+    { document: "surveys/{surveyId}", secrets: ["RESEND_API_KEY"] },
+    async (event) => {
+        const snapshot = event.data;
+        if (!snapshot) return;
+
+        const data = snapshot.data();
+        const email = data.email?.trim()?.toLowerCase();
+
+        if (!email) {
+            console.warn("Survey submission document lacks an email address. Skipping voucher email.");
+            return;
+        }
+
+        const selectedPlan = data.selectedPlan || data.answers?.selected_plan || data.answers?.goal;
+        const discountCode = data.discountCode || "HEALTHY20";
+
+        console.log(`[onNewSurveySubmission] Detected survey submission from: ${email} for plan ${selectedPlan} (${discountCode}). Dispatching 20% voucher email...`);
+
+        try {
+            const resendApiKey = process.env.RESEND_API_KEY;
+            if (!resendApiKey) {
+                throw new Error("RESEND_API_KEY is not set.");
+            }
+            const resend = new Resend(resendApiKey);
+
+            const emailContent = createSurveyVoucherTemplate({
+                email,
+                selectedPlan,
+                discountCode
+            });
+
+            const { data: result, error } = await resend.emails.send({
+                from: 'Nana Ama from Diet With Dee <hello@mail.dietwithdee.org>',
+                to: [email],
+                subject: `Your 20% Discount Voucher for DietWithDee is Here! 🎁`,
+                html: emailContent.split('https://dietwithdee.org/unsubscribe').join(`https://dietwithdee.org/unsubscribe?email=${encodeURIComponent(email)}`)
+            });
+
+            if (error) {
+                console.error(`[onNewSurveySubmission] Error sending voucher to ${email}:`, error);
+            } else {
+                console.log(`[onNewSurveySubmission] Voucher successfully sent to ${email}. ID: ${result.id}`);
+            }
+        } catch (error) {
+            console.error("[onNewSurveySubmission] Error sending survey voucher email:", error);
+        }
+    }
+);
+
+// 3.2. Callable function to directly send the survey voucher (instant client dispatch)
+exports.sendSurveyDiscountEmail = onCall(
+    { secrets: ["RESEND_API_KEY"] },
+    async (request) => {
+        const { email, selectedPlan, discountCode } = request.data || {};
+        const cleanEmail = email?.trim()?.toLowerCase();
+
+        if (!cleanEmail) {
+            throw new HttpsError("invalid-argument", "Valid email address is required.");
+        }
+
+        console.log(`[sendSurveyDiscountEmail] Callable invoked for ${cleanEmail}, plan: ${selectedPlan}, code: ${discountCode}`);
+
+        try {
+            const resendApiKey = process.env.RESEND_API_KEY;
+            if (!resendApiKey) {
+                throw new Error("RESEND_API_KEY is not set.");
+            }
+            const resend = new Resend(resendApiKey);
+
+            const emailContent = createSurveyVoucherTemplate({
+                email: cleanEmail,
+                selectedPlan,
+                discountCode: discountCode || "HEALTHY20"
+            });
+
+            const { data: result, error } = await resend.emails.send({
+                from: 'Nana Ama from Diet With Dee <hello@mail.dietwithdee.org>',
+                to: [cleanEmail],
+                subject: `Your 20% Discount Voucher for DietWithDee is Here! 🎁`,
+                html: emailContent.split('https://dietwithdee.org/unsubscribe').join(`https://dietwithdee.org/unsubscribe?email=${encodeURIComponent(cleanEmail)}`)
+            });
+
+            if (error) {
+                console.error(`[sendSurveyDiscountEmail] Resend error for ${cleanEmail}:`, error);
+                return { success: false, error: error.message };
+            }
+
+            console.log(`[sendSurveyDiscountEmail] Successfully sent to ${cleanEmail}. ID: ${result.id}`);
+            return { success: true, messageId: result.id };
+        } catch (error) {
+            console.error("[sendSurveyDiscountEmail] Error executing callable:", error);
+            throw new HttpsError("internal", error.message);
+        }
+    }
+);
+
 // 3.5. Trigger Function for New Testimonials to Send Admin Notification Email
 exports.onNewTestimonial = onDocumentCreated(
     { document: "testimonials/{testimonialId}", secrets: ["RESEND_API_KEY"] },
