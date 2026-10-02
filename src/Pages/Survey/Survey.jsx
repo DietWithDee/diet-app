@@ -13,6 +13,7 @@ import {
   Gift,
   Mail,
   ArrowRight,
+  Star,
 } from "lucide-react";
 import SEO from "../../Components/SEO";
 import ScrollToTop from "../../utils/ScrollToTop";
@@ -122,14 +123,31 @@ const QUESTIONS = [
   },
   {
     id: "website_ease",
-    type: "scale",
+    type: "slider",
     required: true,
     title: "8. How easy is it to navigate and use the DietWithDee website?",
-    subtitle: "Rate your overall experience on a scale of 1 to 5.",
+    subtitle: "Drag the slider from 1 (Difficult) to 5 (Effortless).",
     min: 1,
     max: 5,
   },
 ];
+
+const getEaseDescription = (val) => {
+  switch (Number(val)) {
+    case 1:
+      return "Very difficult — had a hard time finding things 😕";
+    case 2:
+      return "A bit tricky — navigation could be simpler 🙁";
+    case 3:
+      return "Okay / Average — standard experience 😐";
+    case 4:
+      return "Easy to use — smooth and clear 🙂";
+    case 5:
+      return "Super easy & effortless — loved the experience! 🤩";
+    default:
+      return "Drag slider to rate your experience";
+  }
+};
 
 export default function Survey() {
   const [answers, setAnswers] = useState({
@@ -140,7 +158,7 @@ export default function Survey() {
     newsletter_readership: "",
     sharing_habits: "",
     my_journey_usage: "",
-    website_ease: null,
+    website_ease: 4,
     feedback: "",
     email: "",
   });
@@ -519,42 +537,56 @@ export default function Survey() {
                         })}
                       </div>
                     )}
-                    {/* Scale (1 to 5) Options */}
-                    {q.type === "scale" && (
-                      <div className="pt-2">
-                        <div className="grid grid-cols-5 gap-2 sm:gap-3.5 my-2">
-                          {[1, 2, 3, 4, 5].map((num) => {
-                            const isSelected = currentVal === num;
-                            return (
+                    {/* Slider (1 to 5) Options */}
+                    {(q.type === "slider" || q.type === "scale") && (
+                      <div className="pt-2 pb-2">
+                        {/* Live Score Display Card */}
+                        <div className="flex flex-col items-center justify-center p-4 bg-gradient-to-br from-emerald-50/90 to-green-50/60 border border-emerald-100 rounded-2xl mb-5 shadow-sm text-center">
+                          <div className="flex items-center gap-1.5 text-2xl sm:text-3xl font-black text-emerald-800">
+                            <Star className="fill-emerald-500 text-emerald-600" size={26} />
+                            <span>{currentVal || 4}</span>
+                            <span className="text-base text-emerald-600/70 font-bold">/ 5</span>
+                          </div>
+                          <p className="text-xs sm:text-sm font-bold text-emerald-950 mt-1">
+                            {getEaseDescription(currentVal || 4)}
+                          </p>
+                        </div>
+
+                        {/* Interactive Range Slider */}
+                        <div className="relative px-2 sm:px-4">
+                          <input
+                            type="range"
+                            min={q.min || 1}
+                            max={q.max || 5}
+                            step={1}
+                            value={currentVal || 4}
+                            onChange={(e) => handleRadioChange(q.id, Number(e.target.value))}
+                            className="w-full h-3 bg-gray-200 rounded-full appearance-none cursor-pointer accent-emerald-600 focus:outline-none"
+                          />
+
+                          {/* Clickable Number Ticks */}
+                          <div className="flex justify-between items-center text-xs font-bold text-gray-500 px-1 mt-3">
+                            {[1, 2, 3, 4, 5].map((num) => (
                               <button
                                 key={num}
                                 type="button"
                                 onClick={() => handleRadioChange(q.id, num)}
-                                className={`py-4 sm:py-5 px-1 sm:px-3 rounded-2xl border-2 flex flex-col items-center justify-center transition-all cursor-pointer font-bold ${
-                                  isSelected
-                                    ? "bg-emerald-600 text-white border-emerald-600 shadow-md scale-105 ring-2 ring-emerald-400/30"
-                                    : "border-gray-200 hover:border-emerald-300 hover:bg-emerald-50/40 text-gray-700 bg-white"
+                                className={`w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold transition-all cursor-pointer ${
+                                  (currentVal || 4) === num
+                                    ? "bg-emerald-600 text-white shadow-md scale-110 ring-2 ring-emerald-300"
+                                    : "text-gray-500 hover:bg-emerald-50 hover:text-emerald-700 bg-gray-100 sm:bg-transparent"
                                 }`}
                               >
-                                <span className="text-xl sm:text-2xl font-black">{num}</span>
-                                <span className="text-[10px] sm:text-xs mt-1 font-semibold opacity-85">
-                                  {num === 1
-                                    ? "Hard"
-                                    : num === 2
-                                    ? "Tricky"
-                                    : num === 3
-                                    ? "Okay"
-                                    : num === 4
-                                    ? "Easy"
-                                    : "Smooth"}
-                                </span>
+                                {num}
                               </button>
-                            );
-                          })}
-                        </div>
-                        <div className="flex justify-between items-center text-xs text-gray-500 font-semibold px-1 mt-2.5">
-                          <span>1 — Very Difficult</span>
-                          <span>5 — Very Easy / Effortless</span>
+                            ))}
+                          </div>
+
+                          <div className="flex justify-between items-center text-xs text-gray-400 font-semibold px-1 mt-2">
+                            <span>1 — Very Difficult</span>
+                            <span className="hidden sm:inline">3 — Average</span>
+                            <span>5 — Super Smooth</span>
+                          </div>
                         </div>
                       </div>
                     )}
