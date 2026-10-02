@@ -8,18 +8,17 @@ import {
   Sparkles,
   ChevronRight,
   ShieldCheck,
-  Share2,
   Copy,
   Check,
   Gift,
-  HelpCircle,
-  Flame,
+  Mail,
   ArrowRight,
 } from "lucide-react";
 import SEO from "../../Components/SEO";
 import ScrollToTop from "../../utils/ScrollToTop";
 import { db, safeLogEvent } from "../../firebaseConfig";
 import { collection, addDoc, serverTimestamp } from "firebase/firestore";
+import { saveEmailToFirestore } from "../../firebaseUtils";
 
 const QUESTIONS = [
   {
@@ -133,7 +132,7 @@ export default function Survey() {
     sharing_habits: "",
     my_journey_usage: "",
     feedback: "",
-    contact: "",
+    email: "",
   });
 
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -162,7 +161,6 @@ export default function Survey() {
         updated = currentList.filter((item) => item !== optionId);
       } else {
         if (currentList.length >= maxSelect) {
-          // Replace the first selected or ignore
           updated = [...currentList.slice(1), optionId];
         } else {
           updated = [...currentList, optionId];
@@ -178,27 +176,33 @@ export default function Survey() {
       ...prev,
       [field]: value,
     }));
+    setErrorMessage("");
   };
 
-  // Calculate progress
+  // 7 survey questions + 1 email question = 8 required fields
   const requiredQuestions = QUESTIONS.filter((q) => q.required);
-  const answeredCount = requiredQuestions.filter((q) => {
+  const totalRequired = requiredQuestions.length + 1; // +1 for required email
+
+  const answeredSurveyCount = requiredQuestions.filter((q) => {
     const val = answers[q.id];
     if (Array.isArray(val)) return val.length > 0;
     return Boolean(val);
   }).length;
 
-  const progressPercent = Math.round((answeredCount / requiredQuestions.length) * 100);
+  const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+  const isEmailValid = answers.email && emailRegex.test(answers.email.trim());
+  const answeredTotalCount = answeredSurveyCount + (isEmailValid ? 1 : 0);
+  const progressPercent = Math.round((answeredTotalCount / totalRequired) * 100);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     setErrorMessage("");
 
-    // Validate required questions
+    // Validate required questions 1-7
     for (const q of requiredQuestions) {
       const val = answers[q.id];
       if (!val || (Array.isArray(val) && val.length === 0)) {
-        setErrorMessage(`Please answer question: "${q.title.split(".")[1]?.trim() || q.title}" before submitting.`);
+        setErrorMessage(`Please answer: "${q.title.split(".")[1]?.trim() || q.title}" before submitting.`);
         const element = document.getElementById(`q-${q.id}`);
         if (element) {
           element.scrollIntoView({ behavior: "smooth", block: "center" });
@@ -207,11 +211,33 @@ export default function Survey() {
       }
     }
 
+    // Validate Email Address
+    const cleanEmail = answers.email.trim().toLowerCase();
+    if (!cleanEmail || !emailRegex.test(cleanEmail)) {
+      setErrorMessage("Please enter a valid email address to complete the survey and claim your discount.");
+      const emailElem = document.getElementById("q-email");
+      if (emailElem) {
+        emailElem.scrollIntoView({ behavior: "smooth", block: "center" });
+      }
+      return;
+    }
+
     setIsSubmitting(true);
     const durationSeconds = Math.round((Date.now() - startTime) / 1000);
 
     try {
+      // 1. Auto-subscribe email to newsletter collection
+      await saveEmailToFirestore(cleanEmail, {
+        source: "survey",
+        primaryGoal: answers.goal || "not-specified",
+        planHesitation: answers.plan_hesitation || "not-specified",
+        discountCode: "SURVEY15",
+        subscribedVia: "DietWithDee Community Survey",
+      });
+
+      // 2. Save full survey payload into surveys collection
       const surveyPayload = {
+        email: cleanEmail,
         answers: {
           goal: answers.goal,
           plan_awareness: answers.plan_awareness,
@@ -221,7 +247,6 @@ export default function Survey() {
           sharing_habits: answers.sharing_habits,
           my_journey_usage: answers.my_journey_usage,
           feedback: answers.feedback.trim() || null,
-          contact: answers.contact.trim() || null,
         },
         durationSeconds,
         submittedAt: serverTimestamp(),
@@ -233,12 +258,12 @@ export default function Survey() {
         await addDoc(collection(db, "surveys"), surveyPayload);
       }
 
-      safeLogEvent("survey_completed", { durationSeconds });
+      safeLogEvent("survey_completed", { durationSeconds, email: cleanEmail });
       setIsSubmitted(true);
       window.scrollTo({ top: 0, behavior: "smooth" });
     } catch (err) {
       console.error("Survey submission error:", err);
-      // Fallback: If network/rules issue, gracefully accept so user has great experience
+      // Graceful fallback so respondent still gets their discount voucher
       setIsSubmitted(true);
       window.scrollTo({ top: 0, behavior: "smooth" });
     } finally {
@@ -272,7 +297,7 @@ export default function Survey() {
                   <span>~2 min survey</span>
                 </span>
                 <span className="text-emerald-700">
-                  {answeredCount} of {requiredQuestions.length} answered ({progressPercent}%)
+                  {answeredTotalCount} of {totalRequired} completed ({progressPercent}%)
                 </span>
               </div>
               <div className="w-full bg-gray-100 h-2 rounded-full overflow-hidden">
@@ -296,11 +321,11 @@ export default function Survey() {
                 Thank you so much!
               </span>
 
-              <h1 className="text-2xl sm:text-3xl font-black text-gray-900 mb-3">
-                Your feedback was received!
+              <h1 className="text-2xl sm:text-3xl font-black text-gray-900 mb-2">
+                Your feedback has been saved!
               </h1>
-              <p className="text-gray-600 max-w-lg mx-auto text-sm sm:text-base leading-relaxed mb-8">
-                Your answers give us direct insight into what works and what we need to improve. Nana Ama and the DietWithDee team truly appreciate your time!
+              <p className="text-gray-600 max-w-lg mx-auto text-sm sm:text-base leading-relaxed mb-6">
+                You're now subscribed to our weekly newsletter. Nana Ama and the DietWithDee team truly appreciate your thoughts and will use them to build better meal plans and content for you.
               </p>
 
               {/* Thank you bonus card */}
@@ -310,7 +335,7 @@ export default function Survey() {
                   <span>Your 15% Thank-You Gift Voucher</span>
                 </div>
                 <p className="text-xs text-emerald-700 mb-4">
-                  Use this coupon code on checkout for 15% off any personalized Meal Plan or Consultation:
+                  Use this coupon code at checkout for 15% off any personalized Meal Plan or 1-on-1 Consultation:
                 </p>
 
                 <div className="flex items-center justify-between bg-white px-4 py-3 rounded-xl border border-emerald-200 shadow-sm">
@@ -377,7 +402,7 @@ export default function Survey() {
                   <div className="mt-4 flex flex-wrap items-center gap-4 text-xs text-gray-500 pt-3 border-t border-gray-100">
                     <span className="flex items-center gap-1">
                       <ShieldCheck size={14} className="text-emerald-600" />
-                      Anonymous & Confidential
+                      Confidential & Secure
                     </span>
                     <span className="flex items-center gap-1">
                       <Clock size={14} className="text-emerald-600" />
@@ -385,13 +410,13 @@ export default function Survey() {
                     </span>
                     <span className="flex items-center gap-1 text-emerald-700 font-semibold">
                       <Gift size={14} />
-                      Includes 15% discount bonus at the end
+                      Includes 15% discount bonus
                     </span>
                   </div>
                 </div>
               </div>
 
-              {/* Questions Loop */}
+              {/* Questions Loop 1-7 */}
               {QUESTIONS.map((q) => {
                 const currentVal = answers[q.id];
                 const isAnswered = Array.isArray(currentVal) ? currentVal.length > 0 : Boolean(currentVal);
@@ -494,7 +519,7 @@ export default function Survey() {
                     8. What is one thing we could do or improve to make DietWithDee better for you?
                   </h2>
                   <p className="text-xs sm:text-sm text-gray-500 mt-1">
-                    Completely optional — any feedback or idea is welcome!
+                    Completely optional — any suggestion or idea is welcome!
                   </p>
                 </div>
                 <textarea
@@ -506,27 +531,42 @@ export default function Survey() {
                 />
               </div>
 
-              {/* Optional Contact / Promo Lead Capture (Question 9) */}
-              <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-6 sm:p-7">
-                <div className="mb-3">
+              {/* Required Email & Auto-Subscribe Card (Question 9) */}
+              <div
+                id="q-email"
+                className={`bg-white rounded-2xl shadow-sm border transition-all duration-200 p-6 sm:p-7 ${
+                  isEmailValid ? "border-emerald-200/80 bg-white" : "border-gray-100"
+                }`}
+              >
+                <div className="mb-4">
                   <div className="flex items-center gap-1.5 text-xs font-bold uppercase tracking-wider text-emerald-700 mb-1">
-                    <Gift size={14} />
-                    <span>Special 15% Discount Bonus</span>
+                    <Mail size={14} />
+                    <span>Final Step & 15% Reward</span>
                   </div>
                   <h2 className="text-base sm:text-lg font-bold text-gray-900 leading-snug">
-                    9. Want an exclusive 15% discount code sent to you? (Optional)
+                    9. Enter your email address to submit <span className="text-red-500">*</span>
                   </h2>
-                  <p className="text-xs sm:text-sm text-gray-500 mt-1">
-                    Leave your WhatsApp number or email if you'd like the discount coupon code and early access to new plans.
+                  <p className="text-xs sm:text-sm text-gray-600 mt-1.5 leading-relaxed">
+                    We'll email you your exclusive 15% discount voucher. Entering your email also automatically subscribes you to our free weekly newsletter for healthy Ghanaian meal plans and dietitian advice (you can unsubscribe anytime).
                   </p>
                 </div>
-                <input
-                  type="text"
-                  value={answers.contact}
-                  onChange={(e) => handleTextChange("contact", e.target.value)}
-                  placeholder="e.g. 054 123 4567 or yourname@email.com"
-                  className="w-full px-4 py-3 rounded-xl border border-gray-200 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-transparent transition-all placeholder:text-gray-400"
-                />
+
+                <div className="relative">
+                  <input
+                    type="email"
+                    required
+                    value={answers.email}
+                    onChange={(e) => handleTextChange("email", e.target.value)}
+                    placeholder="e.g. yourname@gmail.com"
+                    className="w-full px-4 py-3.5 pl-11 rounded-xl border border-gray-200 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-transparent transition-all placeholder:text-gray-400 bg-gray-50/50 focus:bg-white"
+                  />
+                  <Mail size={18} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-gray-400" />
+                </div>
+
+                <div className="mt-3 flex items-center gap-2 text-xs text-gray-500">
+                  <CheckCircle2 size={14} className="text-emerald-600 flex-shrink-0" />
+                  <span>Subscribes to free weekly newsletter • No spam, ever</span>
+                </div>
               </div>
 
               {/* Error Notice */}
@@ -547,17 +587,17 @@ export default function Survey() {
                   {isSubmitting ? (
                     <>
                       <Loader2 size={20} className="animate-spin" />
-                      Submitting your answers...
+                      Submitting & Subscribing...
                     </>
                   ) : (
                     <>
-                      <span>Submit Survey</span>
+                      <span>Submit Survey & Claim 15% Code</span>
                       <ChevronRight size={18} />
                     </>
                   )}
                 </button>
                 <p className="text-center text-xs text-gray-400 mt-3">
-                  DietWithDee values your privacy. Your answers will only be used to improve our services.
+                  DietWithDee values your privacy. Your email will be kept secure.
                 </p>
               </div>
             </form>

@@ -29,6 +29,7 @@ const AdminDashboard = () => {
   const [pendingBookings, setPendingBookings] = useState(0);
   const [contactedBookings, setContactedBookings] = useState(0);
   const [pendingTestimonials, setPendingTestimonials] = useState(0);
+  const [surveyCount, setSurveyCount] = useState(0);
 
 
   useEffect(() => {
@@ -50,10 +51,17 @@ const AdminDashboard = () => {
       setPendingTestimonials(snapshot.docs.length);
     });
 
+    // Listener for survey submissions
+    const qSurveys = query(collection(db, 'surveys'));
+    const unsubscribeSurveys = onSnapshot(qSurveys, (snapshot) => {
+      setSurveyCount(snapshot.docs.length);
+    });
+
     return () => {
       unsubscribePending();
       unsubscribeContacted();
       unsubscribeTestimonials();
+      unsubscribeSurveys();
     };
   }, []);
 

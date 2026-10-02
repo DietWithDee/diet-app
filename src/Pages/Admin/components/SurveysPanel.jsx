@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useMemo } from "react";
 import {
   collection,
   query,
@@ -15,18 +15,32 @@ import {
   Clock,
   Sparkles,
   BarChart3,
-  HelpCircle,
   MessageSquare,
   Gift,
   CheckCircle,
-  UserCheck,
+  Mail,
+  Send,
+  Search,
+  ExternalLink,
+  Flame,
+  Lightbulb,
+  Target,
+  Users,
+  Copy,
+  Check,
+  TrendingUp,
+  AlertTriangle,
+  HeartHandshake,
+  Share2,
 } from "lucide-react";
 
 export default function SurveysPanel() {
   const [surveys, setSurveys] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [filter, setFilter] = useState("all");
-  const [activeTab, setActiveTab] = useState("analytics"); // "analytics" | "responses"
+  const [activeTab, setActiveTab] = useState("leads"); // "leads" | "analytics" | "feedback" | "log"
+  const [searchQuery, setSearchQuery] = useState("");
+  const [goalFilter, setGoalFilter] = useState("all");
+  const [copiedId, setCopiedId] = useState(null);
 
   useEffect(() => {
     if (!db) {
@@ -62,54 +76,13 @@ export default function SurveysPanel() {
     }
   };
 
-  const exportCSV = () => {
-    if (!surveys.length) return;
-    const headers = [
-      "Submission ID",
-      "Date",
-      "Goal",
-      "Plan Awareness",
-      "Hesitation Reason",
-      "Catalysts",
-      "Newsletter Readership",
-      "Sharing Habits",
-      "My Journey Usage",
-      "Feedback Text",
-      "Contact Info",
-    ];
-
-    const rows = surveys.map((s) => [
-      s.id,
-      s.submittedAt?.toDate?.()?.toISOString() || "N/A",
-      `"${s.answers?.goal || ""}"`,
-      `"${s.answers?.plan_awareness || ""}"`,
-      `"${s.answers?.plan_hesitation || ""}"`,
-      `"${(s.answers?.plan_catalyst || []).join(", ")}"`,
-      `"${s.answers?.newsletter_readership || ""}"`,
-      `"${s.answers?.sharing_habits || ""}"`,
-      `"${s.answers?.my_journey_usage || ""}"`,
-      `"${(s.answers?.feedback || "").replace(/"/g, '""')}"`,
-      `"${(s.answers?.contact || "").replace(/"/g, '""')}"`,
-    ]);
-
-    const csvContent =
-      "data:text/csv;charset=utf-8," +
-      [headers.join(","), ...rows.map((e) => e.join(","))].join("\n");
-    const encodedUri = encodeURI(csvContent);
-    const link = document.createElement("a");
-    link.setAttribute("href", encodedUri);
-    link.setAttribute("download", `dietwithdee-survey-responses-${new Date().toISOString().slice(0, 10)}.csv`);
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
+  const handleCopyEmail = (email, id) => {
+    navigator.clipboard.writeText(email);
+    setCopiedId(id);
+    setTimeout(() => setCopiedId(null), 2500);
   };
 
-  // Metric summaries
-  const totalCount = surveys.length;
-  const withFeedback = surveys.filter((s) => s.answers?.feedback).length;
-  const withContactLeads = surveys.filter((s) => s.answers?.contact).length;
-
-  // Compute breakdown helper
+  // Helper for computing breakdown percentages
   const computeBreakdown = (fieldKey) => {
     const counts = {};
     surveys.forEach((s) => {
@@ -125,113 +98,559 @@ export default function SurveysPanel() {
     return counts;
   };
 
-  const planHesitationCounts = computeBreakdown("plan_hesitation");
-  const planAwarenessCounts = computeBreakdown("plan_awareness");
-  const newsletterCounts = computeBreakdown("newsletter_readership");
-  const sharingCounts = computeBreakdown("sharing_habits");
-  const myJourneyCounts = computeBreakdown("my_journey_usage");
+  const goalCounts = useMemo(() => computeBreakdown("goal"), [surveys]);
+  const planAwarenessCounts = useMemo(() => computeBreakdown("plan_awareness"), [surveys]);
+  const planHesitationCounts = useMemo(() => computeBreakdown("plan_hesitation"), [surveys]);
+  const planCatalystCounts = useMemo(() => computeBreakdown("plan_catalyst"), [surveys]);
+  const newsletterCounts = useMemo(() => computeBreakdown("newsletter_readership"), [surveys]);
+  const sharingCounts = useMemo(() => computeBreakdown("sharing_habits"), [surveys]);
+  const myJourneyCounts = useMemo(() => computeBreakdown("my_journey_usage"), [surveys]);
+
+  const totalCount = surveys.length;
+  const withFeedbackCount = surveys.filter((s) => s.answers?.feedback).length;
+
+  // Active newsletter readers (% who read regularly or sometimes)
+  const activeReadersCount =
+    (newsletterCounts["reads-regularly"] || 0) + (newsletterCounts["reads-sometimes"] || 0);
+  const activeReaderPct = totalCount ? Math.round((activeReadersCount / totalCount) * 100) : 0;
+
+  // People sharing (% who share often or once/twice)
+  const sharingPeopleCount =
+    (sharingCounts["shares-often"] || 0) + (sharingCounts["shares-once-twice"] || 0);
+  const sharingPct = totalCount ? Math.round((sharingPeopleCount / totalCount) * 100) : 0;
+
+  // Unaware of plans / consultations
+  const unawareCount = planAwarenessCounts["didnt-know"] || 0;
+  const unawarePct = totalCount ? Math.round((unawareCount / totalCount) * 100) : 0;
+
+  // Find top hesitation
+  const topHesitationEntry = Object.entries(planHesitationCounts).sort((a, b) => b[1] - a[1])[0];
+  const topGoalEntry = Object.entries(goalCounts).sort((a, b) => b[1] - a[1])[0];
+  const topCatalystEntry = Object.entries(planCatalystCounts).sort((a, b) => b[1] - a[1])[0];
+
+  // Dynamic Actionable Recommendations
+  const actionableRecommendations = useMemo(() => {
+    if (!totalCount) return [];
+    const list = [];
+
+    // 1. Sales barrier recommendation
+    if (topHesitationEntry) {
+      const [barrier, count] = topHesitationEntry;
+      const pct = Math.round((count / totalCount) * 100);
+      if (barrier === "price") {
+        list.push({
+          type: "sales",
+          title: `Price is the #1 Barrier (${pct}% of visitors)`,
+          action: "Consider launching a ₵99 introductory starter meal guide, or offering a 2-part split payment on 1-on-1 consultations to capture budget-sensitive buyers.",
+          badge: "Revenue Boost",
+          color: "amber",
+        });
+      } else if (barrier === "plan-fit") {
+        list.push({
+          type: "sales",
+          title: `Visitors can't figure out which plan fits them (${pct}%)`,
+          action: "Add a quick 3-question 'Find My Plan' quiz on the /plans page or invite them to a free 5-minute WhatsApp matching chat.",
+          badge: "Conversion Fix",
+          color: "blue",
+        });
+      } else if (barrier === "unclear-value") {
+        list.push({
+          type: "sales",
+          title: `Unclear on what happens in a consultation (${pct}%)`,
+          action: "Add a 3-step 'What happens in your consultation' visual breakdown or a 60-second video with Nana Ama explaining the session.",
+          badge: "Clarity Fix",
+          color: "purple",
+        });
+      } else if (barrier === "try-free-first") {
+        list.push({
+          type: "sales",
+          title: `Trying free tips first (${pct}%)`,
+          action: "Embed subtle plan upgrade links at the end of every blog post (e.g. 'Love this recipe? Get the full 14-day customized meal plan here').",
+          badge: "Content Sales",
+          color: "emerald",
+        });
+      }
+    }
+
+    // 2. Catalysts recommendation
+    if (topCatalystEntry) {
+      const [catalyst, count] = topCatalystEntry;
+      const pct = Math.round((count / totalCount) * 100);
+      if (catalyst === "sample-preview") {
+        list.push({
+          type: "preview",
+          title: `${pct}% want to see a 1-day sample meal plan before buying`,
+          action: "Put a 1-day downloadable sample PDF preview on the /plans page for each plan. It proves value and builds trust instantly.",
+          badge: "High Impact",
+          color: "emerald",
+        });
+      } else if (catalyst === "free-chat") {
+        list.push({
+          type: "chat",
+          title: `${pct}% want a free 5-min WhatsApp discovery chat`,
+          action: "Add a prominent button on the plans page: 'Not sure which plan to choose? Tap for a 5-min WhatsApp guidance chat with Dee'.",
+          badge: "Lead Closer",
+          color: "green",
+        });
+      }
+    }
+
+    // 3. Goal content alignment
+    if (topGoalEntry) {
+      const [goal, count] = topGoalEntry;
+      const pct = Math.round((count / totalCount) * 100);
+      const goalLabels = {
+        "weight-loss": "Weight Loss & Toning",
+        "diabetes": "Blood Sugar & Diabetes Management",
+        "hypertension": "High Blood Pressure Management",
+        "weight-gain": "Healthy Weight Gain",
+        "healthy-habits": "Healthy Ghanaian Meal Ideas",
+      };
+      list.push({
+        type: "content",
+        title: `Primary Audience Goal: ${goalLabels[goal] || goal} (${pct}%)`,
+        action: `Focus your upcoming 2 newsletter issues and social media reels specifically on ${goalLabels[goal] || goal}. It matches what the majority is looking for right now.`,
+        badge: "Content Alignment",
+        color: "teal",
+      });
+    }
+
+    // 4. Awareness recommendation
+    if (unawarePct >= 20) {
+      list.push({
+        type: "awareness",
+        title: `${unawarePct}% of visitors didn't know you offer custom plans & consultations`,
+        action: "Add a clear announcement banner in your newsletter header and link to /plans at the top of every blog article.",
+        badge: "Awareness Gap",
+        color: "rose",
+      });
+    }
+
+    // 5. My Journey adoption
+    const neverUsedJourney = (myJourneyCounts["never-heard"] || 0) + (myJourneyCounts["seen-not-used"] || 0);
+    const journeyGapPct = totalCount ? Math.round((neverUsedJourney / totalCount) * 100) : 0;
+    if (journeyGapPct >= 35) {
+      list.push({
+        type: "journey",
+        title: `${journeyGapPct}% have never used the 'My Journey' BMI tool`,
+        action: "Promote 'My Journey' with a dedicated email: 'Calculate your BMI & caloric needs in 60 seconds with our free tool'.",
+        badge: "Engagement",
+        color: "indigo",
+      });
+    }
+
+    return list;
+  }, [totalCount, topHesitationEntry, topCatalystEntry, topGoalEntry, unawarePct, myJourneyCounts]);
+
+  // Filtered Leads
+  const filteredSurveys = useMemo(() => {
+    return surveys.filter((s) => {
+      const email = s.email || s.answers?.contact || "";
+      const matchesSearch =
+        searchQuery === "" ||
+        email.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        (s.answers?.feedback || "").toLowerCase().includes(searchQuery.toLowerCase());
+
+      const matchesGoal = goalFilter === "all" || s.answers?.goal === goalFilter;
+      return matchesSearch && matchesGoal;
+    });
+  }, [surveys, searchQuery, goalFilter]);
+
+  // Export CSV
+  const exportCSV = () => {
+    if (!surveys.length) return;
+    const headers = [
+      "Submission ID",
+      "Date",
+      "Email (Subscriber)",
+      "Goal",
+      "Plan Awareness",
+      "Hesitation Reason",
+      "Buying Catalysts",
+      "Newsletter Readership",
+      "Sharing Habits",
+      "My Journey Usage",
+      "Feedback Text",
+    ];
+
+    const rows = surveys.map((s) => [
+      s.id,
+      s.submittedAt?.toDate?.()?.toISOString() || "N/A",
+      `"${s.email || s.answers?.contact || ""}"`,
+      `"${s.answers?.goal || ""}"`,
+      `"${s.answers?.plan_awareness || ""}"`,
+      `"${s.answers?.plan_hesitation || ""}"`,
+      `"${(s.answers?.plan_catalyst || []).join(", ")}"`,
+      `"${s.answers?.newsletter_readership || ""}"`,
+      `"${s.answers?.sharing_habits || ""}"`,
+      `"${s.answers?.my_journey_usage || ""}"`,
+      `"${(s.answers?.feedback || "").replace(/"/g, '""')}"`,
+    ]);
+
+    const csvContent =
+      "data:text/csv;charset=utf-8," +
+      [headers.join(","), ...rows.map((e) => e.join(","))].join("\n");
+    const encodedUri = encodeURI(csvContent);
+    const link = document.createElement("a");
+    link.setAttribute("href", encodedUri);
+    link.setAttribute("download", `dietwithdee-survey-leads-${new Date().toISOString().slice(0, 10)}.csv`);
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+  };
+
+  // Generate Personalized Outreach Mailto link
+  const generateMailto = (survey) => {
+    const email = survey.email || survey.answers?.contact || "";
+    if (!email) return "#";
+
+    const goalName =
+      survey.answers?.goal === "weight-loss"
+        ? "weight loss & toning"
+        : survey.answers?.goal === "diabetes"
+        ? "managing blood sugar / diabetes"
+        : survey.answers?.goal === "hypertension"
+        ? "managing blood pressure"
+        : survey.answers?.goal === "weight-gain"
+        ? "healthy weight gain"
+        : "healthy eating with Ghanaian foods";
+
+    const subject = encodeURIComponent("Thank you for your DietWithDee feedback — quick note from Dee!");
+    const body = encodeURIComponent(
+      `Hi there,\n\nThank you so much for taking a moment to complete our DietWithDee survey! I noticed your main health goal is ${goalName}.\n\nI saw your note regarding our meal plans and consultations. If you ever have any questions about which plan fits your daily routine best, or if you'd like a quick 5-minute chat to get clear guidance, please feel free to reply to this email or reach out on WhatsApp at +233 59 233 0870.\n\nAlso, don't forget you can use code SURVEY15 for 15% off any plan or consultation at checkout!\n\nWarm regards,\nNana Ama Dwamena (Dee)\nRegistered Dietitian, DietWithDee`
+    );
+
+    return `mailto:${email}?subject=${subject}&body=${body}`;
+  };
+
+  const getGoalBadgeColor = (goal) => {
+    switch (goal) {
+      case "weight-loss":
+        return "bg-emerald-100 text-emerald-800 border-emerald-200";
+      case "diabetes":
+        return "bg-amber-100 text-amber-800 border-amber-200";
+      case "hypertension":
+        return "bg-rose-100 text-rose-800 border-rose-200";
+      case "weight-gain":
+        return "bg-blue-100 text-blue-800 border-blue-200";
+      default:
+        return "bg-gray-100 text-gray-800 border-gray-200";
+    }
+  };
 
   return (
-    <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-6">
-      {/* Header bar */}
-      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 pb-6 border-b border-gray-100">
-        <div>
-          <div className="flex items-center gap-2">
-            <h2 className="text-xl font-black text-gray-900">Survey Responses</h2>
-            <span className="px-2.5 py-0.5 rounded-full text-xs font-bold bg-emerald-100 text-emerald-800">
-              {totalCount} Total
-            </span>
+    <div className="space-y-6">
+      {/* Top Header Bar */}
+      <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-6">
+        <div className="flex flex-col lg:flex-row items-start lg:items-center justify-between gap-4 pb-6 border-b border-gray-100">
+          <div>
+            <div className="flex items-center gap-2.5">
+              <span className="p-2 bg-emerald-100 text-emerald-700 rounded-xl">
+                <BarChart3 size={20} />
+              </span>
+              <h2 className="text-xl font-black text-gray-900">Survey Results & Action Center</h2>
+              <span className="px-3 py-0.5 rounded-full text-xs font-bold bg-emerald-100 text-emerald-800">
+                {totalCount} Responses
+              </span>
+            </div>
+            <p className="text-sm text-gray-500 mt-1">
+              Direct insights and warm leads to increase meal plan sales and consultation bookings.
+            </p>
           </div>
-          <p className="text-sm text-gray-500 mt-1">
-            Real-time customer feedback on plans, consultations, newsletters, and My Journey.
-          </p>
+
+          <div className="flex flex-wrap items-center gap-2 w-full lg:w-auto">
+            <button
+              onClick={() => setActiveTab("leads")}
+              className={`px-3.5 py-2 rounded-xl text-xs font-bold transition-all flex items-center gap-1.5 cursor-pointer ${
+                activeTab === "leads"
+                  ? "bg-emerald-600 text-white shadow-sm"
+                  : "bg-gray-100 text-gray-600 hover:bg-gray-200"
+              }`}
+            >
+              <Users size={14} />
+              Hot Leads ({totalCount})
+            </button>
+            <button
+              onClick={() => setActiveTab("analytics")}
+              className={`px-3.5 py-2 rounded-xl text-xs font-bold transition-all flex items-center gap-1.5 cursor-pointer ${
+                activeTab === "analytics"
+                  ? "bg-emerald-600 text-white shadow-sm"
+                  : "bg-gray-100 text-gray-600 hover:bg-gray-200"
+              }`}
+            >
+              <BarChart3 size={14} />
+              Visual Breakdown
+            </button>
+            <button
+              onClick={() => setActiveTab("feedback")}
+              className={`px-3.5 py-2 rounded-xl text-xs font-bold transition-all flex items-center gap-1.5 cursor-pointer ${
+                activeTab === "feedback"
+                  ? "bg-emerald-600 text-white shadow-sm"
+                  : "bg-gray-100 text-gray-600 hover:bg-gray-200"
+              }`}
+            >
+              <MessageSquare size={14} />
+              Suggestions ({withFeedbackCount})
+            </button>
+            {totalCount > 0 && (
+              <button
+                onClick={exportCSV}
+                className="flex items-center gap-1.5 px-3.5 py-2 bg-gray-900 hover:bg-black text-white text-xs font-bold rounded-xl shadow-sm transition-colors cursor-pointer"
+              >
+                <FileSpreadsheet size={14} />
+                Export CSV
+              </button>
+            )}
+          </div>
         </div>
 
-        <div className="flex items-center gap-2 w-full sm:w-auto">
-          <button
-            onClick={() => setActiveTab("analytics")}
-            className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all ${
-              activeTab === "analytics"
-                ? "bg-emerald-600 text-white shadow-sm"
-                : "bg-gray-100 text-gray-600 hover:bg-gray-200"
-            }`}
-          >
-            Analytics View
-          </button>
-          <button
-            onClick={() => setActiveTab("responses")}
-            className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all ${
-              activeTab === "responses"
-                ? "bg-emerald-600 text-white shadow-sm"
-                : "bg-gray-100 text-gray-600 hover:bg-gray-200"
-            }`}
-          >
-            Submissions ({totalCount})
-          </button>
-          {totalCount > 0 && (
-            <button
-              onClick={exportCSV}
-              className="flex items-center gap-1.5 px-3 py-1.5 bg-gray-900 hover:bg-black text-white text-xs font-bold rounded-lg shadow-sm transition-colors ml-auto sm:ml-2"
-            >
-              <FileSpreadsheet size={14} />
-              Export CSV
-            </button>
-          )}
+        {/* 4 Quick Stat KPIs */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mt-6">
+          <div className="bg-emerald-50/60 border border-emerald-100/80 rounded-2xl p-4">
+            <div className="flex items-center justify-between text-xs font-bold uppercase tracking-wider text-emerald-700 mb-1">
+              <span>Total Submissions</span>
+              <Users size={16} />
+            </div>
+            <p className="text-2xl font-black text-emerald-950">{totalCount}</p>
+            <p className="text-xs text-emerald-700/80 mt-1">All auto-subscribed to newsletter</p>
+          </div>
+
+          <div className="bg-amber-50/60 border border-amber-100/80 rounded-2xl p-4">
+            <div className="flex items-center justify-between text-xs font-bold uppercase tracking-wider text-amber-700 mb-1">
+              <span>Top Sales Barrier</span>
+              <AlertTriangle size={16} />
+            </div>
+            <p className="text-lg font-black text-amber-950 capitalize truncate">
+              {topHesitationEntry ? topHesitationEntry[0].replace(/-/g, " ") : "N/A"}
+            </p>
+            <p className="text-xs text-amber-700/80 mt-1">
+              {topHesitationEntry
+                ? `${Math.round((topHesitationEntry[1] / totalCount) * 100)}% of people cited this`
+                : "No data yet"}
+            </p>
+          </div>
+
+          <div className="bg-teal-50/60 border border-teal-100/80 rounded-2xl p-4">
+            <div className="flex items-center justify-between text-xs font-bold uppercase tracking-wider text-teal-700 mb-1">
+              <span>Newsletter Engagement</span>
+              <Mail size={16} />
+            </div>
+            <p className="text-2xl font-black text-teal-950">{activeReaderPct}%</p>
+            <p className="text-xs text-teal-700/80 mt-1">Read regularly or occasionally</p>
+          </div>
+
+          <div className="bg-purple-50/60 border border-purple-100/80 rounded-2xl p-4">
+            <div className="flex items-center justify-between text-xs font-bold uppercase tracking-wider text-purple-700 mb-1">
+              <span>Word of Mouth Rate</span>
+              <Share2 size={16} />
+            </div>
+            <p className="text-2xl font-black text-purple-950">{sharingPct}%</p>
+            <p className="text-xs text-purple-700/80 mt-1">Share content with others</p>
+          </div>
         </div>
       </div>
 
+      {/* Actionable Recommendations Engine */}
+      {actionableRecommendations.length > 0 && (
+        <div className="bg-gradient-to-br from-emerald-900 to-teal-950 text-white rounded-2xl p-6 shadow-md">
+          <div className="flex items-center gap-2 mb-4">
+            <Lightbulb size={20} className="text-yellow-400 animate-pulse" />
+            <h3 className="text-base font-black tracking-wide text-white uppercase">
+              Action Steps for Dee & Team (Based on Results)
+            </h3>
+          </div>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-3.5">
+            {actionableRecommendations.map((rec, idx) => (
+              <div
+                key={idx}
+                className="bg-white/10 backdrop-blur-sm border border-white/15 rounded-xl p-4 hover:bg-white/15 transition-colors"
+              >
+                <div className="flex items-center justify-between mb-1.5">
+                  <span className="text-xs font-bold text-emerald-300 uppercase tracking-wider">
+                    {rec.badge}
+                  </span>
+                </div>
+                <h4 className="text-sm font-bold text-white mb-1">{rec.title}</h4>
+                <p className="text-xs text-emerald-100/90 leading-relaxed">{rec.action}</p>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
       {loading ? (
-        <div className="py-20 flex flex-col items-center justify-center text-gray-400">
+        <div className="bg-white rounded-2xl p-16 flex flex-col items-center justify-center text-gray-400 shadow-sm border">
           <Loader2 size={32} className="animate-spin text-emerald-600 mb-2" />
-          <span className="text-sm">Loading responses...</span>
+          <span className="text-sm">Loading survey responses...</span>
         </div>
       ) : totalCount === 0 ? (
-        <div className="py-16 text-center text-gray-500">
-          <MessageSquare size={40} className="mx-auto text-gray-300 mb-3" />
-          <h3 className="font-bold text-gray-700 text-base">No responses yet</h3>
-          <p className="text-sm text-gray-400 max-w-sm mx-auto mt-1">
-            Share <span className="font-mono text-emerald-600">/survey</span> in your newsletters, social media, or WhatsApp status to start collecting insights!
+        <div className="bg-white rounded-2xl p-16 text-center text-gray-500 shadow-sm border">
+          <MessageSquare size={48} className="mx-auto text-gray-300 mb-3" />
+          <h3 className="font-bold text-gray-800 text-lg">No survey submissions yet</h3>
+          <p className="text-sm text-gray-400 max-w-md mx-auto mt-1 mb-5">
+            Share <span className="font-mono text-emerald-600 font-bold">dietwithdee.org/survey</span> in your newsletters, WhatsApp status, or Instagram bio to start getting responses!
           </p>
+          <a
+            href="/survey"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="inline-flex items-center gap-1.5 px-4 py-2 bg-emerald-600 text-white rounded-xl font-bold text-xs shadow-sm hover:bg-emerald-700"
+          >
+            Preview Survey Page <ExternalLink size={14} />
+          </a>
         </div>
       ) : (
-        <div className="mt-6">
-          {/* Key Stat Cards */}
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-8">
-            <div className="bg-emerald-50/50 border border-emerald-100 rounded-xl p-4">
-              <span className="text-xs font-bold uppercase tracking-wider text-emerald-700">Total Responses</span>
-              <p className="text-2xl font-black text-emerald-950 mt-1">{totalCount}</p>
-            </div>
-            <div className="bg-green-50/50 border border-green-100 rounded-xl p-4">
-              <span className="text-xs font-bold uppercase tracking-wider text-green-700">Detailed Feedback Left</span>
-              <p className="text-2xl font-black text-green-950 mt-1">{withFeedback}</p>
-            </div>
-            <div className="bg-teal-50/50 border border-teal-100 rounded-xl p-4">
-              <span className="text-xs font-bold uppercase tracking-wider text-teal-700">New Contact Leads (15% Code)</span>
-              <p className="text-2xl font-black text-teal-950 mt-1">{withContactLeads}</p>
-            </div>
-          </div>
+        <>
+          {/* TAB 1: ACTIONABLE LEADS */}
+          {activeTab === "leads" && (
+            <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-6 space-y-4">
+              {/* Search & Filter bar */}
+              <div className="flex flex-col sm:flex-row items-center justify-between gap-3 pb-4 border-b border-gray-100">
+                <div className="relative w-full sm:w-72">
+                  <input
+                    type="text"
+                    value={searchQuery}
+                    onChange={(e) => setSearchQuery(e.target.value)}
+                    placeholder="Search by email or note..."
+                    className="w-full pl-9 pr-4 py-2 rounded-xl border border-gray-200 text-xs focus:outline-none focus:ring-2 focus:ring-emerald-500"
+                  />
+                  <Search size={15} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
+                </div>
 
-          {activeTab === "analytics" ? (
-            <div className="space-y-6">
-              {/* Question 3: Plan Hesitation Breakdown */}
-              <div className="border border-gray-100 rounded-xl p-5 bg-gray-50/40">
-                <h3 className="font-bold text-gray-900 text-sm mb-3">
-                  Why People Haven't Bought Plans / Consultations
-                </h3>
-                <div className="space-y-2">
-                  {Object.entries(planHesitationCounts).map(([key, count]) => {
+                <div className="flex items-center gap-2 w-full sm:w-auto">
+                  <span className="text-xs text-gray-500 font-medium">Filter Goal:</span>
+                  <select
+                    value={goalFilter}
+                    onChange={(e) => setGoalFilter(e.target.value)}
+                    className="px-3 py-2 rounded-xl border border-gray-200 text-xs focus:outline-none focus:ring-2 focus:ring-emerald-500 bg-white"
+                  >
+                    <option value="all">All Health Goals</option>
+                    <option value="weight-loss">Weight Loss</option>
+                    <option value="diabetes">Diabetes / Blood Sugar</option>
+                    <option value="hypertension">High Blood Pressure</option>
+                    <option value="weight-gain">Weight Gain</option>
+                    <option value="healthy-habits">Healthy Ghanaian Meals</option>
+                  </select>
+                </div>
+              </div>
+
+              {/* Leads Table */}
+              <div className="overflow-x-auto">
+                <table className="w-full text-left text-xs">
+                  <thead>
+                    <tr className="border-b border-gray-200 text-gray-400 font-bold uppercase tracking-wider">
+                      <th className="pb-3 pr-4">Lead Email</th>
+                      <th className="pb-3 px-3">Primary Goal</th>
+                      <th className="pb-3 px-3">Main Hesitation</th>
+                      <th className="pb-3 px-3">What They Want</th>
+                      <th className="pb-3 px-3">Feedback</th>
+                      <th className="pb-3 pl-4 text-right">Actions</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-gray-100">
+                    {filteredSurveys.map((s) => {
+                      const email = s.email || s.answers?.contact || "Anonymous";
+                      return (
+                        <tr key={s.id} className="hover:bg-gray-50/80 transition-colors">
+                          <td className="py-3.5 pr-4 font-mono font-medium text-gray-800">
+                            <div className="flex items-center gap-1.5">
+                              <Mail size={13} className="text-emerald-600 flex-shrink-0" />
+                              <span className="truncate max-w-[160px] sm:max-w-none">{email}</span>
+                            </div>
+                            <span className="text-[10px] text-gray-400 block mt-0.5">
+                              {s.submittedAt?.toDate?.()?.toLocaleDateString() || "Recently"}
+                            </span>
+                          </td>
+
+                          <td className="py-3.5 px-3">
+                            <span
+                              className={`px-2 py-0.5 rounded-full text-[11px] font-bold border ${getGoalBadgeColor(
+                                s.answers?.goal
+                              )}`}
+                            >
+                              {s.answers?.goal ? s.answers.goal.replace(/-/g, " ") : "Not set"}
+                            </span>
+                          </td>
+
+                          <td className="py-3.5 px-3 font-medium text-gray-700 capitalize">
+                            {s.answers?.plan_hesitation ? s.answers.plan_hesitation.replace(/-/g, " ") : "N/A"}
+                          </td>
+
+                          <td className="py-3.5 px-3 text-gray-600">
+                            {s.answers?.plan_catalyst && s.answers.plan_catalyst.length > 0 ? (
+                              <span className="bg-gray-100 px-2 py-0.5 rounded text-[10px] font-medium text-gray-700">
+                                {s.answers.plan_catalyst.join(", ").replace(/-/g, " ")}
+                              </span>
+                            ) : (
+                              <span className="text-gray-400">—</span>
+                            )}
+                          </td>
+
+                          <td className="py-3.5 px-3 max-w-[200px]">
+                            {s.answers?.feedback ? (
+                              <span className="text-gray-700 italic truncate block" title={s.answers.feedback}>
+                                "{s.answers.feedback}"
+                              </span>
+                            ) : (
+                              <span className="text-gray-300">—</span>
+                            )}
+                          </td>
+
+                          <td className="py-3.5 pl-4 text-right space-x-1 whitespace-nowrap">
+                            {email !== "Anonymous" && (
+                              <a
+                                href={generateMailto(s)}
+                                className="inline-flex items-center gap-1 px-2.5 py-1 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg font-bold text-[11px] transition-colors"
+                                title="Send personalized email"
+                              >
+                                <Send size={11} />
+                                Outreach
+                              </a>
+                            )}
+                            <button
+                              onClick={() => handleCopyEmail(email, s.id)}
+                              className="p-1.5 text-gray-400 hover:text-gray-700 rounded-lg hover:bg-gray-100 transition-colors"
+                              title="Copy email"
+                            >
+                              {copiedId === s.id ? <Check size={14} className="text-green-600" /> : <Copy size={14} />}
+                            </button>
+                            <button
+                              onClick={() => handleDelete(s.id)}
+                              className="p-1.5 text-gray-400 hover:text-red-600 rounded-lg hover:bg-red-50 transition-colors"
+                              title="Delete submission"
+                            >
+                              <Trash2 size={14} />
+                            </button>
+                          </td>
+                        </tr>
+                      );
+                    })}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          )}
+
+          {/* TAB 2: VISUAL ANALYTICS */}
+          {activeTab === "analytics" && (
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+              {/* Question 1: Health Goals */}
+              <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-5">
+                <div className="flex items-center justify-between mb-4">
+                  <h3 className="font-bold text-gray-900 text-sm">Primary Health Goals</h3>
+                  <Target size={16} className="text-emerald-600" />
+                </div>
+                <div className="space-y-3">
+                  {Object.entries(goalCounts).map(([key, count]) => {
                     const pct = Math.round((count / totalCount) * 100);
                     return (
                       <div key={key} className="space-y-1">
-                        <div className="flex justify-between text-xs font-medium text-gray-700">
+                        <div className="flex justify-between text-xs font-semibold text-gray-700">
                           <span className="capitalize">{key.replace(/-/g, " ")}</span>
-                          <span className="font-bold">{count} ({pct}%)</span>
+                          <span className="text-emerald-700">{count} ({pct}%)</span>
                         </div>
-                        <div className="w-full bg-gray-200 h-2 rounded-full overflow-hidden">
-                          <div
-                            className="bg-emerald-600 h-full rounded-full transition-all"
-                            style={{ width: `${pct}%` }}
-                          />
+                        <div className="w-full bg-gray-100 h-2 rounded-full overflow-hidden">
+                          <div className="bg-emerald-600 h-full rounded-full" style={{ width: `${pct}%` }} />
                         </div>
                       </div>
                     );
@@ -239,130 +658,176 @@ export default function SurveysPanel() {
                 </div>
               </div>
 
-              {/* Newsletter & Journey Row */}
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div className="border border-gray-100 rounded-xl p-5 bg-gray-50/40">
-                  <h3 className="font-bold text-gray-900 text-sm mb-3">Newsletter Readership</h3>
-                  <div className="space-y-2">
-                    {Object.entries(newsletterCounts).map(([key, count]) => {
-                      const pct = Math.round((count / totalCount) * 100);
-                      return (
-                        <div key={key} className="space-y-1">
-                          <div className="flex justify-between text-xs font-medium text-gray-700">
-                            <span className="capitalize">{key.replace(/-/g, " ")}</span>
-                            <span className="font-bold">{count} ({pct}%)</span>
-                          </div>
-                          <div className="w-full bg-gray-200 h-1.5 rounded-full overflow-hidden">
-                            <div className="bg-teal-600 h-full rounded-full" style={{ width: `${pct}%` }} />
-                          </div>
-                        </div>
-                      );
-                    })}
-                  </div>
+              {/* Question 3: Plan Hesitation (The Obstacle) */}
+              <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-5">
+                <div className="flex items-center justify-between mb-4">
+                  <h3 className="font-bold text-gray-900 text-sm">Why People Haven't Bought Plans</h3>
+                  <AlertTriangle size={16} className="text-amber-500" />
                 </div>
-
-                <div className="border border-gray-100 rounded-xl p-5 bg-gray-50/40">
-                  <h3 className="font-bold text-gray-900 text-sm mb-3">"My Journey" Usage</h3>
-                  <div className="space-y-2">
-                    {Object.entries(myJourneyCounts).map(([key, count]) => {
-                      const pct = Math.round((count / totalCount) * 100);
-                      return (
-                        <div key={key} className="space-y-1">
-                          <div className="flex justify-between text-xs font-medium text-gray-700">
-                            <span className="capitalize">{key.replace(/-/g, " ")}</span>
-                            <span className="font-bold">{count} ({pct}%)</span>
-                          </div>
-                          <div className="w-full bg-gray-200 h-1.5 rounded-full overflow-hidden">
-                            <div className="bg-green-600 h-full rounded-full" style={{ width: `${pct}%` }} />
-                          </div>
+                <div className="space-y-3">
+                  {Object.entries(planHesitationCounts).map(([key, count]) => {
+                    const pct = Math.round((count / totalCount) * 100);
+                    return (
+                      <div key={key} className="space-y-1">
+                        <div className="flex justify-between text-xs font-semibold text-gray-700">
+                          <span className="capitalize">{key.replace(/-/g, " ")}</span>
+                          <span className="text-amber-700">{count} ({pct}%)</span>
                         </div>
-                      );
-                    })}
-                  </div>
+                        <div className="w-full bg-gray-100 h-2 rounded-full overflow-hidden">
+                          <div className="bg-amber-500 h-full rounded-full" style={{ width: `${pct}%` }} />
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
+
+              {/* Question 4: Buying Catalysts */}
+              <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-5">
+                <div className="flex items-center justify-between mb-4">
+                  <h3 className="font-bold text-gray-900 text-sm">What Would Win Them Over (Catalysts)</h3>
+                  <Sparkles size={16} className="text-purple-600" />
+                </div>
+                <div className="space-y-3">
+                  {Object.entries(planCatalystCounts).map(([key, count]) => {
+                    const pct = Math.round((count / totalCount) * 100);
+                    return (
+                      <div key={key} className="space-y-1">
+                        <div className="flex justify-between text-xs font-semibold text-gray-700">
+                          <span className="capitalize">{key.replace(/-/g, " ")}</span>
+                          <span className="text-purple-700">{count} votes ({pct}%)</span>
+                        </div>
+                        <div className="w-full bg-gray-100 h-2 rounded-full overflow-hidden">
+                          <div className="bg-purple-600 h-full rounded-full" style={{ width: `${pct}%` }} />
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
+
+              {/* Question 2: Awareness */}
+              <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-5">
+                <div className="flex items-center justify-between mb-4">
+                  <h3 className="font-bold text-gray-900 text-sm">Awareness of Plans & Consultations</h3>
+                  <Users size={16} className="text-blue-600" />
+                </div>
+                <div className="space-y-3">
+                  {Object.entries(planAwarenessCounts).map(([key, count]) => {
+                    const pct = Math.round((count / totalCount) * 100);
+                    return (
+                      <div key={key} className="space-y-1">
+                        <div className="flex justify-between text-xs font-semibold text-gray-700">
+                          <span className="capitalize">{key.replace(/-/g, " ")}</span>
+                          <span className="text-blue-700">{count} ({pct}%)</span>
+                        </div>
+                        <div className="w-full bg-gray-100 h-2 rounded-full overflow-hidden">
+                          <div className="bg-blue-600 h-full rounded-full" style={{ width: `${pct}%` }} />
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
+
+              {/* Question 5: Newsletter Readership */}
+              <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-5">
+                <div className="flex items-center justify-between mb-4">
+                  <h3 className="font-bold text-gray-900 text-sm">Newsletter Readership</h3>
+                  <Mail size={16} className="text-teal-600" />
+                </div>
+                <div className="space-y-3">
+                  {Object.entries(newsletterCounts).map(([key, count]) => {
+                    const pct = Math.round((count / totalCount) * 100);
+                    return (
+                      <div key={key} className="space-y-1">
+                        <div className="flex justify-between text-xs font-semibold text-gray-700">
+                          <span className="capitalize">{key.replace(/-/g, " ")}</span>
+                          <span className="text-teal-700">{count} ({pct}%)</span>
+                        </div>
+                        <div className="w-full bg-gray-100 h-2 rounded-full overflow-hidden">
+                          <div className="bg-teal-600 h-full rounded-full" style={{ width: `${pct}%` }} />
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
+
+              {/* Question 7: My Journey Adoption */}
+              <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-5">
+                <div className="flex items-center justify-between mb-4">
+                  <h3 className="font-bold text-gray-900 text-sm">"My Journey" Tracker Usage</h3>
+                  <TrendingUp size={16} className="text-green-600" />
+                </div>
+                <div className="space-y-3">
+                  {Object.entries(myJourneyCounts).map(([key, count]) => {
+                    const pct = Math.round((count / totalCount) * 100);
+                    return (
+                      <div key={key} className="space-y-1">
+                        <div className="flex justify-between text-xs font-semibold text-gray-700">
+                          <span className="capitalize">{key.replace(/-/g, " ")}</span>
+                          <span className="text-green-700">{count} ({pct}%)</span>
+                        </div>
+                        <div className="w-full bg-gray-100 h-2 rounded-full overflow-hidden">
+                          <div className="bg-green-600 h-full rounded-full" style={{ width: `${pct}%` }} />
+                        </div>
+                      </div>
+                    );
+                  })}
                 </div>
               </div>
             </div>
-          ) : (
-            /* Submissions list */
+          )}
+
+          {/* TAB 3: CUSTOMER FEEDBACK QUOTES */}
+          {activeTab === "feedback" && (
             <div className="space-y-4">
-              {surveys.map((s, idx) => (
-                <div
-                  key={s.id}
-                  className="border border-gray-200 rounded-xl p-5 hover:border-emerald-300 transition-all bg-white"
-                >
-                  <div className="flex items-center justify-between pb-3 border-b border-gray-100 text-xs text-gray-500 mb-3">
-                    <span className="font-bold text-gray-700">Response #{totalCount - idx}</span>
-                    <div className="flex items-center gap-3">
-                      <span>{s.submittedAt?.toDate?.()?.toLocaleDateString() || "Recently"}</span>
-                      <button
-                        onClick={() => handleDelete(s.id)}
-                        className="text-gray-400 hover:text-red-500 transition-colors cursor-pointer"
-                        title="Delete response"
-                      >
-                        <Trash2 size={15} />
-                      </button>
-                    </div>
-                  </div>
-
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs mb-3">
-                    <div>
-                      <span className="text-gray-400 block">Goal:</span>
-                      <span className="font-semibold text-gray-800">{s.answers?.goal || "N/A"}</span>
-                    </div>
-                    <div>
-                      <span className="text-gray-400 block">Plan Awareness:</span>
-                      <span className="font-semibold text-gray-800">{s.answers?.plan_awareness || "N/A"}</span>
-                    </div>
-                    <div>
-                      <span className="text-gray-400 block">Plan Hesitation:</span>
-                      <span className="font-semibold text-emerald-800">{s.answers?.plan_hesitation || "N/A"}</span>
-                    </div>
-                    <div>
-                      <span className="text-gray-400 block">Newsletter:</span>
-                      <span className="font-semibold text-gray-800">{s.answers?.newsletter_readership || "N/A"}</span>
-                    </div>
-                    <div>
-                      <span className="text-gray-400 block">Shared with Others:</span>
-                      <span className="font-semibold text-gray-800">{s.answers?.sharing_habits || "N/A"}</span>
-                    </div>
-                    <div>
-                      <span className="text-gray-400 block">My Journey Used:</span>
-                      <span className="font-semibold text-gray-800">{s.answers?.my_journey_usage || "N/A"}</span>
-                    </div>
-                  </div>
-
-                  {s.answers?.feedback && (
-                    <div className="bg-amber-50/60 border border-amber-200/60 rounded-lg p-3 text-xs text-amber-950 mb-2">
-                      <span className="font-bold block mb-0.5 text-amber-900">Feedback suggestion:</span>
-                      "{s.answers.feedback}"
-                    </div>
-                  )}
-
-                  {s.answers?.contact && (
-                    <div className="bg-emerald-50 border border-emerald-200 rounded-lg p-3 text-xs text-emerald-950 flex items-center justify-between">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                {surveys
+                  .filter((s) => s.answers?.feedback)
+                  .map((s) => (
+                    <div
+                      key={s.id}
+                      className="bg-white rounded-2xl shadow-sm border border-gray-100 p-5 hover:border-emerald-200 transition-all flex flex-col justify-between"
+                    >
                       <div>
-                        <span className="font-bold block text-emerald-900">Contact Lead:</span>
-                        <span className="font-mono">{s.answers.contact}</span>
+                        <div className="flex items-center justify-between text-xs text-gray-400 mb-3 pb-2 border-b border-gray-50">
+                          <span className="font-bold text-gray-600">{s.email || "Subscriber"}</span>
+                          <span>{s.submittedAt?.toDate?.()?.toLocaleDateString() || "Recently"}</span>
+                        </div>
+                        <p className="text-gray-800 text-sm leading-relaxed italic mb-4">
+                          "{s.answers.feedback}"
+                        </p>
                       </div>
-                      <a
-                        href={
-                          s.answers.contact.includes("@")
-                            ? `mailto:${s.answers.contact}`
-                            : `https://wa.me/${s.answers.contact.replace(/[^0-9]/g, "")}`
-                        }
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="px-2.5 py-1 bg-emerald-600 hover:bg-emerald-700 text-white rounded font-bold"
-                      >
-                        Follow Up
-                      </a>
+
+                      <div className="flex items-center justify-between pt-3 border-t border-gray-50 text-xs">
+                        <span className={`px-2 py-0.5 rounded-full text-[10px] font-bold border ${getGoalBadgeColor(s.answers?.goal)}`}>
+                          Goal: {s.answers?.goal?.replace(/-/g, " ") || "General"}
+                        </span>
+                        {s.email && (
+                          <a
+                            href={generateMailto(s)}
+                            className="text-emerald-700 hover:text-emerald-900 font-bold flex items-center gap-1"
+                          >
+                            <Mail size={12} />
+                            Reply to Idea
+                          </a>
+                        )}
+                      </div>
                     </div>
-                  )}
+                  ))}
+              </div>
+
+              {surveys.filter((s) => s.answers?.feedback).length === 0 && (
+                <div className="bg-white rounded-2xl p-12 text-center text-gray-400 border">
+                  <MessageSquare size={36} className="mx-auto text-gray-300 mb-2" />
+                  <p className="text-sm">No written suggestions submitted yet.</p>
                 </div>
-              ))}
+              )}
             </div>
           )}
-        </div>
+        </>
       )}
     </div>
   );
