@@ -39,8 +39,8 @@ service cloud.firestore {
     }
 
     match /emails/{emailId} {
-      allow create, get: if true; // public can subscribe and check existence
-      allow list, update, delete: if isAdmin(); // only admins can list or manage collected emails
+      allow create, get, update: if true; // public can subscribe, re-subscribe, and update survey preferences
+      allow list, delete: if isAdmin(); // only admins can list or delete collected emails
     }
 
     match /articleTags/{tagId} {

@@ -357,17 +357,21 @@ export default function Survey() {
 
     try {
       // 1. Auto-subscribe email to newsletter collection with selected plan & 20% code
-      await saveEmailToFirestore(cleanEmail, {
-        source: "survey",
-        selectedPlan: chosenPlanConfig.id,
-        planTitle: chosenPlanConfig.planTitle,
-        discountCode: chosenPlanConfig.code,
-        discountPercent: 20,
-        paystackUrl: chosenPlanConfig.paystackUrl,
-        primaryGoal: answers.goal || "not-specified",
-        planHesitation: answers.plan_hesitation || "not-specified",
-        subscribedVia: "DietWithDee Community Survey",
-      });
+      try {
+        await saveEmailToFirestore(cleanEmail, {
+          source: "survey",
+          selectedPlan: chosenPlanConfig.id,
+          planTitle: chosenPlanConfig.planTitle,
+          discountCode: chosenPlanConfig.code,
+          discountPercent: 20,
+          paystackUrl: chosenPlanConfig.paystackUrl,
+          primaryGoal: answers.goal || "not-specified",
+          planHesitation: answers.plan_hesitation || "not-specified",
+          subscribedVia: "DietWithDee Community Survey",
+        });
+      } catch (emailErr) {
+        console.warn("Notice: saveEmailToFirestore non-blocking error:", emailErr);
+      }
 
       // 2. Save full survey payload into surveys collection
       const surveyPayload = {

@@ -3,6 +3,8 @@ import {
   collection,
   query,
   orderBy,
+  where,
+  getDocs,
   onSnapshot,
   deleteDoc,
   doc,
@@ -33,11 +35,13 @@ import {
   HeartHandshake,
   Share2,
   Star,
+  AlertCircle,
 } from "lucide-react";
 
 export default function SurveysPanel() {
   const [surveys, setSurveys] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [fetchError, setFetchError] = useState(null);
   const [activeTab, setActiveTab] = useState("leads"); // "leads" | "analytics" | "feedback" | "log"
   const [searchQuery, setSearchQuery] = useState("");
   const [goalFilter, setGoalFilter] = useState("all");
@@ -48,6 +52,53 @@ export default function SurveysPanel() {
       setLoading(false);
       return;
     }
+    setLoading(true);
+    setFetchError(null);
+
+    let fallbackUnsubscribe = null;
+
+    // Helper to merge any survey responses captured in 'emails' collection
+    const fetchFallbackSurveyLeads = async (existingSurveys = []) => {
+      try {
+        const emailsSnapshot = await getDocs(
+          query(collection(db, "emails"), where("source", "==", "survey"))
+        );
+        const emailLeads = emailsSnapshot.docs.map((d) => {
+          const data = d.data();
+          return {
+            id: `email-${d.id}`,
+            email: data.email || d.id,
+            selectedPlan: data.selectedPlan,
+            discountCode: data.discountCode,
+            answers: {
+              goal: data.primaryGoal || "not-specified",
+              plan_hesitation: data.planHesitation || "not-specified",
+              selected_plan: data.selectedPlan,
+            },
+            submittedAt: data.updatedAt || data.createdAt,
+            source: "emails_collection",
+          };
+        });
+
+        // Merge without duplicates by email
+        const existingEmails = new Set(existingSurveys.map((s) => s.email?.toLowerCase()));
+        const uniqueEmailLeads = emailLeads.filter(
+          (lead) => !existingEmails.has(lead.email?.toLowerCase())
+        );
+
+        const combined = [...existingSurveys, ...uniqueEmailLeads];
+        setSurveys(combined);
+      } catch (emailErr) {
+        console.warn("Could not check emails collection for survey leads:", emailErr);
+        if (existingSurveys.length > 0) {
+          setSurveys(existingSurveys);
+        }
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    // Primary: onSnapshot on 'surveys' collection with orderBy submittedAt
     const q = query(collection(db, "surveys"), orderBy("submittedAt", "desc"));
     const unsubscribe = onSnapshot(
       q,
@@ -56,15 +107,56 @@ export default function SurveysPanel() {
           id: d.id,
           ...d.data(),
         }));
-        setSurveys(data);
-        setLoading(false);
+        if (data.length > 0) {
+          setSurveys(data);
+          setLoading(false);
+          setFetchError(null);
+        } else {
+          // If surveys collection is empty, check if any leads are in emails collection
+          fetchFallbackSurveyLeads(data);
+        }
       },
       (err) => {
-        console.error("Error fetching surveys:", err);
-        setLoading(false);
+        console.warn("Primary survey query failed, trying unindexed fallback:", err);
+        // Fallback: Query collection without orderBy
+        try {
+          fallbackUnsubscribe = onSnapshot(
+            collection(db, "surveys"),
+            (snapshot) => {
+              const data = snapshot.docs.map((d) => ({
+                id: d.id,
+                ...d.data(),
+              }));
+              data.sort((a, b) => {
+                const dateA = a.submittedAt?.toDate?.() || new Date(0);
+                const dateB = b.submittedAt?.toDate?.() || new Date(0);
+                return dateB - dateA;
+              });
+              if (data.length > 0) {
+                setSurveys(data);
+                setLoading(false);
+                setFetchError(null);
+              } else {
+                fetchFallbackSurveyLeads(data);
+              }
+            },
+            (fallbackErr) => {
+              console.error("Fallback surveys query failed:", fallbackErr);
+              setFetchError(fallbackErr.message || err.message);
+              fetchFallbackSurveyLeads([]);
+            }
+          );
+        } catch (e) {
+          setFetchError(err.message);
+          fetchFallbackSurveyLeads([]);
+        }
       }
     );
-    return () => unsubscribe();
+
+    return () => {
+      unsubscribe();
+      if (fallbackUnsubscribe) fallbackUnsubscribe();
+    };
   }, []);
 
   const handleDelete = async (id) => {
@@ -386,6 +478,19 @@ export default function SurveysPanel() {
 
   return (
     <div className="space-y-6">
+      {/* Fetch Error or Rules Notice */}
+      {fetchError && (
+        <div className="p-4 bg-amber-50 border border-amber-200 rounded-2xl flex items-start gap-3 text-amber-900 text-xs sm:text-sm">
+          <AlertCircle size={20} className="text-amber-600 flex-shrink-0 mt-0.5" />
+          <div className="flex-1">
+            <p className="font-bold">Firestore Notice: {fetchError}</p>
+            <p className="mt-1 text-amber-800 text-xs">
+              If this is a permission error, ensure you are logged in with an authorized admin email, and deploy the updated rules via <code className="bg-amber-100/80 px-1.5 py-0.5 rounded font-mono font-bold">firebase deploy --only firestore:rules</code>.
+            </p>
+          </div>
+        </div>
+      )}
+
       {/* Top Header Bar */}
       <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-6">
         <div className="flex flex-col lg:flex-row items-start lg:items-center justify-between gap-4 pb-6 border-b border-gray-100">
