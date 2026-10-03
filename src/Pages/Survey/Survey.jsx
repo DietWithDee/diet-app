@@ -336,10 +336,12 @@ export default function Survey() {
     }));
     setErrorMessage("");
 
-    // Auto-scroll to next question when a checkbox is checked
-    if (willBeChecked) {
-      const delay = updatedList.length >= maxSelect ? 320 : 450;
-      triggerAutoScroll(questionId, delay);
+    // Auto-scroll to next question:
+    // Only auto-scroll after two have been picked (or maxSelect reached)
+    if (willBeChecked && updatedList.length >= maxSelect) {
+      triggerAutoScroll(questionId, 350);
+    } else if (scrollTimerRef.current) {
+      clearTimeout(scrollTimerRef.current);
     }
   };
 
@@ -808,6 +810,27 @@ export default function Survey() {
                             </label>
                           );
                         })}
+
+                        {/* Selection indicator & quick advance helper */}
+                        <div className="flex items-center justify-between text-xs pt-1 px-1">
+                          <span className={`font-medium ${
+                            (currentVal || []).length === (q.maxSelect || 2)
+                              ? "text-emerald-700"
+                              : "text-gray-500"
+                          }`}>
+                            {(currentVal || []).length} of {q.maxSelect || 2} selected
+                            {(currentVal || []).length === 1 && " • pick 1 more to auto-advance"}
+                          </span>
+                          {(currentVal || []).length === 1 && (
+                            <button
+                              type="button"
+                              onClick={() => triggerAutoScroll(q.id, 50)}
+                              className="text-emerald-700 hover:text-emerald-800 font-semibold inline-flex items-center gap-1 hover:underline cursor-pointer"
+                            >
+                              Next question <ChevronDown size={14} />
+                            </button>
+                          )}
+                        </div>
                       </div>
                     )}
                     {/* Slider (1 to 5) Options */}
