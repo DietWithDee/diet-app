@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import {
   CheckCircle2,
@@ -244,10 +244,51 @@ export default function Survey() {
 
   useEffect(() => {
     safeLogEvent("survey_viewed", { page: "/survey" });
+    return () => {
+      if (scrollTimerRef.current) {
+        clearTimeout(scrollTimerRef.current);
+      }
+    };
   }, []);
 
   const getPlanConfig = (key) => {
     return DISCOUNT_PLANS[key] || DISCOUNT_PLANS["healthy-eating"];
+  };
+
+  const scrollTimerRef = useRef(null);
+
+  // Smoothly scroll to the next question card after selection
+  const triggerAutoScroll = (currentQuestionId, delay = 320) => {
+    if (typeof window === "undefined") return;
+
+    if (scrollTimerRef.current) {
+      clearTimeout(scrollTimerRef.current);
+    }
+
+    scrollTimerRef.current = setTimeout(() => {
+      const currentIndex = QUESTIONS.findIndex((q) => q.id === currentQuestionId);
+      let targetId = null;
+
+      if (currentIndex !== -1) {
+        if (currentIndex < QUESTIONS.length - 1) {
+          targetId = `q-${QUESTIONS[currentIndex + 1].id}`;
+        } else {
+          // After Question 8 (website_ease), advance to Question 9 (feedback)
+          targetId = "q-feedback";
+        }
+      } else if (currentQuestionId === "feedback") {
+        targetId = "q-plan-dropdown";
+      } else if (currentQuestionId === "selected_plan") {
+        targetId = "q-email";
+      }
+
+      if (targetId) {
+        const targetElement = document.getElementById(targetId);
+        if (targetElement) {
+          targetElement.scrollIntoView({ behavior: "smooth", block: "start" });
+        }
+      }
+    }, delay);
   };
 
   const handleRadioChange = (questionId, value) => {
@@ -268,24 +309,38 @@ export default function Survey() {
       return updated;
     });
     setErrorMessage("");
+
+    // Auto-scroll to next question
+    triggerAutoScroll(questionId, 320);
   };
 
   const handleCheckboxChange = (questionId, optionId, maxSelect = 2) => {
-    setAnswers((prev) => {
-      const currentList = prev[questionId] || [];
-      let updated;
-      if (currentList.includes(optionId)) {
-        updated = currentList.filter((item) => item !== optionId);
+    const currentList = answers[questionId] || [];
+    const isCurrentlyChecked = currentList.includes(optionId);
+    const willBeChecked = !isCurrentlyChecked;
+
+    let updatedList;
+    if (isCurrentlyChecked) {
+      updatedList = currentList.filter((item) => item !== optionId);
+    } else {
+      if (currentList.length >= maxSelect) {
+        updatedList = [...currentList.slice(1), optionId];
       } else {
-        if (currentList.length >= maxSelect) {
-          updated = [...currentList.slice(1), optionId];
-        } else {
-          updated = [...currentList, optionId];
-        }
+        updatedList = [...currentList, optionId];
       }
-      return { ...prev, [questionId]: updated };
-    });
+    }
+
+    setAnswers((prev) => ({
+      ...prev,
+      [questionId]: updatedList,
+    }));
     setErrorMessage("");
+
+    // Auto-scroll to next question when a checkbox is checked
+    if (willBeChecked) {
+      const delay = updatedList.length >= maxSelect ? 320 : 450;
+      triggerAutoScroll(questionId, delay);
+    }
   };
 
   const handleTextChange = (field, value) => {
@@ -445,7 +500,6 @@ export default function Survey() {
         description="Help us improve DietWithDee services. Answer a quick 2-minute survey and get an exclusive 20% discount on your chosen meal plan."
         url="/survey"
       />
-      <InAppBrowserNotice />
 
       <div className="min-h-screen bg-[#f8faf9] text-gray-800 py-10 sm:py-16 px-4 sm:px-6">
         <div className="max-w-2xl mx-auto">
@@ -673,7 +727,7 @@ export default function Survey() {
                   <div
                     key={q.id}
                     id={`q-${q.id}`}
-                    className={`bg-white rounded-2xl shadow-sm border transition-all duration-200 p-6 sm:p-7 ${
+                    className={`bg-white rounded-2xl shadow-sm border transition-all duration-200 p-6 sm:p-7 scroll-mt-32 ${
                       isAnswered ? "border-emerald-200/80 bg-white" : "border-gray-100"
                     }`}
                   >
@@ -814,7 +868,7 @@ export default function Survey() {
               })}
 
               {/* Single Optional Open Textarea (Question 9) */}
-              <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-6 sm:p-7">
+              <div id="q-feedback" className="bg-white rounded-2xl shadow-sm border border-gray-100 p-6 sm:p-7 scroll-mt-32">
                 <div className="mb-3">
                   <h2 className="text-base sm:text-lg font-bold text-gray-900 leading-snug">
                     9. What is one thing we could do or improve to make DietWithDee better for you?
@@ -835,7 +889,7 @@ export default function Survey() {
               {/* Plan Dropdown & Email Submission Card (Question 10) */}
               <div
                 id="q-plan-dropdown"
-                className={`bg-white rounded-2xl shadow-sm border transition-all duration-200 p-6 sm:p-7 ${
+                className={`bg-white rounded-2xl shadow-sm border transition-all duration-200 p-6 sm:p-7 scroll-mt-32 ${
                   isPlanSelected && isEmailValid ? "border-emerald-200/80 bg-white ring-1 ring-emerald-100" : "border-gray-100"
                 }`}
               >
@@ -866,7 +920,10 @@ export default function Survey() {
                       id="survey-plan-select"
                       required
                       value={answers.selected_plan}
-                      onChange={(e) => handleTextChange("selected_plan", e.target.value)}
+                      onChange={(e) => {
+                        handleTextChange("selected_plan", e.target.value);
+                        triggerAutoScroll("selected_plan", 200);
+                      }}
                       className={`w-full px-4 py-3.5 pr-10 rounded-xl border text-sm font-medium appearance-none transition-all cursor-pointer ${
                         answers.selected_plan
                           ? "border-blue-300 bg-blue-50/30 text-gray-900 focus:ring-2 focus:ring-blue-500 focus:bg-white"
@@ -915,7 +972,7 @@ export default function Survey() {
                 </div>
 
                 {/* Email Input Field */}
-                <div id="q-email" className="space-y-2">
+                <div id="q-email" className="space-y-2 scroll-mt-32">
                   <label
                     htmlFor="survey-email-input"
                     className="block text-xs sm:text-sm font-bold text-gray-800"
