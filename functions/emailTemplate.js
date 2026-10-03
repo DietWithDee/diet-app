@@ -611,5 +611,3 @@ const createSurveyVoucherTemplate = ({ email, selectedPlan, discountCode }) => {
 };
 
 module.exports = { createEmailTemplate, createWelcomeTemplate, createSurveyVoucherTemplate };
-
-
