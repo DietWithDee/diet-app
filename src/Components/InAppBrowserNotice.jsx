@@ -1,9 +1,10 @@
 import React, { useState, useEffect } from "react";
-import { ExternalLink, X, Smartphone, AlertTriangle } from "lucide-react";
+import { ExternalLink, X, Smartphone } from "lucide-react";
+import { isInAppBrowser } from "../utils/inAppBrowser";
 
 /**
  * Detects if the user is viewing inside an in-app browser (Instagram, TikTok, Facebook, Twitter, etc.)
- * Provides Android users a 1-tap Chrome breakout intent, and iOS users clear visual guidance to tap "•••" -> "Open in Safari".
+ * Provides Android users a 1-tap browser breakout intent, and iOS users clear visual guidance to tap "•••" -> "Open in browser".
  */
 export default function InAppBrowserNotice() {
   const [isInApp, setIsInApp] = useState(false);
@@ -11,7 +12,7 @@ export default function InAppBrowserNotice() {
   const [isApple, setIsApple] = useState(false);
 
   useEffect(() => {
-    if (typeof window === "undefined" || !navigator.userAgent) return;
+    if (typeof window === "undefined") return;
 
     // Check if dismissed in this session
     try {
@@ -22,12 +23,9 @@ export default function InAppBrowserNotice() {
       // ignore storage access errors
     }
 
-    const ua = navigator.userAgent || navigator.vendor || window.opera || "";
-    const inAppPatterns = /Instagram|FBAN|FBAV|TikTok|musical_ly|ByteLocale|Twitter|Snapchat|Line\/|Pinterest/i;
-    const detectedInApp = inAppPatterns.test(ua);
-
-    if (detectedInApp) {
+    if (isInAppBrowser()) {
       setIsInApp(true);
+      const ua = navigator.userAgent || "";
       setIsApple(/iPhone|iPad|iPod/i.test(ua));
     }
   }, []);
@@ -51,7 +49,7 @@ export default function InAppBrowserNotice() {
       // iOS blocks arbitrary JS redirects to Safari from within WKWebView.
       // We instruct the user to use the top/bottom menu.
       alert(
-        "To open in Safari:\n\n1. Tap the three dots (•••) or share icon in the top right or bottom corner.\n2. Tap 'Open in Safari' or 'Open in External Browser'."
+        "To open in browser:\n\n1. Tap the three dots (•••) or share icon in the top right or bottom corner.\n2. Tap 'Open in browser' or 'Open in Safari'."
       );
     } else {
       // Android: launch Chrome or default browser via intent scheme
@@ -78,26 +76,24 @@ export default function InAppBrowserNotice() {
               <span>
                 <strong className="font-bold underline decoration-amber-200">Tip for iPhone:</strong> Tap{" "}
                 <span className="bg-amber-600/60 px-1.5 py-0.5 rounded font-bold font-mono">•••</span> at top-right & select{" "}
-                <strong>"Open in Safari"</strong> for smooth Mobile Money checkout & PDF downloads.
+                <strong>"Open in browser"</strong> for checkout, downloads, and to install the app.
               </span>
             ) : (
               <span>
-                <strong className="font-bold">Browsing inside an app?</strong> Switch to Google Chrome for smooth Paystack Mobile Money payments and instant downloads.
+                <strong className="font-bold">Browsing inside an app?</strong> Switch to your browser for checkout, downloads, and to install the app.
               </span>
             )}
           </p>
         </div>
 
         <div className="flex items-center gap-2 flex-shrink-0">
-          {!isApple && (
-            <button
-              onClick={handleOpenExternal}
-              className="bg-white text-amber-900 font-bold px-3 py-1 rounded-lg text-xs hover:bg-amber-50 transition-all shadow-sm flex items-center gap-1 cursor-pointer"
-            >
-              <span>Open in Chrome</span>
-              <ExternalLink size={12} />
-            </button>
-          )}
+          <button
+            onClick={handleOpenExternal}
+            className="bg-white text-amber-900 font-bold px-3 py-1 rounded-lg text-xs hover:bg-amber-50 transition-all shadow-sm flex items-center gap-1 cursor-pointer"
+          >
+            <span>Open in browser</span>
+            <ExternalLink size={12} />
+          </button>
 
           <button
             onClick={handleDismiss}

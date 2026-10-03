@@ -21,7 +21,6 @@ import {
 } from "lucide-react";
 import SEO from "../../Components/SEO";
 import ScrollToTop from "../../utils/ScrollToTop";
-import InAppBrowserNotice from "../../Components/InAppBrowserNotice";
 import { db, functions, safeLogEvent } from "../../firebaseConfig";
 import { collection, addDoc, serverTimestamp } from "firebase/firestore";
 import { httpsCallable } from "firebase/functions";

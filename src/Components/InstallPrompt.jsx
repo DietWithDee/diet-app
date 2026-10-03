@@ -1,6 +1,7 @@
 import React, { useEffect, useState, useRef } from "react";
 import { logEvent } from "firebase/analytics";
 import { analytics } from "../firebaseConfig"; 
+import { isInAppBrowser } from "../utils/inAppBrowser";
 
 export default function InstallPrompt() {
   const [show, setShow] = useState(false);
@@ -8,6 +9,9 @@ export default function InstallPrompt() {
   const deferredPrompt = useRef(null);
 
   useEffect(() => {
+    // Never show installation modal inside an in-app browser (Instagram, TikTok, FB, etc.)
+    if (isInAppBrowser()) return;
+
     const isIos = /iphone|ipad|ipod/.test(navigator.userAgent.toLowerCase());
     const isInStandalone =
       window.navigator.standalone ||

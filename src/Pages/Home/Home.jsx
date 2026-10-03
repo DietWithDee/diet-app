@@ -5,7 +5,6 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { logEvent } from 'firebase/analytics';
 import { analytics } from '../../firebaseConfig';
 import Dee from '../../assets/images/Dee1.webp';
-import InstallPrompt from '../../Components/InstallPrompt';
 import fathersDayPromo from '../../assets/fathers_day_promo.png';
 import { X, Gift } from 'lucide-react';
 import carousel1 from '../../assets/carousel/1.jpg?url';
@@ -597,8 +596,6 @@ function Home() {
               </div>
             </div>
           </motion.div>
-
-          <InstallPrompt />
         </div>
       </div>      {/* Commented out Father's Day popup modal for future reusability
       <AnimatePresence>

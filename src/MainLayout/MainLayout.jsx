@@ -23,6 +23,7 @@ import Unsubscribe from "../Pages/Unsubscribe/Unsubscribe";
 import { AuthProvider } from "../AuthContext";
 import { usePageTracking } from "../hooks/usePageTracking";
 import InstallPrompt from "../Components/InstallPrompt";
+import InAppBrowserNotice from "../Components/InAppBrowserNotice";
 import { ToastProvider } from "../Contexts/ToastContext";
 import SubmitTestimonial from "../Pages/SubmitTestimonial/SubmitTestimonial";
 import SuccessStories from "../Pages/SuccessStories/SuccessStories";
@@ -39,6 +40,7 @@ const AppRoutes = () => {
   return (
     <>
       <ScrollToTop />
+      <InAppBrowserNotice />
       <InstallPrompt />
       <NavBar />
       <Routes>
