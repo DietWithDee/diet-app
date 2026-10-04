@@ -15,8 +15,9 @@ export default function InAppBrowserNotice() {
     if (typeof window === "undefined") return;
 
     const search = typeof window !== "undefined" ? window.location.search : "";
-    const forceInApp = search.includes("inapp=true") || search.includes("inapp=ios");
+    const forceInApp = search.includes("inapp=true") || search.includes("inapp=ios") || search.includes("inapp=android");
     const forceApple = search.includes("inapp=ios");
+    const forceAndroid = search.includes("inapp=android");
 
     // Check if dismissed in this session (bypassed if test query param is present)
     if (!forceInApp) {
@@ -32,7 +33,8 @@ export default function InAppBrowserNotice() {
     if (isInAppBrowser() || forceInApp) {
       setIsInApp(true);
       const ua = navigator.userAgent || "";
-      setIsApple(forceApple || /iPhone|iPad|iPod/i.test(ua));
+      const isIosDevice = /iPhone|iPad|iPod/i.test(ua);
+      setIsApple(forceApple || (!forceAndroid && isIosDevice));
     }
   }, []);
 
@@ -54,20 +56,26 @@ export default function InAppBrowserNotice() {
 
     if (isApple) {
       // iOS blocks arbitrary JS redirects to Safari from within WKWebView.
-      // We instruct the user to use the top/bottom menu.
+      // We instruct the user to use the native top/bottom menu.
       alert(
         "To open in browser:\n\n1. Tap the three dots (•••) or share icon in the top right or bottom corner.\n2. Tap 'Open in browser' or 'Open in Safari'."
       );
     } else {
-      // Android: launch Chrome or default browser via intent scheme
-      const intentUrl = `intent://${cleanUrl}#Intent;scheme=https;package=com.android.chrome;end;`;
-      window.location.href = intentUrl;
+      // Android: 1-tap breakout via Android Chrome intent
+      const chromeIntent = `intent://${cleanUrl}#Intent;scheme=https;package=com.android.chrome;end;`;
+      // Generic fallback for Samsung Internet, Firefox, Brave, etc.
+      const genericIntent = `intent://${cleanUrl}#Intent;scheme=https;action=android.intent.action.VIEW;category=android.intent.category.BROWSABLE;end;`;
 
-      // Fallback after 1 second if Chrome is not installed
-      setTimeout(() => {
-        const genericIntent = `intent://${cleanUrl}#Intent;scheme=https;action=android.intent.action.VIEW;end;`;
+      try {
+        window.location.href = chromeIntent;
+      } catch (err) {
         window.location.href = genericIntent;
-      }, 1000);
+      }
+
+      // Fallback after 800ms if Chrome is not installed
+      setTimeout(() => {
+        window.location.href = genericIntent;
+      }, 800);
     }
   };
 
@@ -87,7 +95,9 @@ export default function InAppBrowserNotice() {
               </span>
             ) : (
               <span>
-                <strong className="font-bold">Browsing inside an app?</strong> Switch to your browser for checkout, downloads, and to install the app.
+                <strong className="font-bold">Browsing inside an app?</strong> Tap{" "}
+                <span className="underline decoration-amber-200 font-bold">Open in browser</span> (or tap{" "}
+                <span className="bg-amber-700/60 px-1.5 py-0.5 rounded font-bold font-mono text-[10px] sm:text-xs">⋮</span> at top-right) for checkout and downloads.
               </span>
             )}
           </p>
