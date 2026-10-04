@@ -4,8 +4,9 @@ import { useWebHaptics } from 'web-haptics/react'
 import { FiShoppingCart, FiMenu, FiX, FiUser } from "react-icons/fi"
 import { motion } from 'framer-motion'
 import logo from "../../assets/LOGO.webp"
-import { useNavigate } from 'react-router'
+import { useNavigate } from 'react-router-dom'
 import { useAuth } from '../../AuthContext'
+import InAppBrowserNotice, { InAppBrowserSpacer } from '../InAppBrowserNotice'
 
 // Playful bouncing icon that transitions between shopping cart and gift emoji (Commented out for reuse)
 /*
@@ -76,8 +77,9 @@ export default function NavBar() {
   ]
 
   return (
-    <header className="fixed inset-x-0 top-0 z-50 bg-white ">
-      <div className="flex items-center justify-between px-4 ">
+    <>
+      <header className="fixed inset-x-0 top-0 z-50 bg-white">
+        <div className="flex items-center justify-between px-4 ">
         {/* Logo */}
         <div className="flex-shrink-0 flex items-center space-x-2 cursor-pointer" onClick={() => {
           trigger("nudge")
@@ -199,6 +201,9 @@ export default function NavBar() {
         </div>
       </div>
 
+      {/* In-app browser detection notice banner */}
+      <InAppBrowserNotice />
+
       {/* Mobile Backdrop */}
       {menuOpen && (
         <div
@@ -300,5 +305,7 @@ export default function NavBar() {
         </div>
       </div>
     </header>
+    <InAppBrowserSpacer />
+  </>
   )
 }
