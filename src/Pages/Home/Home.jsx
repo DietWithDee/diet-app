@@ -1,12 +1,13 @@
 import React, { useState, useEffect, useRef } from 'react';
 import SEO from '../../Components/SEO';
-import { useNavigate } from 'react-router';
+import { useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { logEvent } from 'firebase/analytics';
 import { analytics } from '../../firebaseConfig';
 import Dee from '../../assets/images/Dee1.webp';
+import heroBg from '../../assets/images/homeimg1.jpg';
 import fathersDayPromo from '../../assets/fathers_day_promo.png';
-import { X, Gift } from 'lucide-react';
+import { X, Gift, ChevronRight, CheckCircle2 } from 'lucide-react';
 import carousel1 from '../../assets/carousel/1.jpg?url';
 import carousel2 from '../../assets/carousel/2.jpg?url';
 import carousel3 from '../../assets/carousel/3.jpg?url';
@@ -166,9 +167,20 @@ function Home() {
     const videoElement = videoRef.current;
     if (!videoElement) return;
 
+    const setPlaybackSpeed = () => {
+      if (videoElement) {
+        videoElement.playbackRate = 1.75;
+      }
+    };
+
+    videoElement.playbackRate = 1.75;
+    videoElement.addEventListener('play', setPlaybackSpeed);
+    videoElement.addEventListener('loadedmetadata', setPlaybackSpeed);
+
     const observer = new IntersectionObserver(
       ([entry]) => {
         if (entry.isIntersecting) {
+          videoElement.playbackRate = 1.75;
           videoElement.play().catch(err => {
             console.log("Autoplay was prevented by browser:", err);
           });
@@ -183,6 +195,8 @@ function Home() {
 
     return () => {
       if (videoElement) {
+        videoElement.removeEventListener('play', setPlaybackSpeed);
+        videoElement.removeEventListener('loadedmetadata', setPlaybackSpeed);
         observer.unobserve(videoElement);
       }
     };
@@ -248,89 +262,103 @@ function Home() {
         }}
       />
 
-      <div className="min-h-screen bg-gradient-to-br from-green-50 via-white to-emerald-50 overflow-hidden">
-        <div className="container mx-auto px-6 lg:px-12 pt-20 lg:pt-20">
+      <div className="min-h-screen bg-[#FAF8F5] text-stone-900 font-montserrat selection:bg-[#F6841F] selection:text-white overflow-hidden">
+        <div className="container mx-auto px-6 lg:px-12 pt-16 lg:pt-20">
           {/* Hero Section */}
-          <div className="flex flex-col lg:flex-row items-center justify-between gap-12 lg:gap-20">
+          <div className="flex flex-col lg:flex-row items-center justify-between gap-12 lg:gap-16">
             {/* Left: Text Content */}
-            <div className="flex-1 max-w-2xl">
+            <div className="flex-1 max-w-2xl text-left">
               <motion.div
-                className="space-y-8"
+                className="space-y-6"
                 variants={staggerContainer}
                 initial="hidden"
                 animate="show"
               >
-                <div className="space-y-4">
+                <div className="space-y-3">
                   <motion.h1
                     variants={fadeUp}
-                    className="text-4xl lg:text-6xl font-black text-transparent bg-clip-text bg-gradient-to-r from-green-700 to-green-700 leading-tight"
+                    className="text-4xl sm:text-5xl lg:text-6xl font-serif-cormorant font-semibold text-stone-900 tracking-tight leading-[1.12]"
                   >
-                    Your Wellness
-                    <br />
-                    <span className="text-green-700">Journey </span>
-                    <br />
-                    <span className="text-green-700">Starts </span>
-                    <span className="text-green-700">Here</span>
+                    Your Wellness Journey <br className="hidden sm:inline" />
+                    <span className="text-[#F6841F] font-bold">Starts Here</span>
                   </motion.h1>
-                  <motion.div variants={scaleRight} className="w-18 h-2 bg-gradient-to-r from-green-500 to-emerald-500 rounded-full"></motion.div>
+                  <motion.div variants={scaleRight} className="w-16 h-1 bg-[#F6841F] mt-2"></motion.div>
                 </div>
 
-                <motion.div variants={fadeUp} className="space-y-6">
-                  <p className="text-lg lg:text-xl text-gray-700 leading-relaxed font-medium pt-3">
-                    Welcome to <span className="italic font-semibold text-green-700">DietWithDee</span>,
-                    your ultimate destination for personalized diet plans and consultations!
+                <motion.div variants={fadeUp} className="space-y-3 pt-1">
+                  <p className="text-lg sm:text-xl text-stone-700 leading-relaxed font-light">
+                    Welcome to <strong className="font-semibold text-stone-900">DietWithDee</strong>, your premier destination for personalized Ghanaian meal guides and 1-on-1 clinical nutrition consultations with Nana Ama Dwamena.
                   </p>
-                  <p className="text-lg text-gray-600 leading-relaxed">
-                    Whether you're aiming to lose weight, manage a health condition, or simply eat healthier, we're here to make it happen. Join us on a delicious journey to a better you!
+                  <p className="text-sm sm:text-lg text-stone-600 font-light leading-relaxed">
+                    Whether you're aiming to manage blood sugar, lower blood pressure, lose weight sustainably, or eat healthier—we guide you every step of the way without starving.
                   </p>
                 </motion.div>
 
-                {/* Buttons */}
-                <motion.div variants={fadeUp} className="flex flex-col sm:flex-row gap-4 pt-6">
+                {/* Symmetrical Brand CTAs */}
+                <motion.div variants={fadeUp} className="flex flex-col sm:flex-row items-stretch sm:items-center gap-4 pt-2">
                   <motion.button
                     whileTap={{ scale: 0.95 }}
                     onClick={() => {
-                      logEvent(analytics, 'select_content', {
-                        content_type: 'Button',
-                        item_id: 'hero_start_my_journey'
-                      });
-                      navigate('/my-journey');
+                      try {
+                        logEvent(analytics, 'select_content', {
+                          content_type: 'Button',
+                          item_id: 'hero_know_your_body'
+                        });
+                      } catch (err) {}
+                      navigate('/knowYourBody');
                     }}
-                    className="px-8 py-4 bg-gradient-to-r from-[#F6841F] to-[#F6841F] text-white font-bold rounded-full shadow-lg hover:shadow-xl transition-all duration-300 hover:from-orange-600 hover:to-orange-400"
+                    className="px-8 sm:px-9 py-3.5 sm:py-4 rounded-full bg-[#F6841F] hover:bg-[#e07312] text-white font-montserrat text-xs sm:text-sm font-semibold tracking-widest uppercase transition-all duration-300 shadow-lg hover:shadow-xl hover:-translate-y-0.5 active:scale-95 cursor-pointer flex items-center justify-center gap-2"
                   >
-                    Start My Journey
+                    <span>Know your body</span>
+                    <ChevronRight size={16} />
                   </motion.button>
+
                   <motion.button
                     whileTap={{ scale: 0.95 }}
-                    onClick={() => navigate('/contactus')}
-                    className="px-8 py-4 border-2 border-green-600 text-green-700 font-bold rounded-full hover:bg-green-50 transition-all duration-300 hover:shadow-md"
+                    onClick={() => {
+                      try {
+                        logEvent(analytics, 'select_content', {
+                          content_type: 'Button',
+                          item_id: 'hero_book_a_session'
+                        });
+                      } catch (err) {}
+                      navigate('/contactus');
+                    }}
+                    className="px-7 sm:px-8 py-3.5 sm:py-4 rounded-full bg-white/90 hover:bg-white text-stone-800 border border-stone-200/90 font-montserrat text-xs sm:text-sm font-semibold tracking-wider uppercase transition-all duration-300 shadow-xs hover:shadow-md hover:border-stone-300 cursor-pointer flex items-center justify-center gap-2"
                   >
-                    Book a Session
+                    <span>Book a session</span>
                   </motion.button>
                 </motion.div>
 
-                {/* Trust Indicators (Desktop - visible on lg) */}
-                <motion.div variants={fadeUp} className="hidden lg:flex flex-row items-start gap-4 sm:gap-8 pt-8 text-xs text-gray-600">
-                  <div className="flex items-start gap-2 max-w-[90px]">
-                    <div className="w-3 h-3 bg-green-500 rounded-full mt-0.5 flex-shrink-0"></div>
-                    <span className="leading-tight">500+ Success Stories</span>
+                {/* Trust Indicators (Desktop & Tablet) */}
+                <motion.div variants={fadeUp} className="flex flex-wrap items-center gap-4 pt-3">
+                  <div className="flex items-center gap-3 px-5 py-2.5 rounded-full bg-white/80 backdrop-blur-md border border-stone-200/80 shadow-xs">
+                    <div className="flex text-amber-500 text-sm">
+                      {'★'.repeat(5)}
+                    </div>
+                    <span className="text-xs font-semibold text-stone-700 font-montserrat">
+                      5.0 Rating • 500+ Clients Guided
+                    </span>
                   </div>
-                  <div className="flex items-start gap-2 max-w-[90px]">
-                    <div className="w-3 h-3 bg-emerald-500 rounded-full mt-0.5 flex-shrink-0"></div>
-                    <span className="leading-tight">Expert Dietitians</span>
-                  </div>
-                  <div className="flex items-start gap-2 max-w-[90px]">
-                    <div className="w-3 h-3 bg-green-400 rounded-full mt-0.5 flex-shrink-0"></div>
-                    <span className="leading-tight">Personalized Plans</span>
+
+                  <div className="flex items-center gap-4 text-xs text-stone-600 font-light">
+                    <span className="flex items-center gap-1.5">
+                      <CheckCircle2 size={15} className="text-emerald-600" />
+                      Licensed Dietitian Care
+                    </span>
+                    <span className="flex items-center gap-1.5">
+                      <CheckCircle2 size={15} className="text-emerald-600" />
+                      100% Real Local Food
+                    </span>
                   </div>
                 </motion.div>
               </motion.div>
             </div>
 
-            {/* Right: Video without glowing green background elements (Original restored, Campaign/Carousel commented out below) */}
-            <div className="flex-1 relative max-w-lg w-full">
+            {/* Right: Sped-up Looping Video Animation */}
+            <div className="flex-1 relative max-w-lg w-full mx-auto">
               <motion.div
-                className="relative z-10 p-4 lg:p-8"
+                className="relative z-10 p-2 sm:p-4"
                 variants={floatingImage}
                 initial="hidden"
                 animate="show"
@@ -340,10 +368,12 @@ function Home() {
                     <video
                       ref={videoRef}
                       src="/Hero_animation.mp4"
-                      className="object-contain w-[120%] max-w-none relative z-10 mix-blend-multiply"
+                      className="object-contain w-full max-w-md relative z-10 mix-blend-multiply"
                       style={{ mixBlendMode: 'multiply' }}
                       playsInline
                       muted
+                      autoPlay
+                      loop
                       controls={false}
                       preload="auto"
                     />
@@ -435,32 +465,11 @@ function Home() {
             </div>
             */}
 
-            {/* Trust Indicators (Mobile - visible below the image) */}
-            <motion.div
-              variants={fadeUp}
-              initial="hidden"
-              whileInView="show"
-              viewport={{ once: true }}
-              className="flex lg:hidden flex-row items-center justify-center gap-4 sm:gap-8 text-xs text-gray-600 w-full pt-8"
-            >
-              <div className="flex items-center gap-2">
-                <div className="w-3 h-3 bg-green-500 rounded-full flex-shrink-0"></div>
-                <span className="leading-tight">500+ Success Stories</span>
-              </div>
-              <div className="flex items-center gap-2">
-                <div className="w-3 h-3 bg-emerald-500 rounded-full flex-shrink-0"></div>
-                <span className="leading-tight">Expert Dietitians</span>
-              </div>
-              <div className="flex items-center gap-2">
-                <div className="w-3 h-3 bg-green-400 rounded-full flex-shrink-0"></div>
-                <span className="leading-tight">Personalized Plans</span>
-              </div>
-            </motion.div>
           </div>
 
           {/* About Section */}
-          <div className="py-16 mt-12 bg-gradient-to-b from-transparent to-green-50 rounded-3xl mb-8">
-            <div className="container mx-auto px-2 lg:px-8">
+          <div className="py-16 mt-12 bg-white/70 border border-stone-200/80 rounded-3xl mb-8">
+            <div className="container mx-auto px-4 lg:px-10">
               <motion.div 
                 className="grid grid-cols-1 lg:grid-cols-2 gap-y-12 lg:gap-x-20 items-center"
                 initial="hidden"
@@ -469,79 +478,62 @@ function Home() {
                 variants={staggerContainer}
               >
                 {/* Block 1: Our Story Intro (Mobile Order 1, Desktop Top Right) */}
-                <motion.div variants={fadeUp} className="order-1 lg:col-start-2 lg:row-start-1 space-y-8">
-                  <div className="space-y-4">
-                    <h2 className="text-4xl lg:text-5xl font-black text-transparent bg-clip-text bg-gradient-to-r from-green-700 via-emerald-600 to-green-600 leading-tight">
-                      Our Story
+                <motion.div variants={fadeUp} className="order-1 lg:col-start-2 lg:row-start-1 space-y-6 text-left">
+                  <div className="space-y-2">
+                    <p className="font-script text-3xl sm:text-4xl text-[#F6841F] mb-1">Our Story</p>
+                    <h2 className="text-3xl sm:text-4xl font-serif-cormorant font-normal text-stone-900 leading-snug">
+                      Nutrition is the cornerstone of a vibrant life
                     </h2>
-                    <motion.div variants={scaleRight} className="w-20 h-2 bg-gradient-to-r from-green-500 to-emerald-500 rounded-full"></motion.div>
+                    <motion.div variants={scaleRight} className="w-16 h-1 bg-[#F6841F] mt-2"></motion.div>
                   </div>
 
-                  <div className="space-y-6">
-                    <p className="text-lg text-gray-700 leading-relaxed">
-                      Here at <span className="italic font-semibold text-green-700">DietWithDee</span>, we believe that nutrition is the cornerstone of a vibrant life, and we're here to guide you every step of the way. Our mission is to provide personalized diet plans, delicious recipes, and expert advice to help you reach your wellness goals. DietWithDee is here to support you every step of the way. Let's make healthy living enjoyable and sustainable together!
+                  <div className="space-y-4">
+                    <p className="text-base sm:text-lg text-stone-700 leading-relaxed font-light">
+                      At <strong className="font-semibold text-stone-900">DietWithDee</strong>, we believe that nutrition is about empowerment and joy, not restriction. Our mission is to provide personalized diet plans, delicious recipes, and expert advice to help you reach your wellness goals sustainably.
                     </p>
 
-                    <div className="bg-gradient-to-r from-green-50 to-emerald-50 p-6 rounded-2xl border-l-4 border-green-500 relative overflow-hidden group">
-                      <div className="absolute top-0 right-0 w-24 h-24 bg-green-200 rounded-full opacity-20 -mr-10 -mt-10 transition-transform group-hover:scale-150 duration-500"></div>
-                      <p className="text-lg font-semibold text-green-800 italic relative z-10">
-                        "We strive continually to help you take control of your health in all aspects."
-                      </p>
-                    </div>
+                    <blockquote className="border-l-3 border-[#F6841F] pl-4 py-2 italic font-serif-cormorant text-stone-800 text-lg sm:text-xl bg-orange-50/50 rounded-r-lg">
+                      "We strive continually to help you take control of your health in all aspects."
+                    </blockquote>
                   </div>
 
-                  <p className="text-lg text-gray-700 leading-relaxed">
-                    Our expert made plans are tailored to your unique needs, preferences, and lifestyle. Whether you're looking to lose weight, manage a health condition, or simply eat healthier, we've got you covered. Join us on a delicious journey to a better you!
+                  <p className="text-sm sm:text-base text-stone-600 font-light leading-relaxed">
+                    Our expert-crafted plans are tailored to your unique lifestyle and cultural staples. Whether you're looking to lose weight, manage a health condition, or eat healthier, join us on a delicious journey to a better you!
                   </p>
                 </motion.div>
 
                 {/* Block 2: Image (Mobile Order 2, Desktop Left Side) */}
                 <motion.div
-                  className="order-2 lg:order-1 lg:col-start-1 lg:row-start-1 lg:row-span-2 relative max-w-lg mx-auto lg:mx-0"
+                  className="order-2 lg:order-1 lg:col-start-1 lg:row-start-1 lg:row-span-2 relative max-w-sm sm:max-w-md mx-auto lg:mx-0 w-full"
                   variants={fadeUp}
                 >
-                  <div className="absolute -top-6 -left-6 w-72 h-72 bg-gradient-to-br from-emerald-200 to-green-200 rounded-full opacity-20 blur-3xl"></div>
-                  <div className="absolute -bottom-4 -right-4 w-64 h-64 bg-gradient-to-tr from-green-300 to-emerald-300 rounded-full opacity-15 blur-2xl"></div>
-
-                  <div className="relative z-10 p-1 lg:p-3">
-                    <div className="bg-white rounded-3xl shadow-xl overflow-hidden transition-all duration-500 hover:shadow-2xl">
-                      <div className="relative">
-                        <div className="absolute inset-0 bg-gradient-to-t from-green-900/10 via-transparent to-transparent z-10"></div>
-                        <div className="w-full overflow-hidden">
-                          <img
-                            className="w-full h-full object-cover object-top transition-transform duration-1000 hover:scale-[1.03]"
-                            src={Dee}
-                            alt="Dee - Professional Nutritionist"
-                          />
-                        </div>
-                        <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-white via-white/80 to-transparent p-6 z-20">
-                          <div className="text-center">
-                            <p className="text-base text-gray-800 font-medium">Nana Ama Dwamena, RD.</p>
-                            <div className="flex items-center justify-center gap-3 pt-1">
-                              <span className="text-sm text-gray-500">Founder, DietWithDee</span>
-                            </div>
-                          </div>
-                        </div>
-                      </div>
+                  <div className="overflow-hidden rounded-2xl sm:rounded-3xl border border-stone-200/90 bg-white shadow-xl">
+                    <img
+                      className="w-full h-auto object-cover object-top transition-transform duration-700 hover:scale-101"
+                      src={Dee}
+                      alt="Dee - Professional Nutritionist"
+                    />
+                    <div className="p-5 text-center bg-white/95 backdrop-blur-md border-t border-stone-100 space-y-1">
+                      <p className="font-bold text-stone-900 text-lg font-montserrat">Nana Ama Dwamena, RD.</p>
+                      <p className="text-xs text-stone-500 font-light tracking-wide font-montserrat">Founder, DietWithDee • Clinical Dietitian</p>
                     </div>
                   </div>
                 </motion.div>
 
                 {/* Block 3: Impact and Buttons (Mobile Order 3, Desktop Bottom Right) */}
-                <motion.div variants={fadeUp} className="order-3 lg:col-start-2 lg:row-start-2 space-y-8">
+                <motion.div variants={fadeUp} className="order-3 lg:col-start-2 lg:row-start-2 space-y-6 text-left">
                   {/* Community Impact Integrated */}
-                  <div className="space-y-4">
-                    <div className="w-12 h-1 bg-green-200 rounded-full"></div>
-                    <p className="text-gray-700 leading-relaxed font-medium">
+                  <div className="space-y-2">
+                    <p className="text-stone-700 leading-relaxed font-light text-sm sm:text-base">
                       Beyond individual consultations, we believe in the power of collective change. We are actively involved in community programs and health outreaches across Ghana to make nutrition education practical and fun.
                     </p>
                   </div>
 
-                  <div className="flex flex-wrap justify-center gap-4 pt-2">
+                  <div className="flex flex-wrap gap-4 pt-1">
                     <motion.button
                       whileTap={{ scale: 0.95 }}
                       onClick={() => navigate('/plans')}
-                      className="px-8 py-4 bg-gradient-to-r from-orange-400 to-orange-500 text-white font-bold rounded-full shadow-lg hover:shadow-xl transition-all duration-300 hover:from-green-700 hover:to-emerald-700"
+                      className="px-7 sm:px-8 py-3.5 bg-[#F6841F] hover:bg-[#e07312] text-white font-montserrat text-xs sm:text-sm font-semibold tracking-wider uppercase rounded-full transition-all duration-300 shadow-md hover:shadow-lg cursor-pointer"
                     >
                       View Our Plans
                     </motion.button>
@@ -549,7 +541,7 @@ function Home() {
                     <motion.button
                       whileTap={{ scale: 0.95 }}
                       onClick={() => navigate('/services#events-gallery')}
-                      className="px-8 py-4 border-2 border-green-600 text-green-700 font-bold rounded-full hover:bg-green-50 transition-all duration-300"
+                      className="px-7 sm:px-8 py-3.5 bg-white/90 hover:bg-white text-stone-800 border border-stone-200/90 font-montserrat text-xs sm:text-sm font-semibold tracking-wider uppercase rounded-full transition-all duration-300 shadow-xs hover:shadow-md hover:border-stone-300 cursor-pointer"
                     >
                       See events
                     </motion.button>

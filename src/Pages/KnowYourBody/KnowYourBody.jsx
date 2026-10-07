@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { ChevronRight, Calculator, Target, BookOpen, User, Activity, Moon, Heart, Utensils, Angry } from 'lucide-react';
-import { useNavigate } from 'react-router';
+import { useNavigate } from 'react-router-dom';
 import { BsQuestion } from 'react-icons/bs';
 import { useWebHaptics } from 'web-haptics/react';
 import { logEvent } from 'firebase/analytics';

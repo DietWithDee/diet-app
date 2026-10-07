@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import SEO from '../../Components/SEO';
-import { useNavigate } from 'react-router';
+import { useNavigate } from 'react-router-dom';
 import { FiTrendingUp, FiSettings, FiBookOpen, FiStar, FiAward, FiEdit2, FiLogOut, FiTrash2 } from 'react-icons/fi';
 import { FcGoogle } from 'react-icons/fc';
 import { Calendar } from 'lucide-react';

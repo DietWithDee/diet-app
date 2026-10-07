@@ -1,7 +1,7 @@
 import NavBar from "../Components/NavBar/NavBar";
 import SEOProvider from "../Components/SEOProvider";
 import AppErrorBoundary from "../Components/AppErrorBoundary";
-import { BrowserRouter, Route, Routes } from "react-router";
+import { BrowserRouter, Route, Routes } from "react-router-dom";
 import Home from "../Pages/Home/Home";
 import About from "../Pages/About/About";
 import Blog from "../Pages/Blog/Blog";

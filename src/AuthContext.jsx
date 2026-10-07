@@ -61,13 +61,17 @@ export const AuthProvider = ({ children }) => {
         }
 
         // Real-time profile listener
-        unsubscribeProfile = onSnapshot(doc(db, 'users', firebaseUser.uid), (doc) => {
-          setUserProfile(doc.exists() ? doc.data() : null);
+        if (db) {
+          unsubscribeProfile = onSnapshot(doc(db, 'users', firebaseUser.uid), (doc) => {
+            setUserProfile(doc.exists() ? doc.data() : null);
+            setLoading(false);
+          }, (err) => {
+            console.error('Profile listener error:', err);
+            setLoading(false);
+          });
+        } else {
           setLoading(false);
-        }, (err) => {
-          console.error('Profile listener error:', err);
-          setLoading(false);
-        });
+        }
       } else {
         setUserProfile(null);
         setIsAdmin(false);
@@ -168,6 +172,7 @@ export const AuthProvider = ({ children }) => {
 
   // Check if user has hit the daily limit of 4 logs
   const checkDailyLogLimit = async (uid) => {
+    if (!db) return true;
     try {
       // Get the start and end of the current day
       const startOfDay = new Date();
@@ -200,7 +205,7 @@ export const AuthProvider = ({ children }) => {
 
   // Save user profile to Firestore + append a log entry for historical tracking
   const saveUserProfile = async (profileData, isManualLog = false) => {
-    if (!user) return;
+    if (!user || !db) return;
     const timestamp = new Date().toISOString();
     
     // Sanitize numeric inputs (ensure they are numbers or null)

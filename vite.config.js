@@ -2,6 +2,7 @@ import { defineConfig } from 'vite'
 import react from '@vitejs/plugin-react'
 import tailwindcss from '@tailwindcss/vite'
 import { VitePWA } from 'vite-plugin-pwa'
+import path from 'path'
 
 // https://vite.dev/config/
 export default defineConfig({
@@ -74,6 +75,18 @@ export default defineConfig({
     loader: "jsx",
     include: /src\/.*\.[jt]sx?$/,
     exclude: []
+  },
+  resolve: {
+    dedupe: ['react', 'react-dom', 'react-router', 'react-router-dom'],
+    alias: {
+      // Pin every import of react / react-dom to the single installed copy,
+      // preventing Vite's CJS interop from creating a second React instance.
+      'react': path.resolve('node_modules/react'),
+      'react-dom': path.resolve('node_modules/react-dom'),
+    },
+  },
+  optimizeDeps: {
+    include: ['react', 'react-dom', 'react-router', 'react-router-dom'],
   },
   base: "/",
 })

@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { useSearchParams, Link } from 'react-router';
+import { useSearchParams, Link } from 'react-router-dom';
 import { httpsCallable } from 'firebase/functions';
 import { functions } from '../../firebaseConfig';
 import { Mail, CheckCircle, XCircle, Loader, ArrowLeft, Heart } from 'lucide-react';

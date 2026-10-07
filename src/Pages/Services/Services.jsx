@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import SEO from '../../Components/SEO';
 import Food from '../../assets/Woman.webp'
-import { useNavigate } from 'react-router';
+import { useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import WhatsAppPopup from '../../Components/WhatsAppPopup';
 import Slider from 'react-slick';

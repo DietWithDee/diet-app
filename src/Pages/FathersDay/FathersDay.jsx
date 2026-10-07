@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import SEO from '../../Components/SEO';
 import { ArrowLeft, Send, Shield, CheckCircle, CreditCard, HelpCircle, ChevronDown } from 'lucide-react';
-import { useNavigate } from 'react-router';
+import { useNavigate } from 'react-router-dom';
 import fathersDayPromo from '../../assets/fathers_day_promo.png';
 import { isValidEmail } from '../../utils/validation';
 import { logEvent } from 'firebase/analytics';
