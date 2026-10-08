@@ -425,39 +425,6 @@ const OnTrack = () => {
 
           </section>
 
-          {/* ============================================================== */}
-          {/* 4. DIABETES PLAN CALLOUT                                       */}
-          {/* ============================================================== */}
-          <section className="bg-white/80 backdrop-blur-md border border-stone-200/90 rounded-2xl sm:rounded-3xl p-8 sm:p-10 text-center shadow-xs">
-            <div className="max-w-xl mx-auto space-y-4">
-              <span className="inline-flex items-center gap-1.5 px-3 py-1 bg-orange-50 border border-orange-200/70 text-[#F6841F] rounded-full text-xs font-semibold uppercase tracking-wider">
-                Self-Guided Option
-              </span>
-              <h3 className="text-2xl sm:text-3xl font-serif-cormorant font-normal text-stone-900 leading-snug">
-                Prefer a self-guided meal guide?
-              </h3>
-              <p className="text-xs sm:text-sm text-stone-600 font-light leading-relaxed">
-                Explore our comprehensive <strong className="font-semibold text-stone-800">Blood Sugar Balance Plan</strong> crafted specifically for Type 2 diabetes management with local Ghanaian staples.
-              </p>
-              <div className="pt-2 flex flex-col sm:flex-row items-center justify-center gap-3">
-                <a
-                  href="https://paystack.com/buy/blood-sugar-balance-plan"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="w-full sm:w-auto px-8 py-3.5 rounded-full bg-[#F6841F] hover:bg-[#e07312] text-white font-montserrat text-xs sm:text-sm font-semibold tracking-wider uppercase transition-all duration-300 shadow-md hover:shadow-lg hover:-translate-y-0.5 active:scale-95 inline-flex items-center justify-center gap-2 cursor-pointer"
-                >
-                  <span>Blood Sugar Balance Plan (GH₵ 299)</span>
-                  <ExternalLink size={15} />
-                </a>
-                <Link
-                  to="/plans"
-                  className="w-full sm:w-auto px-6 py-3.5 rounded-full bg-stone-100 hover:bg-stone-200 text-stone-700 font-montserrat text-xs sm:text-sm font-medium transition-all duration-300 inline-flex items-center justify-center"
-                >
-                  View All Plans
-                </Link>
-              </div>
-            </div>
-          </section>
 
           {/* ============================================================== */}
           {/* 5. CONSULTATION BOOKING ENGINE (Glassmorphic & Brand Aligned)   */}
@@ -591,7 +558,7 @@ const OnTrack = () => {
                         </li>
                         <li className="flex items-center gap-1.5">
                           <CheckCircle2 size={13} className="text-[#F6841F] shrink-0" />
-                          <span>Ongoing WhatsApp motivation</span>
+                          <span>Ongoing WhatsApp Support</span>
                         </li>
                       </ul>
                     </button>
@@ -715,6 +682,40 @@ const OnTrack = () => {
 
               </form>
 
+            </div>
+          </section>
+
+          {/* ============================================================== */}
+          {/* SELF-GUIDED OPTION                                             */}
+          {/* ============================================================== */}
+          <section className="bg-white/80 backdrop-blur-md border border-stone-200/90 rounded-2xl sm:rounded-3xl p-8 sm:p-10 text-center shadow-xs">
+            <div className="max-w-xl mx-auto space-y-4">
+              <span className="inline-flex items-center gap-1.5 px-3 py-1 bg-orange-50 border border-orange-200/70 text-[#F6841F] rounded-full text-xs font-semibold uppercase tracking-wider">
+                Self-Guided Option
+              </span>
+              <h3 className="text-2xl sm:text-3xl font-serif-cormorant font-normal text-stone-900 leading-snug">
+                Prefer a self-guided meal guide?
+              </h3>
+              <p className="text-xs sm:text-sm text-stone-600 font-light leading-relaxed">
+                Explore our comprehensive <strong className="font-semibold text-stone-800">Blood Sugar Balance Plan</strong> crafted specifically for Type 2 diabetes management with local Ghanaian staples.
+              </p>
+              <div className="pt-2 flex flex-col sm:flex-row items-center justify-center gap-3">
+                <a
+                  href="https://paystack.com/buy/blood-sugar-balance-plan"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="w-full sm:w-auto px-8 py-3.5 rounded-full bg-[#F6841F] hover:bg-[#e07312] text-white font-montserrat text-xs sm:text-sm font-semibold tracking-wider uppercase transition-all duration-300 shadow-md hover:shadow-lg hover:-translate-y-0.5 active:scale-95 inline-flex items-center justify-center gap-2 cursor-pointer"
+                >
+                  <span>Blood Sugar Balance Plan (GH₵ 299)</span>
+                  <ExternalLink size={15} />
+                </a>
+                <Link
+                  to="/plans"
+                  className="w-full sm:w-auto px-6 py-3.5 rounded-full bg-stone-100 hover:bg-stone-200 text-stone-700 font-montserrat text-xs sm:text-sm font-medium transition-all duration-300 inline-flex items-center justify-center"
+                >
+                  View All Plans
+                </Link>
+              </div>
             </div>
           </section>
 

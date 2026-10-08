@@ -34,19 +34,6 @@ function ServicesContactSection() {
   // Event redirect modal state
   const [eventRedirect, setEventRedirect] = useState({ isOpen: false, url: '' });
 
-  // Fetch all events from Firebase
-  useEffect(() => {
-    const fetchEvents = async () => {
-      setIsEventsLoading(true);
-      const res = await getAllEvents();
-      if (res.success) {
-        setAllEvents(res.data || []);
-      }
-      setIsEventsLoading(false);
-    };
-    fetchEvents();
-  }, []);
-
   // Parse YYYY-MM-DD cleanly in local timezone to guarantee accurate past/upcoming categorization
   const parseEventDate = (dateStr) => {
     if (!dateStr) return new Date(0);
@@ -54,6 +41,28 @@ function ServicesContactSection() {
     if (parts.length < 3) return new Date(dateStr);
     return new Date(parts[0], parts[1] - 1, parts[2]);
   };
+
+  // Fetch all events from Firebase
+  useEffect(() => {
+    const fetchEvents = async () => {
+      setIsEventsLoading(true);
+      const res = await getAllEvents();
+      if (res.success) {
+        const events = res.data || [];
+        setAllEvents(events);
+
+        // When there are no upcoming events, show past events by default
+        const todayDate = new Date();
+        todayDate.setHours(0, 0, 0, 0);
+        const hasUpcoming = events.some(e => parseEventDate(e.date) >= todayDate);
+        if (!hasUpcoming) {
+          setActiveTab('past');
+        }
+      }
+      setIsEventsLoading(false);
+    };
+    fetchEvents();
+  }, []);
 
   // Split events into upcoming and past
   const today = new Date();
