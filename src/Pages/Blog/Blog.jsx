@@ -586,7 +586,7 @@ function Blog() {
               {/* Article Header */}
               <div className="p-4 sm:p-6 lg:p-12">
                 <div className="mb-6">
-                  <h1 className="text-2xl sm:text-3xl lg:text-4xl font-black text-green-700 mb-4 leading-tight">
+                  <h1 className="text-2xl sm:text-4xl lg:text-5xl font-serif-cormorant font-normal text-stone-900 mb-4 leading-[1.15]">
                     {selectedArticle.title}
                   </h1>
 
@@ -746,14 +746,14 @@ function Blog() {
   return (
     <div className="min-h-screen bg-gradient-to-br from-green-50 via-white to-emerald-50 py-18 lg:py-20 px-4 sm:px-6 lg:px-12">
       {/* Header */}
-      <div className="text-center mb-8 lg:mb-12 space-y-8 max-w-3xl mx-auto">
-        <h1 className="text-3xl sm:text-4xl lg:text-5xl font-black text-transparent bg-clip-text bg-gradient-to-r from-green-700 via-emerald-600 to-green-600">
+      <div className="text-center mb-8 lg:mb-12 space-y-4 max-w-3xl mx-auto">
+        <h1 className="text-3xl sm:text-5xl lg:text-6xl font-serif-cormorant font-normal text-stone-900 tracking-tight leading-[1.12]">
           Wellness Reads
         </h1>
-        <p className="text-gray-700 text-base lg:text-lg px-4">
+        <p className="text-stone-600 text-sm sm:text-base font-light px-4 leading-relaxed max-w-xl mx-auto">
           Practical tips, expert advice, and motivation for your healthy lifestyle.
         </p>
-        <div className="w-20 h-1 bg-gradient-to-r from-green-500 to-emerald-500 mx-auto rounded-full"></div>
+        <div className="w-16 h-0.5 bg-[#F6841F] mx-auto rounded-full"></div>
       </div>
 
       {/* Blog Posts */}

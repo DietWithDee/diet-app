@@ -197,17 +197,17 @@ const ContactUs = () => {
         <div className="container mx-auto px-6 lg:px-12 max-w-7xl">
           {/* Header */}
           <div className="text-center space-y-6 mb-16">
-            <div className="space-y-6">
+            <div className="space-y-4">
               <div className="text-5xl animate-bounce">🌟</div>
-              <h1 className="text-4xl md:text-5xl font-bold text-green-800 leading-tight">
+              <h1 className="text-3xl sm:text-5xl lg:text-6xl font-serif-cormorant font-normal text-stone-900 leading-[1.12] tracking-tight">
                 Ready to Start Your Nutrition Journey?
               </h1>
               {!hasCalculatedResults ? (
-                <p className="text-xl text-gray-600 max-w-2xl mx-auto leading-relaxed">
-                  Complete the <a href='/KnowYourBody' className='text-green-800 font-bold underline hover:text-green-600 transition-colors'>KnowYourBody</a> Test in <a href='/my-journey' className='text-green-800 font-bold underline hover:text-green-600 transition-colors'>My Journey</a> and fill in the information so we have your latest data for your consultation.
+                <p className="text-sm sm:text-base text-stone-600 font-light max-w-2xl mx-auto leading-relaxed">
+                  Complete the <a href='/KnowYourBody' className='text-emerald-700 font-medium underline hover:text-emerald-900 transition-colors'>KnowYourBody</a> Test in <a href='/my-journey' className='text-emerald-700 font-medium underline hover:text-emerald-900 transition-colors'>My Journey</a> and fill in the information so we have your latest data for your consultation.
                 </p>
               ) : (
-                <p className="text-xl text-gray-600 max-w-2xl mx-auto leading-relaxed">
+                <p className="text-sm sm:text-base text-stone-600 font-light max-w-2xl mx-auto leading-relaxed">
                   Based on your latest assessment, we've prepared a summary of your nutrition profile. Review your metrics below and book your consultation to get started!
                 </p>
               )}
@@ -219,7 +219,7 @@ const ContactUs = () => {
             {hasCalculatedResults && (
               <div className="space-y-8">
                 <div className="flex items-center space-x-4">
-                  <h2 className="text-2xl font-bold text-green-800 whitespace-nowrap">Your Results Summary</h2>
+                  <h2 className="text-2xl font-serif-cormorant font-normal text-stone-900 whitespace-nowrap">Your Results Summary</h2>
                   <div className="h-px bg-gradient-to-r from-green-200 to-transparent w-full"></div>
                 </div>
                 

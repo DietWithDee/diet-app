@@ -113,7 +113,7 @@ export default function Subscribe() {
                 <meta property="og:type" content="website" />
             </Helmet>
 
-            <div className="min-h-screen bg-gradient-to-br from-green-50 via-white to-emerald-50 flex items-center justify-center p-4 relative overflow-hidden font-inter">
+            <div className="min-h-screen bg-gradient-to-br from-green-50 via-white to-emerald-50 flex items-center justify-center p-4 relative overflow-hidden">
                 {/* Decorative background blobs */}
                 <div className="absolute -right-16 -top-16 h-80 w-80 rounded-full bg-green-200/30 blur-3xl"></div>
                 <div className="absolute -left-12 -bottom-12 h-72 w-72 rounded-full bg-emerald-200/30 blur-3xl"></div>
@@ -126,10 +126,10 @@ export default function Subscribe() {
                         <div className="w-24 h-24 bg-white rounded-2xl flex items-center justify-center mx-auto mb-4 shadow-md border border-white/20 relative z-10 transition-transform hover:scale-105 duration-300">
                             <img src={logo} alt="DietWithDee Logo" className="h-20 w-auto object-contain" />
                         </div>
-                        <h1 className="text-3xl md:text-4xl font-extrabold text-white tracking-tight relative z-10 font-inter">
+                        <h1 className="text-3xl md:text-4xl font-serif-cormorant font-normal text-white tracking-tight relative z-10">
                             Join the Newsletter
                         </h1>
-                        <p className="text-green-100 text-sm md:text-base mt-2 relative z-10 font-medium opacity-90">
+                        <p className="text-green-100 text-sm md:text-base mt-2 relative z-10 font-light opacity-90">
                             Get curated wellness & nutrition advice directly from Dee
                         </p>
                     </div>
@@ -138,10 +138,10 @@ export default function Subscribe() {
                         {status !== "success" ? (
                             <form onSubmit={handleSubscribe} className="space-y-6">
                                 <div className="text-center md:text-left">
-                                    <h2 className="text-xl md:text-2xl font-extrabold text-gray-900 mb-2 flex items-center gap-2 justify-center md:justify-start">
+                                    <h2 className="text-xl md:text-2xl font-bold text-stone-900 mb-2 flex items-center gap-2 justify-center md:justify-start">
                                         <Mail className="text-green-600 w-6 h-6" /> Stay in the Loop!
                                     </h2>
-                                    <p className="text-gray-600 text-sm md:text-[15px] leading-relaxed">
+                                    <p className="text-stone-600 text-sm md:text-[15px] leading-relaxed font-light">
                                         Subscribe to receive healthy recipes, wellness updates, and science-backed diet tips straight to your inbox.
                                     </p>
                                 </div>

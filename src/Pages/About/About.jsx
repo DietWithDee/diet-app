@@ -60,20 +60,20 @@ function AboutUsSection() {
             <div className="space-y-3">
               <motion.h1
                 variants={fadeUp}
-                className="text-4xl sm:text-5xl font-black text-transparent bg-clip-text bg-gradient-to-r from-green-700 via-emerald-600 to-green-500 leading-tight"
+                className="text-4xl sm:text-5xl lg:text-6xl font-serif-cormorant font-normal text-stone-900 leading-[1.12] tracking-tight"
               >
                 Our Story
               </motion.h1>
               <motion.div
                 variants={scaleBar}
-                className="w-20 h-2 bg-gradient-to-r from-green-500 to-emerald-400 rounded-full"
+                className="w-16 h-1 bg-[#F6841F] rounded-full"
               />
             </div>
 
             {/* Body copy */}
             <motion.div
               variants={fadeUp}
-              className="space-y-5 text-base sm:text-lg text-gray-700 leading-relaxed"
+              className="space-y-5 text-sm sm:text-base text-stone-600 font-light leading-relaxed"
             >
               <p>
                 In Ghana, access to professional nutrition advice is often limited, and many people
@@ -113,10 +113,9 @@ function AboutUsSection() {
             {/* Pull-quote */}
             <motion.blockquote
               variants={fadeUp}
-              className="relative bg-gradient-to-r from-green-50 to-emerald-50 border-l-4 border-green-500 rounded-2xl px-6 py-5 overflow-hidden group"
+              className="relative bg-orange-50/50 border-l-4 border-[#F6841F] rounded-2xl px-6 py-5 overflow-hidden group"
             >
-              <div className="absolute top-0 right-0 w-28 h-28 bg-green-200 rounded-full opacity-20 -mr-10 -mt-10 transition-transform group-hover:scale-150 duration-500" />
-              <p className="text-base sm:text-lg font-semibold italic text-green-800 relative z-10">
+              <p className="text-base sm:text-lg font-serif-cormorant italic text-stone-800 relative z-10 leading-snug">
                 &ldquo;Our vision is to be a top online platform that transforms how people view
                 nutrition and wellness.&rdquo;
               </p>
@@ -172,20 +171,20 @@ function AboutUsSection() {
             <div className="space-y-3">
               <motion.h2
                 variants={fadeUp}
-                className="text-3xl sm:text-4xl font-black text-transparent bg-clip-text bg-gradient-to-r from-green-700 to-emerald-600"
+                className="text-3xl sm:text-4xl lg:text-5xl font-serif-cormorant font-normal text-stone-900 leading-tight"
               >
                 Community &amp; Impact
               </motion.h2>
               <motion.div
                 variants={scaleBar}
-                className="w-16 h-1.5 bg-gradient-to-r from-green-500 to-emerald-400 rounded-full"
+                className="w-16 h-1 bg-[#F6841F] rounded-full"
               />
             </div>
 
             {/* Body copy */}
             <motion.div
               variants={fadeUp}
-              className="space-y-5 text-base sm:text-lg text-gray-700 leading-relaxed"
+              className="space-y-5 text-sm sm:text-base text-stone-600 font-light leading-relaxed"
             >
               <p>
                 Beyond individual consultations, we believe in the power of collective change.{' '}

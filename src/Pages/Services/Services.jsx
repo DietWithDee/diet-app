@@ -274,19 +274,19 @@ function ServicesContactSection() {
                 >
                   {/* Main Headline */}
                   <div className='space-y-3 sm:space-y-4'>
-                    <motion.h1 variants={fadeUp} className='text-3xl sm:text-4xl lg:text-5xl font-black text-green-700 leading-tight'>
+                    <motion.h1 variants={fadeUp} className='text-3xl sm:text-5xl lg:text-6xl font-serif-cormorant font-normal text-stone-900 leading-[1.12]'>
                       Transform Your Health
                       <br />
-                      <span className='text-green-700'>with Our Specialized</span>
+                      <span className='text-stone-900'>with Our Specialized</span>
                       <br />
-                      <span className='text-green-700'>Services</span>
+                      <span className='text-emerald-800'>Services</span>
                     </motion.h1>
-                    <motion.div variants={scaleRight} className='w-20 h-2 bg-gradient-to-r from-green-500 to-emerald-500 rounded-full'></motion.div>
+                    <motion.div variants={scaleRight} className='w-16 h-1 bg-[#F6841F] rounded-full'></motion.div>
                   </div>
 
                   {/* Description */}
                   <motion.div variants={fadeUp} className='space-y-4 sm:space-y-6'>
-                    <p className='text-base sm:text-lg text-gray-700 leading-relaxed px-2 sm:px-0'>
+                    <p className='text-sm sm:text-base text-stone-600 font-light leading-relaxed px-2 sm:px-0'>
                       Health is personal, but creating impact can also be collective. We support individuals on their nutrition journey while partnering with brands, teams, and organizations to spread practical, culturally relevant wellness. Whether it's one-on-one or on a bigger stage, we're here to make nutrition accessible and meaningful.
                     </p>
                   </motion.div>
@@ -318,10 +318,10 @@ function ServicesContactSection() {
               viewport={{ once: true, margin: "-100px" }}
               transition={{ duration: 0.6 }}
             >
-              <h2 className='text-3xl sm:text-4xl lg:text-5xl font-black text-center text-transparent bg-clip-text bg-gradient-to-r from-green-700 via-emerald-600 to-green-600 leading-tight mb-4'>
+              <h2 className='text-3xl sm:text-4xl lg:text-5xl font-serif-cormorant font-normal text-center text-stone-900 leading-tight mb-4'>
                 Our Events
               </h2>
-              <p className='text-center text-gray-600 mb-8 max-w-xl mx-auto text-sm sm:text-base'>
+              <p className='text-center text-stone-600 mb-8 max-w-xl mx-auto text-sm sm:text-base font-light'>
                 Explore our upcoming community programs or browse through past outreaches and workshops.
               </p>
 
@@ -516,10 +516,10 @@ function ServicesContactSection() {
               viewport={{ once: true }}
               transition={{ duration: 0.6 }}
             >
-              <h2 className='text-3xl sm:text-4xl lg:text-5xl font-black text-transparent bg-clip-text bg-gradient-to-r from-green-700 via-emerald-600 to-green-600 leading-tight'>
+              <h2 className='text-3xl sm:text-4xl lg:text-5xl font-serif-cormorant font-normal text-stone-900 leading-tight'>
                 What we offer
               </h2>
-              <div className='w-20 h-2 bg-gradient-to-r from-green-500 to-emerald-500 rounded-full mx-auto mt-4'></div>
+              <div className='w-16 h-1 bg-[#F6841F] rounded-full mx-auto mt-4'></div>
             </motion.div>
 
             <motion.div 

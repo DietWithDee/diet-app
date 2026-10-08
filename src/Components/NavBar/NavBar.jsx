@@ -92,7 +92,7 @@ export default function NavBar() {
         </div>
 
         {/* Desktop Links */}
-        <ul className="hidden md:flex space-x-6 text-sm font-inter">
+        <ul className="hidden md:flex space-x-6 text-sm font-montserrat font-medium">
           {links.map(({ path, label }) => (
             <li key={path}>
               <NavLink

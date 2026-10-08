@@ -100,13 +100,13 @@ function SuccessStories() {
       <div className='min-h-screen bg-gradient-to-br from-green-50 via-white to-emerald-50 py-20 px-6 lg:px-12'>
         {/* Hero Section */}
         <div className='text-center space-y-4 max-w-3xl mx-auto mb-16'>
-          <h1 className='text-5xl font-black text-transparent bg-clip-text bg-gradient-to-r from-green-700 via-emerald-600 to-green-600'>
+          <h1 className='text-4xl sm:text-5xl lg:text-6xl font-serif-cormorant font-normal text-stone-900 tracking-tight leading-[1.12]'>
             Success Stories
           </h1>
-          <p className='text-gray-600 text-lg'>
+          <p className='text-stone-600 text-sm sm:text-base font-light max-w-xl mx-auto leading-relaxed'>
             Hundreds of transformations. Real people, real results. Be inspired and start your journey today.
           </p>
-          <div className='w-20 h-1 bg-gradient-to-r from-green-500 to-emerald-500 mx-auto rounded-full'></div>
+          <div className='w-16 h-0.5 bg-[#F6841F] mx-auto rounded-full'></div>
         </div>
 
         {/* Filter Section */}
@@ -177,11 +177,11 @@ function SuccessStories() {
                     </div>
 
                     {/* Content */}
-                    <p className='text-gray-700 text-sm leading-relaxed mb-4 flex-grow italic'>
+                    <p className='text-stone-700 text-base leading-relaxed mb-4 flex-grow font-serif-cormorant italic'>
                       "{testimonial.content}"
                     </p>
 
-                    <div className='w-12 h-1 bg-gradient-to-r from-green-400 to-emerald-400 rounded-full'></div>
+                    <div className='w-12 h-0.5 bg-emerald-400 rounded-full'></div>
                   </div>
                 ))}
               </div>
@@ -228,8 +228,8 @@ function SuccessStories() {
 
         {/* CTA Section */}
         <div className='mt-20 text-center max-w-2xl mx-auto'>
-          <h2 className='text-3xl font-bold text-gray-800 mb-4'>Ready to write your own story?</h2>
-          <p className='text-gray-600 mb-6'>Share your transformation with our community and inspire others.</p>
+          <h2 className='text-3xl sm:text-4xl font-serif-cormorant font-normal text-stone-900 mb-3 tracking-tight'>Ready to write your own story?</h2>
+          <p className='text-stone-600 text-sm sm:text-base font-light mb-6'>Share your transformation with our community and inspire others.</p>
           <a href='/submit-testimonial' className='inline-block px-8 py-3 bg-gradient-to-r from-green-600 to-emerald-600 text-white font-bold rounded-full hover:shadow-lg transition-all hover:scale-105'>
             Share Your Success
           </a>

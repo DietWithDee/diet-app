@@ -32,10 +32,10 @@ const WelcomeStep = ({ onNext }) => (
   <div className="text-center space-y-8">
     <div className="space-y-4">
       <div className="text-6xl">🧭</div>
-      <h1 className="text-4xl font-bold text-green-800 mb-4 pt-15">
+      <h1 className="text-3xl sm:text-5xl font-serif-cormorant font-normal text-stone-900 mb-4 pt-15 tracking-tight">
         Let's personalize your nutrition journey
       </h1>
-      <p className="text-xl text-gray-600 max-w-2xl mx-auto leading-relaxed">
+      <p className="text-base sm:text-lg text-stone-600 font-light max-w-2xl mx-auto leading-relaxed">
         Track your daily calories with our easy-to-use tool and stay on top of your health goals. Get expert guidance and book a session with our dietitians when you're ready.
       </p>
     </div>
@@ -87,8 +87,8 @@ const BMIStep = ({ formData, setFormData, units, setUnits, onNext }) => {
     <div className="max-w-2xl mx-auto space-y-8">
       <div className="text-center space-y-4">
         <Calculator className="mx-auto text-green-600" size={48} />
-        <h2 className="text-3xl font-bold text-green-800">BMI Calculator</h2>
-        <p className="text-gray-600">Let's start with your basic measurements</p>
+        <h2 className="text-2xl sm:text-3xl font-serif-cormorant font-normal text-stone-900">BMI Calculator</h2>
+        <p className="text-stone-600 font-light">Let's start with your basic measurements</p>
       </div>
       <div className="bg-white rounded-2xl shadow-xl p-8 space-y-6">
         {/* Units Toggle */}
@@ -219,8 +219,8 @@ const CalorieStep = ({ formData, setFormData, onNext }) => {
     <div className="max-w-2xl mx-auto space-y-8">
       <div className="text-center space-y-4">
         <Target className="mx-auto text-emerald-600" size={48} />
-        <h2 className="text-3xl font-bold text-green-800">Let's get to know your body a bit more…</h2>
-        <p className="text-gray-600">This helps us calculate your daily calorie needs</p>
+        <h2 className="text-2xl sm:text-3xl font-serif-cormorant font-normal text-stone-900">Let's get to know your body a bit more…</h2>
+        <p className="text-stone-600 font-light">This helps us calculate your daily calorie needs</p>
       </div>
       <div className="bg-white rounded-2xl shadow-xl p-8 space-y-8">
         <div className="space-y-6">

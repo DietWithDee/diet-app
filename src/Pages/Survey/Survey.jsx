@@ -692,7 +692,7 @@ export default function Survey() {
                     <Sparkles size={14} />
                     <span>DietWithDee Community Survey</span>
                   </div>
-                  <h1 className="text-2xl sm:text-3xl font-black text-gray-900 tracking-tight mb-4">
+                  <h1 className="text-2xl sm:text-4xl font-serif-cormorant font-normal text-stone-900 tracking-tight mb-4">
                     Help Us Improve DietWithDee
                   </h1>
 

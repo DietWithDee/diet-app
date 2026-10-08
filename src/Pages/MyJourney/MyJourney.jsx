@@ -276,14 +276,14 @@ function MyJourney() {
                 >
                   <motion.h1
                     variants={fadeUp}
-                    className="text-4xl md:text-5xl lg:text-6xl font-black text-green-700 tracking-tight mb-4 pt-16 md:pt-18"
+                    className="text-3xl sm:text-5xl lg:text-6xl font-serif-cormorant font-normal text-stone-900 tracking-tight leading-[1.12] mb-4 pt-16 md:pt-18"
                   >
                     My Journey 
                   </motion.h1>
-                  <motion.div variants={fadeUp} className="w-16 h-1.5 bg-gradient-to-r from-green-400 to-emerald-400 rounded-full mx-auto mb-4 shadow-sm"></motion.div>
+                  <motion.div variants={fadeUp} className="w-16 h-0.5 bg-[#F6841F] rounded-full mx-auto mb-4 shadow-sm"></motion.div>
                   <motion.p
                     variants={fadeUp}
-                    className="text-lg md:text-xl text-gray-700 font-bold max-w-xl px-4 drop-shadow-sm"
+                    className="text-sm sm:text-base text-stone-600 font-light max-w-xl px-4 leading-relaxed"
                   >
                     Track your nutrition, improve your health.
                   </motion.p>
@@ -305,7 +305,7 @@ function MyJourney() {
                     <div className="w-12 h-12 bg-gradient-to-br from-green-100 to-emerald-100 rounded-xl flex items-center justify-center mx-auto">
                       <span className="text-xl">🌿</span>
                     </div>
-                    <h3 className="text-lg font-bold text-green-800">Start Your Wellness Journey</h3>
+                    <h3 className="text-lg font-bold text-stone-900">Start Your Wellness Journey</h3>
                     <p className="text-gray-500 text-sm leading-relaxed">
                       Get started to save your progress, get personalized recommendations, and access our best features. We’ll log you in if you already have an account. Hit continue as guest to try it first, no signup required.  
                     </p>
@@ -343,7 +343,7 @@ function MyJourney() {
                   initial={{ opacity: 0, y: 15 }}
                   whileInView={{ opacity: 1, y: 0 }}
                   viewport={{ once: true }}
-                  className="text-center text-xl lg:text-2xl font-bold text-green-800 mb-6"
+                  className="text-center text-xl lg:text-2xl font-serif-cormorant font-normal text-stone-900 mb-6"
                 >
                   What You Get 🧭
                 </motion.h3>

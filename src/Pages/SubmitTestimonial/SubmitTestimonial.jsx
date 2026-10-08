@@ -61,13 +61,14 @@ function SubmitTestimonial() {
       />
       <div className='min-h-screen bg-gradient-to-br from-green-50 via-white to-emerald-50 py-20 px-6'>
         <div className='max-w-2xl mx-auto'>
-          <div className='text-center mb-12'>
-            <h1 className='text-4xl font-black text-transparent bg-clip-text bg-gradient-to-r from-green-700 to-emerald-600 mb-4'>
+          <div className='text-center mb-12 space-y-3'>
+            <h1 className='text-3xl sm:text-5xl font-serif-cormorant font-normal text-stone-900 mb-3 tracking-tight leading-[1.12]'>
               Share Your Success Story
             </h1>
-            <p className='text-gray-600 text-lg'>
+            <p className='text-stone-600 text-sm sm:text-base font-light leading-relaxed max-w-xl mx-auto'>
               Your story matters! Help others discover their transformation by sharing your experience with DietWithDee.
             </p>
+            <div className='w-16 h-0.5 bg-[#F6841F] mx-auto rounded-full'></div>
           </div>
 
           <div className='bg-white rounded-3xl shadow-xl p-8 border border-gray-100'>

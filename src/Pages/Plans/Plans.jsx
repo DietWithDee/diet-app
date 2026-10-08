@@ -450,14 +450,14 @@ function Plans() {
         <AnniversarySurveyBanner />
 
         <div className="text-center space-y-4 max-w-3xl mx-auto mb-8">
-          <h1 className="text-3xl sm:text-4xl font-black text-transparent bg-clip-text bg-gradient-to-r from-green-700 via-emerald-600 to-green-600">
+          <h1 className="text-3xl sm:text-5xl lg:text-6xl font-serif-cormorant font-normal text-stone-900 tracking-tight leading-[1.12]">
             Diet Plans
           </h1>
-          <p className="text-gray-700 text-sm sm:text-base max-w-xl mx-auto">
+          <p className="text-stone-600 text-sm sm:text-base font-light max-w-xl mx-auto leading-relaxed">
             Tailored nutrition solutions for every lifestyle and goal. Pick a
             plan and begin your transformation.
           </p>
-          <div className="w-20 h-1 bg-gradient-to-r from-green-500 to-emerald-500 mx-auto rounded-full"></div>
+          <div className="w-16 h-0.5 bg-[#F6841F] mx-auto rounded-full"></div>
         </div>
 
         {/* Plan Search & Filter Bar */}
@@ -570,11 +570,11 @@ function Plans() {
                         </div>
                       </div>
 
-                      {/* Title & Subtitle - Option 4 Minimalist Emerald Sheen */}
-                      <h3 className="text-xl sm:text-[22px] font-black bg-clip-text text-transparent bg-gradient-to-r from-emerald-950 via-green-900 to-teal-950 mb-1 leading-tight tracking-tight">
+                      {/* Title & Subtitle */}
+                      <h3 className="text-xl sm:text-[22px] font-bold text-stone-900 mb-1 leading-tight tracking-tight">
                         {plan.title}
                       </h3>
-                      <p className="text-xs sm:text-sm text-gray-500 font-medium mb-3.5 leading-normal">
+                      <p className="text-xs sm:text-sm text-stone-500 font-normal mb-3.5 leading-normal">
                         {plan.Subtitle}
                       </p>
 
@@ -690,7 +690,7 @@ function Plans() {
 
         {/* Trust Indicator Section */}
         <div className="mt-20 text-center space-y-4">
-          <h2 className="text-3xl font-bold text-green-700">
+          <h2 className="text-2xl sm:text-4xl font-serif-cormorant font-normal text-stone-900 tracking-tight">
             Why Choose DietWithDee?
           </h2>
           <div className="flex justify-center flex-wrap gap-8 mt-6 text-gray-700 font-medium">
@@ -711,12 +711,12 @@ function Plans() {
 
         {/* Did You Know? CTA Section moved up */}
         <div className="text-center mt-20 mb-8">
-          <div className="text-center mb-8 lg:mb-12 space-y-8 max-w-3xl mx-auto">
-            <h1 className="text-3xl sm:text-4xl lg:text-5xl font-black text-transparent bg-clip-text bg-gradient-to-r from-green-700 via-emerald-600 to-green-600">
+          <div className="text-center mb-6 space-y-3 max-w-3xl mx-auto">
+            <h2 className="text-3xl sm:text-4xl lg:text-5xl font-serif-cormorant font-normal text-stone-900 tracking-tight">
               Did you Know?
-            </h1>
+            </h2>
           </div>
-          <p className="text-gray-600 text-lg mb-6">
+          <p className="text-stone-600 text-sm sm:text-base font-light max-w-2xl mx-auto leading-relaxed mb-6">
             You can Book a Consultation session that comes with a free, custom
             Diet Plan from our Dietitian. Book a session to start now!
           </p>
@@ -731,14 +731,14 @@ function Plans() {
         {/* Improved Testimonials Section */}
         <div id="success-stories" className="mt-12 mb-12">
           <div className="text-center space-y-4 max-w-3xl mx-auto mb-12">
-            <h2 className="text-4xl font-black text-transparent bg-clip-text bg-gradient-to-r from-green-700 via-emerald-600 to-green-600">
+            <h2 className="text-3xl sm:text-4xl lg:text-5xl font-serif-cormorant font-normal text-stone-900 tracking-tight">
               Success Stories
             </h2>
-            <p className="text-gray-600 text-lg">
+            <p className="text-stone-600 text-sm sm:text-base font-light max-w-xl mx-auto leading-relaxed">
               Real people, real results. Swipe to see what our clients have to
               say about their transformation journey.
             </p>
-            <div className="w-16 h-1 bg-gradient-to-r from-green-500 to-emerald-500 mx-auto rounded-full"></div>
+            <div className="w-16 h-0.5 bg-[#F6841F] mx-auto rounded-full"></div>
           </div>
 
           <div className="relative max-w-6xl mx-auto px-4 sm:px-12">
