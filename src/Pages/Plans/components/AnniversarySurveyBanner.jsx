@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { ArrowRight, X } from "lucide-react";
+import { motion, AnimatePresence } from "framer-motion";
 import { logEvent } from "firebase/analytics";
 import { analytics } from "../../../firebaseConfig";
 
@@ -46,41 +47,49 @@ export default function AnniversarySurveyBanner() {
     navigate("/survey");
   };
 
-  if (!isVisible) return null;
-
   return (
-    <div className="w-full max-w-4xl mx-auto mb-8">
-      <div className="bg-emerald-800 text-white px-4 sm:px-5 py-3 rounded-xl shadow-sm flex items-center justify-between gap-3 text-xs sm:text-sm">
-        {/* Banner Message */}
-        <div className="flex items-center gap-2 min-w-0">
-          <span className="shrink-0 text-base">🎉</span>
-          <p className="leading-snug truncate sm:overflow-visible sm:whitespace-normal">
-            <span className="font-bold">Celebrating 1 Year!</span>{" "}
-            <span className="text-emerald-100">Take our 2-min survey to get 20% off any diet plan.</span>
-          </p>
-        </div>
+    <AnimatePresence>
+      {isVisible && (
+        <motion.div
+          initial={{ opacity: 0, y: -8 }}
+          animate={{ opacity: 1, y: 0 }}
+          exit={{ opacity: 0, y: -10, scale: 0.98 }}
+          transition={{ duration: 0.2 }}
+          className="sticky top-16 z-30 w-full max-w-4xl mx-auto mb-8"
+        >
+          <div className="bg-emerald-800/95 backdrop-blur-sm text-white px-4 sm:px-5 py-3 rounded-xl shadow-lg shadow-emerald-950/20 border border-emerald-700/60 flex items-center justify-between gap-3 text-xs sm:text-sm transition-all">
+            {/* Banner Message */}
+            <div className="flex items-center gap-2 min-w-0">
+              <span className="shrink-0 text-base">🎉</span>
+              <p className="leading-snug truncate sm:overflow-visible sm:whitespace-normal">
+                <span className="font-bold">Celebrating 1 Year!</span>{" "}
+                <span className="text-emerald-100">Take our 2-min survey to get 20% off any diet plan.</span>
+              </p>
+            </div>
 
-        {/* Action Button & Dismiss */}
-        <div className="flex items-center gap-2 sm:gap-3 shrink-0">
-          <button
-            type="button"
-            onClick={handleSurveyClick}
-            className="bg-white hover:bg-emerald-50 text-emerald-900 font-bold px-3 py-1.5 rounded-lg text-xs sm:text-sm inline-flex items-center gap-1 transition-colors cursor-pointer whitespace-nowrap"
-          >
-            <span>Take Survey</span>
-            <ArrowRight className="w-3.5 h-3.5" />
-          </button>
+            {/* Action Button & Dismiss */}
+            <div className="flex items-center gap-2 sm:gap-3 shrink-0">
+              <button
+                type="button"
+                onClick={handleSurveyClick}
+                className="bg-white hover:bg-emerald-50 text-emerald-900 font-bold px-3 py-1.5 rounded-lg text-xs sm:text-sm inline-flex items-center gap-1 transition-colors cursor-pointer whitespace-nowrap"
+              >
+                <span>Take Survey</span>
+                <ArrowRight className="w-3.5 h-3.5" />
+              </button>
 
-          <button
-            type="button"
-            onClick={handleDismiss}
-            aria-label="Close banner"
-            className="text-emerald-200 hover:text-white p-1 rounded transition-colors cursor-pointer"
-          >
-            <X className="w-4 h-4" />
-          </button>
-        </div>
-      </div>
-    </div>
+              <button
+                type="button"
+                onClick={handleDismiss}
+                aria-label="Close banner"
+                className="text-emerald-200 hover:text-white p-1 rounded transition-colors cursor-pointer"
+              >
+                <X className="w-4 h-4" />
+              </button>
+            </div>
+          </div>
+        </motion.div>
+      )}
+    </AnimatePresence>
   );
 }
