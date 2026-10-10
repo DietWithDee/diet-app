@@ -587,7 +587,7 @@ export default function Survey() {
                           <span className="text-lg sm:text-xl font-black text-emerald-700">
                             {chosenPlanConfig.discountPrice}
                           </span>
-                          <span className="text-[11px] font-semibold text-emerald-600">
+                          <span className="text-xs font-bold text-emerald-700">
                             (Save {chosenPlanConfig.savings})
                           </span>
                         </div>
@@ -596,7 +596,7 @@ export default function Survey() {
 
                     {/* High-Contrast Copyable Coupon Box */}
                     <div className="bg-white rounded-xl border-2 border-dashed border-emerald-300 p-3 sm:p-4 mb-4 text-center">
-                      <div className="text-[10px] sm:text-xs font-bold uppercase tracking-wider text-gray-400 mb-1">
+                      <div className="text-xs font-bold uppercase tracking-wider text-stone-600 mb-1">
                         Your Discount Code
                       </div>
                       <div className="flex items-center justify-between gap-2 bg-emerald-50/50 p-2 sm:p-2.5 rounded-lg border border-emerald-100">
@@ -606,7 +606,7 @@ export default function Survey() {
                         <button
                           type="button"
                           onClick={() => copyPromoCode(chosenPlanConfig.code, true)}
-                          className={`flex items-center gap-1.5 px-3 py-2 rounded-md text-xs font-bold transition-all cursor-pointer ${
+                          className={`flex items-center gap-1.5 px-3 py-2 rounded-md text-xs sm:text-sm font-bold transition-all cursor-pointer ${
                             copiedCode
                               ? "bg-emerald-600 text-white shadow-sm"
                               : "bg-emerald-700 hover:bg-emerald-800 text-white"
@@ -636,23 +636,23 @@ export default function Survey() {
                         navigator.clipboard.writeText(chosenPlanConfig.code);
                         showToast(`Code ${chosenPlanConfig.code} copied! Opening Paystack...`, "success");
                       }}
-                      className="w-full py-3.5 px-5 bg-emerald-700 hover:bg-emerald-800 active:bg-emerald-900 text-white font-bold rounded-xl shadow-md hover:shadow-lg transition-all text-sm flex items-center justify-center gap-2 cursor-pointer"
+                      className="w-full py-3.5 px-5 bg-emerald-700 hover:bg-emerald-800 active:bg-emerald-900 text-white font-bold rounded-xl shadow-md hover:shadow-lg transition-all text-sm sm:text-base flex items-center justify-center gap-2 cursor-pointer"
                     >
                       <span>Continue to Paystack Checkout</span>
                       <ExternalLink size={16} />
                     </a>
 
                     {/* Compact 3-Step Guide (Inside the card, clear & helpful) */}
-                    <div className="mt-4 pt-3 border-t border-gray-100 text-left text-xs text-gray-600">
-                      <p className="font-bold text-gray-800 mb-1.5 flex items-center gap-1.5 text-[11px] uppercase tracking-wide">
+                    <div className="mt-4 pt-3 border-t border-stone-100 text-left text-xs sm:text-sm text-stone-700">
+                      <p className="font-bold text-stone-900 mb-1.5 flex items-center gap-1.5 text-xs sm:text-sm uppercase tracking-wide">
                         <span>How to apply your 20% discount on Paystack:</span>
                       </p>
-                      <ol className="list-decimal pl-4 space-y-1 text-gray-600 text-[11px] sm:text-xs">
-                        <li>Click the <strong>green button above</strong> to open your Paystack checkout.</li>
-                        <li>Click <span className="text-emerald-700 font-bold underline">"Have a discount code?"</span> right below the price.</li>
-                        <li>Paste <code className="bg-emerald-50 px-1 py-0.5 rounded text-emerald-800 font-bold border border-emerald-200">{chosenPlanConfig.code}</code> and your price automatically drops to <strong>{chosenPlanConfig.discountPrice}</strong>.</li>
+                      <ol className="list-decimal pl-4 space-y-1.5 text-stone-700 text-xs sm:text-sm font-medium">
+                        <li>Click the <strong className="text-stone-900 font-bold">green button above</strong> to open your Paystack checkout.</li>
+                        <li>Click <span className="text-emerald-800 font-bold underline">"Have a discount code?"</span> right below the price.</li>
+                        <li>Paste <code className="bg-emerald-50 px-1 py-0.5 rounded text-emerald-900 font-bold border border-emerald-200">{chosenPlanConfig.code}</code> and your price automatically drops to <strong className="text-stone-900">{chosenPlanConfig.discountPrice}</strong>.</li>
                       </ol>
-                      <p className="text-[10px] text-gray-400 mt-2">
+                      <p className="text-xs text-stone-600 font-medium mt-2">
                         🔒 Safe payment via MTN Mobile Money, Telecel Cash, or Card.
                       </p>
                     </div>
@@ -666,14 +666,14 @@ export default function Survey() {
                       )}`}
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="w-full sm:w-1/2 px-4 py-2.5 bg-[#25D366] hover:bg-[#20ba5a] text-white font-bold rounded-xl shadow-xs transition-colors text-xs flex items-center justify-center gap-1.5 cursor-pointer"
+                      className="w-full sm:w-1/2 px-4 py-2.5 bg-[#25D366] hover:bg-[#20ba5a] text-white font-bold rounded-xl shadow-xs transition-colors text-xs sm:text-sm flex items-center justify-center gap-1.5 cursor-pointer"
                     >
                       <MessageCircle size={15} />
                       <span>Chat with Dee on WhatsApp</span>
                     </a>
                     <Link
                       to="/plans"
-                      className="w-full sm:w-1/2 px-4 py-2.5 bg-gray-50 text-gray-700 font-bold border border-gray-200 rounded-xl hover:bg-gray-100 transition-colors text-xs flex items-center justify-center gap-1.5 shadow-xs"
+                      className="w-full sm:w-1/2 px-4 py-2.5 bg-stone-100 text-stone-800 font-bold border border-stone-200 rounded-xl hover:bg-stone-200 transition-colors text-xs sm:text-sm flex items-center justify-center gap-1.5 shadow-xs"
                     >
                       <span>Browse All 5 Plans</span>
                       <ExternalLink size={14} />
@@ -703,16 +703,16 @@ export default function Survey() {
                     </p>
                   </div>
 
-                  <div className="mt-4 flex flex-wrap items-center gap-4 text-xs text-gray-500 pt-3 border-t border-gray-100">
+                  <div className="mt-4 flex flex-wrap items-center gap-4 text-xs sm:text-sm text-stone-600 font-medium pt-3 border-t border-gray-100">
                     <span className="flex items-center gap-1">
-                      <ShieldCheck size={14} className="text-emerald-600" />
+                      <ShieldCheck size={14} className="text-emerald-700" />
                       Confidential & Secure
                     </span>
                     <span className="flex items-center gap-1">
-                      <Clock size={14} className="text-emerald-600" />
+                      <Clock size={14} className="text-emerald-700" />
                       Less than 2 minutes
                     </span>
-                    <span className="flex items-center gap-1 text-emerald-700 font-semibold">
+                    <span className="flex items-center gap-1 text-emerald-800 font-bold">
                       <Gift size={14} />
                       Includes 20% discount bonus
                     </span>
@@ -734,12 +734,12 @@ export default function Survey() {
                     }`}
                   >
                     <div className="mb-4">
-                      <h2 className="text-base sm:text-lg font-bold text-gray-900 leading-snug">
+                      <h2 className="text-base sm:text-lg font-bold text-stone-900 leading-snug">
                         {q.title}
                         {q.required && <span className="text-red-500 ml-1 font-bold">*</span>}
                       </h2>
                       {q.subtitle && (
-                        <p className="text-xs sm:text-sm text-gray-500 mt-1">{q.subtitle}</p>
+                        <p className="text-sm text-stone-600 mt-1 font-medium">{q.subtitle}</p>
                       )}
                     </div>
 
@@ -754,8 +754,8 @@ export default function Survey() {
                               onClick={() => handleRadioChange(q.id, option.id)}
                               className={`flex items-start gap-3.5 p-3.5 rounded-xl border cursor-pointer transition-all ${
                                 isSelected
-                                  ? "bg-emerald-50/80 border-emerald-500 text-emerald-950 font-medium shadow-sm ring-1 ring-emerald-500/20"
-                                  : "border-gray-200/80 hover:bg-gray-50/80 text-gray-700"
+                                  ? "bg-emerald-50/80 border-emerald-500 text-emerald-950 font-semibold shadow-sm ring-1 ring-emerald-500/20"
+                                  : "border-gray-200/80 hover:bg-gray-50/80 text-stone-800"
                               }`}
                             >
                               <div className="pt-0.5">
@@ -769,7 +769,7 @@ export default function Survey() {
                                   {isSelected && <div className="w-2 h-2 rounded-full bg-white" />}
                                 </div>
                               </div>
-                              <span className="text-sm leading-relaxed select-none">
+                              <span className="text-sm sm:text-base leading-relaxed select-none font-medium">
                                 {option.label}
                               </span>
                             </label>
@@ -790,7 +790,7 @@ export default function Survey() {
                               className={`flex items-start gap-3.5 p-3.5 rounded-xl border cursor-pointer transition-all ${
                                 isChecked
                                   ? "bg-emerald-50/80 border-emerald-500 text-emerald-950 font-medium shadow-sm ring-1 ring-emerald-500/20"
-                                  : "border-gray-200/80 hover:bg-gray-50/80 text-gray-700"
+                                  : "border-stone-200 hover:bg-stone-50/80 text-stone-800"
                               }`}
                             >
                               <div className="pt-0.5">
@@ -798,13 +798,13 @@ export default function Survey() {
                                   className={`w-5 h-5 rounded-md border-2 flex items-center justify-center transition-colors ${
                                     isChecked
                                       ? "border-emerald-600 bg-emerald-600 text-white"
-                                      : "border-gray-300 bg-white"
+                                      : "border-stone-300 bg-white"
                                   }`}
                                 >
                                   {isChecked && <Check size={14} strokeWidth={3} />}
                                 </div>
                               </div>
-                              <span className="text-sm leading-relaxed select-none">
+                              <span className="text-sm sm:text-base leading-relaxed select-none font-medium text-stone-800">
                                 {option.label}
                               </span>
                             </label>
@@ -812,11 +812,11 @@ export default function Survey() {
                         })}
 
                         {/* Selection indicator & quick advance helper */}
-                        <div className="flex items-center justify-between text-xs pt-1 px-1">
-                          <span className={`font-medium ${
+                        <div className="flex items-center justify-between text-xs sm:text-sm pt-1 px-1">
+                          <span className={`font-semibold ${
                             (currentVal || []).length === (q.maxSelect || 2)
-                              ? "text-emerald-700"
-                              : "text-gray-500"
+                              ? "text-emerald-800"
+                              : "text-stone-600"
                           }`}>
                             {(currentVal || []).length} of {q.maxSelect || 2} selected
                             {(currentVal || []).length === 1 && " • pick 1 more to auto-advance"}
@@ -825,7 +825,7 @@ export default function Survey() {
                             <button
                               type="button"
                               onClick={() => triggerAutoScroll(q.id, 50)}
-                              className="text-emerald-700 hover:text-emerald-800 font-semibold inline-flex items-center gap-1 hover:underline cursor-pointer"
+                              className="text-emerald-800 hover:text-emerald-900 font-bold inline-flex items-center gap-1 hover:underline cursor-pointer"
                             >
                               Next question <ChevronDown size={14} />
                             </button>
@@ -841,7 +841,7 @@ export default function Survey() {
                           <div className="flex items-center gap-1.5 text-2xl sm:text-3xl font-black text-emerald-800">
                             <Star className="fill-emerald-500 text-emerald-600" size={26} />
                             <span>{currentVal || 4}</span>
-                            <span className="text-base text-emerald-600/70 font-bold">/ 5</span>
+                            <span className="text-base text-emerald-700 font-bold">/ 5</span>
                           </div>
                           <p className="text-xs sm:text-sm font-bold text-emerald-950 mt-1">
                             {getEaseDescription(currentVal || 4)}
@@ -857,20 +857,20 @@ export default function Survey() {
                             step={1}
                             value={currentVal || 4}
                             onChange={(e) => handleRadioChange(q.id, Number(e.target.value))}
-                            className="w-full h-3 bg-gray-200 rounded-full appearance-none cursor-pointer accent-emerald-600 focus:outline-none"
+                            className="w-full h-3 bg-stone-200 rounded-full appearance-none cursor-pointer accent-emerald-600 focus:outline-none"
                           />
 
                           {/* Clickable Number Ticks */}
-                          <div className="flex justify-between items-center text-xs font-bold text-gray-500 px-1 mt-3">
+                          <div className="flex justify-between items-center text-xs sm:text-sm font-bold text-stone-700 px-1 mt-3">
                             {[1, 2, 3, 4, 5].map((num) => (
                               <button
                                 key={num}
                                 type="button"
                                 onClick={() => handleRadioChange(q.id, num)}
-                                className={`w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold transition-all cursor-pointer ${
+                                className={`w-8 h-8 rounded-full flex items-center justify-center text-xs sm:text-sm font-bold transition-all cursor-pointer ${
                                   (currentVal || 4) === num
                                     ? "bg-emerald-600 text-white shadow-md scale-110 ring-2 ring-emerald-300"
-                                    : "text-gray-500 hover:bg-emerald-50 hover:text-emerald-700 bg-gray-100 sm:bg-transparent"
+                                    : "text-stone-700 hover:bg-emerald-50 hover:text-emerald-800 bg-stone-100 sm:bg-transparent"
                                 }`}
                               >
                                 {num}
@@ -878,7 +878,7 @@ export default function Survey() {
                             ))}
                           </div>
 
-                          <div className="flex justify-between items-center text-xs text-gray-400 font-semibold px-1 mt-2">
+                          <div className="flex justify-between items-center text-xs sm:text-sm text-stone-600 font-bold px-1 mt-2">
                             <span>1 — Very Difficult</span>
                             <span className="hidden sm:inline">3 — Average</span>
                             <span>5 — Super Smooth</span>
@@ -891,12 +891,12 @@ export default function Survey() {
               })}
 
               {/* Single Optional Open Textarea (Question 9) */}
-              <div id="q-feedback" className="bg-white rounded-2xl shadow-sm border border-gray-100 p-6 sm:p-7 scroll-mt-32">
+              <div id="q-feedback" className="bg-white rounded-2xl shadow-sm border border-stone-200 p-6 sm:p-7 scroll-mt-32">
                 <div className="mb-3">
-                  <h2 className="text-base sm:text-lg font-bold text-gray-900 leading-snug">
+                  <h2 className="text-base sm:text-lg font-bold text-stone-900 leading-snug">
                     9. What is one thing we could do or improve to make DietWithDee better for you?
                   </h2>
-                  <p className="text-xs sm:text-sm text-gray-500 mt-1">
+                  <p className="text-xs sm:text-sm text-stone-600 mt-1 font-medium">
                     Completely optional — any suggestion or idea is welcome!
                   </p>
                 </div>
@@ -905,7 +905,7 @@ export default function Survey() {
                   value={answers.feedback}
                   onChange={(e) => handleTextChange("feedback", e.target.value)}
                   placeholder="e.g., more student-friendly Ghanaian meal ideas, faster WhatsApp booking, weekly video tips..."
-                  className="w-full px-4 py-3 rounded-xl border border-gray-200 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-transparent transition-all placeholder:text-gray-400"
+                  className="w-full px-4 py-3 rounded-xl border border-stone-200 text-sm sm:text-base text-stone-800 focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-transparent transition-all placeholder:text-stone-500"
                 />
               </div>
 
@@ -913,18 +913,18 @@ export default function Survey() {
               <div
                 id="q-plan-dropdown"
                 className={`bg-white rounded-2xl shadow-sm border transition-all duration-200 p-6 sm:p-7 scroll-mt-32 ${
-                  isPlanSelected && isEmailValid ? "border-emerald-200/80 bg-white ring-1 ring-emerald-100" : "border-gray-100"
+                  isPlanSelected && isEmailValid ? "border-emerald-300 bg-white ring-1 ring-emerald-200" : "border-stone-200"
                 }`}
               >
                 <div className="mb-5">
-                  <div className="flex items-center gap-1.5 text-xs font-bold uppercase tracking-wider text-blue-700 mb-1">
+                  <div className="flex items-center gap-1.5 text-xs font-bold uppercase tracking-wider text-blue-800 mb-1">
                     <Gift size={15} />
                     <span>Final Step & 20% Discount Reward</span>
                   </div>
-                  <h2 className="text-base sm:text-lg font-bold text-gray-900 leading-snug">
+                  <h2 className="text-base sm:text-lg font-bold text-stone-900 leading-snug">
                     10. Claim Your 20% Discount Voucher <span className="text-red-500">*</span>
                   </h2>
-                  <p className="text-xs sm:text-sm text-gray-600 mt-1.5 leading-relaxed">
+                  <p className="text-xs sm:text-sm text-stone-700 mt-1.5 leading-relaxed font-normal">
                     Choose the plan you want 20% off on, then enter your email. We'll instantly generate your code and email your voucher with a direct link to Paystack!
                   </p>
                 </div>
@@ -933,7 +933,7 @@ export default function Survey() {
                 <div className="space-y-2 mb-5">
                   <label
                     htmlFor="survey-plan-select"
-                    className="block text-xs sm:text-sm font-bold text-gray-800"
+                    className="block text-xs sm:text-sm font-bold text-stone-800"
                   >
                     Select a plan you would be most interested in for a 20% discount:{" "}
                     <span className="text-red-500">*</span>
@@ -947,10 +947,10 @@ export default function Survey() {
                         handleTextChange("selected_plan", e.target.value);
                         triggerAutoScroll("selected_plan", 200);
                       }}
-                      className={`w-full px-4 py-3.5 pr-10 rounded-xl border text-sm font-medium appearance-none transition-all cursor-pointer ${
+                      className={`w-full px-4 py-3.5 pr-10 rounded-xl border text-sm sm:text-base font-semibold appearance-none transition-all cursor-pointer ${
                         answers.selected_plan
-                          ? "border-blue-300 bg-blue-50/30 text-gray-900 focus:ring-2 focus:ring-blue-500 focus:bg-white"
-                          : "border-gray-200 bg-gray-50/50 text-gray-500 focus:ring-2 focus:ring-emerald-500 focus:bg-white"
+                          ? "border-blue-300 bg-blue-50/40 text-stone-900 focus:ring-2 focus:ring-blue-500 focus:bg-white"
+                          : "border-stone-200 bg-stone-50/60 text-stone-600 focus:ring-2 focus:ring-emerald-500 focus:bg-white"
                       }`}
                     >
                       <option value="" disabled>
@@ -964,29 +964,29 @@ export default function Survey() {
                     </select>
                     <ChevronDown
                       size={18}
-                      className="absolute right-3.5 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none"
+                      className="absolute right-3.5 top-1/2 -translate-y-1/2 text-stone-500 pointer-events-none"
                     />
                   </div>
 
                   {/* Selected Plan 20% Preview Pill */}
                   {answers.selected_plan && DISCOUNT_PLANS[answers.selected_plan] && (
-                    <div className="p-3 bg-blue-50/80 border border-blue-200 rounded-xl flex items-center justify-between gap-3 text-xs animate-fadeIn mt-2.5">
+                    <div className="p-3 bg-blue-50/80 border border-blue-200 rounded-xl flex items-center justify-between gap-3 text-xs sm:text-sm animate-fadeIn mt-2.5">
                       <div className="flex items-center gap-2">
                         <Tag size={15} className="text-blue-600 flex-shrink-0" />
                         <div>
                           <span className="font-bold text-blue-950">
                             {DISCOUNT_PLANS[answers.selected_plan].planTitle}
                           </span>
-                          <span className="text-blue-700 ml-1.5 font-medium">
-                            • Code: <strong className="font-mono font-bold text-blue-900 bg-white px-1.5 py-0.5 rounded border border-blue-200">{DISCOUNT_PLANS[answers.selected_plan].code}</strong>
+                          <span className="text-blue-800 ml-1.5 font-medium">
+                            • Code: <strong className="font-mono font-bold text-blue-950 bg-white px-1.5 py-0.5 rounded border border-blue-200">{DISCOUNT_PLANS[answers.selected_plan].code}</strong>
                           </span>
                         </div>
                       </div>
                       <div className="text-right flex-shrink-0">
-                        <span className="text-gray-400 line-through text-[11px] mr-1">
+                        <span className="text-stone-500 line-through text-xs mr-1 font-medium">
                           {DISCOUNT_PLANS[answers.selected_plan].normalPrice}
                         </span>
-                        <span className="text-blue-800 font-extrabold text-xs">
+                        <span className="text-blue-900 font-extrabold text-xs sm:text-sm">
                           {DISCOUNT_PLANS[answers.selected_plan].discountPrice}
                         </span>
                       </div>
@@ -998,7 +998,7 @@ export default function Survey() {
                 <div id="q-email" className="space-y-2 scroll-mt-32">
                   <label
                     htmlFor="survey-email-input"
-                    className="block text-xs sm:text-sm font-bold text-gray-800"
+                    className="block text-xs sm:text-sm font-bold text-stone-800"
                   >
                     Enter your email address: <span className="text-red-500">*</span>
                   </label>
@@ -1010,12 +1010,12 @@ export default function Survey() {
                       value={answers.email}
                       onChange={(e) => handleTextChange("email", e.target.value)}
                       placeholder="e.g. yourname@gmail.com"
-                      className="w-full px-4 py-3.5 pl-11 rounded-xl border border-gray-200 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-transparent transition-all placeholder:text-gray-400 bg-gray-50/50 focus:bg-white"
+                      className="w-full px-4 py-3.5 pl-11 rounded-xl border border-stone-200 text-sm sm:text-base text-stone-800 focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-transparent transition-all placeholder:text-stone-500 bg-stone-50/50 focus:bg-white"
                     />
-                    <Mail size={18} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-gray-400" />
+                    <Mail size={18} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-stone-500" />
                   </div>
 
-                  <div className="mt-3 flex items-center gap-2 text-xs text-gray-500">
+                  <div className="mt-3 flex items-center gap-2 text-xs sm:text-sm text-stone-600 font-medium">
                     <CheckCircle2 size={14} className="text-emerald-600 flex-shrink-0" />
                     <span>
                       We'll send your 20% coupon & Paystack link to this email • Free weekly newsletter • No spam
@@ -1051,7 +1051,7 @@ export default function Survey() {
                     </>
                   )}
                 </button>
-                <p className="text-center text-xs text-gray-400 mt-3">
+                <p className="text-center text-xs sm:text-sm text-stone-600 mt-3 font-medium">
                   DietWithDee values your privacy. Your email will be kept secure.
                 </p>
               </div>

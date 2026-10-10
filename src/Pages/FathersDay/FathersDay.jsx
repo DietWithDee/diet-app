@@ -205,7 +205,7 @@ const FathersDay = () => {
                     ].map((item, i) => (
                       <div key={i} className="flex items-center gap-2">
                         <CheckCircle size={14} className="text-amber-500 shrink-0" />
-                        <span className="text-[12px] text-zinc-200 font-medium">{item}</span>
+                        <span className="text-xs sm:text-sm text-zinc-100 font-medium">{item}</span>
                       </div>
                     ))}
                   </div>
@@ -222,7 +222,7 @@ const FathersDay = () => {
               </div>
 
               {/* Guarantees */}
-              <div className="pt-8 border-t border-zinc-900 space-y-3 text-xs text-zinc-400">
+              <div className="pt-8 border-t border-zinc-900 space-y-3 text-xs sm:text-sm text-zinc-300 font-medium">
                 <div className="flex items-center gap-2">
                   <CheckCircle size={14} className="text-amber-500" />
                   <span>Scheduled directly via WhatsApp</span>
@@ -237,55 +237,55 @@ const FathersDay = () => {
             {/* Right Column: Form */}
             <div className="lg:col-span-7 p-8 lg:p-10 space-y-6">
               <div>
-                <h2 className="text-xl font-bold text-zinc-950 tracking-tight">Gift Booking Information</h2>
-                <p className="text-xs text-zinc-500 mt-1">Please enter details for both yourself and the father receiving the gift.</p>
+                <h2 className="text-xl sm:text-2xl font-bold text-zinc-950 tracking-tight">Gift Booking Information</h2>
+                <p className="text-xs sm:text-sm text-zinc-600 mt-1 font-medium">Please enter details for both yourself and the father receiving the gift.</p>
               </div>
 
               <form ref={formRef} onSubmit={handleSubmit} className="space-y-6">
                 
                 {/* Section 1: Giver */}
                 <div className="space-y-4">
-                  <div className="text-xs font-bold uppercase tracking-wider text-zinc-400 border-b border-zinc-100 pb-2">
+                  <div className="text-xs font-bold uppercase tracking-wider text-zinc-600 border-b border-zinc-200 pb-2">
                     1. Your Details (The Giver)
                   </div>
 
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div className="space-y-1.5">
-                      <label className="block text-xs font-semibold text-zinc-700 uppercase tracking-wide">Your Name *</label>
+                      <label className="block text-xs sm:text-sm font-bold text-zinc-800 uppercase tracking-wide">Your Name *</label>
                       <input
                         type="text"
                         name="buyerName"
                         value={formData.buyerName}
                         onChange={handleInputChange}
                         required
-                        className="w-full border border-zinc-200 bg-white px-3 py-2 text-sm rounded-none focus:outline-none focus:ring-1 focus:ring-zinc-950 transition-shadow outline-none placeholder:text-zinc-400"
+                        className="w-full border border-zinc-300 bg-white px-3 py-2 text-sm sm:text-base text-zinc-900 rounded-none focus:outline-none focus:ring-1 focus:ring-zinc-950 transition-shadow outline-none placeholder:text-zinc-500"
                         placeholder="Sender Full Name"
                       />
                     </div>
 
                     <div className="space-y-1.5">
-                      <label className="block text-xs font-semibold text-zinc-700 uppercase tracking-wide">Your Email *</label>
+                      <label className="block text-xs sm:text-sm font-bold text-zinc-800 uppercase tracking-wide">Your Email *</label>
                       <input
                         type="email"
                         name="buyerEmail"
                         value={formData.buyerEmail}
                         onChange={handleInputChange}
                         required
-                        className="w-full border border-zinc-200 bg-white px-3 py-2 text-sm rounded-none focus:outline-none focus:ring-1 focus:ring-zinc-950 transition-shadow outline-none placeholder:text-zinc-400"
+                        className="w-full border border-zinc-300 bg-white px-3 py-2 text-sm sm:text-base text-zinc-900 rounded-none focus:outline-none focus:ring-1 focus:ring-zinc-950 transition-shadow outline-none placeholder:text-zinc-500"
                         placeholder="yourname@gmail.com"
                       />
                     </div>
                   </div>
 
                   <div className="space-y-1.5">
-                    <label className="block text-xs font-semibold text-zinc-700 uppercase tracking-wide">Your WhatsApp Number *</label>
+                    <label className="block text-xs sm:text-sm font-bold text-zinc-800 uppercase tracking-wide">Your WhatsApp Number *</label>
                     <input
                       type="tel"
                       name="buyerPhone"
                       value={formData.buyerPhone}
                       onChange={handleInputChange}
                       required
-                      className="w-full border border-zinc-200 bg-white px-3 py-2 text-sm rounded-none focus:outline-none focus:ring-1 focus:ring-zinc-950 transition-shadow outline-none placeholder:text-zinc-400"
+                      className="w-full border border-zinc-300 bg-white px-3 py-2 text-sm sm:text-base text-zinc-900 rounded-none focus:outline-none focus:ring-1 focus:ring-zinc-950 transition-shadow outline-none placeholder:text-zinc-500"
                       placeholder="e.g. +233..."
                     />
                   </div>
@@ -293,46 +293,46 @@ const FathersDay = () => {
 
                 {/* Section 2: Recipient Father */}
                 <div className="space-y-4 pt-2">
-                  <div className="text-xs font-bold uppercase tracking-wider text-zinc-400 border-b border-zinc-100 pb-2">
+                  <div className="text-xs font-bold uppercase tracking-wider text-zinc-600 border-b border-zinc-200 pb-2">
                     2. Recipient Details (The Father)
                   </div>
 
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div className="space-y-1.5">
-                      <label className="block text-xs font-semibold text-zinc-700 uppercase tracking-wide">Father's Name *</label>
+                      <label className="block text-xs sm:text-sm font-bold text-zinc-800 uppercase tracking-wide">Father's Name *</label>
                       <input
                         type="text"
                         name="fatherName"
                         value={formData.fatherName}
                         onChange={handleInputChange}
                         required
-                        className="w-full border border-zinc-200 bg-white px-3 py-2 text-sm rounded-none focus:outline-none focus:ring-1 focus:ring-zinc-950 transition-shadow outline-none placeholder:text-zinc-400"
+                        className="w-full border border-zinc-300 bg-white px-3 py-2 text-sm sm:text-base text-zinc-900 rounded-none focus:outline-none focus:ring-1 focus:ring-zinc-950 transition-shadow outline-none placeholder:text-zinc-500"
                         placeholder="Father's Full Name"
                       />
                     </div>
 
                     <div className="space-y-1.5">
-                      <label className="block text-xs font-semibold text-zinc-700 uppercase tracking-wide">Father's WhatsApp Number *</label>
+                      <label className="block text-xs sm:text-sm font-bold text-zinc-800 uppercase tracking-wide">Father's WhatsApp Number *</label>
                       <input
                         type="tel"
                         name="fatherPhone"
                         value={formData.fatherPhone}
                         onChange={handleInputChange}
                         required
-                        className="w-full border border-zinc-200 bg-white px-3 py-2 text-sm rounded-none focus:outline-none focus:ring-1 focus:ring-zinc-950 transition-shadow outline-none placeholder:text-zinc-400"
+                        className="w-full border border-zinc-300 bg-white px-3 py-2 text-sm sm:text-base text-zinc-900 rounded-none focus:outline-none focus:ring-1 focus:ring-zinc-950 transition-shadow outline-none placeholder:text-zinc-500"
                         placeholder="e.g. +233..."
                       />
                     </div>
                   </div>
 
                   <div className="space-y-1.5">
-                    <label className="block text-xs font-semibold text-zinc-700 uppercase tracking-wide">Personal Message or Health Concerns</label>
+                    <label className="block text-xs sm:text-sm font-bold text-zinc-800 uppercase tracking-wide">Personal Message or Health Concerns</label>
                     <textarea
                       name="message"
                       value={formData.message}
                       onChange={handleInputChange}
                       rows={3}
-                      className="w-full border border-zinc-200 bg-white px-3 py-2 text-sm rounded-none focus:outline-none focus:ring-1 focus:ring-zinc-950 transition-shadow outline-none resize-none placeholder:text-zinc-400"
+                      className="w-full border border-zinc-300 bg-white px-3 py-2 text-sm sm:text-base text-zinc-900 rounded-none focus:outline-none focus:ring-1 focus:ring-zinc-950 transition-shadow outline-none resize-none placeholder:text-zinc-500"
                       placeholder="Add a sweet message or list any chronic health issues (diabetes, hypertension, weight concerns)..."
                     />
                   </div>
@@ -345,9 +345,9 @@ const FathersDay = () => {
                       id="isSurprise"
                       checked={formData.isSurprise}
                       onChange={(e) => setFormData(prev => ({ ...prev, isSurprise: e.target.checked }))}
-                      className="h-4 w-4 rounded-none border border-zinc-200 text-zinc-950 focus:ring-0 focus:ring-offset-0 cursor-pointer"
+                      className="h-4 w-4 rounded-none border border-zinc-300 text-zinc-950 focus:ring-0 focus:ring-offset-0 cursor-pointer"
                     />
-                    <label htmlFor="isSurprise" className="text-xs font-semibold text-zinc-700 select-none cursor-pointer">
+                    <label htmlFor="isSurprise" className="text-xs sm:text-sm font-bold text-zinc-800 select-none cursor-pointer">
                       Keep this booking a surprise until Father's Day 🤫
                     </label>
                   </div>
@@ -358,13 +358,13 @@ const FathersDay = () => {
                   <button
                     type="submit"
                     disabled={isSubmitting}
-                    className="w-full h-11 bg-zinc-900 text-zinc-50 hover:bg-zinc-900/90 text-sm font-semibold rounded-none transition-colors shadow-sm flex items-center justify-center gap-2 cursor-pointer disabled:opacity-50"
+                    className="w-full h-12 bg-zinc-900 text-zinc-50 hover:bg-zinc-800 text-sm sm:text-base font-bold rounded-none transition-colors shadow-sm flex items-center justify-center gap-2 cursor-pointer disabled:opacity-50"
                   >
                     {isSubmitting ? (
                       <span>Connecting...</span>
                     ) : (
                       <>
-                        <CreditCard size={16} />
+                        <CreditCard size={18} />
                         <span>Proceed to Pay GH₵ 600</span>
                       </>
                     )}
@@ -373,9 +373,9 @@ const FathersDay = () => {
               </form>
 
               {/* Secure payment banner */}
-              <div className="flex items-center justify-center gap-4 text-[10px] text-zinc-400 font-bold uppercase tracking-wider pt-2">
+              <div className="flex items-center justify-center gap-4 text-xs text-zinc-600 font-bold uppercase tracking-wider pt-2">
                 <div className="flex items-center gap-1">
-                  <Shield size={12} />
+                  <Shield size={14} />
                   <span>Secured by Paystack</span>
                 </div>
                 <span>•</span>

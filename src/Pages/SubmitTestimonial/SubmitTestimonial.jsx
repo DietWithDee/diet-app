@@ -65,7 +65,7 @@ function SubmitTestimonial() {
             <h1 className='text-3xl sm:text-5xl font-serif-cormorant font-normal text-stone-900 mb-3 tracking-tight leading-[1.12]'>
               Share Your Success Story
             </h1>
-            <p className='text-stone-600 text-sm sm:text-base font-light leading-relaxed max-w-xl mx-auto'>
+            <p className='text-stone-700 text-base sm:text-lg font-normal leading-relaxed max-w-xl mx-auto'>
               Your story matters! Help others discover their transformation by sharing your experience with DietWithDee.
             </p>
             <div className='w-16 h-0.5 bg-[#F6841F] mx-auto rounded-full'></div>
@@ -74,20 +74,20 @@ function SubmitTestimonial() {
           <div className='bg-white rounded-3xl shadow-xl p-8 border border-gray-100'>
             {submitStatus === 'success' && (
               <div className='mb-6 p-4 bg-green-50 border border-green-200 rounded-xl flex gap-3'>
-                <CheckCircle className='text-green-600 flex-shrink-0' />
+                <CheckCircle className='text-green-700 flex-shrink-0' />
                 <div>
-                  <h3 className='font-bold text-green-900'>Thank you!</h3>
-                  <p className='text-green-700 text-sm'>Your story has been submitted for review. We'll feature it soon!</p>
+                  <h3 className='font-bold text-green-950'>Thank you!</h3>
+                  <p className='text-green-800 text-sm sm:text-base font-medium'>Your story has been submitted for review. We'll feature it soon!</p>
                 </div>
               </div>
             )}
 
             {submitStatus === 'error' && (
               <div className='mb-6 p-4 bg-red-50 border border-red-200 rounded-xl flex gap-3'>
-                <AlertCircle className='text-red-600 flex-shrink-0' />
+                <AlertCircle className='text-red-700 flex-shrink-0' />
                 <div>
-                  <h3 className='font-bold text-red-900'>Submission Failed</h3>
-                  <p className='text-red-700 text-sm'>Please try again or contact support.</p>
+                  <h3 className='font-bold text-red-950'>Submission Failed</h3>
+                  <p className='text-red-800 text-sm sm:text-base font-medium'>Please try again or contact support.</p>
                 </div>
               </div>
             )}
@@ -95,28 +95,28 @@ function SubmitTestimonial() {
             <form onSubmit={handleSubmit} className='space-y-6'>
               {/* Name */}
               <div>
-                <label className='block text-sm font-bold text-gray-700 mb-2'>Full Name *</label>
+                <label className='block text-sm sm:text-base font-bold text-stone-800 mb-2'>Full Name *</label>
                 <input
                   type='text'
                   name='name'
                   value={formData.name}
                   onChange={handleChange}
                   required
-                  className='w-full px-4 py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-green-500'
+                  className='w-full px-4 py-3 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-green-500 text-base text-stone-800 placeholder:text-stone-500 font-medium'
                   placeholder='Michael Asare'
                 />
               </div>
 
               {/* Email */}
               <div>
-                <label className='block text-sm font-bold text-gray-700 mb-2'>Email *</label>
+                <label className='block text-sm sm:text-base font-bold text-stone-800 mb-2'>Email *</label>
                 <input
                   type='email'
                   name='email'
                   value={formData.email}
                   onChange={handleChange}
                   required
-                  className='w-full px-4 py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-green-500'
+                  className='w-full px-4 py-3 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-green-500 text-base text-stone-800 placeholder:text-stone-500 font-medium'
                   placeholder='michael@example.com'
                 />
               </div>
@@ -124,27 +124,27 @@ function SubmitTestimonial() {
               <div className='grid grid-cols-2 gap-4'>
                 {/* Location */}
                 <div>
-                  <label className='block text-sm font-bold text-gray-700 mb-2'>Location *</label>
+                  <label className='block text-sm sm:text-base font-bold text-stone-800 mb-2'>Location *</label>
                   <input
                     type='text'
                     name='location'
                     value={formData.location}
                     onChange={handleChange}
                     required
-                    className='w-full px-4 py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-green-500'
+                    className='w-full px-4 py-3 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-green-500 text-base text-stone-800 placeholder:text-stone-500 font-medium'
                     placeholder='Accra, Ghana'
                   />
                 </div>
 
                 {/* Profession */}
                 <div>
-                  <label className='block text-sm font-bold text-gray-700 mb-2'>Profession</label>
+                  <label className='block text-sm sm:text-base font-bold text-stone-800 mb-2'>Profession</label>
                   <input
                     type='text'
                     name='profession'
                     value={formData.profession}
                     onChange={handleChange}
-                    className='w-full px-4 py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-green-500'
+                    className='w-full px-4 py-3 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-green-500 text-base text-stone-800 placeholder:text-stone-500 font-medium'
                     placeholder='Engineer, Teacher, etc.'
                   />
                 </div>
@@ -152,13 +152,13 @@ function SubmitTestimonial() {
 
               {/* Plan */}
               <div>
-                <label className='block text-sm font-bold text-gray-700 mb-2'>Which plan did you use? *</label>
+                <label className='block text-sm sm:text-base font-bold text-stone-800 mb-2'>Which plan did you use? *</label>
                 <select
                   name='plan'
                   value={formData.plan}
                   onChange={handleChange}
                   required
-                  className='w-full px-4 py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-green-500'
+                  className='w-full px-4 py-3 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-green-500 text-base text-stone-800 font-medium'
                 >
                   {plans.map(p => (
                     <option key={p.id} value={p.id}>{p.label}</option>
@@ -168,14 +168,14 @@ function SubmitTestimonial() {
 
               {/* Rating */}
               <div>
-                <label className='block text-sm font-bold text-gray-700 mb-2'>Rating *</label>
+                <label className='block text-sm sm:text-base font-bold text-stone-800 mb-2'>Rating *</label>
                 <div className='flex gap-2'>
                   {[1, 2, 3, 4, 5].map(star => (
                     <button
                       key={star}
                       type='button'
                       onClick={() => setFormData(prev => ({ ...prev, rating: star }))}
-                      className='focus:outline-none transition-transform hover:scale-110'
+                      className='focus:outline-none transition-transform hover:scale-110 cursor-pointer'
                     >
                       <svg
                         className={`w-8 h-8 ${star <= formData.rating ? 'text-yellow-400' : 'text-gray-300'}`}
@@ -191,7 +191,7 @@ function SubmitTestimonial() {
 
               {/* Testimonial Content */}
               <div>
-                <label className='block text-sm font-bold text-gray-700 mb-2'>Your Story *</label>
+                <label className='block text-sm sm:text-base font-bold text-stone-800 mb-2'>Your Story *</label>
                 <textarea
                   name='content'
                   value={formData.content}
@@ -199,17 +199,17 @@ function SubmitTestimonial() {
                   required
                   maxLength={1000}
                   rows={6}
-                  className='w-full px-4 py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-green-500 resize-none'
+                  className='w-full px-4 py-3 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-green-500 resize-none text-base text-stone-800 placeholder:text-stone-500 font-medium'
                   placeholder='Share your transformation journey, results, and how DietWithDee helped you...'
                 />
-                <p className='text-xs text-gray-500 mt-2'>{formData.content.length}/1000 characters</p>
+                <p className='text-xs sm:text-sm text-stone-600 font-medium mt-2'>{formData.content.length}/1000 characters</p>
               </div>
 
               {/* Submit Button */}
               <button
                 type='submit'
                 disabled={loading}
-                className='w-full px-6 py-3 bg-gradient-to-r from-green-600 to-emerald-600 text-white font-bold rounded-full hover:shadow-lg transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2'
+                className='w-full px-6 py-3.5 bg-gradient-to-r from-green-600 to-emerald-600 text-white font-bold rounded-full hover:shadow-lg transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2 cursor-pointer text-base'
               >
                 {loading ? (
                   <>
@@ -221,7 +221,7 @@ function SubmitTestimonial() {
                 )}
               </button>
 
-              <p className='text-xs text-gray-600 text-center'>
+              <p className='text-xs sm:text-sm text-stone-600 font-medium text-center'>
                 *Required fields. Your email won't be displayed publicly.
               </p>
             </form>

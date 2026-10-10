@@ -286,7 +286,7 @@ function ServicesContactSection() {
 
                   {/* Description */}
                   <motion.div variants={fadeUp} className='space-y-4 sm:space-y-6'>
-                    <p className='text-sm sm:text-base text-stone-600 font-light leading-relaxed px-2 sm:px-0'>
+                    <p className='text-base sm:text-lg text-stone-700 font-normal leading-relaxed px-2 sm:px-0'>
                       Health is personal, but creating impact can also be collective. We support individuals on their nutrition journey while partnering with brands, teams, and organizations to spread practical, culturally relevant wellness. Whether it's one-on-one or on a bigger stage, we're here to make nutrition accessible and meaningful.
                     </p>
                   </motion.div>
@@ -321,7 +321,7 @@ function ServicesContactSection() {
               <h2 className='text-3xl sm:text-4xl lg:text-5xl font-serif-cormorant font-normal text-center text-stone-900 leading-tight mb-4'>
                 Our Events
               </h2>
-              <p className='text-center text-stone-600 mb-8 max-w-xl mx-auto text-sm sm:text-base font-light'>
+              <p className='text-center text-stone-700 mb-8 max-w-xl mx-auto text-base sm:text-lg font-normal leading-relaxed'>
                 Explore our upcoming community programs or browse through past outreaches and workshops.
               </p>
 
@@ -333,7 +333,7 @@ function ServicesContactSection() {
                     className={`px-6 py-2 rounded-full text-xs sm:text-sm font-bold transition-all duration-300 ${
                       activeTab === 'upcoming'
                         ? 'bg-gradient-to-r from-green-600 to-emerald-600 text-white shadow-md'
-                        : 'text-gray-600 hover:text-green-700'
+                        : 'text-stone-700 hover:text-green-800'
                     }`}
                   >
                     Upcoming ({upcomingEvents.length})
@@ -343,7 +343,7 @@ function ServicesContactSection() {
                     className={`px-6 py-2 rounded-full text-xs sm:text-sm font-bold transition-all duration-300 ${
                       activeTab === 'past'
                         ? 'bg-gradient-to-r from-green-600 to-emerald-600 text-white shadow-md'
-                        : 'text-gray-600 hover:text-green-700'
+                        : 'text-stone-700 hover:text-green-800'
                     }`}
                   >
                     Past Events ({pastEvents.length})
@@ -368,10 +368,10 @@ function ServicesContactSection() {
                   </div>
 
                   <div className="space-y-2 relative z-10 px-4">
-                    <h3 className="text-xl font-black text-gray-900 leading-tight">
+                    <h3 className="text-xl font-bold text-stone-900 leading-tight">
                       {activeTab === 'upcoming' ? 'Next event brewing...' : 'No past events found'}
                     </h3>
-                    <p className="text-gray-600 text-sm leading-relaxed max-w-xs mx-auto">
+                    <p className="text-stone-700 text-sm sm:text-base leading-relaxed max-w-xs mx-auto font-normal">
                       {activeTab === 'upcoming' 
                         ? "We're currently handcrafting our next community wellness experience. Stay tuned!"
                         : "Check back later to browse photos and recaps from our wellness events."}
@@ -408,15 +408,15 @@ function ServicesContactSection() {
 
                           <div className="mt-auto p-6 relative z-10 text-white flex flex-col justify-end">
                             <div className="flex items-center gap-2 mb-2 flex-wrap">
-                              <span className={`px-3 py-1 rounded-full text-[10px] font-bold inline-flex items-center gap-1 backdrop-blur-sm ${
+                              <span className={`px-3 py-1 rounded-full text-xs font-bold inline-flex items-center gap-1 backdrop-blur-sm ${
                                 activeTab === 'upcoming' 
-                                  ? 'bg-emerald-500/95 text-white' 
-                                  : 'bg-gray-800/80 text-gray-200'
+                                  ? 'bg-emerald-500 text-white' 
+                                  : 'bg-stone-800 text-stone-100'
                               }`}>
-                                <Calendar size={10}/> {event.date}
+                                <Calendar size={12}/> {event.date}
                               </span>
                               {activeTab === 'past' && (
-                                <span className="bg-gray-700/80 backdrop-blur-sm px-2.5 py-0.5 rounded-full text-[10px] font-medium text-gray-300">
+                                <span className="bg-stone-700 backdrop-blur-sm px-2.5 py-0.5 rounded-full text-xs font-semibold text-stone-200">
                                   Past Event
                                 </span>
                               )}
@@ -537,8 +537,8 @@ function ServicesContactSection() {
                     <path strokeLinecap='round' strokeLinejoin='round' strokeWidth={2} d='M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4' />
                   </svg>
                 </div>
-                <h3 className='text-lg sm:text-xl font-bold text-gray-900'>Personalized Diet Consultations</h3>
-                <p className='text-sm sm:text-base text-gray-600'>One-on-one consultations to understand your unique dietary needs and preferences.</p>
+                <h3 className='text-lg sm:text-xl font-bold text-stone-900'>Personalized Diet Consultations</h3>
+                <p className='text-base text-stone-700 font-normal leading-relaxed'>One-on-one consultations to understand your unique dietary needs and preferences.</p>
               </motion.div>
 
               {/* Custom Made Plans */}
@@ -548,8 +548,8 @@ function ServicesContactSection() {
                     <path strokeLinecap='round' strokeLinejoin='round' strokeWidth={2} d='M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z' />
                   </svg>
                 </div>
-                <h3 className='text-lg sm:text-xl font-bold text-gray-900'>Customized Diet Plans</h3>
-                <p className='text-sm sm:text-base text-gray-600'>Meal plans designed to meet your specific health goals.</p>
+                <h3 className='text-lg sm:text-xl font-bold text-stone-900'>Customized Diet Plans</h3>
+                <p className='text-base text-stone-700 font-normal leading-relaxed'>Meal plans designed to meet your specific health goals.</p>
               </motion.div>
 
               {/* Consultations */}
@@ -559,8 +559,8 @@ function ServicesContactSection() {
                     <path strokeLinecap='round' strokeLinejoin='round' strokeWidth={2} d='M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z' />
                   </svg>
                 </div>
-                <h3 className='text-lg sm:text-xl font-bold text-gray-900'>Specialized Programs</h3>
-                <p className='text-sm sm:text-base text-gray-600'>Weight loss programs, diabetes management, heart health management.</p>
+                <h3 className='text-lg sm:text-xl font-bold text-stone-900'>Specialized Programs</h3>
+                <p className='text-base text-stone-700 font-normal leading-relaxed'>Weight loss programs, diabetes management, heart health management.</p>
               </motion.div>
 
               {/* Group Program - spans full width on mobile, normal on larger screens */}
@@ -570,8 +570,8 @@ function ServicesContactSection() {
                     <path strokeLinecap='round' strokeLinejoin='round' strokeWidth={2} d='M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z' />
                   </svg>
                 </div>
-                <h3 className='text-lg sm:text-xl font-bold text-gray-900'>Brand collaborations</h3>
-                <p className='text-sm sm:text-base text-gray-600'>Health talks, brand collaboration, wellness campaigns.</p>
+                <h3 className='text-lg sm:text-xl font-bold text-stone-900'>Brand collaborations</h3>
+                <p className='text-base text-stone-700 font-normal leading-relaxed'>Health talks, brand collaboration, wellness campaigns.</p>
               </motion.div>
 
               {/* Professional Booking */}
@@ -581,8 +581,8 @@ function ServicesContactSection() {
                     <path strokeLinecap='round' strokeLinejoin='round' strokeWidth={2} d='M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z' />
                   </svg>
                 </div>
-                <h3 className='text-lg sm:text-xl font-bold text-gray-900'>Professional Bookings</h3>
-                <p className='text-sm sm:text-base text-gray-600'>Elevate your team's wellbeing with our corporate wellness services</p>
+                <h3 className='text-lg sm:text-xl font-bold text-stone-900'>Professional Bookings</h3>
+                <p className='text-base text-stone-700 font-normal leading-relaxed'>Elevate your team's wellbeing with our corporate wellness services</p>
               </motion.div>
             </motion.div>
           </div>
@@ -708,7 +708,7 @@ function ServicesContactSection() {
 
                   {/* Contact Description */}
                   <div className='space-y-4 sm:space-y-6'>
-                    <p className='text-base sm:text-lg text-gray-700 leading-relaxed px-2 sm:px-0'>
+                    <p className='text-base sm:text-lg text-stone-800 leading-relaxed px-2 sm:px-0 font-normal'>
                       Have a question about your diet, nutrition goals, or general wellness?
                     </p>
                   </div>
@@ -716,25 +716,25 @@ function ServicesContactSection() {
                   {/* Contact Information */}
                   <div className='space-y-4 sm:space-y-6'>
                     <div className='space-y-3 sm:space-y-4'>
-                      <h3 className='text-lg sm:text-xl font-bold text-gray-900'>EMAIL</h3>
+                      <h3 className='text-base sm:text-lg font-bold text-stone-900 tracking-wider'>EMAIL</h3>
                       <div className='space-y-2'>
                         <div className='flex items-center justify-center lg:justify-start gap-3'>
-                          <svg className='w-4 h-4 sm:w-5 sm:h-5 text-green-600 flex-shrink-0' fill='currentColor' viewBox='0 0 20 20'>
+                          <svg className='w-4 h-4 sm:w-5 sm:h-5 text-green-700 flex-shrink-0' fill='currentColor' viewBox='0 0 20 20'>
                             <path d='M2.003 5.884L10 9.882l7.997-3.998A2 2 0 0016 4H4a2 2 0 00-1.997 1.884z' />
                             <path d='M18 8.118l-8 4-8-4V14a2 2 0 002 2h12a2 2 0 002-2V8.118z' />
                           </svg>
-                          <span className='text-sm sm:text-base text-gray-700 break-all'>dietwdee@gmail.com</span>
+                          <span className='text-base text-stone-800 font-medium break-all'>dietwdee@gmail.com</span>
                         </div>
                       </div>
                     </div>
 
                     <div className='space-y-3 sm:space-y-4'>
-                      <h3 className='text-lg sm:text-xl font-bold text-gray-900'>PHONE</h3>
+                      <h3 className='text-base sm:text-lg font-bold text-stone-900 tracking-wider'>PHONE</h3>
                       <div className='flex items-center justify-center lg:justify-start gap-3'>
-                        <svg className='w-4 h-4 sm:w-5 sm:h-5 text-green-600 flex-shrink-0' fill='currentColor' viewBox='0 0 20 20'>
+                        <svg className='w-4 h-4 sm:w-5 sm:h-5 text-green-700 flex-shrink-0' fill='currentColor' viewBox='0 0 20 20'>
                           <path d='M2 3a1 1 0 011-1h2.153a1 1 0 01.986.836l.74 4.435a1 1 0 01-.54 1.06l-1.548.773a11.037 11.037 0 006.105 6.105l.774-1.548a1 1 0 011.059-.54l4.435.74a1 1 0 01.836.986V17a1 1 0 01-1 1h-2C7.82 18 2 12.18 2 5V3z' />
                         </svg>
-                        <span className='text-sm sm:text-base text-gray-700'>(+233) 59 233 0870</span>
+                        <span className='text-base text-stone-800 font-medium'>(+233) 59 233 0870</span>
                       </div>
                     </div>
                   </div>

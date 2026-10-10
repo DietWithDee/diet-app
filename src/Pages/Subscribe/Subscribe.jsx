@@ -129,7 +129,7 @@ export default function Subscribe() {
                         <h1 className="text-3xl md:text-4xl font-serif-cormorant font-normal text-white tracking-tight relative z-10">
                             Join the Newsletter
                         </h1>
-                        <p className="text-green-100 text-sm md:text-base mt-2 relative z-10 font-light opacity-90">
+                        <p className="text-green-50 text-base md:text-lg mt-2 relative z-10 font-normal">
                             Get curated wellness & nutrition advice directly from Dee
                         </p>
                     </div>
@@ -139,25 +139,25 @@ export default function Subscribe() {
                             <form onSubmit={handleSubscribe} className="space-y-6">
                                 <div className="text-center md:text-left">
                                     <h2 className="text-xl md:text-2xl font-bold text-stone-900 mb-2 flex items-center gap-2 justify-center md:justify-start">
-                                        <Mail className="text-green-600 w-6 h-6" /> Stay in the Loop!
+                                        <Mail className="text-green-700 w-6 h-6" /> Stay in the Loop!
                                     </h2>
-                                    <p className="text-stone-600 text-sm md:text-[15px] leading-relaxed font-light">
+                                    <p className="text-stone-700 text-base md:text-lg leading-relaxed font-normal">
                                         Subscribe to receive healthy recipes, wellness updates, and science-backed diet tips straight to your inbox.
                                     </p>
                                 </div>
 
                                 {/* Subscription Type Tabs */}
-                                <div className="grid grid-cols-2 gap-2 p-1.5 bg-gray-100/80 rounded-2xl border border-gray-200/30">
+                                <div className="grid grid-cols-2 gap-2 p-1.5 bg-gray-100 rounded-2xl border border-gray-200">
                                     <button
                                         type="button"
                                         onClick={() => {
                                             setSubType("self");
                                             setStatus("idle");
                                         }}
-                                        className={`py-3.5 text-[14px] md:text-[15px] font-bold rounded-xl transition-all flex items-center justify-center gap-2 cursor-pointer ${
+                                        className={`py-3.5 text-sm md:text-base font-bold rounded-xl transition-all flex items-center justify-center gap-2 cursor-pointer ${
                                             subType === "self"
-                                                ? "bg-white text-green-700 shadow-sm"
-                                                : "text-gray-500 hover:text-gray-800"
+                                                ? "bg-white text-green-800 shadow-sm"
+                                                : "text-stone-700 hover:text-stone-950"
                                         }`}
                                     >
                                         <User size={18} /> For Myself
@@ -168,10 +168,10 @@ export default function Subscribe() {
                                             setSubType("friend");
                                             setStatus("idle");
                                         }}
-                                        className={`py-3.5 text-[14px] md:text-[15px] font-bold rounded-xl transition-all flex items-center justify-center gap-2 cursor-pointer ${
+                                        className={`py-3.5 text-sm md:text-base font-bold rounded-xl transition-all flex items-center justify-center gap-2 cursor-pointer ${
                                             subType === "friend"
-                                                ? "bg-white text-green-700 shadow-sm"
-                                                : "text-gray-500 hover:text-gray-800"
+                                                ? "bg-white text-green-800 shadow-sm"
+                                                : "text-stone-700 hover:text-stone-950"
                                         }`}
                                     >
                                         <Users size={18} /> For a Friend
@@ -182,7 +182,7 @@ export default function Subscribe() {
                                 <div className="space-y-5">
                                     {subType === "self" ? (
                                         <div className="space-y-2">
-                                            <label className="text-[11px] md:text-xs font-bold text-gray-500 uppercase tracking-widest block px-1">
+                                            <label className="text-xs sm:text-sm font-bold text-stone-800 uppercase tracking-wider block px-1">
                                                 Your Email Address
                                             </label>
                                             <input
@@ -194,14 +194,14 @@ export default function Subscribe() {
                                                 }}
                                                 placeholder="Enter your best email address"
                                                 disabled={status === "loading"}
-                                                className="w-full px-5 py-4 bg-gray-50 border border-gray-200 rounded-2xl text-[15px] text-gray-800 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent transition-all disabled:opacity-60 font-medium"
+                                                className="w-full px-5 py-4 bg-gray-50 border border-gray-200 rounded-2xl text-base text-stone-800 placeholder:text-stone-500 focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent transition-all disabled:opacity-60 font-medium"
                                                 required
                                             />
                                         </div>
                                     ) : (
                                         <div className="space-y-5 animate-in fade-in slide-in-from-top-2 duration-300">
                                             <div className="space-y-2">
-                                                <label className="text-[11px] md:text-xs font-bold text-gray-500 uppercase tracking-widest block px-1">
+                                                <label className="text-xs sm:text-sm font-bold text-stone-800 uppercase tracking-wider block px-1">
                                                     Your Name
                                                 </label>
                                                 <input
@@ -213,14 +213,14 @@ export default function Subscribe() {
                                                     }}
                                                     placeholder="What's your name?"
                                                     disabled={status === "loading"}
-                                                    className="w-full px-5 py-4 bg-gray-50 border border-gray-200 rounded-2xl text-[15px] text-gray-800 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent transition-all disabled:opacity-60 font-medium"
+                                                    className="w-full px-5 py-4 bg-gray-50 border border-gray-200 rounded-2xl text-base text-stone-800 placeholder:text-stone-500 focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent transition-all disabled:opacity-60 font-medium"
                                                     required
                                                 />
                                             </div>
 
                                             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                                                 <div className="space-y-2">
-                                                    <label className="text-[11px] md:text-xs font-bold text-gray-500 uppercase tracking-widest block px-1">
+                                                    <label className="text-xs sm:text-sm font-bold text-stone-800 uppercase tracking-wider block px-1">
                                                         Friend's Name
                                                     </label>
                                                     <input
@@ -232,13 +232,13 @@ export default function Subscribe() {
                                                         }}
                                                         placeholder="Friend's first name"
                                                         disabled={status === "loading"}
-                                                        className="w-full px-5 py-4 bg-gray-50 border border-gray-200 rounded-2xl text-[15px] text-gray-800 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent transition-all disabled:opacity-60 font-medium"
+                                                        className="w-full px-5 py-4 bg-gray-50 border border-gray-200 rounded-2xl text-base text-stone-800 placeholder:text-stone-500 focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent transition-all disabled:opacity-60 font-medium"
                                                         required
                                                     />
                                                 </div>
 
                                                 <div className="space-y-2">
-                                                    <label className="text-[11px] md:text-xs font-bold text-gray-500 uppercase tracking-widest block px-1">
+                                                    <label className="text-xs sm:text-sm font-bold text-stone-800 uppercase tracking-wider block px-1">
                                                         Friend's Email
                                                     </label>
                                                     <input
@@ -250,7 +250,7 @@ export default function Subscribe() {
                                                         }}
                                                         placeholder="friend@example.com"
                                                         disabled={status === "loading"}
-                                                        className="w-full px-5 py-4 bg-gray-50 border border-gray-200 rounded-2xl text-[15px] text-gray-800 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent transition-all disabled:opacity-60 font-medium"
+                                                        className="w-full px-5 py-4 bg-gray-50 border border-gray-200 rounded-2xl text-base text-stone-800 placeholder:text-stone-500 focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent transition-all disabled:opacity-60 font-medium"
                                                         required
                                                     />
                                                 </div>
@@ -259,7 +259,7 @@ export default function Subscribe() {
                                     )}
 
                                     {status === "error" && (
-                                        <p className="text-sm text-red-500 font-semibold px-1 animate-in fade-in slide-in-from-top-1">
+                                        <p className="text-sm sm:text-base text-red-600 font-semibold px-1 animate-in fade-in slide-in-from-top-1">
                                             {errorMsg}
                                         </p>
                                     )}
@@ -267,7 +267,7 @@ export default function Subscribe() {
                                     <button
                                         type="submit"
                                         disabled={status === "loading"}
-                                        className="w-full py-4.5 bg-green-600 hover:bg-green-700 text-white font-extrabold rounded-2xl shadow-lg shadow-green-600/10 active:scale-[0.98] transition-all duration-200 flex items-center justify-center gap-2 cursor-pointer disabled:opacity-70 text-[16px]"
+                                        className="w-full py-4.5 bg-green-600 hover:bg-green-700 text-white font-extrabold rounded-2xl shadow-lg shadow-green-600/10 active:scale-[0.98] transition-all duration-200 flex items-center justify-center gap-2 cursor-pointer disabled:opacity-70 text-base sm:text-lg"
                                     >
                                         {status === "loading" ? (
                                             <>
@@ -283,7 +283,7 @@ export default function Subscribe() {
                                 <div className="pt-4 border-t border-gray-100 flex justify-center">
                                     <Link
                                         to="/"
-                                        className="inline-flex items-center gap-2 text-sm md:text-[15px] text-gray-500 hover:text-green-600 transition-colors font-semibold"
+                                        className="inline-flex items-center gap-2 text-sm sm:text-base text-stone-700 hover:text-green-700 transition-colors font-semibold"
                                     >
                                         <ArrowLeft size={16} /> Back to homepage
                                     </Link>
@@ -293,17 +293,17 @@ export default function Subscribe() {
                             <div className="space-y-8 py-4 animate-in fade-in zoom-in-95 duration-500">
                                 {/* Success confirmation */}
                                 <div className="text-center space-y-3">
-                                    <div className="w-18 h-18 bg-green-100 rounded-2xl flex items-center justify-center mx-auto text-green-600 border border-green-200 shadow-sm">
+                                    <div className="w-18 h-18 bg-green-100 rounded-2xl flex items-center justify-center mx-auto text-green-700 border border-green-200 shadow-sm">
                                         <CheckCircle size={40} />
                                     </div>
-                                    <h2 className="text-2xl md:text-3xl font-black text-gray-950 tracking-tight">
+                                    <h2 className="text-2xl md:text-3xl font-black text-stone-900 tracking-tight">
                                         {isAlreadySubscribed 
                                             ? "You're Already Subscribed! 💚" 
                                             : subType === "self" 
                                                 ? "You're Subscribed! 🎉" 
                                                 : "Friend Subscribed! 🎁"}
                                     </h2>
-                                    <p className="text-gray-600 text-[14px] md:text-[15px] leading-relaxed max-w-md mx-auto">
+                                    <p className="text-stone-700 text-base md:text-lg leading-relaxed max-w-md mx-auto font-normal">
                                         {isAlreadySubscribed
                                             ? "It looks like this email is already registered on our list! You are fully set up to receive wellness & diet tips directly."
                                             : subType === "self" 
@@ -314,7 +314,7 @@ export default function Subscribe() {
 
                                 {/* Next Steps options */}
                                 <div className="space-y-4">
-                                    <h3 className="text-[11px] md:text-xs font-bold text-gray-400 uppercase tracking-widest text-center">
+                                    <h3 className="text-xs sm:text-sm font-bold text-stone-700 uppercase tracking-wider text-center">
                                         What would you like to do next?
                                     </h3>
                                     
@@ -327,10 +327,10 @@ export default function Subscribe() {
                                                 <BookOpen size={26} />
                                             </div>
                                             <div className="text-left">
-                                                <h4 className="font-extrabold text-[16px] md:text-lg text-gray-900 group-hover:text-green-800 transition-colors">
+                                                <h4 className="font-extrabold text-[16px] md:text-lg text-stone-900 group-hover:text-green-800 transition-colors">
                                                     Read the Blog
                                                 </h4>
-                                                <p className="text-xs md:text-sm text-gray-500 mt-1 leading-relaxed">
+                                                <p className="text-sm text-stone-600 mt-1 leading-relaxed font-medium">
                                                     Explore delicious recipes and scientific nutrition insights.
                                                 </p>
                                             </div>
@@ -344,10 +344,10 @@ export default function Subscribe() {
                                                 <Calendar size={26} />
                                             </div>
                                             <div className="text-left">
-                                                <h4 className="font-extrabold text-[16px] md:text-lg text-gray-900 group-hover:text-green-800 transition-colors">
+                                                <h4 className="font-extrabold text-[16px] md:text-lg text-stone-900 group-hover:text-green-800 transition-colors">
                                                     Book a Consultation
                                                 </h4>
-                                                <p className="text-xs md:text-sm text-gray-500 mt-1 leading-relaxed">
+                                                <p className="text-sm text-stone-600 mt-1 leading-relaxed font-medium">
                                                     Schedule a 1-on-1 session with Dee for a tailored plan.
                                                 </p>
                                             </div>
@@ -358,14 +358,14 @@ export default function Subscribe() {
                                 <div className="pt-4 flex flex-col items-center gap-4 border-t border-gray-100">
                                     <button
                                         onClick={handleReset}
-                                        className="inline-flex items-center gap-2 text-xs md:text-sm font-bold text-green-700 hover:text-green-800 transition-colors py-2 px-4 rounded-xl bg-green-50 hover:bg-green-100/80 cursor-pointer"
+                                        className="inline-flex items-center gap-2 text-sm sm:text-base font-bold text-green-800 hover:text-green-900 transition-colors py-2 px-4 rounded-xl bg-green-50 hover:bg-green-100/80 cursor-pointer"
                                     >
                                         <RefreshCw size={14} /> Subscribe someone else
                                     </button>
                                     
                                     <Link
                                         to="/"
-                                        className="inline-flex items-center gap-2 text-sm md:text-[15px] text-gray-500 hover:text-green-600 transition-colors font-semibold"
+                                        className="inline-flex items-center gap-2 text-sm sm:text-base text-stone-700 hover:text-green-700 transition-colors font-semibold"
                                     >
                                         <ArrowLeft size={16} /> Return to Home
                                     </Link>
@@ -375,9 +375,9 @@ export default function Subscribe() {
                     </div>
 
                     {/* Footer attribution */}
-                    <div className="bg-gray-50/50 py-4 px-8 text-center border-t border-gray-100">
-                        <p className="text-xs text-gray-400 flex items-center justify-center gap-1 font-semibold">
-                            Made with <Heart size={10} className="text-red-400 fill-red-400" /> by Diet With Dee
+                    <div className="bg-gray-50 py-4 px-8 text-center border-t border-gray-100">
+                        <p className="text-xs sm:text-sm text-stone-600 flex items-center justify-center gap-1 font-semibold">
+                            Made with <Heart size={12} className="text-red-500 fill-red-500" /> by Diet With Dee
                         </p>
                     </div>
 

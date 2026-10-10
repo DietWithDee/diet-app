@@ -283,7 +283,7 @@ function MyJourney() {
                   <motion.div variants={fadeUp} className="w-16 h-0.5 bg-[#F6841F] rounded-full mx-auto mb-4 shadow-sm"></motion.div>
                   <motion.p
                     variants={fadeUp}
-                    className="text-sm sm:text-base text-stone-600 font-light max-w-xl px-4 leading-relaxed"
+                    className="text-base sm:text-lg text-stone-700 font-normal max-w-xl px-4 leading-relaxed"
                   >
                     Track your nutrition, improve your health.
                   </motion.p>
@@ -305,15 +305,15 @@ function MyJourney() {
                     <div className="w-12 h-12 bg-gradient-to-br from-green-100 to-emerald-100 rounded-xl flex items-center justify-center mx-auto">
                       <span className="text-xl">🌿</span>
                     </div>
-                    <h3 className="text-lg font-bold text-stone-900">Start Your Wellness Journey</h3>
-                    <p className="text-gray-500 text-sm leading-relaxed">
+                    <h3 className="text-lg sm:text-xl font-bold text-stone-900">Start Your Wellness Journey</h3>
+                    <p className="text-stone-700 text-sm sm:text-base leading-relaxed font-normal">
                       Get started to save your progress, get personalized recommendations, and access our best features. We’ll log you in if you already have an account. Hit continue as guest to try it first, no signup required.  
                     </p>
                     <motion.button
                       whileTap={{ scale: 0.97 }}
                       onClick={handleGetStarted}
                       disabled={signingIn || loading}
-                      className="w-full py-4 bg-[#F6841F] text-white font-bold rounded-2xl shadow-lg hover:shadow-xl transition-all duration-300 hover:bg-orange-600 flex items-center justify-center gap-3 disabled:opacity-60 text-base"
+                      className="w-full py-4 bg-[#F6841F] text-white font-bold rounded-2xl shadow-lg hover:shadow-xl transition-all duration-300 hover:bg-orange-600 flex items-center justify-center gap-3 disabled:opacity-60 text-base cursor-pointer border-none"
                     >
                       {signingIn ? (
                         <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
@@ -329,7 +329,7 @@ function MyJourney() {
                         trigger("nudge");
                         navigate('/knowyourbody')
                       }}
-                      className="text-sm text-gray-400 hover:text-gray-600 font-medium transition-colors"
+                      className="text-sm sm:text-base text-stone-600 hover:text-stone-900 font-semibold transition-colors cursor-pointer"
                     >
                       Continue as guest →
                     </button>
@@ -363,14 +363,14 @@ function MyJourney() {
                       className="group bg-white/60 backdrop-blur-sm rounded-2xl p-5 shadow-sm border border-white transition-all duration-300"
                     >
                       <div className="flex items-start gap-4">
-                        <div className="flex-shrink-0 w-10 h-10 rounded-lg bg-gradient-to-br from-green-100 to-emerald-100 flex items-center justify-center text-green-600 group-hover:from-green-500 group-hover:to-emerald-500 group-hover:text-white transition-all duration-300">
+                        <div className="flex-shrink-0 w-10 h-10 rounded-lg bg-gradient-to-br from-green-100 to-emerald-100 flex items-center justify-center text-green-700 group-hover:from-green-600 group-hover:to-emerald-600 group-hover:text-white transition-all duration-300">
                           {React.cloneElement(feature.icon, { size: 22 })}
                         </div>
                         <div>
-                          <h4 className="text-base font-bold text-gray-800 mb-0.5">
+                          <h4 className="text-base sm:text-lg font-bold text-stone-900 mb-0.5">
                             {feature.title}
                           </h4>
-                          <p className="text-gray-500 text-xs leading-relaxed">
+                          <p className="text-stone-700 text-xs sm:text-sm leading-relaxed font-medium">
                             {feature.description}
                           </p>
                         </div>
@@ -387,7 +387,7 @@ function MyJourney() {
                 viewport={{ once: true, margin: "-50px" }}
                 className="text-center mt-12"
               >
-                <p className="text-gray-600 mb-4 font-medium text-sm">
+                <p className="text-stone-700 mb-4 font-medium text-base">
                   Or explore our plans and check out the blog for inspiration.
                 </p>
                 <div className="flex flex-col sm:flex-row gap-3 justify-center">
@@ -432,7 +432,7 @@ function MyJourney() {
             {/* ===== LOGGED-IN: Full Dashboard Sections ===== */}
             {hasFullProfile && !loading && (
               <>
-                <h3 className="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-2 px-1 max-w-5xl mx-auto">
+                <h3 className="text-xs sm:text-sm font-bold text-stone-700 uppercase tracking-wider mb-2 px-1 max-w-5xl mx-auto">
                   📈 Progress Tracker
                 </h3>
                 <div className="max-w-5xl mx-auto">
@@ -445,7 +445,7 @@ function MyJourney() {
                   animate={{ opacity: 1, y: 0 }}
                   className="max-w-2xl mx-auto text-center mt-6 mb-4"
                 >
-                  <p className="text-gray-600 font-medium leading-relaxed text-sm">
+                  <p className="text-stone-700 font-medium leading-relaxed text-base">
                     Submit your latest BMI and Calorie data for a comprehensive consultation session with our experts.
                   </p>
                 </motion.div>
@@ -460,7 +460,7 @@ function MyJourney() {
                   <motion.button
                     whileTap={{ scale: 0.97 }}
                     onClick={handleBookConsultation}
-                    className="px-6 py-3 bg-gradient-to-r from-[#F6841F] to-orange-500 text-white font-bold rounded-full shadow-lg hover:shadow-xl transition-all flex items-center justify-center gap-2 text-base"
+                    className="px-6 py-3 bg-gradient-to-r from-[#F6841F] to-orange-500 text-white font-bold rounded-full shadow-lg hover:shadow-xl transition-all flex items-center justify-center gap-2 text-base cursor-pointer border-none"
                   >
                     <Calendar size={18} /> Book a Consultation
                   </motion.button>
@@ -471,7 +471,7 @@ function MyJourney() {
                 <Achievements />
 
                 {/* ===== ACCOUNT SETTINGS (wellness profile + actions) ===== */}
-                <h3 className="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-2 px-1 max-w-3xl mx-auto">
+                <h3 className="text-xs sm:text-sm font-bold text-stone-700 uppercase tracking-wider mb-2 px-1 max-w-3xl mx-auto">
                   ⚙️ Account Settings
                 </h3>
                 <motion.div
@@ -496,13 +496,13 @@ function MyJourney() {
                       )}
                       <div className="flex-1">
                         <h2 className="text-white text-lg font-bold">{user.displayName}</h2>
-                        <p className="text-green-100 text-xs">{user.email}</p>
+                        <p className="text-green-100 text-sm font-medium">{user.email}</p>
                       </div>
                     </div>
 
                     {/* Wellness profile grid */}
                     <div className="px-6 py-5">
-                      <h3 className="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-3">Your Wellness Profile</h3>
+                      <h3 className="text-xs sm:text-sm font-bold text-stone-700 uppercase tracking-wider mb-3">Your Wellness Profile</h3>
                       <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
                         {[
                           { label: 'Gender', value: userProfile.gender, capitalize: true },
@@ -514,9 +514,9 @@ function MyJourney() {
                           { label: 'Sleep', value: userProfile.sleepHours },
                           { label: 'Diet', value: userProfile.dietaryRestrictions },
                         ].map((item, i) => (
-                          <div key={i} className="bg-gradient-to-br from-green-50 to-emerald-50 rounded-xl p-2.5">
-                            <div className="text-[10px] text-gray-400 font-medium mb-0.5">{item.label}</div>
-                            <div className={`text-xs font-bold text-gray-800 ${item.capitalize ? 'capitalize' : ''}`}>
+                          <div key={i} className="bg-gradient-to-br from-green-50 to-emerald-50 rounded-xl p-3 border border-emerald-100/50">
+                            <div className="text-xs text-stone-600 font-semibold mb-0.5">{item.label}</div>
+                            <div className={`text-sm sm:text-base font-bold text-stone-900 ${item.capitalize ? 'capitalize' : ''}`}>
                               {item.value || '—'}
                             </div>
                           </div>
@@ -526,15 +526,15 @@ function MyJourney() {
                       {(userProfile.healthConditions || userProfile.dislikes) && (
                         <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mt-3">
                           {userProfile.healthConditions && (
-                            <div className="bg-gradient-to-br from-green-50 to-emerald-50 rounded-xl p-2.5">
-                              <div className="text-[10px] text-gray-400 font-medium mb-0.5">Health Conditions</div>
-                              <div className="text-xs font-bold text-gray-800">{userProfile.healthConditions}</div>
+                            <div className="bg-gradient-to-br from-green-50 to-emerald-50 rounded-xl p-3 border border-emerald-100/50">
+                              <div className="text-xs text-stone-600 font-semibold mb-0.5">Health Conditions</div>
+                              <div className="text-sm sm:text-base font-bold text-stone-900">{userProfile.healthConditions}</div>
                             </div>
                           )}
                           {userProfile.dislikes && (
-                            <div className="bg-gradient-to-br from-green-50 to-emerald-50 rounded-xl p-2.5">
-                              <div className="text-[10px] text-gray-400 font-medium mb-0.5">Allergies / Dislikes</div>
-                              <div className="text-xs font-bold text-gray-800">{userProfile.dislikes}</div>
+                            <div className="bg-gradient-to-br from-green-50 to-emerald-50 rounded-xl p-3 border border-emerald-100/50">
+                              <div className="text-xs text-stone-600 font-semibold mb-0.5">Allergies / Dislikes</div>
+                              <div className="text-sm sm:text-base font-bold text-stone-900">{userProfile.dislikes}</div>
                             </div>
                           )}
                         </div>
@@ -547,7 +547,7 @@ function MyJourney() {
                         whileHover={{ scale: 1.02 }}
                         whileTap={{ scale: 0.98 }}
                         onClick={handleUpdateInfo}
-                        className="w-full px-4 py-2 bg-white border border-green-600 text-green-700 font-semibold rounded-full hover:bg-green-50 transition-all flex items-center justify-center gap-2 text-xs"
+                        className="w-full px-4 py-2.5 bg-white border border-green-600 text-green-700 font-bold rounded-full hover:bg-green-50 transition-all flex items-center justify-center gap-2 text-sm cursor-pointer"
                       >
                         <FiEdit2 size={14} /> Update My Info
                       </motion.button>
@@ -559,7 +559,7 @@ function MyJourney() {
                             trigger("light");
                             setShowLogoutConfirm(true);
                           }}
-                          className="flex-1 px-4 py-2 bg-white border border-gray-200 text-gray-600 font-semibold rounded-full hover:border-gray-300 transition-all flex items-center justify-center gap-2 text-xs"
+                          className="flex-1 px-4 py-2.5 bg-white border border-gray-300 text-stone-700 font-bold rounded-full hover:border-gray-400 transition-all flex items-center justify-center gap-2 text-sm cursor-pointer"
                         >
                           <FiLogOut size={14} /> Sign Out
                         </motion.button>
@@ -570,7 +570,7 @@ function MyJourney() {
                             trigger("error");
                             setShowDeleteConfirm(true);
                           }}
-                          className="flex-1 px-4 py-2 bg-white border border-red-200 text-red-500 font-semibold rounded-full hover:border-red-300 hover:bg-red-50 transition-all flex items-center justify-center gap-2 text-xs"
+                          className="flex-1 px-4 py-2.5 bg-white border border-red-200 text-red-600 font-bold rounded-full hover:border-red-300 hover:bg-red-50 transition-all flex items-center justify-center gap-2 text-sm cursor-pointer"
                         >
                           <FiTrash2 size={14} /> Delete Account
                         </motion.button>
@@ -592,8 +592,8 @@ function MyJourney() {
                 <div className="w-16 h-16 bg-orange-100 rounded-full flex items-center justify-center mx-auto mb-4 text-3xl">
                   🚀
                 </div>
-                <h2 className="text-2xl font-bold text-green-800 mb-3">{isPendingDeletion ? "Account Deletion Pending" : "You're almost there!"}</h2>
-                <p className="text-gray-600 text-base mb-6">
+                <h2 className="text-2xl font-bold text-green-900 mb-3">{isPendingDeletion ? "Account Deletion Pending" : "You're almost there!"}</h2>
+                <p className="text-stone-700 text-base sm:text-lg mb-6 font-normal leading-relaxed">
                   {isPendingDeletion
                     ? "You need to confirm your recent login to safely delete your account. Click 'Complete Deletion' below when ready."
                     : "Your account is created, but we need a few more details to set up your personalized Dashboard and track your journey."}

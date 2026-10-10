@@ -29,10 +29,10 @@ function FullyBooked() {
               
               {/* Heading */}
               <div className="space-y-4">
-                <h1 className="text-4xl md:text-5xl font-bold text-green-800">
+                <h1 className="text-4xl md:text-5xl font-bold text-green-900">
                   Oops! We're Currently Fully Booked
                 </h1>
-                <p className="text-xl text-gray-600 max-w-2xl mx-auto">
+                <p className="text-lg sm:text-xl text-stone-700 max-w-2xl mx-auto font-normal">
                   Thank you for your interest in working with us! Our consultation slots are currently full, but we'd love to help you soon.
                 </p>
               </div>
@@ -41,12 +41,12 @@ function FullyBooked() {
             {/* Info Box */}
             <div className="bg-gradient-to-r from-green-50 to-emerald-50 border-2 border-green-200 rounded-xl p-6 mb-8">
               <div className="flex items-start space-x-3">
-                <Clock className="text-green-600 flex-shrink-0 mt-1" size={24} />
+                <Clock className="text-green-700 flex-shrink-0 mt-1" size={24} />
                 <div>
-                  <h3 className="text-lg font-semibold text-green-800 mb-2">
+                  <h3 className="text-lg font-bold text-green-900 mb-2">
                     When Can You Book?
                   </h3>
-                  <p className="text-gray-700">
+                  <p className="text-stone-800 text-base font-normal leading-relaxed">
                     We open new consultation slots regularly. Please check back in a few days or reach out to us directly for the latest availability updates.
                   </p>
                 </div>
@@ -55,7 +55,7 @@ function FullyBooked() {
 
             {/* Contact Options */}
             <div className="space-y-6 mb-8">
-              <h3 className="text-2xl font-bold text-green-800 text-center">
+              <h3 className="text-2xl font-bold text-green-900 text-center">
                 Get in Touch for Updates
               </h3>
               
@@ -100,24 +100,24 @@ function FullyBooked() {
 
             {/* What You Can Do Meanwhile */}
             <div className="bg-blue-50 border border-blue-200 rounded-xl p-6 mb-8">
-              <h3 className="text-lg font-semibold text-blue-800 mb-4">
+              <h3 className="text-lg font-bold text-blue-900 mb-4">
                 What You Can Do in the Meantime
               </h3>
-              <div className="space-y-3 text-blue-700">
+              <div className="space-y-3 text-blue-950 font-medium text-base">
                 <div className="flex items-start space-x-3">
-                  <span className="text-xl">✓</span>
-                  <p>Visit <a href="/my-journey" className="font-semibold underline hover:text-green-600">My Journey</a> to get the most out of our platform</p>
+                  <span className="text-xl font-bold text-blue-700">✓</span>
+                  <p>Visit <a href="/my-journey" className="font-bold underline hover:text-green-700">My Journey</a> to get the most out of our platform</p>
                 </div>
                 <div className="flex items-start space-x-3">
-                  <span className="text-xl">✓</span>
-                  <p>Explore our <a href="/plans" className="font-semibold underline hover:text-green-600">Plans</a> and <a href="/blog" className="font-semibold underline hover:text-green-600">blog posts</a> for nutrition tips</p>
+                  <span className="text-xl font-bold text-blue-700">✓</span>
+                  <p>Explore our <a href="/plans" className="font-bold underline hover:text-green-700">Plans</a> and <a href="/blog" className="font-bold underline hover:text-green-700">blog posts</a> for nutrition tips</p>
                 </div>
                 <div className="flex items-start space-x-3">
-                  <span className="text-xl">✓</span>
+                  <span className="text-xl font-bold text-blue-700">✓</span>
                   <p>Follow us on social media for daily wellness inspiration</p>
                 </div>
                 <div className="flex items-start space-x-3">
-                  <span className="text-xl">✓</span>
+                  <span className="text-xl font-bold text-blue-700">✓</span>
                   <p>Join our waiting list by contacting us via WhatsApp</p>
                 </div>
               </div>
@@ -127,7 +127,7 @@ function FullyBooked() {
             <div className="text-center">
               <a
                 href="/"
-                className="inline-flex items-center space-x-2 px-6 py-3 bg-gray-200 text-gray-700 font-semibold rounded-xl hover:bg-gray-300 transition-colors"
+                className="inline-flex items-center space-x-2 px-6 py-3 bg-stone-200 text-stone-800 font-bold rounded-xl hover:bg-stone-300 transition-colors"
               >
                 <ArrowLeft size={20} />
                 <span>Back to Home</span>
@@ -137,7 +137,7 @@ function FullyBooked() {
 
           {/* Footer Message */}
           <div className="mt-8 text-center">
-            <p className="text-gray-600 text-lg">
+            <p className="text-stone-700 text-base sm:text-lg font-medium">
               We appreciate your patience and look forward to supporting your nutrition journey! 🌟
             </p>
           </div>

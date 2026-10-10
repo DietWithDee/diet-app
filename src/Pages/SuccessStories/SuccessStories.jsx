@@ -103,7 +103,7 @@ function SuccessStories() {
           <h1 className='text-4xl sm:text-5xl lg:text-6xl font-serif-cormorant font-normal text-stone-900 tracking-tight leading-[1.12]'>
             Success Stories
           </h1>
-          <p className='text-stone-600 text-sm sm:text-base font-light max-w-xl mx-auto leading-relaxed'>
+          <p className='text-stone-700 text-base sm:text-lg font-normal max-w-xl mx-auto leading-relaxed'>
             Hundreds of transformations. Real people, real results. Be inspired and start your journey today.
           </p>
           <div className='w-16 h-0.5 bg-[#F6841F] mx-auto rounded-full'></div>
@@ -112,25 +112,25 @@ function SuccessStories() {
         {/* Filter Section */}
         <div className='max-w-6xl mx-auto mb-12'>
           <div className='flex items-center gap-3 mb-4'>
-            <Filter size={20} className='text-green-600' />
-            <span className='font-bold text-gray-700'>Filter by Plan</span>
+            <Filter size={20} className='text-green-700' />
+            <span className='font-bold text-stone-800 text-base'>Filter by Plan</span>
           </div>
           <div className='flex gap-2 flex-wrap'>
             {plans.map(plan => (
               <button
                 key={plan.id}
                 onClick={() => { setSelectedPlan(plan.id); setPage(1); }}
-                className={`px-4 py-2 rounded-full font-semibold transition-all ${
+                className={`px-4 py-2 rounded-full font-semibold transition-all cursor-pointer ${
                   selectedPlan === plan.id
                     ? 'bg-gradient-to-r from-green-600 to-emerald-600 text-white shadow-lg'
-                    : 'bg-white text-gray-700 border-2 border-gray-200 hover:border-green-400'
+                    : 'bg-white text-stone-700 border-2 border-gray-200 hover:border-green-500'
                 }`}
               >
                 {plan.label}
               </button>
             ))}
           </div>
-          <p className='text-sm text-gray-600 mt-4'>{filtered.length} stories found</p>
+          <p className='text-sm sm:text-base text-stone-600 mt-4 font-medium'>{filtered.length} stories found</p>
         </div>
 
         {/* Testimonials Grid */}
@@ -161,9 +161,9 @@ function SuccessStories() {
                         </div>
                       </div>
                       <div>
-                        <h3 className='font-bold text-gray-800'>{testimonial.name}</h3>
-                        <p className='text-xs text-green-600 font-semibold'>{(testimonial.plan || '').replace(/-/g, ' ')}</p>
-                        <p className='text-xs text-gray-500'>{testimonial.location}</p>
+                        <h3 className='font-bold text-stone-900 text-base sm:text-lg'>{testimonial.name}</h3>
+                        <p className='text-xs sm:text-sm text-green-700 font-semibold'>{(testimonial.plan || '').replace(/-/g, ' ')}</p>
+                        <p className='text-xs sm:text-sm text-stone-600 font-medium'>{testimonial.location}</p>
                       </div>
                     </div>
 
@@ -177,7 +177,7 @@ function SuccessStories() {
                     </div>
 
                     {/* Content */}
-                    <p className='text-stone-700 text-base leading-relaxed mb-4 flex-grow font-serif-cormorant italic'>
+                    <p className='text-stone-800 text-lg leading-relaxed mb-4 flex-grow font-serif-cormorant italic'>
                       "{testimonial.content}"
                     </p>
 
@@ -192,7 +192,7 @@ function SuccessStories() {
                   <button
                     onClick={() => setPage(Math.max(1, page - 1))}
                     disabled={page === 1}
-                    className='p-2 rounded-lg bg-white border border-gray-300 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed'
+                    className='p-2 rounded-lg bg-white border border-gray-300 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer'
                   >
                     <ChevronLeft size={20} />
                   </button>
@@ -202,10 +202,10 @@ function SuccessStories() {
                       <button
                         key={i + 1}
                         onClick={() => setPage(i + 1)}
-                        className={`px-4 py-2 rounded-lg font-semibold transition-all ${
+                        className={`px-4 py-2 rounded-lg font-semibold transition-all cursor-pointer ${
                           page === i + 1
                             ? 'bg-green-600 text-white'
-                            : 'bg-white text-gray-700 border border-gray-300 hover:bg-gray-50'
+                            : 'bg-white text-stone-700 border border-gray-300 hover:bg-gray-50'
                         }`}
                       >
                         {i + 1}
@@ -216,7 +216,7 @@ function SuccessStories() {
                   <button
                     onClick={() => setPage(Math.min(totalPages, page + 1))}
                     disabled={page === totalPages}
-                    className='p-2 rounded-lg bg-white border border-gray-300 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed'
+                    className='p-2 rounded-lg bg-white border border-gray-300 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer'
                   >
                     <ChevronRight size={20} />
                   </button>
@@ -229,8 +229,8 @@ function SuccessStories() {
         {/* CTA Section */}
         <div className='mt-20 text-center max-w-2xl mx-auto'>
           <h2 className='text-3xl sm:text-4xl font-serif-cormorant font-normal text-stone-900 mb-3 tracking-tight'>Ready to write your own story?</h2>
-          <p className='text-stone-600 text-sm sm:text-base font-light mb-6'>Share your transformation with our community and inspire others.</p>
-          <a href='/submit-testimonial' className='inline-block px-8 py-3 bg-gradient-to-r from-green-600 to-emerald-600 text-white font-bold rounded-full hover:shadow-lg transition-all hover:scale-105'>
+          <p className='text-stone-700 text-base sm:text-lg font-normal mb-6'>Share your transformation with our community and inspire others.</p>
+          <a href='/submit-testimonial' className='inline-block px-8 py-3.5 bg-gradient-to-r from-green-600 to-emerald-600 text-white font-bold rounded-full hover:shadow-lg transition-all hover:scale-105'>
             Share Your Success
           </a>
         </div>

@@ -590,7 +590,7 @@ function Blog() {
                     {selectedArticle.title}
                   </h1>
 
-                  <div className="flex flex-wrap items-center gap-4 lg:gap-6 text-gray-600 pb-6 border-b border-gray-200 mb-6">
+                  <div className="flex flex-wrap items-center gap-4 lg:gap-6 text-stone-700 font-medium pb-6 border-b border-gray-200 mb-6">
                     <div className="flex items-center gap-2">
                       <Calendar size={18} />
                       <span className="text-sm lg:text-base">{formatDate(selectedArticle.createdAt)}</span>
@@ -611,7 +611,7 @@ function Blog() {
 
                 {/* Article Content */}
                 <div
-                  className="prose prose-sm sm:prose-base lg:prose-lg max-w-none text-gray-800 leading-relaxed article-body"
+                  className="prose prose-sm sm:prose-base lg:prose-lg max-w-none text-stone-800 leading-relaxed article-body"
                   dangerouslySetInnerHTML={{ __html: transformArticleContent(selectedArticle.content) }}
                 />
 
@@ -629,7 +629,7 @@ function Blog() {
 
                 {/* Article Footer */}
                 <div className="mt-8 lg:mt-12 pt-6 lg:pt-8 border-t border-gray-200 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-                  <div className="text-sm text-gray-500">
+                  <div className="text-sm sm:text-base text-stone-700 font-medium">
                     Enjoyed this article? Share it with your friends or show some love!
                   </div>
                   <div className="flex flex-wrap items-center gap-2 sm:gap-3">
@@ -750,7 +750,7 @@ function Blog() {
         <h1 className="text-3xl sm:text-5xl lg:text-6xl font-serif-cormorant font-normal text-stone-900 tracking-tight leading-[1.12]">
           Wellness Reads
         </h1>
-        <p className="text-stone-600 text-sm sm:text-base font-light px-4 leading-relaxed max-w-xl mx-auto">
+        <p className="text-stone-700 text-base sm:text-lg font-normal px-4 leading-relaxed max-w-xl mx-auto">
           Practical tips, expert advice, and motivation for your healthy lifestyle.
         </p>
         <div className="w-16 h-0.5 bg-[#F6841F] mx-auto rounded-full"></div>
@@ -762,8 +762,8 @@ function Blog() {
           // Empty state
           <div className="text-center py-12 lg:py-16 space-y-4">
             <div className="text-gray-400 text-4xl lg:text-6xl">📝</div>
-            <h3 className="text-xl lg:text-2xl font-bold text-gray-600">No Articles Yet</h3>
-            <p className="text-gray-500 max-w-md mx-auto px-4 text-sm lg:text-base">
+            <h3 className="text-xl lg:text-2xl font-bold text-stone-900">No Articles Yet</h3>
+            <p className="text-stone-700 max-w-md mx-auto px-4 text-base font-normal leading-relaxed">
               We're working on bringing you amazing content. Check back soon for the latest wellness tips and insights!
             </p>
           </div>
@@ -802,7 +802,7 @@ function Blog() {
                     {post.title}
                   </h3>
 
-                  <div className="flex flex-wrap items-center gap-3 lg:gap-4 text-xs lg:text-sm text-gray-500">
+                  <div className="flex flex-wrap items-center gap-3 lg:gap-4 text-xs lg:text-sm text-stone-600 font-medium">
                     <div className="flex items-center gap-1">
                       <Calendar size={12} />
                       <span>{formatDate(post.createdAt)}</span>
@@ -819,7 +819,7 @@ function Blog() {
                     </div>
                   </div>
 
-                  <p className="text-gray-700 text-sm lg:text-base leading-relaxed line-clamp-3">
+                  <p className="text-stone-800 text-base leading-relaxed line-clamp-3 font-normal">
                     {createSummary(post.content)}
                   </p>
 

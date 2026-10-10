@@ -19,7 +19,7 @@ function Terms() {
                             <div className='w-16 h-1 bg-[#F6841F] rounded-full'></div>
                         </header>
 
-                        <div className='prose prose-lg max-w-none text-stone-600 font-light space-y-6 leading-relaxed'>
+                        <div className='prose prose-lg max-w-none text-stone-800 font-normal space-y-6 leading-relaxed text-base sm:text-lg'>
                             <section>
                                 <h2 className='text-2xl sm:text-3xl font-serif-cormorant font-normal text-stone-900 mb-3 tracking-tight'>Acceptance of Terms</h2>
                                 <p>By accessing or using <span className='font-semibold'>dietwithdee.org</span>, you agree to comply with and be bound by these Terms and Conditions. If you do not agree, you should not use the platform.</p>
@@ -37,7 +37,7 @@ function Terms() {
                             <section>
                                 <h2 className='text-2xl sm:text-3xl font-serif-cormorant font-normal text-stone-900 mb-3 tracking-tight'>Health and Medical Disclaimer</h2>
                                 <p>All content and services provided on this platform are for nutritional guidance and educational purposes only and are not a substitute for medical advice, diagnosis, or treatment.</p>
-                                <p className='mt-2 font-semibold italic text-green-700 underline'>Users are encouraged to consult a qualified medical professional before making significant health decisions.</p>
+                                <p className='mt-2 font-semibold italic text-green-800 underline'>Users are encouraged to consult a qualified medical professional before making significant health decisions.</p>
                             </section>
 
                             <section>

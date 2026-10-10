@@ -50,7 +50,7 @@ const FaqItem = ({ question, answer, defaultOpen = false }) => {
         </div>
       </button>
       {open && (
-        <div className="px-5 pb-5 text-xs sm:text-sm text-stone-600 font-light leading-relaxed border-t border-stone-100 pt-3">
+        <div className="px-5 pb-5 text-sm sm:text-base text-stone-700 font-normal leading-relaxed border-t border-stone-100 pt-3">
           <p>{answer}</p>
         </div>
       )}
@@ -203,8 +203,8 @@ const OnTrack = () => {
                 
                 <div className="w-16 h-1 bg-[#F6841F] mt-2"></div>
                 
-                <p className="text-stone-700 font-light text-base sm:text-lg leading-relaxed max-w-xl pt-2">
-                  Stop fearing every meal or surviving on plain cabbage. Work 1-on-1 with Registered Dietitian <strong className="font-medium text-stone-900">Nana Ama Dwamena</strong> to stabilize your glucose spikes and lower your A1c—without giving up the Ghanaian dishes you love.
+                <p className="text-stone-800 font-normal text-base sm:text-lg leading-relaxed max-w-xl pt-2">
+                  Stop fearing every meal or surviving on plain cabbage. Work 1-on-1 with Registered Dietitian <strong className="font-semibold text-stone-900">Nana Ama Dwamena</strong> to stabilize your glucose spikes and lower your A1c—without giving up the Ghanaian dishes you love.
                 </p>
               </div>
 
@@ -223,24 +223,24 @@ const OnTrack = () => {
                   <div className="flex text-amber-500 text-sm">
                     {'★'.repeat(5)}
                   </div>
-                  <span className="text-xs font-semibold text-stone-700">
+                  <span className="text-xs sm:text-sm font-semibold text-stone-800">
                     5.0 Rating • 500+ Clients Guided
                   </span>
                 </div>
               </div>
 
               {/* High-Trust Value Markers */}
-              <div className="pt-2 flex flex-wrap gap-y-2 gap-x-6 text-xs text-stone-600 font-light">
+              <div className="pt-2 flex flex-wrap gap-y-2 gap-x-6 text-xs sm:text-sm text-stone-700 font-normal">
                 <span className="flex items-center gap-1.5">
-                  <CheckCircle2 size={15} className="text-emerald-600" />
+                  <CheckCircle2 size={16} className="text-emerald-600 shrink-0" />
                   100% Real Ghanaian Meals
                 </span>
                 <span className="flex items-center gap-1.5">
-                  <CheckCircle2 size={15} className="text-emerald-600" />
+                  <CheckCircle2 size={16} className="text-emerald-600 shrink-0" />
                   Synced with the App
                 </span>
                 <span className="flex items-center gap-1.5">
-                  <CheckCircle2 size={15} className="text-emerald-600" />
+                  <CheckCircle2 size={16} className="text-emerald-600 shrink-0" />
                   Direct WhatsApp Mentorship
                 </span>
               </div>
@@ -265,7 +265,7 @@ const OnTrack = () => {
                     <p className="font-bold text-stone-900 text-lg font-montserrat">
                       Nana Ama Dwamena, RD.
                     </p>
-                    <p className="text-xs text-stone-500 font-light tracking-wide">
+                    <p className="text-xs sm:text-sm text-stone-600 font-normal tracking-wide">
                       Founder, DietWithDee • Licensed Clinical Dietitian
                     </p>
                   </div>
@@ -289,10 +289,10 @@ const OnTrack = () => {
                 <div className="text-3xl sm:text-4xl font-bold font-montserrat text-[#F6841F]">
                   94%
                 </div>
-                <div className="text-xs sm:text-sm font-semibold text-stone-800">
+                <div className="text-xs sm:text-sm font-semibold text-stone-900">
                   Lower Fasting Glucose
                 </div>
-                <div className="text-[11px] text-stone-500 font-light hidden sm:block">
+                <div className="text-xs text-stone-600 font-normal hidden sm:block">
                   Within 4 weeks of protocol
                 </div>
               </div>
@@ -301,10 +301,10 @@ const OnTrack = () => {
                 <div className="text-3xl sm:text-4xl font-bold font-montserrat text-emerald-700">
                   1-on-1
                 </div>
-                <div className="text-xs sm:text-sm font-semibold text-stone-800">
+                <div className="text-xs sm:text-sm font-semibold text-stone-900">
                   Private Dietitian Care
                 </div>
-                <div className="text-[11px] text-stone-500 font-light hidden sm:block">
+                <div className="text-xs text-stone-600 font-normal hidden sm:block">
                   Direct virtual consultation
                 </div>
               </div>
@@ -313,10 +313,10 @@ const OnTrack = () => {
                 <div className="text-3xl sm:text-4xl font-bold font-montserrat text-stone-900">
                   0
                 </div>
-                <div className="text-xs sm:text-sm font-semibold text-stone-800">
+                <div className="text-xs sm:text-sm font-semibold text-stone-900">
                   Starvation Diets
                 </div>
-                <div className="text-[11px] text-stone-500 font-light hidden sm:block">
+                <div className="text-xs text-stone-600 font-normal hidden sm:block">
                   No restrictive food guilt
                 </div>
               </div>
@@ -325,10 +325,10 @@ const OnTrack = () => {
                 <div className="text-3xl sm:text-4xl font-bold font-montserrat text-[#F6841F]">
                   35+
                 </div>
-                <div className="text-xs sm:text-sm font-semibold text-stone-800">
+                <div className="text-xs sm:text-sm font-semibold text-stone-900">
                   Ghanaian Meal Guides
                 </div>
-                <div className="text-[11px] text-stone-500 font-light hidden sm:block">
+                <div className="text-xs text-stone-600 font-normal hidden sm:block">
                   Adapted to your kitchen
                 </div>
               </div>
@@ -346,7 +346,7 @@ const OnTrack = () => {
                 How We Get Your Blood Sugar On Track
               </h2>
               <div className="w-12 h-0.5 bg-[#F6841F] mx-auto"></div>
-              <p className="text-xs sm:text-sm text-stone-600 font-light pt-1">
+              <p className="text-sm sm:text-base text-stone-700 font-normal pt-1">
                 Clinical science translated into your everyday kitchen and daily routine.
               </p>
             </div>
@@ -360,7 +360,7 @@ const OnTrack = () => {
                     <Activity size={22} />
                   </div>
                   <h3 className="text-lg font-bold font-montserrat text-stone-900">Smart Carb Mapping</h3>
-                  <p className="text-xs sm:text-sm text-stone-600 font-light leading-relaxed">
+                  <p className="text-sm text-stone-700 font-normal leading-relaxed">
                     Learn the exact starch portions (plantain, yam, brown rice, banku) and food pairings that prevent rapid post-meal sugar spikes.
                   </p>
                 </div>
@@ -377,7 +377,7 @@ const OnTrack = () => {
                     <ShieldCheck size={22} />
                   </div>
                   <h3 className="text-lg font-bold font-montserrat text-stone-900">Synced with the App</h3>
-                  <p className="text-xs sm:text-sm text-stone-600 font-light leading-relaxed">
+                  <p className="text-sm text-stone-700 font-normal leading-relaxed">
                     Log your meals, blood glucose readings, and medications inside the OnTrack app. Your dietitian reviews your trends in real time to provide timely adjustments and keep your sugars stable.
                   </p>
                 </div>
@@ -394,7 +394,7 @@ const OnTrack = () => {
                     <UtensilsCrossed size={22} />
                   </div>
                   <h3 className="text-lg font-bold font-montserrat text-stone-900">The Local Plate Method</h3>
-                  <p className="text-xs sm:text-sm text-stone-600 font-light leading-relaxed">
+                  <p className="text-sm text-stone-700 font-normal leading-relaxed">
                     No expensive foreign foods. Master mouthwatering Ghanaian dishes with fiber-rich greens, healthy fats, and high-satiety proteins.
                   </p>
                 </div>
@@ -411,7 +411,7 @@ const OnTrack = () => {
                     <HeartHandshake size={22} />
                   </div>
                   <h3 className="text-lg font-bold font-montserrat text-stone-900">WhatsApp Guidance</h3>
-                  <p className="text-xs sm:text-sm text-stone-600 font-light leading-relaxed">
+                  <p className="text-sm text-stone-700 font-normal leading-relaxed">
                     Direct access to Nana Ama. Snap photos of your plate, log your readings inside OnTrack, and get timely feedback when cravings hit.
                   </p>
                 </div>
@@ -441,7 +441,7 @@ const OnTrack = () => {
                 <h2 className="text-2xl sm:text-3xl font-serif-cormorant font-normal text-white tracking-tight">
                   1-on-1 Clinical Consultation Booking
                 </h2>
-                <p className="text-xs sm:text-sm text-stone-300 font-light max-w-lg mx-auto">
+                <p className="text-sm sm:text-base text-stone-200 font-normal max-w-lg mx-auto">
                   Select your package, fill your details, and proceed to instant secure Paystack checkout.
                 </p>
               </div>
@@ -451,7 +451,7 @@ const OnTrack = () => {
                 
                 {/* STEP 1: Symmetrical Package Selector */}
                 <div className="space-y-3">
-                  <div className="text-xs uppercase tracking-wider font-semibold text-stone-500">
+                  <div className="text-xs sm:text-sm uppercase tracking-wider font-bold text-stone-700">
                     Step 1: Choose Your Consultation Package
                   </div>
 
@@ -468,7 +468,7 @@ const OnTrack = () => {
                       }`}
                     >
                       <div className="flex justify-between items-start">
-                        <span className="px-2.5 py-0.5 bg-[#F6841F] text-white text-[10px] font-semibold uppercase tracking-wider rounded-full">
+                        <span className="px-2.5 py-1 bg-[#F6841F] text-white text-xs font-semibold uppercase tracking-wider rounded-full">
                           Recommended for New Clients
                         </span>
                         <div className={`w-5 h-5 rounded-full border flex items-center justify-center ${
@@ -482,7 +482,7 @@ const OnTrack = () => {
                         <h3 className="text-base sm:text-lg font-bold text-stone-900 font-montserrat">
                           Initial Deep-Dive Assessment
                         </h3>
-                        <p className="text-xs text-stone-500 mt-0.5 font-light">
+                        <p className="text-xs sm:text-sm text-stone-600 mt-1 font-normal">
                           45 Minutes • Medical & Diet History, Custom Meal Blueprint
                         </p>
                       </div>
@@ -491,20 +491,20 @@ const OnTrack = () => {
                         <span className="text-2xl sm:text-3xl font-bold font-montserrat text-stone-900">
                           GH₵ 600
                         </span>
-                        <span className="text-xs text-stone-400 line-through">GH₵ 800</span>
+                        <span className="text-xs sm:text-sm text-stone-500 line-through">GH₵ 800</span>
                       </div>
 
-                      <ul className="mt-3 space-y-1.5 border-t border-stone-100 pt-3 text-xs text-stone-600 font-light">
-                        <li className="flex items-center gap-1.5">
-                          <CheckCircle2 size={13} className="text-[#F6841F] shrink-0" />
+                      <ul className="mt-3.5 space-y-2 border-t border-stone-200/80 pt-3 text-xs sm:text-sm text-stone-700 font-normal">
+                        <li className="flex items-center gap-2">
+                          <CheckCircle2 size={15} className="text-[#F6841F] shrink-0" />
                           <span>Detailed A1c & medication examination</span>
                         </li>
-                        <li className="flex items-center gap-1.5">
-                          <CheckCircle2 size={13} className="text-[#F6841F] shrink-0" />
+                        <li className="flex items-center gap-2">
+                          <CheckCircle2 size={15} className="text-[#F6841F] shrink-0" />
                           <span>Tailored Ghanaian meal plan & recipes</span>
                         </li>
-                        <li className="flex items-center gap-1.5">
-                          <CheckCircle2 size={13} className="text-[#F6841F] shrink-0" />
+                        <li className="flex items-center gap-2">
+                          <CheckCircle2 size={15} className="text-[#F6841F] shrink-0" />
                           <span>Direct OnTrack app target calibration</span>
                         </li>
                       </ul>
@@ -521,7 +521,7 @@ const OnTrack = () => {
                       }`}
                     >
                       <div className="flex justify-between items-start">
-                        <span className="px-2.5 py-0.5 bg-stone-800 text-white text-[10px] font-semibold uppercase tracking-wider rounded-full">
+                        <span className="px-2.5 py-1 bg-stone-800 text-white text-xs font-semibold uppercase tracking-wider rounded-full">
                           Existing Clients
                         </span>
                         <div className={`w-5 h-5 rounded-full border flex items-center justify-center ${
@@ -535,7 +535,7 @@ const OnTrack = () => {
                         <h3 className="text-base sm:text-lg font-bold text-stone-900 font-montserrat">
                           Follow-Up Accountability
                         </h3>
-                        <p className="text-xs text-stone-500 mt-0.5 font-light">
+                        <p className="text-xs sm:text-sm text-stone-600 mt-1 font-normal">
                           25 Minutes • Progress Review & Target Adjustments
                         </p>
                       </div>
@@ -544,20 +544,20 @@ const OnTrack = () => {
                         <span className="text-2xl sm:text-3xl font-bold font-montserrat text-stone-900">
                           GH₵ 300
                         </span>
-                        <span className="text-xs text-stone-400 line-through">GH₵ 400</span>
+                        <span className="text-xs sm:text-sm text-stone-500 line-through">GH₵ 400</span>
                       </div>
 
-                      <ul className="mt-3 space-y-1.5 border-t border-stone-100 pt-3 text-xs text-stone-600 font-light">
-                        <li className="flex items-center gap-1.5">
-                          <CheckCircle2 size={13} className="text-[#F6841F] shrink-0" />
+                      <ul className="mt-3.5 space-y-2 border-t border-stone-200/80 pt-3 text-xs sm:text-sm text-stone-700 font-normal">
+                        <li className="flex items-center gap-2">
+                          <CheckCircle2 size={15} className="text-[#F6841F] shrink-0" />
                           <span>Fasting sugar logs & trend analysis</span>
                         </li>
-                        <li className="flex items-center gap-1.5">
-                          <CheckCircle2 size={13} className="text-[#F6841F] shrink-0" />
+                        <li className="flex items-center gap-2">
+                          <CheckCircle2 size={15} className="text-[#F6841F] shrink-0" />
                           <span>Portion adjustments & craving fixes</span>
                         </li>
-                        <li className="flex items-center gap-1.5">
-                          <CheckCircle2 size={13} className="text-[#F6841F] shrink-0" />
+                        <li className="flex items-center gap-2">
+                          <CheckCircle2 size={15} className="text-[#F6841F] shrink-0" />
                           <span>Ongoing WhatsApp Support</span>
                         </li>
                       </ul>
@@ -567,22 +567,22 @@ const OnTrack = () => {
                 </div>
 
                 {/* Consultation Hours Box */}
-                <div className="p-3.5 bg-stone-50 border border-stone-200/80 rounded-xl text-xs text-stone-700 flex items-center gap-2.5">
-                  <Clock size={16} className="text-[#F6841F] shrink-0" />
-                  <span className="font-light">
+                <div className="p-4 bg-stone-50 border border-stone-200 rounded-xl text-xs sm:text-sm text-stone-800 flex items-start sm:items-center gap-3">
+                  <Clock size={18} className="text-[#F6841F] shrink-0 mt-0.5 sm:mt-0" />
+                  <span className="font-normal leading-relaxed">
                     <strong className="font-semibold text-stone-900">Consultation Hours:</strong> Tuesday – Sunday, 10:00 AM – 3:00 PM GMT. We reach out directly on WhatsApp within 24 hours of payment to coordinate your meeting slot.
                   </span>
                 </div>
 
                 {/* STEP 2: Clean Symmetrical Inputs */}
                 <div className="space-y-4">
-                  <div className="text-xs uppercase tracking-wider font-semibold text-stone-500">
+                  <div className="text-xs sm:text-sm uppercase tracking-wider font-bold text-stone-700">
                     Step 2: Your Contact Details
                   </div>
 
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div className="space-y-1.5">
-                      <label className="block text-xs font-semibold uppercase tracking-wider text-stone-700">
+                      <label className="block text-xs sm:text-sm font-semibold uppercase tracking-wider text-stone-800">
                         Full Name *
                       </label>
                       <input
@@ -592,12 +592,12 @@ const OnTrack = () => {
                         onChange={handleInputChange}
                         required
                         placeholder="e.g. Kwame Mensah"
-                        className="w-full bg-white border border-stone-200 rounded-xl px-4 py-3 text-sm text-stone-900 placeholder:text-stone-400 focus:outline-none focus:border-[#F6841F] focus:ring-1 focus:ring-[#F6841F] transition-all"
+                        className="w-full bg-white border border-stone-200 rounded-xl px-4 py-3 text-sm sm:text-base text-stone-900 placeholder:text-stone-500 focus:outline-none focus:border-[#F6841F] focus:ring-1 focus:ring-[#F6841F] transition-all"
                       />
                     </div>
 
                     <div className="space-y-1.5">
-                      <label className="block text-xs font-semibold uppercase tracking-wider text-stone-700">
+                      <label className="block text-xs sm:text-sm font-semibold uppercase tracking-wider text-stone-800">
                         WhatsApp Number *
                       </label>
                       <input
@@ -607,12 +607,12 @@ const OnTrack = () => {
                         onChange={handleInputChange}
                         required
                         placeholder="e.g. +233 24 123 4567"
-                        className="w-full bg-white border border-stone-200 rounded-xl px-4 py-3 text-sm text-stone-900 placeholder:text-stone-400 focus:outline-none focus:border-[#F6841F] focus:ring-1 focus:ring-[#F6841F] transition-all"
+                        className="w-full bg-white border border-stone-200 rounded-xl px-4 py-3 text-sm sm:text-base text-stone-900 placeholder:text-stone-500 focus:outline-none focus:border-[#F6841F] focus:ring-1 focus:ring-[#F6841F] transition-all"
                       />
                     </div>
 
                     <div className="space-y-1.5">
-                      <label className="block text-xs font-semibold uppercase tracking-wider text-stone-700">
+                      <label className="block text-xs sm:text-sm font-semibold uppercase tracking-wider text-stone-800">
                         Email Address *
                       </label>
                       <input
@@ -622,12 +622,12 @@ const OnTrack = () => {
                         onChange={handleInputChange}
                         required
                         placeholder="you@example.com"
-                        className="w-full bg-white border border-stone-200 rounded-xl px-4 py-3 text-sm text-stone-900 placeholder:text-stone-400 focus:outline-none focus:border-[#F6841F] focus:ring-1 focus:ring-[#F6841F] transition-all"
+                        className="w-full bg-white border border-stone-200 rounded-xl px-4 py-3 text-sm sm:text-base text-stone-900 placeholder:text-stone-500 focus:outline-none focus:border-[#F6841F] focus:ring-1 focus:ring-[#F6841F] transition-all"
                       />
                     </div>
 
                     <div className="space-y-1.5">
-                      <label className="block text-xs font-semibold uppercase tracking-wider text-stone-700">
+                      <label className="block text-xs sm:text-sm font-semibold uppercase tracking-wider text-stone-800">
                         Health Notes (Optional)
                       </label>
                       <input
@@ -636,7 +636,7 @@ const OnTrack = () => {
                         value={formData.message}
                         onChange={handleInputChange}
                         placeholder="Current readings, medications (e.g. Metformin)..."
-                        className="w-full bg-white border border-stone-200 rounded-xl px-4 py-3 text-sm text-stone-900 placeholder:text-stone-400 focus:outline-none focus:border-[#F6841F] focus:ring-1 focus:ring-[#F6841F] transition-all"
+                        className="w-full bg-white border border-stone-200 rounded-xl px-4 py-3 text-sm sm:text-base text-stone-900 placeholder:text-stone-500 focus:outline-none focus:border-[#F6841F] focus:ring-1 focus:ring-[#F6841F] transition-all"
                       />
                     </div>
                   </div>
@@ -663,14 +663,14 @@ const OnTrack = () => {
                     )}
                   </button>
 
-                  <div className="flex flex-wrap items-center justify-center gap-4 text-[11px] text-stone-500 font-light pt-1">
+                  <div className="flex flex-wrap items-center justify-center gap-4 text-xs sm:text-sm text-stone-700 font-normal pt-1">
                     <div className="flex items-center gap-1">
-                      <ShieldCheck size={14} className="text-emerald-600" />
+                      <ShieldCheck size={15} className="text-emerald-600 shrink-0" />
                       <span>Paystack SSL Secured</span>
                     </div>
                     <span>•</span>
                     <div className="flex items-center gap-1">
-                      <Video size={14} />
+                      <Video size={15} className="shrink-0" />
                       <span>Google Meet / WhatsApp Video</span>
                     </div>
                     <span>•</span>
@@ -696,8 +696,8 @@ const OnTrack = () => {
               <h3 className="text-2xl sm:text-3xl font-serif-cormorant font-normal text-stone-900 leading-snug">
                 Prefer a self-guided meal guide?
               </h3>
-              <p className="text-xs sm:text-sm text-stone-600 font-light leading-relaxed">
-                Explore our comprehensive <strong className="font-semibold text-stone-800">Blood Sugar Balance Plan</strong> crafted specifically for Type 2 diabetes management with local Ghanaian staples.
+              <p className="text-sm sm:text-base text-stone-700 font-normal leading-relaxed">
+                Explore our comprehensive <strong className="font-semibold text-stone-900">Blood Sugar Balance Plan</strong> crafted specifically for Type 2 diabetes management with local Ghanaian staples.
               </p>
               <div className="pt-2 flex flex-col sm:flex-row items-center justify-center gap-3">
                 <a
@@ -739,7 +739,7 @@ const OnTrack = () => {
 
               <div className="pt-2 border-t border-stone-100">
                 <p className="font-bold text-stone-900 text-sm font-montserrat">Kwame A., 54</p>
-                <p className="text-[11px] text-stone-500 font-light">
+                <p className="text-xs sm:text-sm text-stone-600 font-normal">
                   Accra • Type 2 Diabetes Management
                 </p>
               </div>

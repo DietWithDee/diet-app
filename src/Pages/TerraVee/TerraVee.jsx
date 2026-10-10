@@ -504,9 +504,9 @@ const TerraVee = () => {
               initial={{ opacity: 0, x: -20 }}
               animate={{ opacity: 1, x: 0 }}
               transition={{ duration: 0.25 }}
-              className="absolute bottom-8 left-8 z-20 text-white/70 max-w-xs"
+              className="absolute bottom-8 left-8 z-20 text-white/95 max-w-xs"
             >
-              <p className="text-sm font-semibold">
+              <p className="text-sm sm:text-base font-bold text-white drop-shadow">
                 Slide right to explore all variants →
               </p>
             </motion.div>

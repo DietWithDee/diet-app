@@ -92,13 +92,13 @@ export default function NavBar() {
         </div>
 
         {/* Desktop Links */}
-        <ul className="hidden md:flex space-x-6 text-sm font-montserrat font-medium">
+        <ul className="hidden md:flex space-x-6 text-sm lg:text-base font-montserrat font-semibold">
           {links.map(({ path, label }) => (
             <li key={path}>
               <NavLink
                 to={path}
                 className={({ isActive }) =>
-                  `cursor-pointer hover:text-green-600 ${isActive ? 'text-green-600 font-bold' : 'text-gray-800'
+                  `cursor-pointer transition-colors ${isActive ? 'text-green-700 font-bold' : 'text-stone-800 hover:text-green-700'
                   }`
                 }
                 end={path === '/'}
@@ -117,7 +117,7 @@ export default function NavBar() {
             to="/my-journey"
             onClick={() => trigger("nudge")}
             className={({ isActive }) =>
-              `relative flex items-center justify-center w-10 h-10 transition-colors duration-300 ${isActive ? 'text-orange-600' : 'text-orange-400'}`
+              `relative flex items-center justify-center w-10 h-10 transition-colors duration-300 ${isActive ? 'text-orange-600' : 'text-orange-500 hover:text-orange-600'}`
             }
             title="My Journey"
             aria-label="My Journey"
@@ -248,7 +248,7 @@ export default function NavBar() {
                 <NavLink
                   to={path}
                   className={({ isActive }) =>
-                    `block px-6 py-4 text-lg hover:bg-gray-50 transition-colors ${isActive ? 'text-green-600 font-bold' : 'text-gray-800'
+                    `block px-6 py-4 text-lg hover:bg-stone-50 transition-colors ${isActive ? 'text-green-800 font-bold' : 'text-stone-800 font-semibold hover:text-green-800'
                     }`
                   }
                   onClick={() => {
@@ -265,7 +265,7 @@ export default function NavBar() {
               <NavLink
                 to="/my-journey"
                 className={({ isActive }) =>
-                  `block px-6 py-4 text-lg hover:bg-gray-50 transition-colors ${isActive ? 'text-green-600 font-bold' : 'text-gray-800'
+                  `block px-6 py-4 text-lg hover:bg-stone-50 transition-colors ${isActive ? 'text-green-800 font-bold' : 'text-stone-800 font-semibold hover:text-green-800'
                   }`
                 }
                 onClick={() => {
@@ -282,7 +282,7 @@ export default function NavBar() {
           <div className="mt-auto p-6 border-t border-gray-100 flex justify-center items-center gap-4">
             <NavLink
               to="/terms"
-              className="text-[10px] uppercase tracking-wider font-semibold text-gray-400 hover:text-green-600 transition-colors"
+              className="text-xs uppercase tracking-wider font-bold text-stone-600 hover:text-green-800 transition-colors"
               onClick={() => {
                 trigger("light")
                 setMenuOpen(false)
@@ -290,10 +290,10 @@ export default function NavBar() {
             >
               Terms
             </NavLink>
-            <span className="text-gray-300 text-[10px]">|</span>
+            <span className="text-stone-400 text-xs font-bold">|</span>
             <NavLink
               to="/privacy"
-              className="text-[10px] uppercase tracking-wider font-semibold text-gray-400 hover:text-green-600 transition-colors"
+              className="text-xs uppercase tracking-wider font-bold text-stone-600 hover:text-green-800 transition-colors"
               onClick={() => {
                 trigger("light")
                 setMenuOpen(false)

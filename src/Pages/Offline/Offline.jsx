@@ -73,10 +73,10 @@ function Offline({ onRetry }) {
 
               {/* Heading */}
               <div className="space-y-4">
-                <h1 className="text-4xl md:text-5xl font-bold text-green-800">
+                <h1 className="text-4xl md:text-5xl font-bold text-green-900">
                   You're Offline
                 </h1>
-                <p className="text-xl text-gray-600 max-w-2xl mx-auto">
+                <p className="text-lg sm:text-xl text-stone-700 max-w-2xl mx-auto font-normal">
                   We couldn't check our booking availability because your device appears to be offline. Please check your internet connection and try again.
                 </p>
               </div>
@@ -93,8 +93,8 @@ function Offline({ onRetry }) {
                   ? 'bg-green-500 animate-pulse'
                   : 'bg-orange-400'
               }`}></div>
-              <span className={`font-semibold ${
-                isOnline ? 'text-green-700' : 'text-orange-700'
+              <span className={`font-bold ${
+                isOnline ? 'text-green-800' : 'text-orange-800'
               }`}>
                 {isOnline ? 'Connection restored! Retrying...' : 'No internet connection detected'}
               </span>
@@ -117,24 +117,24 @@ function Offline({ onRetry }) {
 
             {/* Tips Box */}
             <div className="bg-blue-50 border border-blue-200 rounded-xl p-6 mb-8">
-              <h3 className="text-lg font-semibold text-blue-800 mb-4">
+              <h3 className="text-lg font-bold text-blue-900 mb-4">
                 Troubleshooting Tips
               </h3>
-              <div className="space-y-3 text-blue-700">
+              <div className="space-y-3 text-blue-950 font-medium text-base">
                 <div className="flex items-start space-x-3">
-                  <span className="text-xl">📶</span>
+                  <span className="text-xl font-bold text-blue-700">📶</span>
                   <p>Check your Wi-Fi or mobile data connection</p>
                 </div>
                 <div className="flex items-start space-x-3">
-                  <span className="text-xl">🔄</span>
+                  <span className="text-xl font-bold text-blue-700">🔄</span>
                   <p>Try turning your Wi-Fi off and back on</p>
                 </div>
                 <div className="flex items-start space-x-3">
-                  <span className="text-xl">✈️</span>
+                  <span className="text-xl font-bold text-blue-700">✈️</span>
                   <p>Make sure Airplane Mode is turned off</p>
                 </div>
                 <div className="flex items-start space-x-3">
-                  <span className="text-xl">🌐</span>
+                  <span className="text-xl font-bold text-blue-700">🌐</span>
                   <p>Try loading another website to confirm your connection</p>
                 </div>
               </div>
@@ -142,17 +142,17 @@ function Offline({ onRetry }) {
 
             {/* Alternative Contact */}
             <div className="bg-gradient-to-r from-green-50 to-emerald-50 border-2 border-green-200 rounded-xl p-6 mb-8">
-              <h3 className="text-lg font-semibold text-green-800 mb-3">
+              <h3 className="text-lg font-bold text-green-900 mb-3">
                 Need to book urgently?
               </h3>
-              <p className="text-gray-700 mb-4">
+              <p className="text-stone-800 text-base font-normal leading-relaxed mb-4">
                 If you need immediate assistance, you can reach us directly via WhatsApp — it works even on slower connections.
               </p>
               <a
                 href="https://wa.me/233592330870?text=Hello%2C%20I%E2%80%99d%20like%20to%20book%20a%20session%20with%20Diet%20with%20Dee"
                 target="_blank"
                 rel="noopener noreferrer"
-                className="inline-flex items-center space-x-2 px-6 py-3 bg-gradient-to-r from-green-600 to-emerald-600 text-white font-semibold rounded-xl hover:shadow-lg transform hover:-translate-y-1 transition-all duration-300"
+                className="inline-flex items-center space-x-2 px-6 py-3 bg-gradient-to-r from-green-600 to-emerald-600 text-white font-bold rounded-xl hover:shadow-lg transform hover:-translate-y-1 transition-all duration-300"
               >
                 <MessageCircle size={20} />
                 <span>WhatsApp Us</span>
@@ -163,7 +163,7 @@ function Offline({ onRetry }) {
             <div className="text-center">
               <a
                 href="/"
-                className="inline-flex items-center space-x-2 px-6 py-3 bg-gray-200 text-gray-700 font-semibold rounded-xl hover:bg-gray-300 transition-colors"
+                className="inline-flex items-center space-x-2 px-6 py-3 bg-stone-200 text-stone-800 font-bold rounded-xl hover:bg-stone-300 transition-colors"
               >
                 <ArrowLeft size={20} />
                 <span>Back to Home</span>
@@ -173,7 +173,7 @@ function Offline({ onRetry }) {
 
           {/* Footer Message */}
           <div className="mt-8 text-center">
-            <p className="text-gray-600 text-lg">
+            <p className="text-stone-700 text-base sm:text-lg font-medium">
               Don't worry — your nutrition journey is just a reconnection away! 🌟
             </p>
           </div>

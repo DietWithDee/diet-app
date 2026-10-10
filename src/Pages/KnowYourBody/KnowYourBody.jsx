@@ -35,20 +35,20 @@ const WelcomeStep = ({ onNext }) => (
       <h1 className="text-3xl sm:text-5xl font-serif-cormorant font-normal text-stone-900 mb-4 pt-15 tracking-tight">
         Let's personalize your nutrition journey
       </h1>
-      <p className="text-base sm:text-lg text-stone-600 font-light max-w-2xl mx-auto leading-relaxed">
+      <p className="text-base sm:text-lg text-stone-700 font-normal max-w-2xl mx-auto leading-relaxed">
         Track your daily calories with our easy-to-use tool and stay on top of your health goals. Get expert guidance and book a session with our dietitians when you're ready.
       </p>
     </div>
     <div className="flex justify-center space-x-4">
-      <div className="flex items-center space-x-2 text-green-600">
+      <div className="flex items-center space-x-2 text-green-700 font-medium">
         <Calculator size={20} />
         <span>BMI Calculator</span>
       </div>
-      <div className="flex items-center space-x-2 text-emerald-600">
+      <div className="flex items-center space-x-2 text-emerald-700 font-medium">
         <Target size={20} />
         <span>Calorie Assessment</span>
       </div>
-      <div className="flex items-center space-x-2 text-green-700">
+      <div className="flex items-center space-x-2 text-green-800 font-medium">
         <BookOpen size={20} />
         <span>Expert Consultation</span>
       </div>
@@ -57,16 +57,16 @@ const WelcomeStep = ({ onNext }) => (
       onClick={() => {
         onNext()
       }}
-      className="px-8 py-4 bg-gradient-to-r from-orange-400 to-orange-400 text-white font-bold rounded-full shadow-lg hover:shadow-xl transform hover:-translate-y-1 transition-all duration-300 flex items-center space-x-2 mx-auto"
+      className="px-8 py-4 bg-gradient-to-r from-orange-400 to-orange-400 text-white font-bold rounded-full shadow-lg hover:shadow-xl transform hover:-translate-y-1 transition-all duration-300 flex items-center space-x-2 mx-auto cursor-pointer"
     >
       <span>Start Now</span>
       <ChevronRight size={20} />
     </button>
-    <p className="text-xs text-gray-400 max-w-md mx-auto">
+    <p className="text-xs sm:text-sm text-stone-600 font-medium max-w-md mx-auto">
       By proceeding, you agree to our{' '}
-      <a href="/privacy" className="text-green-600 hover:underline">Privacy Policy</a>{' '}
+      <a href="/privacy" className="text-green-700 hover:underline font-semibold">Privacy Policy</a>{' '}
       and{' '}
-      <a href="/terms" className="text-green-600 hover:underline">Terms of Service</a>.
+      <a href="/terms" className="text-green-700 hover:underline font-semibold">Terms of Service</a>.
     </p>
   </div>
 );
@@ -88,7 +88,7 @@ const BMIStep = ({ formData, setFormData, units, setUnits, onNext }) => {
       <div className="text-center space-y-4">
         <Calculator className="mx-auto text-green-600" size={48} />
         <h2 className="text-2xl sm:text-3xl font-serif-cormorant font-normal text-stone-900">BMI Calculator</h2>
-        <p className="text-stone-600 font-light">Let's start with your basic measurements</p>
+        <p className="text-stone-700 font-normal text-base sm:text-lg">Let's start with your basic measurements</p>
       </div>
       <div className="bg-white rounded-2xl shadow-xl p-8 space-y-6">
         {/* Units Toggle */}
@@ -220,7 +220,7 @@ const CalorieStep = ({ formData, setFormData, onNext }) => {
       <div className="text-center space-y-4">
         <Target className="mx-auto text-emerald-600" size={48} />
         <h2 className="text-2xl sm:text-3xl font-serif-cormorant font-normal text-stone-900">Let's get to know your body a bit more…</h2>
-        <p className="text-stone-600 font-light">This helps us calculate your daily calorie needs</p>
+        <p className="text-stone-700 font-normal text-base sm:text-lg">This helps us calculate your daily calorie needs</p>
       </div>
       <div className="bg-white rounded-2xl shadow-xl p-8 space-y-8">
         <div className="space-y-6">
@@ -403,26 +403,26 @@ const ResultsStep = ({ results, formData, navigate, trigger }) => (
   <div className="max-w-4xl mx-auto space-y-8">
     <div className="text-center space-y-4">
       <div className="text-6xl">📊</div>
-      <h2 className="text-3xl font-bold text-green-800">Your Personalized Results</h2>
-      <p className="text-gray-600">Here's what we calculated based on your information</p>
+      <h2 className="text-3xl font-bold text-green-900">Your Personalized Results</h2>
+      <p className="text-stone-700 text-base sm:text-lg font-normal">Here's what we calculated based on your information</p>
     </div>
     <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
       {/* BMI Results */}
       <div className="bg-white rounded-2xl shadow-xl p-8 space-y-6">
         <div className="text-center space-y-4">
           <div className="text-4xl">🧍</div>
-          <h3 className="text-2xl font-bold text-green-800">Your BMI</h3>
+          <h3 className="text-2xl font-bold text-green-900">Your BMI</h3>
           <div className="space-y-2">
             <div className="text-4xl font-bold text-green-600">{results.bmi}</div>
-            <div className={`text-lg font-semibold px-4 py-2 rounded-full inline-block ${results.bmiCategory === 'Normal Weight' ? 'bg-green-100 text-green-700' :
-                results.bmiCategory === 'Underweight' ? 'bg-blue-100 text-blue-700' :
-                  results.bmiCategory === 'Overweight' ? 'bg-yellow-100 text-yellow-700' :
-                    'bg-red-100 text-red-700'
+            <div className={`text-lg font-semibold px-4 py-2 rounded-full inline-block ${results.bmiCategory === 'Normal Weight' ? 'bg-green-100 text-green-800' :
+                results.bmiCategory === 'Underweight' ? 'bg-blue-100 text-blue-800' :
+                  results.bmiCategory === 'Overweight' ? 'bg-yellow-100 text-yellow-800' :
+                    'bg-red-100 text-red-800'
               }`}>
               {results.bmiCategory}
             </div>
           </div>
-          <p className="text-sm text-gray-600">
+          <p className="text-base text-stone-700 font-medium">
             {results.bmiCategory === 'Normal Weight' && "Great! You're in the healthy weight range."}
             {results.bmiCategory === 'Underweight' && "Consider consulting with our Dietitian for healthy weight gain."}
             {results.bmiCategory === 'Overweight' && "A personalized plan can help you reach your ideal weight."}
@@ -434,26 +434,26 @@ const ResultsStep = ({ results, formData, navigate, trigger }) => (
       <div className="bg-white rounded-2xl shadow-xl p-8 space-y-6">
         <div className="text-center space-y-4">
           <div className="text-4xl">🔥</div>
-          <h3 className="text-2xl font-bold text-emerald-800">Daily Calorie Needs</h3>
+          <h3 className="text-2xl font-bold text-emerald-900">Daily Calorie Needs</h3>
           <div className="space-y-3">
             <div>
               <div className="text-3xl font-bold text-emerald-600">{results.tdee}</div>
-              <div className="text-sm text-gray-600">calories per day</div>
+              <div className="text-sm text-stone-700 font-medium">calories per day</div>
             </div>
-            <div className="bg-gray-50 rounded-xl p-4 space-y-2">
-              <h4 className="font-semibold text-gray-700">Recommended Macros:</h4>
+            <div className="bg-gray-50 rounded-xl p-4 space-y-2 border border-gray-100">
+              <h4 className="font-bold text-stone-800">Recommended Macros:</h4>
               <div className="grid grid-cols-3 gap-4 text-center">
                 <div>
-                  <div className="font-bold text-green-600">{results.macros.protein}g</div>
-                  <div className="text-xs text-gray-600">Protein</div>
+                  <div className="font-bold text-green-700 text-base">{results.macros.protein}g</div>
+                  <div className="text-xs sm:text-sm text-stone-700 font-semibold">Protein</div>
                 </div>
                 <div>
-                  <div className="font-bold text-emerald-600">{results.macros.carbs}g</div>
-                  <div className="text-xs text-gray-600">Carbs</div>
+                  <div className="font-bold text-emerald-700 text-base">{results.macros.carbs}g</div>
+                  <div className="text-xs sm:text-sm text-stone-700 font-semibold">Carbs</div>
                 </div>
                 <div>
-                  <div className="font-bold text-green-700">{results.macros.fats}g</div>
-                  <div className="text-xs text-gray-600">Fats</div>
+                  <div className="font-bold text-green-800 text-base">{results.macros.fats}g</div>
+                  <div className="text-xs sm:text-sm text-stone-700 font-semibold">Fats</div>
                 </div>
               </div>
             </div>
@@ -462,10 +462,10 @@ const ResultsStep = ({ results, formData, navigate, trigger }) => (
       </div>
     </div>
     {/* CTA */}
-    <div className="bg-gradient-to-br from-green-50 to-emerald-50 rounded-2xl p-8 text-center space-y-6">
+    <div className="bg-gradient-to-br from-green-50 to-emerald-50 rounded-2xl p-8 text-center space-y-6 border border-emerald-100">
       <div className="space-y-4">
-        <h3 className="text-2xl font-bold text-green-800">Ready for Your Personal Plan?</h3>
-        <p className="text-lg text-gray-700 max-w-3xl mx-auto">
+        <h3 className="text-2xl sm:text-3xl font-bold text-green-900">Ready for Your Personal Plan?</h3>
+        <p className="text-base sm:text-lg text-stone-800 max-w-3xl mx-auto font-normal leading-relaxed">
           📊 <em>This is a general guide based on standard calculations.</em> For a tailored nutrition plan that considers your unique needs, health conditions, and preferences, book a consultation with our expert Dietitians.
         </p>
       </div>
@@ -491,7 +491,7 @@ const ResultsStep = ({ results, formData, navigate, trigger }) => (
                 }
               })
             }}
-            className="w-full sm:flex-1 max-w-sm px-6 py-3 sm:px-8 sm:py-4 bg-gradient-to-r from-orange-400 to-orange-400 text-white font-bold rounded-full shadow-lg hover:shadow-xl transform hover:-translate-y-1 transition-all duration-300 flex items-center justify-center space-x-2 text-base sm:text-lg"
+            className="w-full sm:flex-1 max-w-sm px-6 py-3 sm:px-8 sm:py-4 bg-gradient-to-r from-orange-400 to-orange-400 text-white font-bold rounded-full shadow-lg hover:shadow-xl transform hover:-translate-y-1 transition-all duration-300 flex items-center justify-center space-x-2 text-base sm:text-lg cursor-pointer border-none"
           >
             <BookOpen size={21} />
             <span>Book a Consultation →</span>
@@ -502,19 +502,19 @@ const ResultsStep = ({ results, formData, navigate, trigger }) => (
               trigger("success")
               navigate('/my-journey')
             }}
-            className="w-full sm:flex-1 max-w-sm px-6 py-3 sm:px-8 sm:py-4 border-2 border-green-600 text-green-700 font-bold rounded-full hover:bg-green-50 transition-all duration-300 hover:shadow-md text-base sm:text-lg flex items-center justify-center space-x-2"
+            className="w-full sm:flex-1 max-w-sm px-6 py-3 sm:px-8 sm:py-4 border-2 border-green-600 text-green-700 font-bold rounded-full hover:bg-green-50 transition-all duration-300 hover:shadow-md text-base sm:text-lg flex items-center justify-center space-x-2 cursor-pointer"
           >
             <span>Go to My Journey</span>
           </button>
         </div>
 
-        <p className="text-sm text-gray-500 italic max-w-md mx-auto">
+        <p className="text-sm sm:text-base text-stone-700 italic max-w-md mx-auto font-medium">
           Save this information and track your progress automatically in your journey.
         </p>
 
-        <div className="flex items-center justify-center space-x-6 text-sm text-gray-600 pt-2">
-          <div className="flex items-center space-x-1">
-            <div className="w-2 h-2 bg-green-500 rounded-full"></div>
+        <div className="flex items-center justify-center space-x-6 text-sm sm:text-base text-stone-700 pt-2 font-medium">
+          <div className="flex items-center space-x-1.5">
+            <div className="w-2.5 h-2.5 bg-green-600 rounded-full"></div>
             <span>Expert Dietitians</span>
           </div>
           <div className="flex items-center space-x-1">

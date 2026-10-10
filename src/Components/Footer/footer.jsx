@@ -147,8 +147,8 @@ const Footer = () => {
 
           {/* Newsletter Section */}
           <div className="lg:col-span-2">
-            <h3 className="text-lg sm:text-xl font-semibold mb-4 sm:mb-6">Subscribe to Our Newsletter</h3>
-            <p className="text-green-100 mb-4 sm:mb-6 text-xs sm:text-sm leading-relaxed">
+            <h3 className="text-lg sm:text-xl font-bold mb-4 sm:mb-6 text-white">Subscribe to Our Newsletter</h3>
+            <p className="text-green-50 mb-4 sm:mb-6 text-sm sm:text-base leading-relaxed font-normal">
               Want to stay up to date with the latest nutrition tips, healthy recipes,
               and wellness insights? Subscribe to our newsletter and join our
               community of individuals committed to nourishing their bodies and
@@ -164,8 +164,8 @@ const Footer = () => {
                   onKeyPress={handleKeyPress}
                   disabled={isLoading}
                   className={`
-                    w-full px-3 sm:px-4 py-2 sm:py-3 bg-green-700 border text-white placeholder-green-200 rounded text-sm sm:text-base focus:outline-none focus:ring-2 focus:border-transparent transition-all duration-200
-                    ${message.type === 'error' ? 'border-red-400 focus:ring-red-300' : 'border-green-400 focus:ring-green-300'}
+                    w-full px-3 sm:px-4 py-2 sm:py-3 bg-green-700/80 border text-white placeholder-green-100 rounded-lg text-sm sm:text-base focus:outline-none focus:ring-2 focus:border-transparent transition-all duration-200
+                    ${message.type === 'error' ? 'border-red-400 focus:ring-red-300' : 'border-green-300 focus:ring-green-200'}
                     ${isLoading ? 'opacity-50 cursor-not-allowed' : ''}
                   `}
                 />
@@ -175,10 +175,10 @@ const Footer = () => {
                 onClick={handleSubmit}
                 disabled={isLoading || !email.trim()}
                 className={`
-                  w-full font-semibold py-2 sm:py-3 px-4 sm:px-6 rounded transition-all duration-200 text-sm sm:text-base flex items-center justify-center gap-2
+                  w-full font-bold py-2.5 sm:py-3.5 px-4 sm:px-6 rounded-lg transition-all duration-200 text-sm sm:text-base flex items-center justify-center gap-2 cursor-pointer
                   ${isLoading || !email.trim()
                     ? 'bg-gray-500 cursor-not-allowed opacity-50'
-                    : 'bg-orange-500 hover:bg-yellow-700 text-white hover:scale-105 transform'
+                    : 'bg-orange-500 hover:bg-orange-600 text-white hover:scale-[1.02] transform shadow-md'
                   }
                 `}
               >
@@ -194,10 +194,10 @@ const Footer = () => {
 
               {message.text && (
                 <div className={`
-                  flex items-center gap-2 p-3 rounded-md text-sm transition-all duration-300
-                  ${message.type === 'success' ? 'bg-green-100 text-green-800 border border-green-300' : ''}
-                  ${message.type === 'error' ? 'bg-red-100 text-red-800 border border-red-300' : ''}
-                  ${message.type === 'warning' ? 'bg-yellow-100 text-yellow-800 border border-yellow-300' : ''}
+                  flex items-center gap-2 p-3 rounded-md text-sm sm:text-base font-medium transition-all duration-300
+                  ${message.type === 'success' ? 'bg-green-100 text-green-900 border border-green-300' : ''}
+                  ${message.type === 'error' ? 'bg-red-100 text-red-900 border border-red-300' : ''}
+                  ${message.type === 'warning' ? 'bg-yellow-100 text-yellow-900 border border-yellow-300' : ''}
                 `}>
                   {getMessageIcon()}
                   <span>{message.text}</span>
@@ -210,24 +210,24 @@ const Footer = () => {
           <div className="lg:col-span-2 grid grid-cols-2 gap-4 sm:gap-8">
             {/* Quick Links Section */}
             <div>
-              <h3 className="text-lg sm:text-xl font-semibold mb-4 sm:mb-6">Quick Links</h3>
+              <h3 className="text-lg sm:text-xl font-bold mb-4 sm:mb-6 text-white">Quick Links</h3>
               <ul className="space-y-3">
-                <li><Link to="/" className="text-green-100 hover:text-white transition-colors text-sm">Home</Link></li>
-                <li><Link to="/about" className="text-green-100 hover:text-white transition-colors text-sm">About Us</Link></li>
-                <li><Link to="/services" className="text-green-100 hover:text-white transition-colors text-sm">Our Services</Link></li>
-                <li><Link to="/plans" className="text-green-100 hover:text-white transition-colors text-sm">Diet Plans</Link></li>
-                <li><Link to="/blog" className="text-green-100 hover:text-white transition-colors text-sm">Blog</Link></li>
-                <li><Link to="/my-journey" className="text-green-100 hover:text-white transition-colors text-sm">My Journey</Link></li>
+                <li><Link to="/" className="text-green-50 hover:text-white transition-colors text-sm sm:text-base font-medium">Home</Link></li>
+                <li><Link to="/about" className="text-green-50 hover:text-white transition-colors text-sm sm:text-base font-medium">About Us</Link></li>
+                <li><Link to="/services" className="text-green-50 hover:text-white transition-colors text-sm sm:text-base font-medium">Our Services</Link></li>
+                <li><Link to="/plans" className="text-green-50 hover:text-white transition-colors text-sm sm:text-base font-medium">Diet Plans</Link></li>
+                <li><Link to="/blog" className="text-green-50 hover:text-white transition-colors text-sm sm:text-base font-medium">Blog</Link></li>
+                <li><Link to="/my-journey" className="text-green-50 hover:text-white transition-colors text-sm sm:text-base font-medium">My Journey</Link></li>
               </ul>
             </div>
 
             {/* Explore Section */}
             <div>
-              <h3 className="text-lg sm:text-xl font-semibold mb-4 sm:mb-6">Explore</h3>
+              <h3 className="text-lg sm:text-xl font-bold mb-4 sm:mb-6 text-white">Explore</h3>
               <ul className="space-y-3">
-                <li><Link to="/services#events-gallery" className="text-green-100 hover:text-white transition-colors text-sm">Events Gallery</Link></li>
-                <li><Link to="/plans#success-stories" className="text-green-100 hover:text-white transition-colors text-sm">Success Stories</Link></li>
-                <li><Link to="/contactUs" className="text-green-100 hover:text-white transition-colors text-sm">Book a Consultation</Link></li>
+                <li><Link to="/services#events-gallery" className="text-green-50 hover:text-white transition-colors text-sm sm:text-base font-medium">Events Gallery</Link></li>
+                <li><Link to="/plans#success-stories" className="text-green-50 hover:text-white transition-colors text-sm sm:text-base font-medium">Success Stories</Link></li>
+                <li><Link to="/contactUs" className="text-green-50 hover:text-white transition-colors text-sm sm:text-base font-medium">Book a Consultation</Link></li>
               </ul>
             </div>
           </div>
@@ -241,12 +241,12 @@ const Footer = () => {
             {/* Legal Links & Copyright */}
             <div className="flex flex-col sm:flex-row items-center gap-4">
               <div className="flex flex-wrap justify-center sm:justify-start gap-4">
-                <Link to="/privacy" className="text-green-100 hover:text-white transition-colors text-xs sm:text-sm">Privacy Policy</Link>
+                <Link to="/privacy" className="text-green-50 hover:text-white transition-colors text-xs sm:text-sm font-semibold">Privacy Policy</Link>
                 <span className="text-green-300 text-xs sm:text-sm">•</span>
-                <Link to="/terms" className="text-green-100 hover:text-white transition-colors text-xs sm:text-sm">Terms and Conditions</Link>
+                <Link to="/terms" className="text-green-50 hover:text-white transition-colors text-xs sm:text-sm font-semibold">Terms and Conditions</Link>
               </div>
               <span className="hidden sm:block text-green-300 text-xs sm:text-sm">•</span>
-              <p className="text-green-200 text-xs sm:text-sm opacity-80">
+              <p className="text-green-100 text-xs sm:text-sm font-medium">
                 © {new Date().getFullYear()} DietWithDee. All Rights Reserved.
               </p>
             </div>

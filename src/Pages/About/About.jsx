@@ -73,7 +73,7 @@ function AboutUsSection() {
             {/* Body copy */}
             <motion.div
               variants={fadeUp}
-              className="space-y-5 text-sm sm:text-base text-stone-600 font-light leading-relaxed"
+              className="space-y-5 text-base sm:text-lg text-stone-700 font-normal leading-relaxed"
             >
               <p>
                 In Ghana, access to professional nutrition advice is often limited, and many people
@@ -115,7 +115,7 @@ function AboutUsSection() {
               variants={fadeUp}
               className="relative bg-orange-50/50 border-l-4 border-[#F6841F] rounded-2xl px-6 py-5 overflow-hidden group"
             >
-              <p className="text-base sm:text-lg font-serif-cormorant italic text-stone-800 relative z-10 leading-snug">
+              <p className="text-lg sm:text-xl font-serif-cormorant italic text-stone-900 relative z-10 leading-snug">
                 &ldquo;Our vision is to be a top online platform that transforms how people view
                 nutrition and wellness.&rdquo;
               </p>
@@ -184,7 +184,7 @@ function AboutUsSection() {
             {/* Body copy */}
             <motion.div
               variants={fadeUp}
-              className="space-y-5 text-sm sm:text-base text-stone-600 font-light leading-relaxed"
+              className="space-y-5 text-base sm:text-lg text-stone-700 font-normal leading-relaxed"
             >
               <p>
                 Beyond individual consultations, we believe in the power of collective change.{' '}
@@ -257,7 +257,7 @@ function AboutUsSection() {
           </motion.div>
         </motion.div>
 
-        <p className="text-gray-500 font-medium italic text-sm sm:text-base">
+        <p className="text-stone-600 font-semibold italic text-base">
           &mdash; Your Journey to a Healthier You &mdash;
         </p>
       </section>

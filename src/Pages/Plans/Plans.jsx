@@ -453,7 +453,7 @@ function Plans() {
           <h1 className="text-3xl sm:text-5xl lg:text-6xl font-serif-cormorant font-normal text-stone-900 tracking-tight leading-[1.12]">
             Diet Plans
           </h1>
-          <p className="text-stone-600 text-sm sm:text-base font-light max-w-xl mx-auto leading-relaxed">
+          <p className="text-stone-700 text-base sm:text-lg font-normal max-w-xl mx-auto leading-relaxed">
             Tailored nutrition solutions for every lifestyle and goal. Pick a
             plan and begin your transformation.
           </p>
@@ -558,7 +558,7 @@ function Plans() {
                             🔥 POPULAR GUIDE
                           </span>
                         ) : (
-                          <span className="text-[10px] text-gray-400 font-bold uppercase tracking-widest">
+                          <span className="text-xs text-stone-500 font-bold uppercase tracking-widest">
                             Diet Plan
                           </span>
                         )}
@@ -574,7 +574,7 @@ function Plans() {
                       <h3 className="text-xl sm:text-[22px] font-bold text-stone-900 mb-1 leading-tight tracking-tight">
                         {plan.title}
                       </h3>
-                      <p className="text-xs sm:text-sm text-stone-500 font-normal mb-3.5 leading-normal">
+                      <p className="text-sm text-stone-700 font-normal mb-3.5 leading-normal">
                         {plan.Subtitle}
                       </p>
 
@@ -593,7 +593,7 @@ function Plans() {
                           {plan.tags.slice(0, 3).map((tag, idx) => (
                             <span
                               key={idx}
-                              className="text-[10px] bg-emerald-50/80 text-emerald-700 px-2 py-0.5 rounded-md font-medium border border-emerald-100/60"
+                              className="text-xs bg-emerald-50/80 text-emerald-800 px-2.5 py-0.5 rounded-md font-medium border border-emerald-100/60"
                             >
                               #{tag}
                             </span>
@@ -602,7 +602,7 @@ function Plans() {
                       )}
 
                       {/* Feature Checklist */}
-                      <ul className="space-y-2 text-xs sm:text-sm text-gray-600 mb-6">
+                      <ul className="space-y-2 text-sm text-stone-700 mb-6 font-normal">
                         {plan.features.map((feat, idx) => (
                           <li key={idx} className="flex items-start gap-2">
                             <div className="w-4 h-4 rounded-full bg-emerald-100 text-emerald-700 flex items-center justify-center shrink-0 mt-0.5">
@@ -693,7 +693,7 @@ function Plans() {
           <h2 className="text-2xl sm:text-4xl font-serif-cormorant font-normal text-stone-900 tracking-tight">
             Why Choose DietWithDee?
           </h2>
-          <div className="flex justify-center flex-wrap gap-8 mt-6 text-gray-700 font-medium">
+          <div className="flex justify-center flex-wrap gap-8 mt-6 text-stone-800 font-semibold">
             <div className="flex items-center gap-2">
               <div className="w-3 h-3 bg-green-500 rounded-full"></div>
               Certified Experts
@@ -716,7 +716,7 @@ function Plans() {
               Did you Know?
             </h2>
           </div>
-          <p className="text-stone-600 text-sm sm:text-base font-light max-w-2xl mx-auto leading-relaxed mb-6">
+          <p className="text-stone-700 text-base sm:text-lg font-normal max-w-2xl mx-auto leading-relaxed mb-6">
             You can Book a Consultation session that comes with a free, custom
             Diet Plan from our Dietitian. Book a session to start now!
           </p>
@@ -734,7 +734,7 @@ function Plans() {
             <h2 className="text-3xl sm:text-4xl lg:text-5xl font-serif-cormorant font-normal text-stone-900 tracking-tight">
               Success Stories
             </h2>
-            <p className="text-stone-600 text-sm sm:text-base font-light max-w-xl mx-auto leading-relaxed">
+            <p className="text-stone-700 text-base sm:text-lg font-normal max-w-xl mx-auto leading-relaxed">
               Real people, real results. Swipe to see what our clients have to
               say about their transformation journey.
             </p>
@@ -809,14 +809,14 @@ function Plans() {
                           <p className="text-green-600 text-base font-semibold">
                             {testimonial.plan}
                           </p>
-                          <p className="text-gray-500 text-sm">
+                          <p className="text-stone-600 text-sm font-medium">
                             {testimonial.location}
                           </p>
                         </div>
                       </div>
 
                       <StarRating rating={testimonial.stars} />
-                      <p className="text-gray-700 text-base leading-relaxed mb-4 italic">
+                      <p className="text-stone-800 text-base leading-relaxed mb-4 italic">
                         "{testimonial.content}"
                       </p>
                       <div className="w-12 h-1 bg-gradient-to-r from-green-400 to-emerald-400 rounded-full"></div>

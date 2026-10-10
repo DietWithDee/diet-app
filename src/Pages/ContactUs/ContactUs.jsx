@@ -203,11 +203,11 @@ const ContactUs = () => {
                 Ready to Start Your Nutrition Journey?
               </h1>
               {!hasCalculatedResults ? (
-                <p className="text-sm sm:text-base text-stone-600 font-light max-w-2xl mx-auto leading-relaxed">
-                  Complete the <a href='/KnowYourBody' className='text-emerald-700 font-medium underline hover:text-emerald-900 transition-colors'>KnowYourBody</a> Test in <a href='/my-journey' className='text-emerald-700 font-medium underline hover:text-emerald-900 transition-colors'>My Journey</a> and fill in the information so we have your latest data for your consultation.
+                <p className="text-base sm:text-lg text-stone-700 font-normal max-w-2xl mx-auto leading-relaxed">
+                  Complete the <a href='/KnowYourBody' className='text-emerald-700 font-semibold underline hover:text-emerald-900 transition-colors'>KnowYourBody</a> Test in <a href='/my-journey' className='text-emerald-700 font-semibold underline hover:text-emerald-900 transition-colors'>My Journey</a> and fill in the information so we have your latest data for your consultation.
                 </p>
               ) : (
-                <p className="text-sm sm:text-base text-stone-600 font-light max-w-2xl mx-auto leading-relaxed">
+                <p className="text-base sm:text-lg text-stone-700 font-normal max-w-2xl mx-auto leading-relaxed">
                   Based on your latest assessment, we've prepared a summary of your nutrition profile. Review your metrics below and book your consultation to get started!
                 </p>
               )}
@@ -283,14 +283,14 @@ const ContactUs = () => {
                         <Heart className="text-[#FF4D4D]" size={22} strokeWidth={2} />
                         <div className="text-lg">
                           <span className="font-bold text-[#002B49]">Goal:</span>
-                          <span className="ml-2 text-gray-600 font-medium">{userResults.goal}</span>
+                          <span className="ml-2 text-stone-800 font-medium">{userResults.goal}</span>
                         </div>
                       </div>
                       <div className="flex items-center space-x-3">
                         <Utensils className="text-[#4CAF50]" size={22} strokeWidth={2} />
                         <div className="text-lg">
                           <span className="font-bold text-[#002B49]">Diet:</span>
-                          <span className="ml-2 text-gray-600 font-medium">{userResults.dietaryRestrictions || 'No restrictions'}</span>
+                          <span className="ml-2 text-stone-800 font-medium">{userResults.dietaryRestrictions || 'No restrictions'}</span>
                         </div>
                       </div>
                     </div>
@@ -302,100 +302,27 @@ const ContactUs = () => {
             {/* Main Booking Section - Centered and Wider */}
             <div className="max-w-4xl mx-auto w-full px-4 sm:px-0 space-y-6">
 
-              {/* Commented out Father's Day Promotion Banner for future reusability
-              <div className="bg-white border border-zinc-200 shadow-sm rounded-none overflow-hidden flex flex-col md:flex-row items-stretch">
-                <div className="w-full md:w-5/12 bg-zinc-100 flex items-center justify-center border-b md:border-b-0 md:border-r border-zinc-200">
-                  <img
-                    src={fathersDayPromo}
-                    alt="Father's Day Campaign"
-                    className="w-full h-48 md:h-full object-cover"
-                  />
-                </div>
-                <div className="w-full md:w-7/12 p-6 flex flex-col justify-between space-y-4 text-left">
-                  <div className="space-y-2">
-                    <div className="flex items-center gap-1.5 text-amber-600 font-bold text-[10px] uppercase tracking-wider">
-                      <Gift size={12} className="animate-bounce" />
-                      <span>Limited Father's Day Offer</span>
-                    </div>
-                    <h3 className="text-xl font-bold tracking-tight text-zinc-955 font-serif">
-                      Gift Wellness this Father's Day
-                    </h3>
-                    <p className="text-xs text-zinc-500 leading-relaxed">
-                      Honor your father or a father figure with a premium consultation and custom nutritional roadmap. Make health his best gift.
-                    </p>
-                    <div className="flex items-baseline gap-2 pt-1">
-                      <span className="text-2xl font-extrabold text-zinc-950">₵600</span>
-                      <span className="text-xs text-zinc-400 line-through">₵1000 original value</span>
-                    </div>
-                  </div>
-                  <button
-                    onClick={() => navigate('/fathersday')}
-                    className="w-full md:w-auto px-6 py-2.5 bg-zinc-900 hover:bg-zinc-800 text-zinc-50 font-bold text-xs rounded-none transition-colors tracking-wide cursor-pointer flex items-center justify-center gap-2 border-none"
-                  >
-                    <Gift size={14} />
-                    Book Father's Day Gift
-                  </button>
-                </div>
-              </div>
-              */}
-
               {/* Consultation Cards (Changed from lg:grid-cols-3 to md:grid-cols-2) */}
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-
-                {/* Commented out Father's Day Campaign Promo Card for future reusability
-                <div className="gold-shimmer-card rounded-3xl p-7 text-white shadow-2xl border border-amber-500/30 flex flex-col justify-between">
-                  <div className="flex-1">
-                    <div className="flex items-center gap-2 mb-1 flex-wrap">
-                      <span className="bg-amber-400 text-green-955 text-[10px] font-black px-3 py-1 rounded-full tracking-widest uppercase">Special Event</span>
-                      <span className="bg-white/20 text-white text-[10px] font-black px-3 py-1 rounded-full tracking-widest uppercase animate-pulse">Save ₵400</span>
-                    </div>
-                    <h2 className="text-xl font-bold mt-3 mb-1 font-serif text-amber-100">Father's Day Gift</h2>
-                    <p className="text-white/90 text-sm mb-4">Initial Consultation Package</p>
-                    <div className="flex items-baseline gap-3 mb-5">
-                      <p className="text-4xl font-extrabold text-amber-400 tracking-tight">₵600</p>
-                      <span className="text-xl text-white/50 line-through font-medium">₵1000</span>
-                    </div>
-                    <div className="space-y-2.5 text-sm mb-6 text-left">
-                      {[
-                        'Giver & Recipient WhatsApp Outreach',
-                        'Downloadable Gift Voucher Card',
-                        'Option to keep it a surprise'
-                      ].map((item, i) => (
-                        <div key={i} className="flex items-start gap-2.5">
-                          <CheckCircle size={16} className="text-amber-400 mt-0.5 shrink-0" />
-                          <span className="text-zinc-100">{item}</span>
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-                  <button
-                    onClick={() => navigate('/fathersday')}
-                    className="mt-4 w-full py-3.5 bg-amber-500 text-zinc-955 text-zinc-950 hover:bg-amber-600 font-bold rounded-xl shadow-lg transition-colors flex items-center justify-center gap-2 border-none cursor-pointer"
-                  >
-                    <Gift size={16} />
-                    Gift This Package
-                  </button>
-                </div>
-                */}
 
                 {/* Initial Consultation Card */}
                 <div className="bg-gradient-to-br from-green-500 via-green-600 to-emerald-700 rounded-3xl p-7 text-white shadow-2xl shadow-green-500/30 border border-green-400/20 flex flex-col justify-between">
                   <div className="flex-1">
                     <div className="flex items-center gap-2 mb-1 flex-wrap">
-                      <span className="bg-white/20 text-white text-[10px] font-black px-3 py-1 rounded-full tracking-widest uppercase">Most Popular</span>
-                      <span className="bg-amber-400 text-green-905 text-[10px] font-black px-3 py-1 rounded-full tracking-widest uppercase animate-pulse">Time Limited Offer</span>
+                      <span className="bg-white/20 text-white text-xs font-bold px-3 py-1 rounded-full tracking-wider uppercase">Most Popular</span>
+                      <span className="bg-amber-400 text-stone-900 text-xs font-bold px-3 py-1 rounded-full tracking-wider uppercase animate-pulse">Time Limited Offer</span>
                     </div>
                     <h2 className="text-xl font-bold mt-3 mb-1">Initial Consultation</h2>
-                    <p className="text-white/90 text-sm mb-4">45 mins</p>
+                    <p className="text-white/95 text-sm mb-4 font-medium">45 mins</p>
                     <div className="flex items-baseline gap-3 mb-5">
                       <p className="text-4xl font-extrabold text-white tracking-tight">₵800</p>
-                      <span className="text-xl text-white/50 line-through font-medium">₵1000</span>
+                      <span className="text-xl text-white/70 line-through font-medium">₵1000</span>
                     </div>
                     <div className="space-y-2.5 text-sm mb-6 text-left">
                       {['Full assessment of your health goals', 'Free Personalised diet plan', 'Food diary setup'].map((item, i) => (
                         <div key={i} className="flex items-start gap-2.5">
                           <CheckCircle size={16} className="text-white mt-0.5 shrink-0" />
-                          <span className="text-white/100">{item}</span>
+                          <span className="text-white font-medium">{item}</span>
                         </div>
                       ))}
                     </div>
@@ -413,16 +340,16 @@ const ContactUs = () => {
                 <div className="bg-white rounded-3xl p-7 shadow-xl border border-gray-100 flex flex-col justify-between">
                   <div className="flex-1">
                     <div className="flex items-center gap-2 mb-1">
-                      <span className="bg-emerald-100 text-emerald-700 text-[10px] font-black px-3 py-1 rounded-full tracking-widest uppercase">Returning Clients</span>
+                      <span className="bg-emerald-100 text-emerald-800 text-xs font-bold px-3 py-1 rounded-full tracking-wider uppercase">Returning Clients</span>
                     </div>
-                    <h2 className="text-xl font-bold text-gray-800 mt-3 mb-1">Follow Up Consultation</h2>
-                    <p className="text-gray-600 text-sm mb-4">25 mins</p>
+                    <h2 className="text-xl font-bold text-stone-900 mt-3 mb-1">Follow Up Consultation</h2>
+                    <p className="text-stone-700 text-sm mb-4 font-medium">25 mins</p>
                     <p className="text-4xl font-extrabold text-green-600 tracking-tight mb-5">₵400</p>
                     <div className="space-y-2.5 text-sm mb-6 text-left">
                       {['Progress review', 'Plan adjustments', 'Personalised counselling'].map((item, i) => (
                         <div key={i} className="flex items-start gap-2.5">
-                          <CheckCircle size={16} className="text-green-500 mt-0.5 shrink-0" />
-                          <span className="text-gray-600">{item}</span>
+                          <CheckCircle size={16} className="text-green-600 mt-0.5 shrink-0" />
+                          <span className="text-stone-700 font-medium">{item}</span>
                         </div>
                       ))}
                     </div>
@@ -435,14 +362,12 @@ const ContactUs = () => {
                     Pay now — GH₵ 400
                   </button>
                 </div>
-              </div>
-
-              <div className="flex flex-col md:flex-row items-center justify-center gap-4 py-4 px-6 bg-blue-50/50 border border-blue-100 rounded-2xl text-blue-800 text-sm font-medium">
-                <Clock size={20} className="text-blue-600 shrink-0 animate-pulse" />
+                  <div className="flex flex-col md:flex-row items-center justify-center gap-4 py-4 px-6 bg-blue-50 border border-blue-200 rounded-2xl text-blue-950 text-sm sm:text-base font-medium">
+                <Clock size={20} className="text-blue-700 shrink-0 animate-pulse" />
                 <p className="text-center md:text-left">
-                  <span className="font-bold underline decoration-blue-200 decoration-2 underline-offset-4">Consultation Hours:</span> Tuesday – Sunday, 10:00 AM – 3:00 PM. 
-                  <span className="hidden md:inline mx-2 text-blue-300">|</span>
-                  <span className="block md:inline mt-1 md:mt-0 opacity-80 italic">Actual session times will be arranged personally after payment is confirmed.</span>
+                  <span className="font-bold underline decoration-blue-300 decoration-2 underline-offset-4">Consultation Hours:</span> Tuesday – Sunday, 10:00 AM – 3:00 PM. 
+                  <span className="hidden md:inline mx-2 text-blue-400">|</span>
+                  <span className="block md:inline mt-1 md:mt-0 text-blue-900 font-normal">Actual session times will be arranged personally after payment is confirmed.</span>
                 </p>
               </div>
 
@@ -453,23 +378,23 @@ const ContactUs = () => {
                   {/* Right Side: Form */}
                   <div className="p-8 lg:p-10">
                     <div className="mb-8">
-                      <h2 className="text-xl font-bold text-gray-800">Your Information</h2>
-                      <p className="text-sm text-gray-600 mt-1">Complete your details to book</p>
+                      <h2 className="text-xl sm:text-2xl font-bold text-stone-900">Your Information</h2>
+                      <p className="text-base text-stone-700 mt-1 font-normal">Complete your details to book</p>
                     </div>
                     
                     <div className="space-y-5">
                       {/* Name */}
                       <div className="space-y-1.5">
-                        <label className="block text-xs font-bold text-gray-700 tracking-wider">Full Name *</label>
+                        <label className="block text-xs sm:text-sm font-bold text-stone-800 tracking-wider">Full Name *</label>
                         <div className="relative group">
-                          <User className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-600 group-focus-within:text-green-600 transition-colors" size={18} />
+                          <User className="absolute left-4 top-1/2 -translate-y-1/2 text-stone-600 group-focus-within:text-green-600 transition-colors" size={18} />
                           <input
                             type="text"
                             name="name"
                             value={formData.name}
                             onChange={handleInputChange}
                             required
-                            className="w-full pl-11 pr-4 py-3.5 bg-gray-50 border border-gray-100 rounded-xl focus:bg-white focus:border-green-500 focus:ring-4 focus:ring-green-500/5 transition-all outline-none text-sm"
+                            className="w-full pl-11 pr-4 py-3.5 bg-gray-50 border border-gray-200 rounded-xl focus:bg-white focus:border-green-500 focus:ring-4 focus:ring-green-500/5 transition-all outline-none text-base text-stone-800 placeholder:text-stone-500 font-medium"
                             placeholder="John Doe"
                           />
                         </div>
@@ -478,16 +403,16 @@ const ContactUs = () => {
                       <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
                         {/* Email */}
                         <div className="space-y-1.5">
-                          <label className="block text-xs font-bold text-gray-700 tracking-wider">Email Address *</label>
+                          <label className="block text-xs sm:text-sm font-bold text-stone-800 tracking-wider">Email Address *</label>
                           <div className="relative group">
-                            <Mail className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-600 group-focus-within:text-green-600 transition-colors" size={18} />
+                            <Mail className="absolute left-4 top-1/2 -translate-y-1/2 text-stone-600 group-focus-within:text-green-600 transition-colors" size={18} />
                             <input
                               type="email"
                               name="email"
                               value={formData.email}
                               onChange={handleInputChange}
                               required
-                              className="w-full pl-11 pr-4 py-3.5 bg-gray-50 border border-gray-100 rounded-xl focus:bg-white focus:border-green-500 focus:ring-4 focus:ring-green-500/5 transition-all outline-none text-sm"
+                              className="w-full pl-11 pr-4 py-3.5 bg-gray-50 border border-gray-200 rounded-xl focus:bg-white focus:border-green-500 focus:ring-4 focus:ring-green-500/5 transition-all outline-none text-base text-stone-800 placeholder:text-stone-500 font-medium"
                               placeholder="johndoe@gmail.com"
                             />
                           </div>
@@ -495,68 +420,47 @@ const ContactUs = () => {
 
                         {/* Consultation Type Selector */}
                         <div className="space-y-3 pt-2">
-                          <label className="block text-xs font-bold text-gray-700 tracking-wider">Select Consultation Type *</label>
+                          <label className="block text-xs sm:text-sm font-bold text-stone-800 tracking-wider">Select Consultation Type *</label>
                           <div className="grid grid-cols-2 gap-3">
                             <button
                               type="button"
                               onClick={() => handleTypeSelect('initial')}
-                              className={`py-3 px-4 rounded-xl border-2 transition-all flex flex-col items-center justify-center gap-1 ${
+                              className={`py-3 px-4 rounded-xl border-2 transition-all flex flex-col items-center justify-center gap-1 cursor-pointer ${
                                 selectedType === 'initial'
-                                  ? 'border-green-500 bg-green-50 text-green-700'
-                                  : 'border-gray-100 bg-gray-50 text-gray-500 hover:border-gray-200'
+                                  ? 'border-green-600 bg-green-50 text-green-800'
+                                  : 'border-gray-200 bg-gray-50 text-stone-700 hover:border-gray-300'
                               }`}
                             >
-                              <span className="font-bold text-sm text-center">Initial</span>
-                              <span className="text-[10px] opacity-80 italic">₵800</span>
+                              <span className="font-bold text-sm sm:text-base text-center">Initial</span>
+                              <span className="text-xs font-semibold">₵800</span>
                             </button>
                             <button
                               type="button"
                               onClick={() => handleTypeSelect('followup')}
-                              className={`py-3 px-4 rounded-xl border-2 transition-all flex flex-col items-center justify-center gap-1 ${
+                              className={`py-3 px-4 rounded-xl border-2 transition-all flex flex-col items-center justify-center gap-1 cursor-pointer ${
                                 selectedType === 'followup'
-                                  ? 'border-green-500 bg-green-50 text-green-700'
-                                  : 'border-gray-100 bg-gray-50 text-gray-500 hover:border-gray-200'
+                                  ? 'border-green-600 bg-green-50 text-green-800'
+                                  : 'border-gray-200 bg-gray-50 text-stone-700 hover:border-gray-300'
                               }`}
                             >
-                              <span className="font-bold text-sm text-center">Follow-up</span>
-                              <span className="text-[10px] opacity-80 italic">₵400</span>
+                              <span className="font-bold text-sm sm:text-base text-center">Follow-up</span>
+                              <span className="text-xs font-semibold">₵400</span>
                             </button>
                           </div>
-                          {/* Commented out Father's Day booking upsell alert
-                          selectedType === 'initial' && (
-                            <motion.div
-                              initial={{ opacity: 0, y: -5 }}
-                              animate={{ opacity: 1, y: 0 }}
-                              className="text-xs text-amber-800 font-semibold bg-amber-50 border border-amber-100 p-2.5 rounded-none flex items-center gap-2"
-                            >
-                              <Gift size={14} className="shrink-0 text-amber-500 animate-pulse" />
-                              <span>
-                                Gifting a father? Use our{' '}
-                                <span
-                                  onClick={() => navigate('/fathersday')}
-                                  className="underline cursor-pointer hover:text-amber-950 font-bold"
-                                >
-                                  Father's Day booking page
-                                </span>{' '}
-                                to save ₵200 (₵600 total) and get a downloadable voucher card!
-                              </span>
-                            </motion.div>
-                          )
-                          */}
                         </div>
 
                         {/* Phone */}
                         <div className="space-y-1.5">
-                          <label className="block text-xs font-bold text-gray-700 tracking-wider">Phone Number *</label>
+                          <label className="block text-xs sm:text-sm font-bold text-stone-800 tracking-wider">Phone Number *</label>
                           <div className="relative group">
-                            <Phone className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-600 group-focus-within:text-green-600 transition-colors" size={18} />
+                            <Phone className="absolute left-4 top-1/2 -translate-y-1/2 text-stone-600 group-focus-within:text-green-600 transition-colors" size={18} />
                             <input
                               type="tel"
                               name="phone"
                               value={formData.phone}
                               onChange={handleInputChange}
                               required
-                              className="w-full pl-11 pr-4 py-3.5 bg-gray-50 border border-gray-100 rounded-xl focus:bg-white focus:border-green-500 focus:ring-4 focus:ring-green-500/5 transition-all outline-none text-sm"
+                              className="w-full pl-11 pr-4 py-3.5 bg-gray-50 border border-gray-200 rounded-xl focus:bg-white focus:border-green-500 focus:ring-4 focus:ring-green-500/5 transition-all outline-none text-base text-stone-800 placeholder:text-stone-500 font-medium"
                               placeholder="+233..."
                             />
                           </div>
@@ -565,15 +469,15 @@ const ContactUs = () => {
 
                       {/* Message */}
                       <div className="space-y-1.5">
-                        <label className="block text-xs font-bold text-gray-700 tracking-wider">Additional Info</label>
+                        <label className="block text-xs sm:text-sm font-bold text-stone-800 tracking-wider">Additional Info</label>
                         <div className="relative group">
-                          <MessageCircle className="absolute left-4 top-4 text-gray-600 group-focus-within:text-green-600 transition-colors" size={18} />
+                          <MessageCircle className="absolute left-4 top-4 text-stone-600 group-focus-within:text-green-600 transition-colors" size={18} />
                           <textarea
                             name="message"
                             value={formData.message}
                             onChange={handleInputChange}
                             rows={3}
-                            className="w-full pl-11 pr-4 py-3.5 bg-gray-50 border border-gray-100 rounded-xl focus:bg-white focus:border-green-500 focus:ring-4 focus:ring-green-500/5 transition-all outline-none resize-none text-sm"
+                            className="w-full pl-11 pr-4 py-3.5 bg-gray-50 border border-gray-200 rounded-xl focus:bg-white focus:border-green-500 focus:ring-4 focus:ring-green-500/5 transition-all outline-none resize-none text-base text-stone-800 placeholder:text-stone-500 font-medium"
                             placeholder="Any health concerns..."
                           />
                         </div>
@@ -584,11 +488,11 @@ const ContactUs = () => {
                         <button
                           type="button"
                           onClick={() => handlePaymentRedirect(selectedType)}
-                          className="w-full py-4 bg-gradient-to-r from-[#F6841F] to-[#F6841F] text-white font-black rounded-2xl shadow-lg hover:shadow-xl transform hover:-translate-y-1 transition-all duration-300 flex items-center justify-center gap-3 relative overflow-hidden group"
+                          className="w-full py-4 bg-gradient-to-r from-[#F6841F] to-[#F6841F] text-white font-black rounded-2xl shadow-lg hover:shadow-xl transform hover:-translate-y-1 transition-all duration-300 flex items-center justify-center gap-3 relative overflow-hidden group cursor-pointer border-none"
                         >
                           <div className="absolute inset-0 bg-white/10 translate-y-full group-hover:translate-y-0 transition-transform duration-300"></div>
                           <Banknote size={22} className="relative z-10" />
-                          <span className="relative z-10 uppercase tracking-wider">
+                          <span className="relative z-10 uppercase tracking-wider text-base sm:text-lg">
                             Pay now — GH₵ {selectedType === 'followup' ? '400' : '800'}
                           </span>
                         </button>
@@ -596,13 +500,13 @@ const ContactUs = () => {
 
                       {/* Booking Note */}
                       <div className="pt-2">
-                        <div className="flex items-center justify-center space-x-4 text-[10px] text-gray-400 font-bold tracking-widest">
+                        <div className="flex items-center justify-center space-x-6 text-xs text-stone-600 font-semibold tracking-wide">
                           <div className="flex items-center space-x-1.5">
-                            <Shield size={12} className="text-gray-400" />
+                            <Shield size={14} className="text-stone-600" />
                             <span>Secured by Paystack</span>
                           </div>
                           <div className="flex items-center space-x-1.5">
-                            <CheckCircle size={12} className="text-gray-400" />
+                            <CheckCircle size={14} className="text-stone-600" />
                             <span>Instant Confirmation</span>
                           </div>
                         </div>
@@ -635,30 +539,30 @@ const ContactUs = () => {
                       <div className="w-16 sm:w-20 h-1.5 sm:h-2 bg-gradient-to-r from-green-500 to-emerald-500 rounded-full mx-auto lg:mx-0"></div>
                     </div>
 
-                    <p className="text-base sm:text-lg text-gray-700 leading-relaxed">
+                    <p className="text-base sm:text-lg text-stone-800 leading-relaxed font-normal">
                       Have a question about your diet, nutrition goals, or general wellness?
                     </p>
 
                     {/* Contact Info */}
                     <div className="space-y-4 sm:space-y-6">
                       <div className="space-y-3">
-                        <h4 className="text-lg font-bold text-gray-900">EMAIL</h4>
+                        <h4 className="text-base sm:text-lg font-bold text-stone-900 tracking-wider">EMAIL</h4>
                         <div className="flex items-center justify-center lg:justify-start gap-3">
-                          <svg className="w-4 h-4 sm:w-5 sm:h-5 text-green-600 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
+                          <svg className="w-4 h-4 sm:w-5 sm:h-5 text-green-700 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
                             <path d="M2.003 5.884L10 9.882l7.997-3.998A2 2 0 0016 4H4a2 2 0 00-1.997 1.884z" />
                             <path d="M18 8.118l-8 4-8-4V14a2 2 0 002 2h12a2 2 0 002-2V8.118z" />
                           </svg>
-                          <span className="text-sm sm:text-base text-gray-700">dietwdee@gmail.com</span>
+                          <span className="text-base text-stone-800 font-medium">dietwdee@gmail.com</span>
                         </div>
                       </div>
 
                       <div className="space-y-3">
-                        <h4 className="text-lg font-bold text-gray-900">PHONE</h4>
+                        <h4 className="text-base sm:text-lg font-bold text-stone-900 tracking-wider">PHONE</h4>
                         <div className="flex items-center justify-center lg:justify-start gap-3">
-                          <svg className="w-4 h-4 sm:w-5 sm:h-5 text-green-600 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
+                          <svg className="w-4 h-4 sm:w-5 sm:h-5 text-green-700 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
                             <path d="M2 3a1 1 0 011-1h2.153a1 1 0 01.986.836l.74 4.435a1 1 0 01-.54 1.06l-1.548.773a11.037 11.037 0 006.105 6.105l.774-1.548a1 1 0 011.059-.54l4.435.74a1 1 0 01.836.986V17a1 1 0 01-1 1h-2C7.82 18 2 12.18 2 5V3z" />
                           </svg>
-                          <span className="text-sm sm:text-base text-gray-700">(+233) 59 233 0870</span>
+                          <span className="text-base text-stone-800 font-medium">(+233) 59 233 0870</span>
                         </div>
                       </div>
                     </div>
@@ -679,6 +583,7 @@ const ContactUs = () => {
           </div>
         </div>
       </div>
+    </div>
 
       {/* WhatsApp Popup */}
       <WhatsAppPopup

@@ -286,10 +286,10 @@ function Home() {
                 </div>
 
                 <motion.div variants={fadeUp} className="space-y-3 pt-1">
-                  <p className="text-lg sm:text-xl text-stone-700 leading-relaxed font-light">
+                  <p className="text-lg sm:text-xl text-stone-800 leading-relaxed font-normal">
                     Welcome to <strong className="font-semibold text-stone-900">DietWithDee</strong>, your premier destination for personalized Ghanaian meal guides and 1-on-1 clinical nutrition consultations with Nana Ama Dwamena.
                   </p>
-                  <p className="text-sm sm:text-lg text-stone-600 font-light leading-relaxed">
+                  <p className="text-base sm:text-lg text-stone-700 font-normal leading-relaxed">
                     Whether you're aiming to manage blood sugar, lower blood pressure, lose weight sustainably, or eat healthier—we guide you every step of the way without starving.
                   </p>
                 </motion.div>
@@ -302,14 +302,14 @@ function Home() {
                       try {
                         logEvent(analytics, 'select_content', {
                           content_type: 'Button',
-                          item_id: 'hero_know_your_body'
+                          item_id: 'hero_book_a_session'
                         });
                       } catch (err) {}
-                      navigate('/knowYourBody');
+                      navigate('/contactus');
                     }}
                     className="px-8 sm:px-9 py-3.5 sm:py-4 rounded-full bg-[#F6841F] hover:bg-[#e07312] text-white font-montserrat text-xs sm:text-sm font-semibold tracking-widest uppercase transition-all duration-300 shadow-lg hover:shadow-xl hover:-translate-y-0.5 active:scale-95 cursor-pointer flex items-center justify-center gap-2"
                   >
-                    <span>Know your body</span>
+                    <span>Book a Session</span>
                     <ChevronRight size={16} />
                   </motion.button>
 
@@ -319,14 +319,14 @@ function Home() {
                       try {
                         logEvent(analytics, 'select_content', {
                           content_type: 'Button',
-                          item_id: 'hero_book_a_session'
+                          item_id: 'hero_take_our_test'
                         });
                       } catch (err) {}
-                      navigate('/contactus');
+                      navigate('/knowYourBody');
                     }}
                     className="px-7 sm:px-8 py-3.5 sm:py-4 rounded-full bg-white/90 hover:bg-white text-stone-800 border border-stone-200/90 font-montserrat text-xs sm:text-sm font-semibold tracking-wider uppercase transition-all duration-300 shadow-xs hover:shadow-md hover:border-stone-300 cursor-pointer flex items-center justify-center gap-2"
                   >
-                    <span>Book a session</span>
+                    <span>Take Our Test</span>
                   </motion.button>
                 </motion.div>
 
@@ -336,18 +336,18 @@ function Home() {
                     <div className="flex text-amber-500 text-sm">
                       {'★'.repeat(5)}
                     </div>
-                    <span className="text-xs font-semibold text-stone-700 font-montserrat">
-                      5.0 Rating • 500+ Clients Guided
+                    <span className="text-xs sm:text-sm font-semibold text-stone-800 font-montserrat">
+                      5.0 Star Rating • 500+ Clients Guided
                     </span>
                   </div>
 
-                  <div className="flex items-center gap-4 text-xs text-stone-600 font-light">
+                  <div className="flex items-center gap-4 text-xs sm:text-sm text-stone-700 font-normal">
                     <span className="flex items-center gap-1.5">
-                      <CheckCircle2 size={15} className="text-emerald-600" />
+                      <CheckCircle2 size={16} className="text-emerald-600 shrink-0" />
                       Licensed Dietitian Care
                     </span>
                     <span className="flex items-center gap-1.5">
-                      <CheckCircle2 size={15} className="text-emerald-600" />
+                      <CheckCircle2 size={16} className="text-emerald-600 shrink-0" />
                       100% Real Local Food
                     </span>
                   </div>
@@ -488,16 +488,16 @@ function Home() {
                   </div>
 
                   <div className="space-y-4">
-                    <p className="text-base sm:text-lg text-stone-700 leading-relaxed font-light">
+                    <p className="text-base sm:text-lg text-stone-800 leading-relaxed font-normal">
                       At <strong className="font-semibold text-stone-900">DietWithDee</strong>, we believe that nutrition is about empowerment and joy, not restriction. Our mission is to provide personalized diet plans, delicious recipes, and expert advice to help you reach your wellness goals sustainably.
                     </p>
 
-                    <blockquote className="border-l-3 border-[#F6841F] pl-4 py-2 italic font-serif-cormorant text-stone-800 text-lg sm:text-xl bg-orange-50/50 rounded-r-lg">
+                    <blockquote className="border-l-3 border-[#F6841F] pl-4 py-2 italic font-serif-cormorant text-stone-900 text-lg sm:text-xl bg-orange-50/50 rounded-r-lg">
                       "We strive continually to help you take control of your health in all aspects."
                     </blockquote>
                   </div>
 
-                  <p className="text-sm sm:text-base text-stone-600 font-light leading-relaxed">
+                  <p className="text-base text-stone-700 font-normal leading-relaxed">
                     Our expert-crafted plans are tailored to your unique lifestyle and cultural staples. Whether you're looking to lose weight, manage a health condition, or eat healthier, join us on a delicious journey to a better you!
                   </p>
                 </motion.div>
@@ -515,7 +515,7 @@ function Home() {
                     />
                     <div className="p-5 text-center bg-white/95 backdrop-blur-md border-t border-stone-100 space-y-1">
                       <p className="font-bold text-stone-900 text-lg font-montserrat">Nana Ama Dwamena, RD.</p>
-                      <p className="text-xs text-stone-500 font-light tracking-wide font-montserrat">Founder, DietWithDee • Clinical Dietitian</p>
+                      <p className="text-xs sm:text-sm text-stone-600 font-normal tracking-wide font-montserrat">Founder, DietWithDee • Clinical Dietitian</p>
                     </div>
                   </div>
                 </motion.div>
@@ -524,7 +524,7 @@ function Home() {
                 <motion.div variants={fadeUp} className="order-3 lg:col-start-2 lg:row-start-2 space-y-6 text-left">
                   {/* Community Impact Integrated */}
                   <div className="space-y-2">
-                    <p className="text-stone-700 leading-relaxed font-light text-sm sm:text-base">
+                    <p className="text-stone-800 leading-relaxed font-normal text-sm sm:text-base">
                       Beyond individual consultations, we believe in the power of collective change. We are actively involved in community programs and health outreaches across Ghana to make nutrition education practical and fun.
                     </p>
                   </div>
@@ -566,7 +566,7 @@ function Home() {
                 <div className="text-green-600">
                   <AnimatedCounter target={500} suffix="+" />
                 </div>
-                <div className="text-gray-600 font-medium">Happy Clients</div>
+                <div className="text-stone-800 font-semibold text-sm sm:text-base">Happy Clients</div>
               </div>
 
               <div className="hidden md:block w-px h-16 bg-gray-200 mx-auto mt-2"></div>
@@ -575,7 +575,7 @@ function Home() {
                 <div className="text-emerald-600">
                   <AnimatedCounter target={5} suffix="+" />
                 </div>
-                <div className="text-gray-600 font-medium">Years of Experience</div>
+                <div className="text-stone-800 font-semibold text-sm sm:text-base">Years of Experience</div>
               </div>
 
               <div className="hidden md:block w-px h-16 bg-gray-200 mx-auto mt-2"></div>
@@ -584,7 +584,7 @@ function Home() {
                 <div className="text-green-700">
                   <AnimatedCounter target={95} suffix="%" />
                 </div>
-                <div className="text-gray-600 font-medium">Client Approval</div>
+                <div className="text-stone-800 font-semibold text-sm sm:text-base">Client Approval</div>
               </div>
             </div>
           </motion.div>

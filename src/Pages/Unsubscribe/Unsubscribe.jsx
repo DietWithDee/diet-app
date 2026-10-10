@@ -59,8 +59,8 @@ const Unsubscribe = () => {
                 <Mail size={48} />
               </div>
               <div>
-                <h2 className="text-2xl font-bold text-gray-800 mb-2">Unsubscribe?</h2>
-                <p className="text-gray-600">
+                <h2 className="text-2xl font-bold text-stone-900 mb-2">Unsubscribe?</h2>
+                <p className="text-stone-700 text-base font-normal">
                   Are you sure you want to stop receiving newsletters at <span className="font-bold text-green-700">{email}</span>?
                 </p>
               </div>
@@ -73,7 +73,7 @@ const Unsubscribe = () => {
                 </button>
                 <Link 
                   to="/" 
-                  className="w-full px-6 py-3 bg-white text-gray-400 font-medium rounded-xl hover:text-gray-600 transition-all block text-sm"
+                  className="w-full px-6 py-3 bg-white text-stone-600 font-semibold rounded-xl hover:text-stone-900 transition-all block text-sm sm:text-base"
                 >
                   I changed my mind, keep me subscribed
                 </Link>
@@ -84,7 +84,7 @@ const Unsubscribe = () => {
           {status === 'loading' && (
             <div className="space-y-4 py-12">
               <Loader className="animate-spin text-green-600 mx-auto" size={48} />
-              <p className="text-gray-600 font-medium">Updating your preferences...</p>
+              <p className="text-stone-800 font-semibold text-base">Updating your preferences...</p>
             </div>
           )}
 
@@ -94,9 +94,9 @@ const Unsubscribe = () => {
                 <CheckCircle size={48} />
               </div>
               <div>
-                <h2 className="text-2xl font-bold text-gray-800 mb-2">Unsubscribed</h2>
-                <p className="text-gray-600">{message}</p>
-                <p className="text-sm text-gray-400 mt-4 leading-relaxed">
+                <h2 className="text-2xl font-bold text-stone-900 mb-2">Unsubscribed</h2>
+                <p className="text-stone-700 text-base font-normal">{message}</p>
+                <p className="text-sm sm:text-base text-stone-600 mt-4 leading-relaxed font-medium">
                   We're sorry to see you go! You can always re-subscribe on our homepage if you change your mind.
                 </p>
               </div>
@@ -117,8 +117,8 @@ const Unsubscribe = () => {
                 <XCircle size={48} />
               </div>
               <div>
-                <h2 className="text-2xl font-bold text-gray-800 mb-2">Wait a moment</h2>
-                <p className="text-gray-600">{message}</p>
+                <h2 className="text-2xl font-bold text-stone-900 mb-2">Wait a moment</h2>
+                <p className="text-stone-700 text-base font-normal">{message}</p>
               </div>
               <div className="pt-6 border-t border-gray-100 flex flex-col gap-3">
                 <Link 
@@ -129,7 +129,7 @@ const Unsubscribe = () => {
                 </Link>
                 <Link 
                   to="/" 
-                  className="w-full px-6 py-3 bg-white border border-gray-200 text-gray-600 font-bold rounded-xl hover:bg-gray-50 transition-all text-center"
+                  className="w-full px-6 py-3 bg-white border border-stone-200 text-stone-700 font-bold rounded-xl hover:bg-stone-50 transition-all text-center"
                 >
                    Return Home
                 </Link>
@@ -139,8 +139,8 @@ const Unsubscribe = () => {
         </div>
         
         <div className="bg-gray-50 py-4 px-8 text-center border-t border-gray-100">
-            <p className="text-xs text-gray-400 flex items-center justify-center gap-1 font-medium">
-                Made with <Heart size={10} className="text-red-400 fill-red-400" /> by Diet With Dee
+            <p className="text-xs sm:text-sm text-stone-600 flex items-center justify-center gap-1 font-semibold">
+                Made with <Heart size={12} className="text-red-500 fill-red-500" /> by Diet With Dee
             </p>
         </div>
       </div>

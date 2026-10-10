@@ -17,10 +17,10 @@ function Privacy() {
                                 Privacy Policy
                             </h1>
                             <div className='w-16 h-1 bg-[#F6841F] rounded-full'></div>
-                            <p className='text-sm sm:text-base text-stone-600 font-light'>Diet with Dee</p>
+                            <p className='text-base sm:text-lg text-stone-700 font-medium'>Diet with Dee</p>
                         </header>
 
-                        <div className='prose prose-lg max-w-none text-stone-600 font-light space-y-6 leading-relaxed'>
+                        <div className='prose prose-lg max-w-none text-stone-800 font-normal space-y-6 leading-relaxed text-base sm:text-lg'>
                             <p>Diet with Dee is committed to protecting your personal and health information. This Privacy Policy explains what information we collect, how it is used, and how it is safeguarded when you access or use <span className='font-semibold'>dietwithdee.org</span>.</p>
 
                             <section>
