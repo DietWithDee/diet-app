@@ -91,7 +91,8 @@ export const ToastProvider = ({ children }) => {
               </div>
               <button
                 onClick={() => removeToast(toast.id)}
-                className="flex-shrink-0 opacity-70 hover:opacity-100 transition-opacity"
+                className="flex-shrink-0 opacity-70 hover:opacity-100 transition-opacity focus:outline-none focus-visible:ring-2 focus-visible:ring-current rounded"
+                aria-label="Close notification"
               >
                 <X size={16} />
               </button>
