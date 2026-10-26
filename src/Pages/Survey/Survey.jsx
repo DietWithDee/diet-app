@@ -230,7 +230,7 @@ export default function Survey() {
     newsletter_readership: "",
     sharing_habits: "",
     my_journey_usage: "",
-    website_ease: 4,
+    website_ease: 5,
     feedback: "",
     selected_plan: "",
     email: "",
@@ -454,22 +454,6 @@ export default function Survey() {
 
       if (db) {
         await addDoc(collection(db, "surveys"), surveyPayload);
-      }
-
-      // 3. Directly trigger email dispatch via callable function for instant delivery
-      if (functions) {
-        try {
-          const sendVoucher = httpsCallable(functions, "sendSurveyDiscountEmail");
-          sendVoucher({
-            email: cleanEmail,
-            selectedPlan: chosenPlanConfig.id,
-            discountCode: chosenPlanConfig.code,
-          }).catch((callErr) => {
-            console.log("Callable email dispatch deferred to Cloud Function trigger:", callErr?.message);
-          });
-        } catch (callErr) {
-          // onNewSurveySubmission trigger handles it
-        }
       }
 
       safeLogEvent("survey_completed", { durationSeconds, email: cleanEmail, plan: chosenPlanConfig.id });
@@ -840,11 +824,11 @@ export default function Survey() {
                         <div className="flex flex-col items-center justify-center p-4 bg-gradient-to-br from-emerald-50/90 to-green-50/60 border border-emerald-100 rounded-2xl mb-5 shadow-sm text-center">
                           <div className="flex items-center gap-1.5 text-2xl sm:text-3xl font-black text-emerald-800">
                             <Star className="fill-emerald-500 text-emerald-600" size={26} />
-                            <span>{currentVal || 4}</span>
-                            <span className="text-base text-emerald-700 font-bold">/ 5</span>
+                            <span>{Number(currentVal || 5).toFixed(1)}</span>
+                            <span className="text-base text-emerald-700 font-bold">/ 5.0</span>
                           </div>
                           <p className="text-xs sm:text-sm font-bold text-emerald-950 mt-1">
-                            {getEaseDescription(currentVal || 4)}
+                            {getEaseDescription(currentVal || 5)}
                           </p>
                         </div>
 
@@ -855,7 +839,7 @@ export default function Survey() {
                             min={q.min || 1}
                             max={q.max || 5}
                             step={1}
-                            value={currentVal || 4}
+                            value={currentVal || 5}
                             onChange={(e) => handleRadioChange(q.id, Number(e.target.value))}
                             className="w-full h-3 bg-stone-200 rounded-full appearance-none cursor-pointer accent-emerald-600 focus:outline-none"
                           />
@@ -868,7 +852,7 @@ export default function Survey() {
                                 type="button"
                                 onClick={() => handleRadioChange(q.id, num)}
                                 className={`w-8 h-8 rounded-full flex items-center justify-center text-xs sm:text-sm font-bold transition-all cursor-pointer ${
-                                  (currentVal || 4) === num
+                                  (currentVal || 5) === num
                                     ? "bg-emerald-600 text-white shadow-md scale-110 ring-2 ring-emerald-300"
                                     : "text-stone-700 hover:bg-emerald-50 hover:text-emerald-800 bg-stone-100 sm:bg-transparent"
                                 }`}

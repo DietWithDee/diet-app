@@ -290,12 +290,12 @@ exports.onNewSubscriber = onDocumentCreated(
             return;
         }
 
-        const isSurvey = data.source === "survey";
-        const emailSubject = isSurvey
-            ? `Your 20% Discount Voucher for ${data.planTitle || 'DietWithDee'} is Here! 🎁`
-            : "Welcome to Diet With Dee! 🌿";
+        if (data.source === "survey") {
+            console.log(`Subscriber ${email} originated from survey submission; voucher is dispatched by onNewSurveySubmission trigger. Skipping welcome email to prevent duplicate.`);
+            return;
+        }
 
-        console.log(`New subscriber detected: ${email} (source: ${data.source || 'default'}, plan: ${data.selectedPlan || 'none'}). Sending ${isSurvey ? 'survey voucher' : 'welcome'} email...`);
+        console.log(`New subscriber detected: ${email} (source: ${data.source || 'default'}). Sending welcome email...`);
 
         try {
             const resendApiKey = process.env.RESEND_API_KEY;
@@ -304,18 +304,12 @@ exports.onNewSubscriber = onDocumentCreated(
             }
             const resend = new Resend(resendApiKey);
 
-            const emailContent = isSurvey
-                ? createSurveyVoucherTemplate({
-                    email,
-                    selectedPlan: data.selectedPlan || data.primaryGoal,
-                    discountCode: data.discountCode
-                })
-                : createWelcomeTemplate(data.name);
+            const emailContent = createWelcomeTemplate(data.name);
             
             const { data: result, error } = await resend.emails.send({
                 from: 'Nana Ama from Diet With Dee <hello@mail.dietwithdee.org>',
                 to: [email],
-                subject: emailSubject,
+                subject: "Welcome to Diet With Dee! 🌿",
                 html: emailContent.split('https://dietwithdee.org/unsubscribe').join(`https://dietwithdee.org/unsubscribe?email=${encodeURIComponent(email)}`)
             });
 
@@ -342,6 +336,11 @@ exports.onNewSurveySubmission = onDocumentCreated(
 
         if (!email) {
             console.warn("Survey submission document lacks an email address. Skipping voucher email.");
+            return;
+        }
+
+        if (data.voucherEmailSent) {
+            console.log(`[onNewSurveySubmission] Voucher already sent for survey ${event.params?.surveyId}. Skipping.`);
             return;
         }
 
@@ -374,6 +373,15 @@ exports.onNewSurveySubmission = onDocumentCreated(
                 console.error(`[onNewSurveySubmission] Error sending voucher to ${email}:`, error);
             } else {
                 console.log(`[onNewSurveySubmission] Voucher successfully sent to ${email}. ID: ${result.id}`);
+                try {
+                    await snapshot.ref.update({
+                        voucherEmailSent: true,
+                        voucherEmailSentAt: admin.firestore.FieldValue.serverTimestamp(),
+                        voucherMessageId: result.id
+                    });
+                } catch (updateErr) {
+                    console.warn(`[onNewSurveySubmission] Non-blocking doc update warning:`, updateErr.message);
+                }
             }
         } catch (error) {
             console.error("[onNewSurveySubmission] Error sending survey voucher email:", error);
@@ -395,6 +403,16 @@ exports.sendSurveyDiscountEmail = onCall(
         console.log(`[sendSurveyDiscountEmail] Callable invoked for ${cleanEmail}, plan: ${selectedPlan}, code: ${discountCode}`);
 
         try {
+            // Check if voucher was already dispatched by the onNewSurveySubmission trigger
+            const recentSurveySnap = await admin.firestore().collection("surveys")
+                .where("email", "==", cleanEmail)
+                .limit(1)
+                .get();
+            if (!recentSurveySnap.empty && recentSurveySnap.docs[0].data()?.voucherEmailSent) {
+                console.log(`[sendSurveyDiscountEmail] Voucher already sent via onNewSurveySubmission trigger for ${cleanEmail}. Skipping duplicate.`);
+                return { success: true, message: "Already dispatched via trigger" };
+            }
+
             const resendApiKey = process.env.RESEND_API_KEY;
             if (!resendApiKey) {
                 throw new Error("RESEND_API_KEY is not set.");

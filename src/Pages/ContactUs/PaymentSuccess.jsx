@@ -39,6 +39,7 @@ function PaymentSuccess() {
   const [status, setStatus] = useState('verifying'); // verifying, processing, confirmed, error
   const [errorMessage, setErrorMessage] = useState('');
   const [verifiedConsultationType, setVerifiedConsultationType] = useState(null);
+  const hasProcessedRef = useRef(false);
 
   // Pull saved data from localStorage safely
   const formData = useMemo(() => {
@@ -60,6 +61,8 @@ function PaymentSuccess() {
   }, []);
 
   const processPaymentSequence = useCallback(async () => {
+    if (hasProcessedRef.current) return;
+    hasProcessedRef.current = true;
     try {
       setStatus('verifying');
       setErrorMessage('');
@@ -173,12 +176,14 @@ function PaymentSuccess() {
         setStatus('confirmed');
         showToast('Booking confirmed successfully!', 'success');
       } else {
+         hasProcessedRef.current = false;
          setStatus('error');
          setErrorMessage('We verified your payment but hit an issue finalizing the booking. Please contact support.');
          showToast('Booking processing failed. Please contact support.', 'error');
       }
 
     } catch (error) {
+      hasProcessedRef.current = false;
       console.error('Payment sequence error:', error);
       setStatus('error');
       setErrorMessage('A network error occurred while verifying your payment. Please try again.');
