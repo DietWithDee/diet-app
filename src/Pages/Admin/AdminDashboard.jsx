@@ -360,7 +360,7 @@ const AdminDashboard = () => {
             ) : activeTab === 'subscribers' ? (
               <SubscribersPanel showNotification={showNotification} />
             ) : activeTab === 'surveys' ? (
-              <SurveysPanel />
+              <SurveysPanel showNotification={showNotification} />
             ) : (
               <BookingsPanel showNotification={showNotification} />
             )}

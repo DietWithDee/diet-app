@@ -1,5 +1,7 @@
 import React, { useState, useEffect, useRef } from "react";
-import { Link, useNavigate } from "react-router-dom";
+import { Link, useNavigate, useSearchParams } from "react-router-dom";
+import SurveyEnded from "./SurveyEnded";
+import { subscribeSurveyStatus } from "../../firebaseSurveyUtils";
 import {
   CheckCircle2,
   AlertCircle,
@@ -221,7 +223,12 @@ export const DISCOUNT_PLANS = {
 
 export default function Survey() {
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
   const { showToast } = useToast();
+
+  const [isSurveyOpen, setIsSurveyOpen] = useState(true);
+  const [statusLoading, setStatusLoading] = useState(true);
+
   const [answers, setAnswers] = useState({
     goal: "",
     plan_awareness: "",
@@ -242,6 +249,15 @@ export default function Survey() {
   const [copiedCode, setCopiedCode] = useState(false);
   const [startTime] = useState(Date.now());
 
+  // Subscribe to live survey status from Firestore settings/survey
+  useEffect(() => {
+    const unsubscribe = subscribeSurveyStatus((isOpen) => {
+      setIsSurveyOpen(isOpen);
+      setStatusLoading(false);
+    });
+    return () => unsubscribe();
+  }, []);
+
   useEffect(() => {
     safeLogEvent("survey_viewed", { page: "/survey" });
     return () => {
@@ -256,6 +272,12 @@ export default function Survey() {
   };
 
   const scrollTimerRef = useRef(null);
+
+  // If status is closed or explicit ended view param passed, render SurveyEnded page
+  const forceEndedPreview = searchParams.get("view") === "ended" || searchParams.get("preview") === "ended";
+  if (!statusLoading && (!isSurveyOpen || forceEndedPreview)) {
+    return <SurveyEnded isPreview={forceEndedPreview && isSurveyOpen} />;
+  }
 
   // Smoothly scroll to the next question card after selection
   const triggerAutoScroll = (currentQuestionId, delay = 320) => {

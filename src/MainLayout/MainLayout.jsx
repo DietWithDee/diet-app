@@ -32,6 +32,7 @@ import TerraVee from "../Pages/TerraVee/TerraVee";
 import Subscribe from "../Pages/Subscribe/Subscribe";
 import OnTrack from "../Pages/OnTrack/OnTrack";
 import Survey from "../Pages/Survey/Survey";
+import SurveyEnded from "../Pages/Survey/SurveyEnded";
 
 // Inner component so usePageTracking can access the router context
 const AppRoutes = () => {
@@ -61,6 +62,8 @@ const AppRoutes = () => {
         <Route path="/subscribe" element={<Subscribe />} />
         <Route path="/survey" element={<Survey />} />
         <Route path="/Survey" element={<Survey />} />
+        <Route path="/survey-ended" element={<SurveyEnded />} />
+        <Route path="/survey/ended" element={<SurveyEnded />} />
         <Route path="/checkout-success" element={<CheckoutSuccess />} />
         <Route path="/submit-testimonial" element={<SubmitTestimonial />} />
         <Route path="/success-stories" element={<SuccessStories />} />

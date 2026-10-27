@@ -36,9 +36,15 @@ import {
   Share2,
   Star,
   AlertCircle,
+  Eye,
 } from "lucide-react";
+import {
+  getSurveyStatus,
+  setSurveyStatus,
+  subscribeSurveyStatus,
+} from "../../../firebaseSurveyUtils";
 
-export default function SurveysPanel() {
+export default function SurveysPanel({ showNotification }) {
   const [surveys, setSurveys] = useState([]);
   const [loading, setLoading] = useState(true);
   const [fetchError, setFetchError] = useState(null);
@@ -46,6 +52,62 @@ export default function SurveysPanel() {
   const [searchQuery, setSearchQuery] = useState("");
   const [goalFilter, setGoalFilter] = useState("all");
   const [copiedId, setCopiedId] = useState(null);
+
+  // Survey live / past-ended toggle status
+  const [isSurveyOpen, setIsSurveyOpen] = useState(true);
+  const [showConfirmModal, setShowConfirmModal] = useState(false);
+  const [isUpdatingStatus, setIsUpdatingStatus] = useState(false);
+
+  useEffect(() => {
+    const fetchStatus = async () => {
+      const result = await getSurveyStatus();
+      if (result.success) {
+        setIsSurveyOpen(result.isOpen);
+      }
+    };
+    fetchStatus();
+
+    const unsubscribe = subscribeSurveyStatus((isOpen) => {
+      setIsSurveyOpen(isOpen);
+    });
+    return () => unsubscribe();
+  }, []);
+
+  const handleToggleClick = () => {
+    if (isSurveyOpen) {
+      setShowConfirmModal(true);
+    } else {
+      updateSurveyStatus(true);
+    }
+  };
+
+  const updateSurveyStatus = async (newStatus) => {
+    setIsUpdatingStatus(true);
+    try {
+      const result = await setSurveyStatus(newStatus);
+      if (result.success) {
+        setIsSurveyOpen(newStatus);
+        if (showNotification) {
+          showNotification(
+            "success",
+            `Survey is now ${newStatus ? "open & accepting responses" : "closed (past-ended page active)"}.`
+          );
+        }
+      } else {
+        if (showNotification) {
+          showNotification("error", "Failed to update survey status.");
+        }
+      }
+    } catch (error) {
+      console.error("Error updating survey status:", error);
+      if (showNotification) {
+        showNotification("error", "An error occurred updating survey status.");
+      }
+    } finally {
+      setIsUpdatingStatus(false);
+      setShowConfirmModal(false);
+    }
+  };
 
   useEffect(() => {
     if (!db) {
@@ -487,6 +549,126 @@ export default function SurveysPanel() {
             <p className="mt-1 text-amber-800 text-xs">
               If this is a permission error, ensure you are logged in with an authorized admin email, and deploy the updated rules via <code className="bg-amber-100/80 px-1.5 py-0.5 rounded font-mono font-bold">firebase deploy --only firestore:rules</code>.
             </p>
+          </div>
+        </div>
+      )}
+
+      {/* Survey Status Toggle Card (similar to Bookings toggle) */}
+      <div className="bg-white rounded-2xl shadow-sm border border-emerald-100 p-5 sm:p-6 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+        <div className="flex items-center gap-3.5">
+          <div
+            className={`w-11 h-11 rounded-2xl flex items-center justify-center transition-colors ${
+              isSurveyOpen
+                ? "bg-emerald-100 text-emerald-700"
+                : "bg-gray-100 text-gray-500"
+            }`}
+          >
+            <Sparkles size={22} />
+          </div>
+          <div>
+            <div className="flex items-center gap-2">
+              <h3 className="font-bold text-gray-900 text-base">Survey Status</h3>
+              <span
+                className={`px-2.5 py-0.5 rounded-full text-[11px] font-black uppercase tracking-wider ${
+                  isSurveyOpen
+                    ? "bg-emerald-100 text-emerald-800 border border-emerald-200"
+                    : "bg-stone-100 text-stone-700 border border-stone-200"
+                }`}
+              >
+                {isSurveyOpen ? "Live & Accepting Responses" : "Past-Ended / Concluded"}
+              </span>
+            </div>
+            <p className="text-xs text-gray-500 mt-0.5">
+              {isSurveyOpen
+                ? "Active survey form is live at /survey. Toggling off displays the past-ended page with newsletter, blogs, and consultation links."
+                : "Survey is closed. Visitors to /survey see the past-ended page. You can re-open it at any time."}
+            </p>
+          </div>
+        </div>
+
+        <div className="flex flex-wrap items-center gap-3 self-end sm:self-auto">
+          {/* Preview / Visualize Button */}
+          <a
+            href="/survey-ended"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-bold text-emerald-700 hover:text-emerald-900 bg-emerald-50 hover:bg-emerald-100 rounded-xl transition-colors border border-emerald-200/80 cursor-pointer"
+            title="Preview the past-ended page in a new tab"
+          >
+            <Eye size={14} />
+            <span>Visualize Past-Ended Page</span>
+          </a>
+
+          <a
+            href="/survey"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-bold text-gray-700 hover:text-gray-900 bg-gray-100 hover:bg-gray-200 rounded-xl transition-colors cursor-pointer"
+            title="Open /survey in a new tab"
+          >
+            <ExternalLink size={14} />
+            <span>View /survey</span>
+          </a>
+
+          {/* Toggle Switch Button */}
+          <button
+            type="button"
+            onClick={handleToggleClick}
+            disabled={isUpdatingStatus}
+            className={`relative inline-flex items-center h-9 rounded-full w-16 transition-colors focus:outline-none ${
+              isSurveyOpen ? "bg-emerald-600" : "bg-gray-300"
+            } ${isUpdatingStatus ? "opacity-50 cursor-not-allowed" : "cursor-pointer"}`}
+          >
+            <span className="sr-only">Toggle Survey Status</span>
+            <span
+              className={`inline-block w-7 h-7 transform bg-white rounded-full transition-transform shadow-md ${
+                isSurveyOpen ? "translate-x-8" : "translate-x-1"
+              }`}
+            />
+            <span
+              className={`absolute ${
+                isSurveyOpen ? "left-2" : "right-2"
+              } text-[10px] font-black text-white uppercase`}
+            >
+              {isSurveyOpen ? "ON" : "OFF"}
+            </span>
+          </button>
+        </div>
+      </div>
+
+      {/* Confirmation Modal when Closing Survey */}
+      {showConfirmModal && (
+        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm animate-in fade-in duration-200">
+          <div className="bg-white rounded-2xl shadow-2xl max-w-md w-full p-6 animate-in zoom-in-95 duration-200">
+            <div className="flex items-center gap-4 mb-4">
+              <div className="w-12 h-12 rounded-full bg-amber-100 flex items-center justify-center text-amber-600 flex-shrink-0">
+                <AlertTriangle size={24} />
+              </div>
+              <h3 className="text-xl font-bold text-gray-900">Close / Conclude Survey?</h3>
+            </div>
+
+            <p className="text-gray-600 text-sm mb-6 leading-relaxed">
+              This will switch the public <code className="bg-stone-100 px-1 py-0.5 rounded text-stone-800">/survey</code> page to the <strong>Past-Ended page</strong>.
+              Visitors will see a thank-you message with routes to subscribe to the newsletter for future surveys, read blogs, and book consultations. You can re-open it at any time.
+            </p>
+
+            <div className="flex gap-3 justify-end">
+              <button
+                type="button"
+                onClick={() => setShowConfirmModal(false)}
+                className="px-4 py-2 text-gray-600 font-bold hover:bg-gray-100 rounded-xl transition-colors cursor-pointer text-sm"
+              >
+                Cancel
+              </button>
+              <button
+                type="button"
+                onClick={() => updateSurveyStatus(false)}
+                disabled={isUpdatingStatus}
+                className="px-5 py-2 bg-amber-600 hover:bg-amber-700 text-white font-bold rounded-xl transition-all shadow-md hover:shadow-lg disabled:opacity-50 cursor-pointer text-sm"
+              >
+                {isUpdatingStatus ? "Updating..." : "Yes, Close Survey"}
+              </button>
+            </div>
           </div>
         </div>
       )}
