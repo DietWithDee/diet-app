@@ -5,12 +5,15 @@ const createEmailTemplate = (title, coverImage, articleId) => {
     <head>
         <meta charset="UTF-8">
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
-        <meta name="color-scheme" content="light dark">
-        <meta name="supported-color-schemes" content="light dark">
-        <title>New Article from Diet with Dee</title>
+        <meta name="color-scheme" content="light">
+        <meta name="supported-color-schemes" content="light">
+        <title>New Article from DietWithDee</title>
+        <link rel="preconnect" href="https://fonts.googleapis.com">
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@600;700&family=Montserrat:wght@400;500;600;700&display=swap" rel="stylesheet">
         <style>
             :root {
-                color-scheme: light dark;
+                color-scheme: light;
             }
 
             * {
@@ -20,83 +23,97 @@ const createEmailTemplate = (title, coverImage, articleId) => {
             }
             
             body {
-                font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
-                line-height: 1.6;
-                color: #1f2937;
-                background-color: #f0fdf4;
-                padding: 20px 0;
+                font-family: 'Montserrat', -apple-system, BlinkMacSystemFont, Arial, sans-serif;
+                line-height: 1.7;
+                color: #1c1917;
+                background-color: #FAF9F6;
+                padding: 24px 10px;
+                -webkit-font-smoothing: antialiased;
             }
             
             .email-container {
                 max-width: 600px;
                 margin: 0 auto;
                 background-color: #ffffff;
-                border-radius: 20px;
+                border-radius: 24px;
                 overflow: hidden;
-                box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
-                border: 1px solid #e5e7eb;
-            }
-            
-            .header {
-                background-color: #ffffff;
-                padding: 40px 20px 30px;
-                text-align: center;
-                position: relative;
-                overflow: hidden;
+                box-shadow: 0 10px 30px rgba(0, 0, 0, 0.05);
+                border: 1px solid #e7e5e4;
             }
             
             .header-accent {
                 display: block;
                 width: 100%;
-                height: 4px;
-                background-color: #fb923c;
+                height: 5px;
+                background: linear-gradient(90deg, #F6841F 0%, #166534 100%);
+            }
+
+            .header {
+                background-color: #ffffff;
+                padding: 36px 20px 24px;
+                text-align: center;
+                border-bottom: 1px solid #f5f5f4;
             }
             
             .logo-img {
-                width: 160px;
-                max-width: 80%;
-                margin: 0 auto 20px;
+                width: 120px;
+                max-width: 100%;
+                margin: 0 auto 10px;
+                display: block;
+            }
+
+            .brand-name {
+                font-family: 'Cormorant Garamond', Georgia, serif;
+                font-size: 26px;
+                font-weight: 700;
+                color: #166534;
+                letter-spacing: 0.5px;
+                text-decoration: none;
                 display: block;
             }
             
             .subtitle {
-                font-size: 18px;
-                font-weight: 700;
-                color: #16a34a;
-                letter-spacing: 0.5px;
+                font-family: 'Montserrat', Arial, sans-serif;
+                font-size: 11px;
+                font-weight: 600;
+                color: #78716c;
+                text-transform: uppercase;
+                letter-spacing: 1.5px;
+                margin-top: 6px;
             }
             
             .content {
-                padding: 50px 40px;
+                padding: 40px 36px;
                 background-color: #ffffff;
             }
             
             .greeting {
-                font-size: 24px;
+                font-family: 'Cormorant Garamond', Georgia, serif;
+                font-size: 26px;
                 font-weight: 700;
-                color: #16a34a;
-                margin-bottom: 25px;
+                color: #166534;
+                margin-bottom: 20px;
                 text-align: left;
+                letter-spacing: -0.01em;
             }
             
             .message {
-                font-size: 17px;
-                color: #374151;
-                margin-bottom: 35px;
-                line-height: 1.8;
+                font-family: 'Montserrat', Arial, sans-serif;
+                font-size: 15px;
+                color: #44403c;
+                margin-bottom: 30px;
+                line-height: 1.75;
                 text-align: left;
-                max-width: 480px;
-                margin-left: 0;
-                margin-right: auto;
             }
             
             .article-preview {
-                border: none;
+                border: 1px solid #fed7aa;
                 border-radius: 20px;
                 overflow: hidden;
                 margin-bottom: 35px;
                 background-color: #fff7ed;
-                box-shadow: 0 10px 25px rgba(253, 186, 116, 0.2);
+                box-shadow: 0 8px 24px rgba(246, 132, 31, 0.12);
+                text-align: center;
             }
             
             .article-image {
@@ -107,76 +124,119 @@ const createEmailTemplate = (title, coverImage, articleId) => {
             }
             
             .article-content {
-                padding: 30px;
+                padding: 28px 24px;
                 background-color: #ffffff;
             }
             
             .article-title {
-                font-size: 22px;
-                font-weight: 800;
-                color: #1f2937;
-                margin-bottom: 20px;
-                line-height: 1.4;
+                font-family: 'Cormorant Garamond', Georgia, serif;
+                font-size: 24px;
+                font-weight: 700;
+                color: #1c1917;
+                margin-bottom: 22px;
+                line-height: 1.35;
                 text-align: center;
+                letter-spacing: -0.01em;
             }
             
             .cta-button {
                 display: inline-block;
-                background-color: #f97316;
-                color: #ffffff;
+                background-color: #F6841F;
+                color: #ffffff !important;
                 text-decoration: none;
+                font-family: 'Montserrat', Arial, sans-serif;
                 font-weight: 700;
-                font-size: 16px;
-                padding: 18px 36px;
-                border-radius: 12px;
-                box-shadow: 0 8px 20px rgba(249, 115, 22, 0.35);
+                font-size: 13px;
+                padding: 15px 36px;
+                border-radius: 50px;
+                box-shadow: 0 4px 14px rgba(246, 132, 31, 0.35);
                 text-transform: uppercase;
-                letter-spacing: 0.5px;
-                width: 100%;
+                letter-spacing: 1px;
                 text-align: center;
-                margin: 0 auto;
+                border: 1px solid #F6841F;
             }
             
-            .cta-button:hover {
-                background-color: #ea580c;
+            .cta-button-secondary {
+                display: inline-block;
+                background-color: #166534;
+                color: #ffffff !important;
+                text-decoration: none;
+                font-family: 'Montserrat', Arial, sans-serif;
+                font-weight: 700;
+                font-size: 13px;
+                padding: 15px 36px;
+                border-radius: 50px;
+                box-shadow: 0 4px 14px rgba(22, 101, 52, 0.28);
+                text-transform: uppercase;
+                letter-spacing: 1px;
+                text-align: center;
+                border: 1px solid #166534;
             }
             
             .divider {
-                height: 2px;
-                background-color: #fdba74;
-                margin: 40px auto;
-                border-radius: 1px;
-                max-width: 200px;
+                height: 1px;
+                background-color: #e7e5e4;
+                margin: 32px 0;
+            }
+
+            .tip-box {
+                background-color: #f0fdf4;
+                border-left: 4px solid #166534;
+                border-radius: 12px;
+                padding: 18px 22px;
+                margin: 24px 0;
+            }
+
+            .tip-text {
+                font-family: 'Montserrat', Arial, sans-serif;
+                color: #166534;
+                font-size: 14px;
+                font-weight: 500;
+                line-height: 1.6;
             }
             
             .footer {
-                background-color: #f8fafc;
-                padding: 40px 30px;
+                background-color: #fafaf9;
+                padding: 36px 30px;
                 text-align: center;
-                border-top: 1px solid #e2e8f0;
+                border-top: 1px solid #f5f5f4;
             }
             
-            .footer-text {
-                color: #64748b;
-                font-size: 15px;
-                margin-bottom: 18px;
-                font-weight: 500;
-            }
-            
-            .footer-text strong {
-                color: #334155;
+            .footer-title {
+                font-family: 'Cormorant Garamond', Georgia, serif;
+                font-size: 18px;
                 font-weight: 700;
-                font-size: 16px;
+                color: #1c1917;
+                margin-bottom: 6px;
+            }
+
+            .footer-text {
+                font-family: 'Montserrat', Arial, sans-serif;
+                color: #78716c;
+                font-size: 13px;
+                line-height: 1.6;
+                margin-bottom: 16px;
+            }
+            
+            .footer-links {
+                font-family: 'Montserrat', Arial, sans-serif;
+                font-size: 12px;
+                margin: 16px 0;
+            }
+
+            .footer-links a {
+                color: #166534;
+                font-weight: 600;
+                text-decoration: none;
+                margin: 0 8px;
             }
             
             .unsubscribe {
-                color: #94a3b8;
-                font-size: 13px;
-                text-decoration: none;
-                padding: 8px 16px;
-                border-radius: 20px;
-                background-color: #f1f5f9;
+                color: #78716c;
+                font-size: 11px;
+                text-decoration: underline;
                 display: inline-block;
+                margin-top: 8px;
             }
         </style>
     </head>
@@ -184,57 +244,75 @@ const createEmailTemplate = (title, coverImage, articleId) => {
         <div class="email-container">
             <div class="header-accent"></div>
             <div class="header">
-                <img src="https://dietwithdee.org/LOGO.png" alt="DietWithDee Logo" class="logo-img" width="120" height="auto" />
-                <div class="subtitle">New Article from Nana Ama Dwamena</div>
+                <a href="https://dietwithdee.org" style="text-decoration: none;">
+                    <img src="https://dietwithdee.org/LOGO.png" alt="DietWithDee Logo" class="logo-img" width="120" height="auto" />
+                    <span class="brand-name">DietWithDee</span>
+                </a>
+                <div class="subtitle">Clinical Nutrition & Wellness • Nana Ama Dwamena, RD</div>
             </div>
             
             <div class="content">
                 <div class="greeting">Hi there,</div>
                 
                 <div class="message">
-                    I just published a new article on Diet With Dee, and I think you’ll find it helpful.<br><br>
-                    Every week I share practical nutrition tips that make healthy living easier — not complicated.<br><br>
-                    If you’re trying to improve your energy, manage your weight, or simply eat better, this one is for you.
+                    I just published a new article on DietWithDee, and I think you’ll find it deeply practical.<br><br>
+                    Every week, I share realistic nutrition strategies tailored to familiar Ghanaian staples—making sustainable health simple, accessible, and enjoyable without deprivation.
                 </div>
                 
-                
-                <div class="article-preview" style="margin-bottom: 40px;">
+                <div class="article-preview">
                     ${coverImage ? `<img src="${coverImage}" alt="${title}" class="article-image" />` : ''}
                     <div class="article-content">
                         <h2 class="article-title">${title}</h2>
-                        <a href="https://dietwithdee.org/blog/${articleId}?utm_source=newsletter&utm_medium=email&utm_campaign=${encodeURIComponent(title.substring(0, 30))}" 
-                           class="cta-button">
-                            READ THE ARTICLE →
-                        </a>
+                        <table role="presentation" cellpadding="0" cellspacing="0" border="0" style="margin: 0 auto;">
+                          <tr>
+                            <td align="center" style="border-radius: 50px; background-color: #F6841F;">
+                              <a href="https://dietwithdee.org/blog/${articleId}?utm_source=newsletter&utm_medium=email&utm_campaign=${encodeURIComponent(title.substring(0, 30))}" 
+                                 class="cta-button">
+                                  Read The Article &rarr;
+                              </a>
+                            </td>
+                          </tr>
+                        </table>
                     </div>
                 </div>
                 
                 <div class="message">
-                    If you want more personalized guidance, I also offer:<br><br>
-                    <ul style="padding-left: 20px; margin-bottom: 25px; margin-top: 0;">
-                        <li style="margin-bottom: 8px;">One-on-one diet consultations</li>
-                        <li style="margin-bottom: 8px;">Customized meal plans</li>
-                        <li style="margin-bottom: 8px;">Specialized programs for weight loss, diabetes management, and heart health</li>
+                    If you’re looking for structured, personal guidance, we also offer:
+                    <ul style="padding-left: 20px; margin: 18px 0; line-height: 1.8;">
+                        <li style="margin-bottom: 6px;">1-on-1 Clinical Dietitian Consultations</li>
+                        <li style="margin-bottom: 6px;">Customized Ghanaian Meal Plans</li>
+                        <li style="margin-bottom: 6px;">Specialized Programs for Blood Sugar & Diabetes, Weight Loss, and Heart Health</li>
                     </ul>
                     
-                    <a href="https://dietwithdee.org/services?utm_source=newsletter&utm_medium=email&utm_campaign=services_upsell" 
-                       class="cta-button" style="background-color: #16a34a; box-shadow: 0 8px 20px rgba(22, 163, 74, 0.35);">
-                        Explore Nutrition Plans →
-                    </a>
+                    <div style="text-align: center; margin-top: 26px;">
+                      <table role="presentation" cellpadding="0" cellspacing="0" border="0" style="margin: 0 auto;">
+                        <tr>
+                          <td align="center" style="border-radius: 50px; background-color: #166534;">
+                            <a href="https://dietwithdee.org/services?utm_source=newsletter&utm_medium=email&utm_campaign=services_upsell" 
+                               class="cta-button-secondary">
+                                Explore Nutrition Plans &rarr;
+                            </a>
+                          </td>
+                        </tr>
+                      </table>
+                    </div>
                 </div>
             </div>
             
             <div class="footer">
+                <div class="footer-title">DietWithDee</div>
                 <div class="footer-text">
-                    <strong>Diet With Dee</strong><br>
-                    Accra, Ghana
+                    Helping you build healthier habits for life with authentic local meals. &bull; Accra, Ghana
                 </div>
-                <div class="footer-text">
-                    Helping you build healthier habits for life.
+                <div class="footer-links">
+                    <a href="https://dietwithdee.org/plans">Meal Plans</a> &bull;
+                    <a href="https://dietwithdee.org/services">Consultations</a> &bull;
+                    <a href="https://dietwithdee.org/ontrack" style="color: #F6841F;">OnTrack App</a> &bull;
+                    <a href="https://dietwithdee.org/blog">Blog</a>
                 </div>
-                <div class="footer-text" style="margin-top: 20px;">
-                    You’re receiving this email because you subscribed to the Diet With Dee newsletter.<br><br>
-                    <a href="https://dietwithdee.org/unsubscribe" class="unsubscribe">Unsubscribe</a>
+                <div class="footer-text" style="font-size: 11px; margin-top: 14px;">
+                    You’re receiving this email because you subscribed to the DietWithDee newsletter.<br>
+                    <a href="https://dietwithdee.org/unsubscribe" class="unsubscribe">Unsubscribe from this newsletter</a>
                 </div>
             </div>
         </div>
@@ -250,15 +328,21 @@ const createWelcomeTemplate = (name) => {
       <head>
           <meta charset="UTF-8">
           <meta name="viewport" content="width=device-width, initial-scale=1.0">
-          <title>Welcome to Diet With Dee</title>
+          <meta name="color-scheme" content="light">
+          <meta name="supported-color-schemes" content="light">
+          <title>Welcome to the DietWithDee Community</title>
+          <link rel="preconnect" href="https://fonts.googleapis.com">
+          <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+          <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@600;700&family=Montserrat:wght@400;500;600;700&display=swap" rel="stylesheet">
           <style>
               body {
-                  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-                  line-height: 1.6;
-                  color: #1f2937;
-                  background-color: #f0fdf4;
-                  padding: 20px 0;
+                  font-family: 'Montserrat', -apple-system, BlinkMacSystemFont, Arial, sans-serif;
+                  line-height: 1.7;
+                  color: #1c1917;
+                  background-color: #FAF9F6;
+                  padding: 24px 10px;
                   margin: 0;
+                  -webkit-font-smoothing: antialiased;
               }
               .container {
                   max-width: 600px;
@@ -266,44 +350,98 @@ const createWelcomeTemplate = (name) => {
                   background-color: #ffffff;
                   border-radius: 24px;
                   overflow: hidden;
-                  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
-                  border: 1px solid #e5e7eb;
+                  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.05);
+                  border: 1px solid #e7e5e4;
+              }
+              .header-accent {
+                  height: 5px;
+                  background: linear-gradient(90deg, #F6841F 0%, #166534 100%);
               }
               .header {
                   background-color: #ffffff;
-                  padding: 40px 20px;
+                  padding: 36px 20px 24px;
                   text-align: center;
+                  border-bottom: 1px solid #f5f5f4;
               }
               .header h1 {
-                  color: #16a34a;
-                  margin: 20px 0 0;
-                  font-size: 28px;
+                  font-family: 'Cormorant Garamond', Georgia, serif;
+                  color: #166534;
+                  margin: 16px 0 0;
+                  font-size: 30px;
+                  font-weight: 700;
+                  letter-spacing: -0.01em;
+              }
+              .brand-name {
+                  font-family: 'Cormorant Garamond', Georgia, serif;
+                  font-size: 24px;
+                  font-weight: 700;
+                  color: #166534;
+                  letter-spacing: 0.5px;
+                  display: block;
               }
               .content {
-                  padding: 40px;
+                  padding: 40px 36px;
               }
-              .footer {
-                  background-color: #f8fafc;
-                  padding: 30px;
-                  text-align: center;
+              .content p {
+                  font-size: 15px;
+                  color: #44403c;
+                  line-height: 1.75;
+                  margin-bottom: 18px;
+              }
+              .content ul {
+                  margin: 18px 0;
+                  padding-left: 22px;
+                  color: #44403c;
                   font-size: 14px;
-                  color: #64748b;
-                  border-top: 1px solid #e2e8f0;
+                  line-height: 1.8;
               }
               .button {
                   display: inline-block;
-                  background-color: #f97316;
-                  color: #ffffff;
+                  background-color: #F6841F;
+                  color: #ffffff !important;
                   text-decoration: none;
+                  font-family: 'Montserrat', Arial, sans-serif;
                   font-weight: 700;
-                  padding: 16px 32px;
-                  border-radius: 12px;
-                  margin-top: 20px;
+                  font-size: 13px;
+                  padding: 15px 36px;
+                  border-radius: 50px;
                   text-transform: uppercase;
-                  letter-spacing: 0.5px;
+                  letter-spacing: 1px;
+                  box-shadow: 0 4px 14px rgba(246, 132, 31, 0.35);
+                  border: 1px solid #F6841F;
+              }
+              .reply-card {
+                  margin: 32px 0 24px;
+                  background-color: #f0fdf4;
+                  padding: 22px 24px;
+                  border-radius: 16px;
+                  border: 1px solid #bbf7d0;
+                  border-left: 4px solid #166534;
+                  text-align: left;
+              }
+              .reply-card h4 {
+                  margin: 0 0 6px;
+                  font-family: 'Montserrat', Arial, sans-serif;
+                  font-weight: 700;
+                  font-size: 15px;
+                  color: #166534;
+              }
+              .reply-card p {
+                  margin: 0;
+                  font-size: 14px;
+                  color: #166534;
+                  line-height: 1.6;
+              }
+              .footer {
+                  background-color: #fafaf9;
+                  padding: 30px;
+                  text-align: center;
+                  font-size: 12px;
+                  color: #78716c;
+                  border-top: 1px solid #f5f5f4;
               }
               .logo {
-                  width: 160px;
+                  width: 120px;
                   max-width: 80%;
                   margin: 0 auto;
                   display: block;
@@ -312,36 +450,48 @@ const createWelcomeTemplate = (name) => {
       </head>
       <body>
           <div class="container">
+              <div class="header-accent"></div>
               <div class="header">
                   <img src="https://dietwithdee.org/LOGO.png" alt="DietWithDee Logo" class="logo" />
                   <h1>Welcome to the Family! 🌿</h1>
               </div>
               <div class="content">
                   <p>Hi ${name || 'there'},</p>
-                  <p>I'm so glad you've decided to join the <strong>Diet With Dee</strong> community! You've taken a wonderful step toward a more nourished and balanced lifestyle.</p>
-                  <p>Here’s what you can expect from our newsletter:</p>
+                  <p>I’m so glad you’ve decided to join the <strong>DietWithDee</strong> community! You’ve taken a wonderful step toward a more nourished, energized, and balanced lifestyle.</p>
+                  <p>Here’s what you can expect in your inbox:</p>
                   <ul>
-                      <li>Healthy recipes that actually taste good.</li>
-                      <li>Practical nutrition tips you can use every day.</li>
-                      <li>Updates on new blog posts and wellness insights.</li>
-                      <li>Priority access to my nutrition programs.</li>
+                      <li>Healthy Ghanaian recipes that actually taste mouthwatering.</li>
+                      <li>Practical, sustainable nutrition tips you can use every single day.</li>
+                      <li>New blog articles, wellness guides, and local meal pairing insights.</li>
+                      <li>Priority access to consultations and specialized meal plans.</li>
                   </ul>
-                  <p>While you wait for the first update, why not explore some of our latest articles?</p>
-                  <div style="text-align: center;">
-                      <a href="https://dietwithdee.org/blog?utm_source=welcome_email&utm_medium=email&utm_campaign=welcome_cta" class="button">Explore the Blog</a>
+                  <p>While you wait for our next weekly edition, explore our latest wellness articles and meal blueprints:</p>
+                  <div style="text-align: center; margin: 28px 0;">
+                      <table role="presentation" cellpadding="0" cellspacing="0" border="0" style="margin: 0 auto;">
+                        <tr>
+                          <td align="center" style="border-radius: 50px; background-color: #F6841F;">
+                            <a href="https://dietwithdee.org/blog?utm_source=welcome_email&utm_medium=email&utm_campaign=welcome_cta" class="button">
+                                Explore The Blog &rarr;
+                            </a>
+                          </td>
+                        </tr>
+                      </table>
                   </div>
-                  <div style="margin-top: 30px; background-color: #f0fdf4; padding: 20px; border-radius: 12px; border: 1px solid #dcfce7; text-align: center;">
-                      <p style="margin-bottom: 5px; font-weight: 700; color: #16a34a;">I'd love to hear from you!</p>
-                      <p style="margin: 0; font-size: 15px;">Reply to this email and let me know: <strong>What is your biggest health or nutrition goal right now?</strong><br>(I read and reply to every message!)</p>
+                  <div class="reply-card">
+                      <h4>I’d love to hear from you!</h4>
+                      <p>Reply directly to this email and tell me: <strong>What is your #1 health or nutrition goal right now?</strong><br>I read and reply to every message personally.</p>
                   </div>
-                  <p style="margin-top: 30px;">To your health,<br><strong>Nana Ama Dwamena</strong><br>Founder, Diet With Dee</p>
+                  <p style="margin-top: 28px; font-size: 14px; color: #44403c;">
+                      To your wellness,<br>
+                      <strong style="color: #1c1917; font-size: 15px;">Nana Ama Dwamena, RD</strong><br>
+                      <span style="color: #78716c; font-size: 13px;">Founder & Clinical Dietitian, DietWithDee</span>
+                  </p>
               </div>
               <div class="footer">
-                  <p>&copy; ${new Date().getFullYear()} Diet With Dee. All rights reserved.</p>
-                  <p>Accra, Ghana</p>
-                  <p>Helping you build healthier habits for life.</p>
-                  <p style="margin-top: 20px; font-size: 12px; opacity: 0.7;">
-                    No longer want to hear from us? <a href="https://dietwithdee.org/unsubscribe" style="color: #64748b; text-decoration: underline;">Unsubscribe here</a>
+                  <p style="margin: 0 0 6px;">&copy; ${new Date().getFullYear()} DietWithDee. All rights reserved. &bull; Accra, Ghana</p>
+                  <p style="margin: 0 0 14px;">Helping you build healthier habits for life.</p>
+                  <p style="margin: 0; font-size: 11px;">
+                    No longer want to hear from us? <a href="https://dietwithdee.org/unsubscribe" style="color: #78716c; text-decoration: underline;">Unsubscribe here</a>
                   </p>
               </div>
           </div>
@@ -408,170 +558,188 @@ const createSurveyVoucherTemplate = ({ email, selectedPlan, discountCode }) => {
       <head>
           <meta charset="UTF-8">
           <meta name="viewport" content="width=device-width, initial-scale=1.0">
-          <title>Your 20% Discount Voucher for ${planTitle} — Diet With Dee</title>
+          <meta name="color-scheme" content="light">
+          <meta name="supported-color-schemes" content="light">
+          <title>Your 20% Discount Voucher for ${planTitle} — DietWithDee</title>
+          <link rel="preconnect" href="https://fonts.googleapis.com">
+          <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+          <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@600;700&family=Montserrat:wght@400;500;600;700&display=swap" rel="stylesheet">
           <style>
               body {
-                  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
-                  line-height: 1.6;
-                  color: #1f2937;
-                  background-color: #f8faf9;
-                  padding: 24px 12px;
+                  font-family: 'Montserrat', -apple-system, BlinkMacSystemFont, Arial, sans-serif;
+                  line-height: 1.7;
+                  color: #1c1917;
+                  background-color: #FAF9F6;
+                  padding: 24px 10px;
                   margin: 0;
+                  -webkit-font-smoothing: antialiased;
               }
               .container {
-                  max-width: 560px;
+                  max-width: 580px;
                   margin: 0 auto;
                   background-color: #ffffff;
-                  border-radius: 20px;
+                  border-radius: 24px;
                   overflow: hidden;
                   box-shadow: 0 10px 30px rgba(0, 0, 0, 0.05);
-                  border: 1px solid #e5e7eb;
+                  border: 1px solid #e7e5e4;
+              }
+              .header-accent {
+                  height: 5px;
+                  background: linear-gradient(90deg, #F6841F 0%, #166534 100%);
               }
               .header {
                   background-color: #ffffff;
-                  padding: 32px 24px 16px;
+                  padding: 32px 24px 18px;
                   text-align: center;
+                  border-bottom: 1px solid #f5f5f4;
               }
               .logo {
-                  width: 140px;
+                  width: 120px;
                   max-width: 75%;
                   margin: 0 auto;
                   display: block;
               }
               .badge {
                   display: inline-block;
-                  background-color: #ecfdf5;
-                  color: #065f46;
+                  background-color: #f0fdf4;
+                  color: #166534;
+                  font-family: 'Montserrat', Arial, sans-serif;
                   font-size: 11px;
-                  font-weight: 800;
+                  font-weight: 700;
                   text-transform: uppercase;
                   letter-spacing: 1px;
-                  padding: 6px 14px;
-                  border-radius: 9999px;
-                  border: 1px solid #a7f3d0;
+                  padding: 6px 16px;
+                  border-radius: 50px;
+                  border: 1px solid #bbf7d0;
                   margin-top: 14px;
               }
               .content {
-                  padding: 20px 28px 32px;
+                  padding: 32px 30px;
               }
               .ticket-card {
                   background: #fbfdfc;
-                  border: 1px solid #d1fae5;
-                  border-radius: 16px;
-                  padding: 22px;
-                  margin: 22px 0;
+                  border: 1px solid #bbf7d0;
+                  border-radius: 20px;
+                  padding: 26px 20px;
+                  margin: 24px 0;
                   text-align: center;
-                  box-shadow: 0 4px 14px rgba(5, 150, 105, 0.04);
+                  box-shadow: 0 4px 16px rgba(22, 101, 52, 0.06);
               }
               .code-pill {
                   font-family: 'Courier New', Courier, monospace;
                   font-size: 26px;
                   font-weight: 900;
                   letter-spacing: 3px;
-                  color: #064e3b;
+                  color: #166534;
                   background: #ffffff;
-                  padding: 10px 22px;
-                  border-radius: 10px;
+                  padding: 10px 24px;
+                  border-radius: 12px;
                   display: inline-block;
-                  border: 2px dashed #059669;
-                  margin: 10px 0 6px;
+                  border: 2px dashed #166534;
+                  margin: 12px 0 8px;
               }
               .btn-primary {
-                  display: block;
-                  background-color: #059669;
-                  background: linear-gradient(135deg, #059669 0%, #047857 100%);
+                  display: inline-block;
+                  background-color: #F6841F;
                   color: #ffffff !important;
                   text-decoration: none;
-                  font-weight: 800;
-                  font-size: 15px;
-                  padding: 16px 22px;
-                  border-radius: 12px;
+                  font-family: 'Montserrat', Arial, sans-serif;
+                  font-weight: 700;
+                  font-size: 14px;
+                  padding: 16px 36px;
+                  border-radius: 50px;
                   text-align: center;
                   margin-top: 18px;
-                  box-shadow: 0 6px 16px rgba(5, 150, 105, 0.25);
+                  box-shadow: 0 4px 14px rgba(246, 132, 31, 0.35);
+                  text-transform: uppercase;
+                  letter-spacing: 1px;
+                  border: 1px solid #F6841F;
               }
               .steps-box {
-                  background-color: #f9fafb;
-                  border: 1px solid #e5e7eb;
-                  border-radius: 12px;
-                  padding: 16px 18px;
-                  margin-top: 20px;
+                  background-color: #fafaf9;
+                  border: 1px solid #e7e5e4;
+                  border-radius: 16px;
+                  padding: 18px 20px;
+                  margin-top: 24px;
                   text-align: left;
                   font-size: 13px;
-                  color: #374151;
-                  line-height: 1.5;
+                  color: #44403c;
+                  line-height: 1.6;
               }
               .footer {
-                  background-color: #f9fafb;
-                  padding: 22px;
+                  background-color: #fafaf9;
+                  padding: 24px;
                   text-align: center;
                   font-size: 12px;
-                  color: #6b7280;
-                  border-top: 1px solid #f3f4f6;
+                  color: #78716c;
+                  border-top: 1px solid #f5f5f4;
               }
           </style>
       </head>
       <body>
           <div class="container">
+              <div class="header-accent"></div>
               <div class="header">
                   <img src="https://dietwithdee.org/LOGO.png" alt="DietWithDee Logo" class="logo" />
                   <div class="badge">🎁 20% DISCOUNT VOUCHER</div>
-                  <h1 style="color: #111827; font-size: 22px; font-weight: 800; margin: 14px 0 4px;">Your 20% Discount is Ready!</h1>
+                  <h1 style="font-family: 'Cormorant Garamond', Georgia, serif; color: #1c1917; font-size: 26px; font-weight: 700; margin: 16px 0 4px;">Your 20% Discount is Ready!</h1>
               </div>
 
               <div class="content">
-                  <p style="font-size: 14px; color: #4b5563; margin: 0 0 14px;">
+                  <p style="font-size: 15px; color: #44403c; margin: 0 0 14px;">
                       Hi there,
                   </p>
-                  <p style="font-size: 14px; color: #4b5563; line-height: 1.6; margin: 0 0 18px;">
-                      Thank you so much for taking a moment to complete our community survey. As a token of our appreciation, here is your exclusive <strong>20% discount voucher</strong> for <strong>${planTitle}</strong>!
+                  <p style="font-size: 15px; color: #44403c; line-height: 1.7; margin: 0 0 20px;">
+                      Thank you so much for taking a moment to complete our community survey. As our appreciation, here is your exclusive <strong>20% discount voucher</strong> for the <strong>${planTitle}</strong>!
                   </p>
 
                   <!-- Unified Ticket Card -->
                   <div class="ticket-card">
-                      <div style="font-size: 11px; font-weight: 800; color: #059669; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 2px;">
+                      <div style="font-family: 'Montserrat', Arial, sans-serif; font-size: 11px; font-weight: 700; color: #166534; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 4px;">
                           Your Selected Plan
                       </div>
-                      <h2 style="font-size: 20px; font-weight: 800; color: #111827; margin: 2px 0 4px;">
+                      <h2 style="font-family: 'Cormorant Garamond', Georgia, serif; font-size: 24px; font-weight: 700; color: #1c1917; margin: 2px 0 4px;">
                           ${planTitle}
                       </h2>
-                      <p style="font-size: 12px; color: #6b7280; margin: 0 0 12px;">
+                      <p style="font-family: 'Montserrat', Arial, sans-serif; font-size: 13px; color: #78716c; margin: 0 0 14px;">
                           ${planSubtitle}
                       </p>
 
-                      <div style="margin: 10px 0 14px;">
-                          <span style="text-decoration: line-through; color: #9ca3af; font-size: 14px; margin-right: 6px;">${normalPrice}</span>
-                          <span style="color: #047857; font-weight: 900; font-size: 24px;">${discountPrice}</span>
-                          <span style="background-color: #ecfdf5; color: #065f46; font-size: 11px; font-weight: 800; padding: 2px 8px; border-radius: 9999px; margin-left: 6px; border: 1px solid #a7f3d0;">
+                      <div style="margin: 12px 0 16px;">
+                          <span style="text-decoration: line-through; color: #a8a29e; font-size: 15px; margin-right: 8px;">${normalPrice}</span>
+                          <span style="color: #166534; font-weight: 800; font-size: 26px;">${discountPrice}</span>
+                          <span style="background-color: #f0fdf4; color: #166534; font-size: 11px; font-weight: 700; padding: 3px 10px; border-radius: 50px; margin-left: 8px; border: 1px solid #bbf7d0;">
                               SAVE 20%
                           </span>
                       </div>
 
-                      <div style="font-size: 11px; font-weight: 700; color: #6b7280; text-transform: uppercase; letter-spacing: 1px; margin-top: 8px;">
+                      <div style="font-family: 'Montserrat', Arial, sans-serif; font-size: 11px; font-weight: 700; color: #78716c; text-transform: uppercase; letter-spacing: 1px; margin-top: 10px;">
                           Your Coupon Code
                       </div>
                       <div class="code-pill">${code}</div>
 
-                      <!-- Clean on-brand CTA button directly to Paystack -->
-                      <a href="${paystackDirectUrl}" class="btn-primary">
-                          Open Paystack & Claim 20% Off →
-                      </a>
+                      <!-- Clean on-brand CTA pill button -->
+                      <div style="text-align: center;">
+                        <a href="${paystackDirectUrl}" class="btn-primary">
+                            Claim 20% Off on Paystack &rarr;
+                        </a>
+                      </div>
                   </div>
 
                   <!-- Simple 3-step Instructions -->
                   <div class="steps-box">
-                      <div style="font-weight: 800; font-size: 13px; margin-bottom: 8px; color: #111827;">
+                      <div style="font-weight: 700; font-size: 14px; margin-bottom: 8px; color: #1c1917;">
                           📋 How to apply your 20% code on Paystack:
                       </div>
-                      <ol style="margin: 0; padding-left: 18px; color: #4b5563; font-size: 13px;">
+                      <ol style="margin: 0; padding-left: 18px; color: #44403c; font-size: 13px; line-height: 1.7;">
                           <li style="margin-bottom: 6px;">
-                              Click the <strong>green button above</strong> to open your Paystack checkout page.
+                              Click the <strong>orange button above</strong> to open your Paystack checkout.
                           </li>
                           <li style="margin-bottom: 6px;">
-                              Tap <strong style="color: #059669; text-decoration: underline;">"Have a discount code?"</strong> right below the price.
+                              Tap <strong style="color: #F6841F; text-decoration: underline;">"Have a discount code?"</strong> right below the price.
                           </li>
                           <li style="margin-bottom: 6px;">
-                              Type or paste: <strong style="font-family: monospace; color: #064e3b; background: #ecfdf5; padding: 1px 6px; border-radius: 4px; border: 1px solid #a7f3d0;">${code}</strong> and tap <strong>Apply</strong>.
+                              Type or paste: <strong style="font-family: monospace; color: #166534; background: #f0fdf4; padding: 2px 8px; border-radius: 6px; border: 1px solid #bbf7d0;">${code}</strong> and tap <strong>Apply</strong>.
                           </li>
                           <li style="margin-bottom: 0;">
                               The price drops to <strong>${discountPrice}</strong>. Pay securely via Mobile Money (MTN / Telecel) or Bank Card!
@@ -580,28 +748,28 @@ const createSurveyVoucherTemplate = ({ email, selectedPlan, discountCode }) => {
                   </div>
 
                   <!-- WhatsApp consultation -->
-                  <div style="margin-top: 24px; text-align: center;">
-                      <p style="font-size: 13px; color: #6b7280; margin: 0 0 10px;">
+                  <div style="margin-top: 26px; text-align: center;">
+                      <p style="font-size: 13px; color: #78716c; margin: 0 0 10px;">
                           Have a question or want to chat with Dee first?
                       </p>
-                      <a href="${whatsappUrl}" style="display: inline-block; background-color: #25D366; color: #ffffff !important; text-decoration: none; font-weight: 700; font-size: 13px; padding: 10px 18px; border-radius: 10px;">
+                      <a href="${whatsappUrl}" style="display: inline-block; background-color: #25D366; color: #ffffff !important; text-decoration: none; font-family: 'Montserrat', Arial, sans-serif; font-weight: 700; font-size: 13px; padding: 12px 24px; border-radius: 50px; box-shadow: 0 4px 12px rgba(37, 211, 102, 0.25);">
                           💬 Chat on WhatsApp (+233 59 233 0870)
                       </a>
                   </div>
 
-                  <p style="margin-top: 28px; font-size: 13px; color: #6b7280;">
+                  <p style="margin-top: 30px; font-size: 14px; color: #78716c;">
                       To your wellness,<br>
-                      <strong>Nana Ama Dwamena</strong><br>
-                      <span style="color: #9ca3af; font-size: 12px;">Founder & Dietitian, Diet With Dee</span>
+                      <strong style="color: #1c1917;">Nana Ama Dwamena, RD</strong><br>
+                      <span style="color: #a8a29e; font-size: 12px;">Founder & Clinical Dietitian, DietWithDee</span>
                   </p>
               </div>
 
               <div class="footer">
-                  <p style="margin: 0 0 4px;">&copy; ${new Date().getFullYear()} Diet With Dee. All rights reserved.</p>
-                  <p style="margin: 0 0 6px;">Accra, Ghana • Practical nutrition for everyday healthy living.</p>
-                  <p style="margin: 12px 0 0; font-size: 11px;">
+                  <p style="margin: 0 0 4px;">&copy; ${new Date().getFullYear()} DietWithDee. All rights reserved. &bull; Accra, Ghana</p>
+                  <p style="margin: 0 0 8px;">Practical nutrition for everyday healthy living.</p>
+                  <p style="margin: 0; font-size: 11px;">
                       You received this email because you submitted the DietWithDee survey.<br>
-                      <a href="https://dietwithdee.org/unsubscribe" style="color: #9ca3af; text-decoration: underline;">Unsubscribe</a>
+                      <a href="https://dietwithdee.org/unsubscribe" style="color: #78716c; text-decoration: underline;">Unsubscribe</a>
                   </p>
               </div>
           </div>

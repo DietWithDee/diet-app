@@ -11,9 +11,11 @@ createRoot(document.getElementById("root")).render(
   </StrictMode>,
 );
 
-// ✅ Register service worker for PWA using vite-plugin-pwa (after DOM is ready)
-if ("serviceWorker" in navigator && document.readyState === "loading") {
-  document.addEventListener("DOMContentLoaded", () => {
+// ✅ Register service worker for PWA only in production builds.
+// In local dev, proactively unregister any lingering service workers and clear caches
+// so stale chunks and multiple instances of React / Firebase never clash.
+if (import.meta.env.PROD && "serviceWorker" in navigator) {
+  const register = () => {
     const updateSW = registerSW({
       onNeedRefresh() {
         if (confirm("New content available. Reload?")) {
@@ -24,16 +26,22 @@ if ("serviceWorker" in navigator && document.readyState === "loading") {
         console.log("App ready to work offline");
       },
     });
+  };
+
+  if (document.readyState === "loading") {
+    document.addEventListener("DOMContentLoaded", register);
+  } else {
+    register();
+  }
+} else if (import.meta.env.DEV && "serviceWorker" in navigator) {
+  navigator.serviceWorker.getRegistrations().then((registrations) => {
+    for (const registration of registrations) {
+      registration.unregister();
+    }
   });
-} else if ("serviceWorker" in navigator) {
-  const updateSW = registerSW({
-    onNeedRefresh() {
-      if (confirm("New content available. Reload?")) {
-        updateSW(true);
-      }
-    },
-    onOfflineReady() {
-      console.log("App ready to work offline");
-    },
-  });
+  if ("caches" in window) {
+    caches.keys().then((keys) => {
+      keys.forEach((key) => caches.delete(key));
+    });
+  }
 }

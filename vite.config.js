@@ -2,7 +2,6 @@ import { defineConfig } from 'vite'
 import react from '@vitejs/plugin-react'
 import tailwindcss from '@tailwindcss/vite'
 import { VitePWA } from 'vite-plugin-pwa'
-import path from 'path'
 
 // https://vite.dev/config/
 export default defineConfig({
@@ -11,6 +10,9 @@ export default defineConfig({
     tailwindcss(),
     VitePWA({
       registerType: 'autoUpdate',
+      devOptions: {
+        enabled: false,
+      },
       includeAssets: ['favicon.ico', 'apple-touch-icon.png', 'LOGO.png', 'dietwithdee.svg', 'icon-192x192.png', 'icon-512x512.png'],
       manifest: {
         short_name: "DietWithDee",
@@ -77,16 +79,42 @@ export default defineConfig({
     exclude: []
   },
   resolve: {
-    dedupe: ['react', 'react-dom', 'react-router', 'react-router-dom'],
-    alias: {
-      // Pin every import of react / react-dom to the single installed copy,
-      // preventing Vite's CJS interop from creating a second React instance.
-      'react': path.resolve('node_modules/react'),
-      'react-dom': path.resolve('node_modules/react-dom'),
-    },
+    dedupe: [
+      'react',
+      'react-dom',
+      'react-router',
+      'react-router-dom',
+      '@firebase/app',
+      '@firebase/auth',
+      '@firebase/firestore',
+      'firebase',
+    ],
   },
   optimizeDeps: {
-    include: ['react', 'react-dom', 'react-router', 'react-router-dom'],
+    include: [
+      'react',
+      'react/jsx-runtime',
+      'react/jsx-dev-runtime',
+      'react-dom',
+      'react-dom/client',
+      'react-router',
+      'react-router-dom',
+      'firebase/app',
+      'firebase/auth',
+      'firebase/firestore',
+      'firebase/storage',
+      'firebase/analytics',
+      'firebase/functions',
+      'framer-motion',
+      'fuse.js',
+      'html2canvas-pro',
+      'lucide-react',
+      'react-helmet-async',
+      'recharts',
+      'react-slick',
+      'react-lazy-load-image-component',
+      'web-haptics/react',
+    ],
   },
   base: "/",
 })

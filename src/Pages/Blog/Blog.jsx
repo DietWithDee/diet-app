@@ -1,8 +1,8 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo, useCallback } from 'react';
 import SEO from '../../Components/SEO';
-import { useNavigate, useParams, useLocation } from 'react-router-dom';
-import { Loader, Calendar, User, ArrowRight, ArrowLeft, Share2, Heart, MessageCircle, Tag } from 'lucide-react';
-import { getArticlesPaged, getArticleBySlugOrId, likeNews, markArticleHelpful } from '../../firebaseUtils';
+import { useNavigate, useParams, useLocation, useSearchParams } from 'react-router-dom';
+import { Loader, Calendar, User, ArrowRight, ArrowLeft, Share2, Heart, MessageCircle, Tag, Search, X } from 'lucide-react';
+import { getArticlesPaged, getArticles, getArticleBySlugOrId, getArticleTags, likeNews, markArticleHelpful } from '../../firebaseUtils';
 import BlogImage from '../../assets/LOGO.webp'; // Fallback image (Logo)
 import BlogArticleSEO from '../../Components/BlogArticleSEO';
 import ScrollHideRefreshButton from '../../utils/ScrollHideRefreshButton';
@@ -12,10 +12,14 @@ import 'react-lazy-load-image-component/src/effects/blur.css';
 import { logEvent } from 'firebase/analytics';
 import { analytics } from '../../firebaseConfig';
 
+const DEFAULT_TAGS = ['Weight Loss', 'Diabetes', 'Meal Planning', 'Healthy Eating', 'Hypertension'];
+
 function Blog() {
   const navigate = useNavigate();
   const location = useLocation();
+  const [searchParams, setSearchParams] = useSearchParams();
   const { slugOrId: routeId } = useParams();
+
   const [blogPosts, setBlogPosts] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -27,9 +31,61 @@ function Blog() {
   const [lastVisibleDoc, setLastVisibleDoc] = useState(null);
   const [hasMore, setHasMore] = useState(true);
   const [isLoadingMore, setIsLoadingMore] = useState(false);
+  const [hasLoadedAll, setHasLoadedAll] = useState(false);
+  const [availableTags, setAvailableTags] = useState([]);
+  const [searchQuery, setSearchQuery] = useState(() => searchParams.get('search') || '');
+  const [selectedTag, setSelectedTag] = useState(() => searchParams.get('tag') || null);
   const [isInitialLoadingArticle, setIsInitialLoadingArticle] = useState(
     () => Boolean(routeId && !location.state?.article)
   );
+
+  // Sync state with URL params
+  useEffect(() => {
+    const tagFromUrl = searchParams.get('tag');
+    const searchFromUrl = searchParams.get('search');
+
+    if (tagFromUrl !== selectedTag) {
+      setSelectedTag(tagFromUrl || null);
+    }
+    if (searchFromUrl !== searchQuery) {
+      setSearchQuery(searchFromUrl || '');
+    }
+
+    if (tagFromUrl || searchFromUrl) {
+      ensureAllArticlesLoaded();
+    }
+  }, [searchParams]);
+
+  // Fetch all tags from Firestore for suggestions
+  useEffect(() => {
+    let isMounted = true;
+    const fetchTags = async () => {
+      try {
+        const res = await getArticleTags();
+        if (isMounted && res.success && Array.isArray(res.data) && res.data.length > 0) {
+          setAvailableTags(res.data);
+        }
+      } catch (err) {
+        console.warn('Could not fetch article tags:', err);
+      }
+    };
+    fetchTags();
+    return () => { isMounted = false; };
+  }, []);
+
+  const ensureAllArticlesLoaded = useCallback(async () => {
+    if (hasLoadedAll) return;
+    try {
+      const res = await getArticles(false);
+      if (res.success && res.data) {
+        setBlogPosts(res.data);
+        setHasLoadedAll(true);
+        setHasMore(false);
+      }
+    } catch (err) {
+      console.error('Error fetching all articles for search/filter:', err);
+    }
+  }, [hasLoadedAll]);
 
   useEffect(() => {
     if (!routeId) {
@@ -106,7 +162,7 @@ function Blog() {
         setIsInitialLoadingArticle(false);
       }
     };
-    
+
     fetchSingleArticle();
   }, [routeId, blogPosts]);
 
@@ -146,14 +202,13 @@ function Blog() {
     }
   };
 
-
   const loadMoreArticles = async () => {
-    if (isLoadingMore || !hasMore) return;
-    
+    if (isLoadingMore || !hasMore || hasLoadedAll) return;
+
     setIsLoadingMore(true);
     try {
       const result = await getArticlesPaged(6, lastVisibleDoc);
-      
+
       if (result.success) {
         const newPosts = result.data || [];
         setBlogPosts(prev => [...prev, ...newPosts]);
@@ -192,9 +247,7 @@ function Blog() {
           }));
         }
       } else {
-        // Show error message
         console.log(result.message);
-        // You could show a toast notification here
       }
     } catch (error) {
       console.error('Error liking article:', error);
@@ -249,16 +302,12 @@ function Blog() {
       }
     } catch (error) {
       console.error('Error submitting feedback:', error);
-    } finally {
-      // Keep the article in feedbackArticles to prevent multiple submissions
-      // Don't remove it from the set
     }
   };
 
   const formatDate = (timestamp) => {
     if (!timestamp) return 'Unknown date';
 
-    // Handle Firestore Timestamp
     if (timestamp.toDate) {
       return timestamp.toDate().toLocaleDateString('en-US', {
         year: 'numeric',
@@ -267,7 +316,6 @@ function Blog() {
       });
     }
 
-    // Handle regular Date or string
     return new Date(timestamp).toLocaleDateString('en-US', {
       year: 'numeric',
       month: 'long',
@@ -276,13 +324,12 @@ function Blog() {
   };
 
   const stripHtml = (html) => {
-    const tmp = document.createElement('div');
-    tmp.innerHTML = html;
-    return tmp.textContent || tmp.innerText || '';
+    if (!html) return '';
+    return html.replace(/<[^>]*>/g, ' ');
   };
 
   const createSummary = (content, maxLength = 150) => {
-    const plainText = stripHtml(content);
+    const plainText = stripHtml(content).replace(/\s+/g, ' ').trim();
     return plainText.length > maxLength
       ? plainText.substring(0, maxLength) + '...'
       : plainText;
@@ -293,35 +340,33 @@ function Blog() {
     try {
       const parser = new DOMParser();
       const doc = parser.parseFromString(html, 'text/html');
-      
-      // Helper to generate the card safely
+
       const createPlanCard = (url, linkText) => {
         let displayTitle = linkText;
         const isAllPlans = url.includes('/plans') && !url.includes('#');
-        
-        // If it's a raw URL with no text (or identical text), format the URL explicitly into a readable title
+
         if (!displayTitle || displayTitle.trim() === url.trim() || displayTitle.startsWith('http') || displayTitle.startsWith('/plans')) {
-           const match = url.match(/\/(?:pay|product|buy)\/([a-zA-Z0-9_-]+)/);
-           if (match && match[1]) {
-             displayTitle = match[1].replace(/-/g, ' ');
-             displayTitle = displayTitle.split(' ').map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(' ') + " Plan";
-           } else if (url.includes('/plans')) {
-             const hashMatch = url.match(/#([a-zA-Z0-9_-]+)/);
-             if (hashMatch && hashMatch[1]) {
-               displayTitle = hashMatch[1].replace(/-/g, ' ');
-               displayTitle = displayTitle.split(' ').map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(' ') + " Plan";
-             } else {
-               displayTitle = 'View All Plans';
-             }
-           } else {
-             displayTitle = 'Premium Plan';
-           }
+          const match = url.match(/\/(?:pay|product|buy)\/([a-zA-Z0-9_-]+)/);
+          if (match && match[1]) {
+            displayTitle = match[1].replace(/-/g, ' ');
+            displayTitle = displayTitle.split(' ').map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(' ') + ' Plan';
+          } else if (url.includes('/plans')) {
+            const hashMatch = url.match(/#([a-zA-Z0-9_-]+)/);
+            if (hashMatch && hashMatch[1]) {
+              displayTitle = hashMatch[1].replace(/-/g, ' ');
+              displayTitle = displayTitle.split(' ').map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(' ') + ' Plan';
+            } else {
+              displayTitle = 'View All Plans';
+            }
+          } else {
+            displayTitle = 'Premium Plan';
+          }
         }
-        
+
         const buttonText = isAllPlans ? 'View All Plans' : 'View Plan';
-        
+
         const wrapper = doc.createElement('div');
-        wrapper.className = "my-8 p-5 sm:p-6 rounded-2xl border border-green-100/40 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 not-prose transition-all duration-300 shimmer-card";
+        wrapper.className = 'my-8 p-5 sm:p-6 rounded-2xl border border-green-100/40 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 not-prose transition-all duration-300 shimmer-card';
         wrapper.innerHTML = `
           <div class="flex-1 min-w-0">
             <div class="text-[10px] sm:text-xs font-bold text-green-600 uppercase tracking-wider mb-1.5 flex items-center gap-1.5">
@@ -341,19 +386,19 @@ function Blog() {
       const links = Array.from(doc.querySelectorAll('a'));
       links.forEach(a => {
         const href = a.getAttribute('href') || '';
-        const isPaystack = href.includes('paystack.shop/pay/') || 
-                           href.includes('paystack.com/pay/') ||
-                           href.includes('paystack.com/buy/') ||
-                           href.includes('paystack.shop/product/') ||
-                           href.includes('paystack.com/product/');
+        const isPaystack = href.includes('paystack.shop/pay/') ||
+          href.includes('paystack.com/pay/') ||
+          href.includes('paystack.com/buy/') ||
+          href.includes('paystack.shop/product/') ||
+          href.includes('paystack.com/product/');
         const isPlans = href.includes('/plans');
-        
+
         if (isPaystack || isPlans) {
           const wrapper = createPlanCard(href, a.textContent);
           if (a.parentNode) a.parentNode.replaceChild(wrapper, a);
         }
       });
-      
+
       // 2. Process raw text nodes for unlinked plain-text URLs
       const walker = doc.createTreeWalker(doc.body, NodeFilter.SHOW_TEXT, null, false);
       const textNodes = [];
@@ -361,57 +406,182 @@ function Blog() {
       while (node = walker.nextNode()) {
         textNodes.push(node);
       }
-      
-      // Regex for matching raw text URLs (including hashes for internal plans)
+
       const planRegex = /(https?:\/\/(?:www\.)?(?:paystack\.shop|paystack\.com)\/(?:pay|product|buy)\/[a-zA-Z0-9_-]+|https?:\/\/(?:www\.)?dietwithdee\.org\/plans(?:#[a-zA-Z0-9_-]+)?|\/plans(?:#[a-zA-Z0-9_-]+)?)/g;
 
       textNodes.forEach(textNode => {
-        // Skip if it's already inside our newly created plan card or inside an anchor tag
         if (textNode.parentNode && textNode.parentNode.closest('a, .not-prose')) return;
-        
+
         const text = textNode.nodeValue;
         if (planRegex.test(text)) {
           const fragment = doc.createDocumentFragment();
           let lastIndex = 0;
-          planRegex.lastIndex = 0; // reset
+          planRegex.lastIndex = 0;
           let match;
-          
+
           while ((match = planRegex.exec(text)) !== null) {
             const matchedUrl = match[1];
             const beforeText = text.substring(lastIndex, match.index);
             if (beforeText) {
               fragment.appendChild(doc.createTextNode(beforeText));
             }
-            
+
             const wrapper = createPlanCard(matchedUrl, matchedUrl);
             fragment.appendChild(wrapper);
             lastIndex = planRegex.lastIndex;
           }
-          
+
           const afterText = text.substring(lastIndex);
           if (afterText) {
             fragment.appendChild(doc.createTextNode(afterText));
           }
-          
+
           if (textNode.parentNode) textNode.parentNode.replaceChild(fragment, textNode);
         }
       });
-      
+
       return doc.body.innerHTML;
     } catch (e) {
-      console.error("HTML formatting error:", e);
+      console.error('HTML formatting error:', e);
       return html;
     }
+  };
+
+  // Derive top 5 tags for the filter pills
+  const filterTags = useMemo(() => {
+    const postTagCounts = {};
+    blogPosts.forEach(post => {
+      if (Array.isArray(post.tags)) {
+        post.tags.forEach(t => {
+          if (!t) return;
+          const trimmed = t.trim();
+          const key = trimmed.toLowerCase();
+          postTagCounts[key] = {
+            name: trimmed,
+            count: (postTagCounts[key]?.count || 0) + 1
+          };
+        });
+      }
+    });
+
+    const combined = [];
+    const seen = new Set();
+
+    // 1. Tags extracted from articles ordered by frequency
+    Object.values(postTagCounts)
+      .sort((a, b) => b.count - a.count)
+      .forEach(({ name }) => {
+        const lower = name.toLowerCase();
+        if (!seen.has(lower)) {
+          seen.add(lower);
+          const formatted = name.length > 2 && name === name.toLowerCase()
+            ? name.split(' ').map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(' ')
+            : name;
+          combined.push(formatted);
+        }
+      });
+
+    // 2. Tags from getArticleTags()
+    availableTags.forEach(t => {
+      if (!t) return;
+      const lower = t.toLowerCase().trim();
+      if (!seen.has(lower)) {
+        seen.add(lower);
+        const formatted = t.split(' ').map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(' ');
+        combined.push(formatted);
+      }
+    });
+
+    // 3. Fallback defaults
+    DEFAULT_TAGS.forEach(t => {
+      const lower = t.toLowerCase();
+      if (!seen.has(lower)) {
+        seen.add(lower);
+        combined.push(t);
+      }
+    });
+
+    // Top 5 tags
+    return combined.slice(0, 5);
+  }, [blogPosts, availableTags]);
+
+  // Compute filtered articles based on search query & selected tag
+  const filteredPosts = useMemo(() => {
+    return blogPosts.filter(post => {
+      // 1. Tag filter
+      const matchesTag = !selectedTag || (
+        Array.isArray(post.tags) &&
+        post.tags.some(t => t && t.toLowerCase().trim() === selectedTag.toLowerCase().trim())
+      );
+
+      if (!matchesTag) return false;
+
+      // 2. Search query filter
+      if (!searchQuery.trim()) return true;
+
+      const q = searchQuery.toLowerCase().trim();
+      const inTitle = post.title?.toLowerCase().includes(q);
+      const inAuthor = post.author?.toLowerCase().includes(q);
+      const inTags = Array.isArray(post.tags) && post.tags.some(t => t && t.toLowerCase().includes(q));
+      const inContent = post.content ? stripHtml(post.content).toLowerCase().includes(q) : false;
+
+      return inTitle || inAuthor || inTags || inContent;
+    });
+  }, [blogPosts, selectedTag, searchQuery]);
+
+  // Handle clicking a tag (from pills, inside articles, or in cards)
+  const handleTagClick = (tag) => {
+    const isSameTag = selectedTag && tag && selectedTag.toLowerCase() === tag.toLowerCase();
+    const newTag = isSameTag ? null : (tag || null);
+
+    setSelectedTag(newTag);
+
+    const newParams = new URLSearchParams(searchParams);
+    if (newTag) {
+      newParams.set('tag', newTag);
+    } else {
+      newParams.delete('tag');
+    }
+
+    if (viewMode === 'article') {
+      setViewMode('list');
+      setSelectedArticle(null);
+      const qs = newParams.toString();
+      navigate(qs ? `/blog?${qs}` : '/blog');
+    } else {
+      setSearchParams(newParams, { replace: true });
+    }
+
+    if (newTag) {
+      ensureAllArticlesLoaded();
+    }
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  };
+
+  const handleSearchChange = (val) => {
+    setSearchQuery(val);
+    const newParams = new URLSearchParams(searchParams);
+    if (val.trim()) {
+      newParams.set('search', val);
+      ensureAllArticlesLoaded();
+    } else {
+      newParams.delete('search');
+    }
+    setSearchParams(newParams, { replace: true });
+  };
+
+  const handleClearFilters = () => {
+    setSelectedTag(null);
+    setSearchQuery('');
+    setSearchParams({}, { replace: true });
   };
 
   const handleReadMore = (article) => {
     setSelectedArticle(article);
     setViewMode('article');
-    // Pass article data via navigation state for instant rendering (zero Firestore queries)
     navigate(`/blog/${article.slug || article.id}`, { state: { article } });
-    // Scroll to top when opening article
     window.scrollTo({ top: 0, behavior: 'smooth' });
-    
+
     logEvent(analytics, 'view_item', {
       item_id: article.id,
       item_name: article.title,
@@ -422,8 +592,11 @@ function Blog() {
   const handleBackToList = () => {
     setSelectedArticle(null);
     setViewMode('list');
-    navigate('/blog');
-    // Scroll to top when going back to list
+    const params = new URLSearchParams();
+    if (selectedTag) params.set('tag', selectedTag);
+    if (searchQuery) params.set('search', searchQuery);
+    const qs = params.toString();
+    navigate(qs ? `/blog?${qs}` : '/blog');
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
@@ -439,18 +612,15 @@ function Blog() {
         console.log('Error sharing:', error);
       }
     } else {
-      // Fallback - copy to clipboard
       navigator.clipboard.writeText(articleUrl);
-      // You could show a toast notification here
     }
   };
 
   // Skeleton Loader for initial load
-  // When viewing an article: only show skeleton while article is loading
-  // When viewing list: only show skeleton while list is loading
   const shouldShowSkeleton = routeId
     ? (isInitialLoadingArticle && !selectedArticle)
     : (isLoading && blogPosts.length === 0);
+
   if (shouldShowSkeleton) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-green-50 via-white to-emerald-50 py-18 lg:py-20 px-4 sm:px-6 lg:px-12">
@@ -461,28 +631,22 @@ function Blog() {
             <div className="h-6 w-full max-w-md bg-gray-200 rounded-lg mx-auto animate-pulse"></div>
             <div className="w-20 h-1 bg-gray-300 mx-auto rounded-full"></div>
           </div>
-          
+
           {/* Skeleton List Items */}
           <div className="flex flex-col gap-6 lg:gap-10">
             {[1, 2, 3].map((item) => (
               <div key={item} className="bg-white rounded-2xl lg:rounded-3xl shadow-sm p-4 sm:p-6 flex flex-col lg:flex-row gap-4 lg:gap-6 items-start border border-gray-100">
-                {/* Image Skeleton */}
                 <div className="w-full lg:w-52 h-48 sm:h-56 lg:h-32 bg-gray-200 rounded-xl animate-pulse flex-shrink-0"></div>
-                
-                {/* Content Skeleton */}
                 <div className="flex-1 space-y-4 w-full">
                   <div className="h-6 sm:h-8 bg-gray-200 rounded-lg w-3/4 animate-pulse"></div>
-                  
                   <div className="flex gap-4">
                     <div className="h-4 bg-gray-200 rounded-lg w-20 animate-pulse"></div>
                     <div className="h-4 bg-gray-200 rounded-lg w-24 animate-pulse"></div>
                   </div>
-                  
                   <div className="space-y-2">
                     <div className="h-4 bg-gray-200 rounded-lg w-full animate-pulse"></div>
                     <div className="h-4 bg-gray-200 rounded-lg w-5/6 animate-pulse"></div>
                   </div>
-                  
                   <div className="h-10 bg-gray-200 rounded-full w-32 mt-4 animate-pulse"></div>
                 </div>
               </div>
@@ -503,7 +667,7 @@ function Blog() {
           <p className="text-gray-600">{error}</p>
           <button
             onClick={loadArticles}
-            className="px-6 py-3 bg-gradient-to-r from-green-600 to-emerald-600 text-white rounded-lg hover:from-green-700 hover:to-emerald-700 transition-all duration-300 font-medium"
+            className="px-6 py-3 bg-gradient-to-r from-green-600 to-emerald-600 text-white rounded-lg hover:from-green-700 hover:to-emerald-700 transition-all duration-300 font-medium cursor-pointer"
           >
             Try Again
           </button>
@@ -521,26 +685,25 @@ function Blog() {
     const relatedArticles = blogPosts
       .filter(post => post.id !== selectedArticle.id && (selectedArticle.slug ? post.slug !== selectedArticle.slug : true))
       .sort((a, b) => {
-        // Prioritize articles with matching tags
         const aMatchingTags = a.tags ? a.tags.filter(tag => selectedArticle.tags?.includes(tag)).length : 0;
         const bMatchingTags = b.tags ? b.tags.filter(tag => selectedArticle.tags?.includes(tag)).length : 0;
-        
+
         if (bMatchingTags !== aMatchingTags) {
           return bMatchingTags - aMatchingTags;
         }
-        
-        // Secondary sort by likes
+
         return (b.likesCount || 0) - (a.likesCount || 0);
       })
       .slice(0, 4);
 
-    // SEO values from article
     const articleTitle = selectedArticle.title;
     const articleDescription = createSummary(selectedArticle.content, 160);
     const articleImage = selectedArticle.coverImage || 'https://dietwithdee.org/LOGO.webp';
     const articleUrl = `https://dietwithdee.org/blog/${selectedArticle.slug || selectedArticle.id}`;
     const articleAuthor = selectedArticle.author || 'Nana Ama Dwamena';
-    const articleDate = selectedArticle.createdAt && selectedArticle.createdAt.toDate ? selectedArticle.createdAt.toDate().toISOString() : new Date(selectedArticle.createdAt).toISOString();
+    const articleDate = selectedArticle.createdAt && selectedArticle.createdAt.toDate
+      ? selectedArticle.createdAt.toDate().toISOString()
+      : new Date(selectedArticle.createdAt).toISOString();
 
     return (
       <>
@@ -559,7 +722,7 @@ function Blog() {
             <div className="max-w-4xl mx-auto px-4 sm:px-6 py-4">
               <button
                 onClick={handleBackToList}
-                className="inline-flex items-center gap-2 text-green-600 hover:text-green-700 transition-colors mb-4"
+                className="inline-flex items-center gap-2 text-green-700 hover:text-green-800 font-medium transition-colors cursor-pointer"
               >
                 <ArrowLeft size={20} />
                 Back to Articles
@@ -569,7 +732,7 @@ function Blog() {
 
           {/* Article Content */}
           <article className="max-w-4xl mx-auto px-4 sm:px-6 py-8 lg:py-12">
-            <div className="bg-white rounded-2xl lg:rounded-3xl shadow-lg overflow-hidden">
+            <div className="bg-white rounded-2xl lg:rounded-3xl shadow-lg overflow-hidden border border-stone-100">
               {/* Featured Image */}
               {selectedArticle.coverImage && (
                 <div className="h-48 sm:h-64 lg:h-96 overflow-hidden">
@@ -601,7 +764,6 @@ function Blog() {
                         <span className="text-sm lg:text-base">{selectedArticle.author}</span>
                       </div>
                     )}
-                    {/* Likes count */}
                     <div className="flex items-center gap-2">
                       <Heart size={16} className="text-red-500" />
                       <span className="text-sm lg:text-base">{selectedArticle.likesCount || 0} likes</span>
@@ -615,14 +777,23 @@ function Blog() {
                   dangerouslySetInnerHTML={{ __html: transformArticleContent(selectedArticle.content) }}
                 />
 
-                {/* Tags */}
+                {/* Clickable Tags */}
                 {selectedArticle.tags && selectedArticle.tags.length > 0 && (
-                  <div className="flex flex-wrap gap-2 mb-8">
+                  <div className="mt-8 pt-6 border-t border-gray-100 flex flex-wrap items-center gap-2">
+                    <span className="text-xs font-semibold uppercase tracking-wider text-stone-500 mr-1 flex items-center gap-1.5">
+                      <Tag size={13} /> Tags:
+                    </span>
                     {selectedArticle.tags.map(tag => (
-                      <span key={tag} className="inline-flex items-center gap-1.5 bg-green-50 text-green-700 px-3 py-1.5 rounded-full text-sm font-medium border border-green-100">
-                        <Tag size={14} />
+                      <button
+                        key={tag}
+                        type="button"
+                        onClick={() => handleTagClick(tag)}
+                        className="inline-flex items-center gap-1.5 bg-green-50 hover:bg-green-700 text-green-700 hover:text-white px-3.5 py-1.5 rounded-full text-xs sm:text-sm font-medium border border-green-200 hover:border-green-700 transition-all cursor-pointer shadow-xs"
+                        title={`View articles tagged with "${tag}"`}
+                      >
+                        <span className="font-bold">#</span>
                         {tag}
-                      </span>
+                      </button>
                     ))}
                   </div>
                 )}
@@ -638,10 +809,10 @@ function Blog() {
                       disabled={isLiking}
                       className={`flex items-center gap-2 px-4 py-2 rounded-full border transition-all text-sm font-semibold cursor-pointer ${isLiking
                           ? 'text-gray-400 bg-gray-50 border-gray-100 cursor-not-allowed'
-                          : 'text-gray-600 hover:text-red-500 hover:bg-red-55 border-gray-200'
+                          : 'text-gray-600 hover:text-red-500 hover:bg-red-50 border-gray-200'
                         }`}
                     >
-                      <Heart size={16} className={selectedArticle.likesCount > 0 ? "fill-red-500 text-red-500" : ""} />
+                      <Heart size={16} className={selectedArticle.likesCount > 0 ? 'fill-red-500 text-red-500' : ''} />
                       {isLiking ? 'Liking...' : 'Like'}
                       {(selectedArticle.likesCount || 0) > 0 && (
                         <span className="ml-1 bg-gray-100 text-gray-600 px-2 py-0.5 rounded-full text-xs">
@@ -686,7 +857,7 @@ function Blog() {
                     {relatedArticles.map((post) => (
                       <div
                         key={post.id}
-                        className="bg-white rounded-xl shadow-md hover:shadow-lg transition-all p-4 lg:p-6 cursor-pointer group"
+                        className="bg-white rounded-xl shadow-md hover:shadow-lg transition-all p-4 lg:p-6 cursor-pointer group border border-stone-100"
                         onClick={() => handleReadMore(post)}
                       >
                         <div className="flex gap-3 lg:gap-4">
@@ -714,13 +885,25 @@ function Blog() {
                             <p className="text-xs lg:text-sm text-gray-600 mb-2 line-clamp-2">
                               {createSummary(post.content, 80)}
                             </p>
-                            <div className="mb-2 flex flex-wrap gap-1">
-                              {post.tags?.slice(0, 2).map(tag => (
-                                <span key={tag} className="inline-flex items-center gap-1 bg-gray-50 text-gray-500 px-1.5 py-0.5 rounded text-[10px] font-medium border border-gray-100">
-                                  {tag}
-                                </span>
-                              ))}
-                            </div>
+                            {post.tags && post.tags.length > 0 && (
+                              <div className="mb-2 flex flex-wrap gap-1">
+                                {post.tags.slice(0, 3).map(tag => (
+                                  <button
+                                    key={tag}
+                                    type="button"
+                                    onClick={(e) => {
+                                      e.stopPropagation();
+                                      handleTagClick(tag);
+                                    }}
+                                    className="inline-flex items-center gap-1 bg-green-50 hover:bg-green-700 text-green-700 hover:text-white px-2 py-0.5 rounded-full text-[11px] font-medium border border-green-200 hover:border-green-700 transition-all cursor-pointer"
+                                    title={`Filter by ${tag}`}
+                                  >
+                                    <Tag size={10} />
+                                    {tag}
+                                  </button>
+                                ))}
+                              </div>
+                            )}
                             <div className="flex items-center justify-between text-xs text-gray-500">
                               <span>{formatDate(post.createdAt)}</span>
                               <div className="flex items-center gap-1">
@@ -746,7 +929,7 @@ function Blog() {
   return (
     <div className="min-h-screen bg-gradient-to-br from-green-50 via-white to-emerald-50 py-18 lg:py-20 px-4 sm:px-6 lg:px-12">
       {/* Header */}
-      <div className="text-center mb-8 lg:mb-12 space-y-4 max-w-3xl mx-auto">
+      <div className="text-center mb-6 lg:mb-8 space-y-4 max-w-3xl mx-auto">
         <h1 className="text-3xl sm:text-5xl lg:text-6xl font-serif-cormorant font-normal text-stone-900 tracking-tight leading-[1.12]">
           Wellness Reads
         </h1>
@@ -756,10 +939,92 @@ function Blog() {
         <div className="w-16 h-0.5 bg-[#F6841F] mx-auto rounded-full"></div>
       </div>
 
+      {/* Search and 5 Filter Pills */}
+      <div className="max-w-3xl mx-auto mb-10 space-y-4">
+        {/* Search Bar */}
+        <div className="relative max-w-xl mx-auto">
+          <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none text-stone-400">
+            <Search size={18} />
+          </div>
+          <input
+            type="text"
+            value={searchQuery}
+            onChange={(e) => handleSearchChange(e.target.value)}
+            placeholder="Search articles by title, topic, or keyword..."
+            className="w-full pl-11 pr-10 py-3 bg-white border border-stone-200 rounded-full text-stone-800 placeholder-stone-400 text-sm sm:text-base focus:outline-none focus:ring-2 focus:ring-green-600 focus:border-transparent shadow-xs transition-all"
+          />
+          {searchQuery && (
+            <button
+              type="button"
+              onClick={() => handleSearchChange('')}
+              className="absolute inset-y-0 right-0 pr-3.5 flex items-center text-stone-400 hover:text-stone-600 transition-colors cursor-pointer"
+              aria-label="Clear search"
+            >
+              <X size={18} />
+            </button>
+          )}
+        </div>
+
+        {/* 5 Tag Filter Pills */}
+        <div className="flex items-center justify-center gap-2 sm:gap-2.5 flex-wrap pt-1">
+          <button
+            type="button"
+            onClick={() => handleTagClick(null)}
+            className={`px-4 py-2 rounded-full text-xs sm:text-sm font-semibold transition-all duration-200 cursor-pointer ${
+              !selectedTag
+                ? 'bg-green-700 text-white shadow-sm border border-green-700'
+                : 'bg-white text-stone-700 border border-stone-200 hover:border-green-600 hover:text-green-700 hover:bg-green-50/40'
+            }`}
+          >
+            All Articles
+          </button>
+          {filterTags.map((tag) => {
+            const isSelected = selectedTag && selectedTag.toLowerCase() === tag.toLowerCase();
+            return (
+              <button
+                key={tag}
+                type="button"
+                onClick={() => handleTagClick(tag)}
+                className={`px-4 py-2 rounded-full text-xs sm:text-sm font-semibold transition-all duration-200 cursor-pointer ${
+                  isSelected
+                    ? 'bg-green-700 text-white shadow-sm border border-green-700'
+                    : 'bg-white text-stone-700 border border-stone-200 hover:border-green-600 hover:text-green-700 hover:bg-green-50/40'
+                }`}
+              >
+                {tag}
+              </button>
+            );
+          })}
+        </div>
+
+        {/* Active Filter Indicator */}
+        {(selectedTag || searchQuery) && (
+          <div className="flex items-center justify-center gap-2 pt-1 text-xs sm:text-sm text-stone-600">
+            <span>
+              Showing {filteredPosts.length} {filteredPosts.length === 1 ? 'article' : 'articles'}
+              {selectedTag && (
+                <> in <span className="font-semibold text-green-700">"{selectedTag}"</span></>
+              )}
+              {searchQuery && (
+                <> matching <span className="font-semibold text-green-700">"{searchQuery}"</span></>
+              )}
+            </span>
+            <span className="text-stone-300">•</span>
+            <button
+              type="button"
+              onClick={handleClearFilters}
+              className="text-stone-500 hover:text-red-600 underline font-medium cursor-pointer"
+            >
+              Reset
+            </button>
+          </div>
+        )}
+      </div>
+
       {/* Blog Posts */}
       <div className="max-w-5xl mx-auto">
         {blogPosts.length === 0 ? (
-          // Empty state
+          // Empty initial state
           <div className="text-center py-12 lg:py-16 space-y-4">
             <div className="text-gray-400 text-4xl lg:text-6xl">📝</div>
             <h3 className="text-xl lg:text-2xl font-bold text-stone-900">No Articles Yet</h3>
@@ -767,30 +1032,55 @@ function Blog() {
               We're working on bringing you amazing content. Check back soon for the latest wellness tips and insights!
             </p>
           </div>
+        ) : filteredPosts.length === 0 ? (
+          // Empty filter / search results
+          <div className="text-center py-16 px-4 bg-white rounded-3xl border border-stone-200 shadow-sm max-w-xl mx-auto my-6 space-y-4">
+            <div className="w-16 h-16 mx-auto rounded-full bg-green-50 text-green-700 flex items-center justify-center">
+              <Search size={28} />
+            </div>
+            <h3 className="text-2xl font-serif-cormorant font-bold text-stone-900">No Articles Found</h3>
+            <p className="text-stone-600 text-sm sm:text-base max-w-md mx-auto leading-relaxed">
+              {searchQuery && selectedTag
+                ? `We couldn't find any articles tagged with "${selectedTag}" matching "${searchQuery}".`
+                : searchQuery
+                ? `We couldn't find any articles matching "${searchQuery}".`
+                : `We couldn't find any articles tagged with "${selectedTag}".`}
+            </p>
+            <button
+              type="button"
+              onClick={handleClearFilters}
+              className="inline-flex items-center gap-2 px-6 py-2.5 bg-green-700 hover:bg-green-800 text-white font-semibold rounded-full text-sm transition-all shadow-sm cursor-pointer"
+            >
+              Clear All Filters
+            </button>
+          </div>
         ) : (
           // Articles list
           <div className="flex flex-col gap-6 lg:gap-10">
-            {blogPosts.map((post) => (
+            {filteredPosts.map((post) => (
               <article
                 key={post.id}
-                className="bg-white rounded-2xl lg:rounded-3xl shadow-md hover:shadow-xl transition-all duration-300 p-4 sm:p-6 flex flex-col lg:flex-row gap-4 lg:gap-6 items-start group"
+                className="bg-white rounded-2xl lg:rounded-3xl shadow-md hover:shadow-xl transition-all duration-300 p-4 sm:p-6 flex flex-col lg:flex-row gap-4 lg:gap-6 items-start group border border-stone-100"
               >
                 {/* Blog Image */}
-                <div className="w-full lg:w-52 flex-shrink-0 order-first lg:order-none">
+                <div
+                  onClick={() => handleReadMore(post)}
+                  className="w-full lg:w-52 flex-shrink-0 order-first lg:order-none cursor-pointer"
+                >
                   <div className="h-48 sm:h-56 lg:h-32 w-full bg-gradient-to-br from-green-100 to-emerald-100 rounded-xl flex items-center justify-center overflow-hidden">
                     {post.coverImage ? (
                       <SafeImage
                         src={post.coverImage}
                         alt={post.title}
                         fallback={BlogImage}
-                        className="w-full h-full object-cover"
+                        className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
                         wrapperClassName="w-full h-full"
                       />
                     ) : (
                       <img
                         src={BlogImage}
                         alt={post.title}
-                        className="h-16 sm:h-20 lg:h-24 object-contain opacity-70"
+                        className="h-16 sm:h-20 lg:h-24 object-contain opacity-70 group-hover:scale-105 transition-transform duration-300"
                       />
                     )}
                   </div>
@@ -798,7 +1088,10 @@ function Blog() {
 
                 {/* Blog Content */}
                 <div className="flex-1 space-y-2 lg:space-y-3 min-w-0">
-                  <h3 className="text-xl sm:text-2xl font-bold text-green-700 group-hover:text-green-800 transition-colors line-clamp-2">
+                  <h3
+                    onClick={() => handleReadMore(post)}
+                    className="text-xl sm:text-2xl font-bold text-green-700 group-hover:text-green-800 transition-colors line-clamp-2 cursor-pointer"
+                  >
                     {post.title}
                   </h3>
 
@@ -819,13 +1112,41 @@ function Blog() {
                     </div>
                   </div>
 
+                  {/* Clickable Tags on article cards */}
+                  {post.tags && post.tags.length > 0 && (
+                    <div className="flex flex-wrap gap-1.5 pt-1">
+                      {post.tags.map(tag => {
+                        const isSelected = selectedTag && selectedTag.toLowerCase() === tag.toLowerCase();
+                        return (
+                          <button
+                            key={tag}
+                            type="button"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              handleTagClick(tag);
+                            }}
+                            className={`inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-medium transition-all cursor-pointer ${
+                              isSelected
+                                ? 'bg-green-700 text-white border border-green-700 shadow-xs'
+                                : 'bg-green-50 text-green-700 border border-green-200 hover:bg-green-700 hover:text-white hover:border-green-700'
+                            }`}
+                            title={`Filter by ${tag}`}
+                          >
+                            <Tag size={11} />
+                            {tag}
+                          </button>
+                        );
+                      })}
+                    </div>
+                  )}
+
                   <p className="text-stone-800 text-base leading-relaxed line-clamp-3 font-normal">
                     {createSummary(post.content)}
                   </p>
 
                   <button
                     onClick={() => handleReadMore(post)}
-                    className="mt-3 lg:mt-4 inline-flex items-center gap-2 px-4 lg:px-6 py-2 border-2 border-green-600 text-green-700 font-semibold rounded-full hover:bg-green-50 hover:border-green-700 transition-all duration-300 group-hover:translate-x-1 text-sm lg:text-base"
+                    className="mt-3 lg:mt-4 inline-flex items-center gap-2 px-4 lg:px-6 py-2 border-2 border-green-600 text-green-700 font-semibold rounded-full hover:bg-green-50 hover:border-green-700 transition-all duration-300 group-hover:translate-x-1 text-sm lg:text-base cursor-pointer"
                   >
                     Read More
                     <ArrowRight size={14} className="transition-transform group-hover:translate-x-1" />
@@ -836,13 +1157,13 @@ function Blog() {
           </div>
         )}
 
-        {/* Load More Button */}
-        {viewMode === 'list' && hasMore && blogPosts.length > 0 && (
+        {/* Load More Button - only when browsing full list without active filters */}
+        {viewMode === 'list' && hasMore && !hasLoadedAll && !selectedTag && !searchQuery.trim() && blogPosts.length > 0 && (
           <div className="mt-12 text-center">
             <button
               onClick={loadMoreArticles}
               disabled={isLoadingMore}
-              className={`px-8 py-3 bg-white border-2 border-green-600 text-green-700 font-bold rounded-full transition-all hover:bg-green-50 flex items-center gap-2 mx-auto ${
+              className={`px-8 py-3 bg-white border-2 border-green-600 text-green-700 font-bold rounded-full transition-all hover:bg-green-50 flex items-center gap-2 mx-auto cursor-pointer ${
                 isLoadingMore ? 'opacity-70 cursor-not-allowed' : ''
               }`}
             >
