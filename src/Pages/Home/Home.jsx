@@ -7,7 +7,11 @@ import { analytics } from '../../firebaseConfig';
 import Dee from '../../assets/images/Dee1.webp';
 import heroBg from '../../assets/images/homeimg1.jpg';
 import fathersDayPromo from '../../assets/fathers_day_promo.png';
-import { X, Gift, ChevronRight, CheckCircle2 } from 'lucide-react';
+import { X, Gift, ChevronRight, CheckCircle2, Smartphone, ArrowRight } from 'lucide-react';
+import ontrackPromo from '../../assets/ontrack_promo.jpg';
+import ontrackLogo from '../../assets/OntrackIMG.jpg';
+import OnTrackModal from '../../Components/OnTrackModal';
+import { useClientCount } from '../../utils/clientStats';
 import carousel1 from '../../assets/carousel/1.jpg?url';
 import carousel2 from '../../assets/carousel/2.jpg?url';
 import carousel3 from '../../assets/carousel/3.jpg?url';
@@ -76,6 +80,8 @@ const AnimatedCounter = ({ target, duration = 2000, suffix = '' }) => {
 
 function Home() {
   const navigate = useNavigate();
+  const clientCount = useClientCount();
+  const [showOnTrackModal, setShowOnTrackModal] = useState(false);
   const videoRef = useRef(null);
   const [showFathersDayPopup, setShowFathersDayPopup] = useState(false);
   const [carouselIndex, setCarouselIndex] = useState(0);
@@ -337,7 +343,7 @@ function Home() {
                       {'★'.repeat(5)}
                     </div>
                     <span className="text-xs sm:text-sm font-semibold text-stone-800 font-montserrat">
-                      5.0 Star Rating • 500+ Clients Guided
+                      5.0 Star Rating • {clientCount}+ Clients Guided
                     </span>
                   </div>
 
@@ -551,6 +557,95 @@ function Home() {
             </div>
           </div>
 
+          {/* ── OnTrack Partnership Feature Block ──────────────────────── */}
+          <motion.div
+            className="my-14"
+            initial={{ opacity: 0, y: 35 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true, margin: "-80px" }}
+            transition={{ duration: 0.7, ease: "easeOut" }}
+          >
+            <div className="relative overflow-hidden rounded-3xl bg-gradient-to-br from-emerald-950 via-stone-900 to-green-950 text-white p-8 sm:p-10 lg:p-12 shadow-2xl border border-emerald-500/20">
+              {/* Background ambient decorative glows */}
+              <div className="absolute -top-24 -right-24 w-96 h-96 bg-emerald-500/15 rounded-full blur-3xl pointer-events-none" />
+              <div className="absolute -bottom-24 -left-24 w-96 h-96 bg-[#F6841F]/15 rounded-full blur-3xl pointer-events-none" />
+
+              <div className="relative z-10 grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-12 items-center">
+                
+                {/* Left Column: Partnership Content & CTAs */}
+                <div className="lg:col-span-7 space-y-6 text-left">
+                  {/* Partner Pill Badge */}
+                  <div className="inline-flex items-center gap-2.5 px-4 py-1.5 rounded-full bg-emerald-500/15 border border-emerald-400/30 text-emerald-300 text-xs sm:text-sm font-semibold tracking-wide">
+                    <img
+                      src={ontrackLogo}
+                      alt="OnTrack Icon"
+                      className="w-5 h-5 rounded-md object-cover shadow-xs"
+                    />
+                    <span>DietWithDee × OnTrack App Partnership</span>
+                  </div>
+
+                  {/* Headline */}
+                  <div className="space-y-3">
+                    <h2 className="text-2xl sm:text-3xl lg:text-4xl font-serif-cormorant font-bold text-white tracking-tight leading-tight">
+                      Take Control of Your Blood Sugar with Expert Nutrition & Smart AI Tracking
+                    </h2>
+                    <p className="text-stone-300 text-sm sm:text-base leading-relaxed font-normal">
+                      We’ve officially partnered with <strong className="text-white font-semibold">OnTrack</strong>—the premier diabetes management app. Combine Nana Ama Dwamena’s clinical Ghanaian meal plans with OnTrack’s intelligent glucose logging, medication reminders, and carb tracking to achieve stable A1c without giving up your favorite foods.
+                    </p>
+                  </div>
+
+                  {/* CTAs */}
+                  <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3.5 pt-2">
+                    <button
+                      type="button"
+                      onClick={() => setShowOnTrackModal(true)}
+                      className="px-7 py-3.5 rounded-full bg-emerald-500 hover:bg-emerald-400 text-emerald-950 font-montserrat text-xs sm:text-sm font-bold tracking-wider uppercase transition-all duration-300 shadow-lg hover:shadow-emerald-500/25 hover:-translate-y-0.5 active:scale-95 cursor-pointer flex items-center justify-center gap-2"
+                    >
+                      <Smartphone size={16} />
+                      <span>Download OnTrack App</span>
+                    </button>
+
+                    <button
+                      type="button"
+                      onClick={() => navigate('/ontrack')}
+                      className="px-7 py-3.5 rounded-full bg-white/10 hover:bg-white/20 text-white border border-white/20 font-montserrat text-xs sm:text-sm font-semibold tracking-wider uppercase transition-all duration-300 hover:-translate-y-0.5 active:scale-95 cursor-pointer flex items-center justify-center gap-2"
+                    >
+                      <span>Special Diabetes Booking</span>
+                      <ArrowRight size={15} />
+                    </button>
+                  </div>
+                </div>
+
+                {/* Right Column: Visual Showcase Preview */}
+                <div className="lg:col-span-5 flex justify-center">
+                  <div className="relative w-full max-w-sm rounded-2xl overflow-hidden border border-emerald-500/30 shadow-2xl bg-stone-900/80 group">
+                    <img
+                      src={ontrackPromo}
+                      alt="DietWithDee and OnTrack App Partnership"
+                      className="w-full h-auto object-cover transition-transform duration-500 group-hover:scale-102"
+                    />
+                    <div className="absolute inset-0 bg-gradient-to-t from-stone-950/80 via-transparent to-transparent flex items-end p-5">
+                      <div className="w-full flex items-center justify-between text-xs text-emerald-300 font-montserrat font-medium">
+                        <span className="flex items-center gap-1.5">
+                          <CheckCircle2 size={14} className="text-emerald-400" />
+                          iOS & Android Available
+                        </span>
+                        <button
+                          type="button"
+                          onClick={() => setShowOnTrackModal(true)}
+                          className="underline decoration-emerald-400 hover:text-white transition-colors cursor-pointer"
+                        >
+                          Get App &rarr;
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+              </div>
+            </div>
+          </motion.div>
+
           {/* Stats Section */}
           <motion.div
             className="mt-10 pb-16"
@@ -564,7 +659,7 @@ function Home() {
 
               <div className="space-y-2">
                 <div className="text-green-600">
-                  <AnimatedCounter target={500} suffix="+" />
+                  <AnimatedCounter target={clientCount} suffix="+" />
                 </div>
                 <div className="text-stone-800 font-semibold text-sm sm:text-base">Happy Clients</div>
               </div>
@@ -655,6 +750,10 @@ function Home() {
         )}
       </AnimatePresence>
       */}
+      <OnTrackModal
+        isOpen={showOnTrackModal}
+        onClose={() => setShowOnTrackModal(false)}
+      />
     </>
   );
 }

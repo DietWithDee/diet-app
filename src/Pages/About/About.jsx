@@ -3,6 +3,7 @@ import LOGO from '../../assets/LOGO.webp';
 import SEO from '../../Components/SEO';
 import { useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
+import { useClientCount } from '../../utils/clientStats';
 
 const fadeUp = {
   hidden: { opacity: 0, y: 28 },
@@ -26,14 +27,15 @@ const scaleBar = {
   show: { scaleX: 1, transition: { duration: 0.7, ease: 'easeOut' } },
 };
 
-const stats = [
-  { value: '500+', label: 'Clients Supported' },
-  { value: '5+', label: 'Years of Practice' },
-  { value: '10+', label: 'Community Outreaches' },
-];
-
 function AboutUsSection() {
   const navigate = useNavigate();
+  const clientCount = useClientCount();
+
+  const stats = [
+    { value: `${clientCount}+`, label: 'Clients Supported' },
+    { value: '5+', label: 'Years of Practice' },
+    { value: '10+', label: 'Community Outreaches' },
+  ];
 
   return (
     <>

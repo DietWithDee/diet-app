@@ -24,6 +24,8 @@ import { logEvent } from 'firebase/analytics';
 import { analytics } from '../../firebaseConfig';
 import diabetesPromo from '../../assets/diabetes.jpg';
 import homeHeroImg from '../../assets/images/homeimg1.jpg';
+import OnTrackModal from '../../Components/OnTrackModal';
+import { useClientCount } from '../../utils/clientStats';
 
 // Configurable Paystack checkout links for OnTrack consultations
 export const PAYSTACK_ONTRACK_INITIAL_URL = 'https://paystack.shop/pay/ontrackbook';
@@ -59,6 +61,7 @@ const FaqItem = ({ question, answer, defaultOpen = false }) => {
 };
 
 const OnTrack = () => {
+  const clientCount = useClientCount();
   const { user, userProfile } = useAuth();
   const formRef = useRef(null);
 
@@ -71,6 +74,7 @@ const OnTrack = () => {
 
   const [selectedType, setSelectedType] = useState('initial'); // 'initial' or 'followup'
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [showOnTrackModal, setShowOnTrackModal] = useState(false);
 
   // Pre-fill form if user is signed in
   useEffect(() => {
@@ -224,7 +228,7 @@ const OnTrack = () => {
                     {'★'.repeat(5)}
                   </div>
                   <span className="text-xs sm:text-sm font-semibold text-stone-800">
-                    5.0 Rating • 500+ Clients Guided
+                    5.0 Rating • {clientCount}+ Clients Guided
                   </span>
                 </div>
               </div>
@@ -237,7 +241,15 @@ const OnTrack = () => {
                 </span>
                 <span className="flex items-center gap-1.5">
                   <CheckCircle2 size={16} className="text-emerald-600 shrink-0" />
-                  Synced with the App
+                  Synced with the{" "}
+                  <button
+                    type="button"
+                    onClick={() => setShowOnTrackModal(true)}
+                    className="font-medium underline decoration-emerald-500 decoration-1.5 underline-offset-2 hover:text-emerald-700 cursor-pointer text-left"
+                    title="Learn more about OnTrack App"
+                  >
+                    OnTrack App
+                  </button>
                 </span>
                 <span className="flex items-center gap-1.5">
                   <CheckCircle2 size={16} className="text-emerald-600 shrink-0" />
@@ -376,15 +388,38 @@ const OnTrack = () => {
                   <div className="w-12 h-12 rounded-xl bg-emerald-50 border border-emerald-100 flex items-center justify-center text-emerald-700">
                     <ShieldCheck size={22} />
                   </div>
-                  <h3 className="text-lg font-bold font-montserrat text-stone-900">Synced with the App</h3>
+                  <h3 className="text-lg font-bold font-montserrat text-stone-900">
+                    Synced with the{" "}
+                    <button
+                      type="button"
+                      onClick={() => setShowOnTrackModal(true)}
+                      className="font-bold underline text-stone-900 hover:text-emerald-700 transition-colors inline cursor-pointer text-left decoration-emerald-500 decoration-2 underline-offset-2"
+                      title="Learn more about OnTrack App"
+                    >
+                      OnTrack App
+                    </button>
+                  </h3>
                   <p className="text-sm text-stone-700 font-normal leading-relaxed">
-                    Log your meals, blood glucose readings, and medications inside the OnTrack app. Your dietitian reviews your trends in real time to provide timely adjustments and keep your sugars stable.
+                    Log your meals, blood glucose readings, and medications inside the{" "}
+                    <button
+                      type="button"
+                      onClick={() => setShowOnTrackModal(true)}
+                      className="font-bold underline text-stone-900 hover:text-emerald-700 transition-colors inline cursor-pointer text-left decoration-emerald-500 decoration-1.5 underline-offset-2"
+                      title="Learn more about OnTrack App"
+                    >
+                      OnTrack app
+                    </button>
+                    . Your dietitian reviews your trends in real time to provide timely adjustments and keep your sugars stable.
                   </p>
                 </div>
-                <div className="text-xs font-semibold text-emerald-700 flex items-center gap-1 pt-2 border-t border-stone-100">
-                  <span>Continuous Tracking</span>
-                  <ArrowRight size={13} />
-                </div>
+                <button
+                  type="button"
+                  onClick={() => setShowOnTrackModal(true)}
+                  className="text-xs font-semibold text-emerald-700 hover:text-emerald-800 flex items-center justify-between pt-2 border-t border-stone-100 w-full text-left cursor-pointer group"
+                >
+                  <span>Continuous Tracking with OnTrack</span>
+                  <ArrowRight size={13} className="group-hover:translate-x-0.5 transition-transform" />
+                </button>
               </div>
 
               {/* Pillar 3 */}
@@ -783,6 +818,11 @@ const OnTrack = () => {
         </div>
 
       </div>
+
+      <OnTrackModal
+        isOpen={showOnTrackModal}
+        onClose={() => setShowOnTrackModal(false)}
+      />
     </>
   );
 };

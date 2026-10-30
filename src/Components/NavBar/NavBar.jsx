@@ -74,6 +74,7 @@ export default function NavBar() {
     { path: '/blog', label: 'Blog' },
     { path: '/services', label: 'Services & Events' },
     { path: '/contactus', label: 'Book a Session' },
+    { path: '/ontrack', label: 'Special Diabetes booking' },
   ]
 
   return (
@@ -92,13 +93,13 @@ export default function NavBar() {
         </div>
 
         {/* Desktop Links */}
-        <ul className="hidden md:flex space-x-6 text-sm lg:text-base font-montserrat font-semibold">
+        <ul className="hidden md:flex items-center space-x-3 lg:space-x-5 xl:space-x-6 text-xs lg:text-sm xl:text-base font-montserrat font-semibold">
           {links.map(({ path, label }) => (
             <li key={path}>
               <NavLink
                 to={path}
                 className={({ isActive }) =>
-                  `cursor-pointer transition-colors ${isActive ? 'text-green-700 font-bold' : 'text-stone-800 hover:text-green-700'
+                  `cursor-pointer transition-colors whitespace-nowrap ${isActive ? 'text-green-700 font-bold' : 'text-stone-800 hover:text-green-700'
                   }`
                 }
                 end={path === '/'}
@@ -220,7 +221,7 @@ export default function NavBar() {
           ${menuOpen ? 'translate-x-0' : 'translate-x-full'}
         `}
       >
-        <div className="flex flex-col h-full">
+        <div className="flex flex-col h-full overflow-y-auto">
           {/* Drawer Header */}
           <div className="flex items-center justify-between p-4 border-b border-gray-100">
             <div className="flex items-center space-x-2">
@@ -248,7 +249,7 @@ export default function NavBar() {
                 <NavLink
                   to={path}
                   className={({ isActive }) =>
-                    `block px-6 py-4 text-lg hover:bg-stone-50 transition-colors ${isActive ? 'text-green-800 font-bold' : 'text-stone-800 font-semibold hover:text-green-800'
+                    `block px-6 py-3.5 text-base hover:bg-stone-50 transition-colors ${isActive ? 'text-green-800 font-medium' : 'text-stone-800 font-normal hover:text-green-800'
                     }`
                   }
                   onClick={() => {
@@ -261,28 +262,13 @@ export default function NavBar() {
                 </NavLink>
               </li>
             ))}
-            <li>
-              <NavLink
-                to="/my-journey"
-                className={({ isActive }) =>
-                  `block px-6 py-4 text-lg hover:bg-stone-50 transition-colors ${isActive ? 'text-green-800 font-bold' : 'text-stone-800 font-semibold hover:text-green-800'
-                  }`
-                }
-                onClick={() => {
-                  trigger("nudge")
-                  setMenuOpen(false)
-                }}
-              >
-                My Journey
-              </NavLink>
-            </li>
           </ul>
 
           {/* Bottom Links (Terms & Privacy) */}
           <div className="mt-auto p-6 border-t border-gray-100 flex justify-center items-center gap-4">
             <NavLink
               to="/terms"
-              className="text-xs uppercase tracking-wider font-bold text-stone-600 hover:text-green-800 transition-colors"
+              className="text-xs uppercase tracking-wider font-normal text-stone-600 hover:text-green-800 transition-colors"
               onClick={() => {
                 trigger("light")
                 setMenuOpen(false)
@@ -290,10 +276,10 @@ export default function NavBar() {
             >
               Terms
             </NavLink>
-            <span className="text-stone-400 text-xs font-bold">|</span>
+            <span className="text-stone-400 text-xs font-normal">|</span>
             <NavLink
               to="/privacy"
-              className="text-xs uppercase tracking-wider font-bold text-stone-600 hover:text-green-800 transition-colors"
+              className="text-xs uppercase tracking-wider font-normal text-stone-600 hover:text-green-800 transition-colors"
               onClick={() => {
                 trigger("light")
                 setMenuOpen(false)

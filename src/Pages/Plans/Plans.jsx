@@ -28,6 +28,7 @@ import Diabetes from "../../assets/images/Diabetes.webp"; // example image for D
 import Pressure from "../../assets/images/Pressure.webp"; // example image for Hypertension plan
 import ontrackImg from "../../assets/OntrackIMG.jpg";
 import appleIcon from "../../assets/apple.webp";
+import { useClientCount } from "../../utils/clientStats";
 import playstoreIcon from "../../assets/playstore.webp";
 import ScrollToTop from "../../utils/ScrollToTop";
 import { useTestimonials } from "../../hooks/useTestimonials";
@@ -66,6 +67,7 @@ const CAROUSEL_IMAGES = [
 ];
 
 function Plans() {
+  const clientCount = useClientCount();
   const navigate = useNavigate();
   const location = useLocation();
   const { testimonials: firestoreTestimonials, fetchApprovedTestimonials } =
@@ -700,7 +702,7 @@ function Plans() {
             </div>
             <div className="flex items-center gap-2">
               <div className="w-3 h-3 bg-emerald-500 rounded-full"></div>
-              300+ Success Stories
+              {clientCount}+ Success Stories
             </div>
             <div className="flex items-center gap-2">
               <div className="w-3 h-3 bg-green-400 rounded-full"></div>

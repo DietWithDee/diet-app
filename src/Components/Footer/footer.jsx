@@ -228,6 +228,7 @@ const Footer = () => {
                 <li><Link to="/services#events-gallery" className="text-green-50 hover:text-white transition-colors text-sm sm:text-base font-medium">Events Gallery</Link></li>
                 <li><Link to="/plans#success-stories" className="text-green-50 hover:text-white transition-colors text-sm sm:text-base font-medium">Success Stories</Link></li>
                 <li><Link to="/contactUs" className="text-green-50 hover:text-white transition-colors text-sm sm:text-base font-medium">Book a Consultation</Link></li>
+                <li><Link to="/ontrack" className="text-green-50 hover:text-white transition-colors text-sm sm:text-base font-medium">Special Diabetes Booking</Link></li>
               </ul>
             </div>
           </div>

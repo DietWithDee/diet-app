@@ -56,7 +56,7 @@ Because this feature is slated for release next year, all working code has been 
    - Script title: *"Wellness"*.
    - Subtitle: *"Welcome to DietWithDee, your ultimate destination for personalized diet plans and consultations!"*.
    - CTAs: Primary brand orange button **"Know Your Body"** (`/knowYourBody`) + white ghost button **"Book a Session"** (`/contactus`).
-   - Trust points: **500+ Success Stories** &bull; **Expert Dietitians** &bull; **Personalized Plans**.
+   - Trust points: **731+ Success Stories (dynamic)** &bull; **Expert Dietitians** &bull; **Personalized Plans**.
 2. **Welcome Video Modal Card**:
    - Non-rounded (`rounded-none`), architectural border (`border-stone-200`), minimal crisp padding.
    - Edge-to-edge sped-up loop video (`Hero_animation.mp4` playing at 1.75x speed with no speed indicator badge).
@@ -74,7 +74,7 @@ Because this feature is slated for release next year, all working code has been 
    - Active service preview pane below the track with direct brand orange CTA button.
 4. **Our Story & Stats Counter**:
    - Restored exact original brand language, quote, and Dee's credentials (*Dee - Professional Nutritionist, Nana Ama Dwamena, RD., Founder, DietWithDee*).
-   - Stats counters: **500+ Happy Clients**, **5+ Years of Experience**, **95% Client Approval**.
+   - Stats counters: **731+ Happy Clients (dynamic)**, **5+ Years of Experience**, **95% Client Approval**.
 
 ### 3.3. OnTrack Diabetic Care Page Redesign (`src/Pages/OnTrack/OnTrack.jsx`)
 - **Multi-Generational Thoughtful Care**:
