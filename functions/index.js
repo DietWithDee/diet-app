@@ -4,6 +4,7 @@ const { onDocumentUpdated, onDocumentCreated, onDocumentWritten } = require("fir
 const { setGlobalOptions } = require("firebase-functions/v2");
 const admin = require("firebase-admin");
 const { Resend } = require("resend");
+const { enqueueCampaign, processMailQueue, recordTransactionalSent } = require("./mailEngine");
 const { createEmailTemplate, createWelcomeTemplate, createSurveyVoucherTemplate } = require("./emailTemplate");
 const { createAdminBookingEmail, createClientConfirmationEmail } = require("./bookingEmailTemplates");
 const { createAdminTestimonialEmail } = require("./testimonialEmailTemplate");
@@ -84,7 +85,7 @@ exports.publishScheduledArticles = onSchedule("every 10 minutes", async (event) 
   }
 });
 
-// 2. Trigger Function on Article Publish to Send Newsletters
+// 2. Trigger Function on Article Publish to Enqueue and Send Newsletters
 exports.onArticlePublished = onDocumentWritten(
   { 
     document: "articles/{articleId}", 
@@ -119,11 +120,11 @@ exports.onArticlePublished = onDocumentWritten(
     }
     
     if (afterData.newsletterSent) {
-        console.log(`Newsletter already sent for article ${articleId}. Skipping.`);
+        console.log(`Newsletter already handled for article ${articleId}. Skipping.`);
         return;
     }
 
-    console.log(`Article ${articleId} just transitioned to published! Preparing newsletter...`);
+    console.log(`Article ${articleId} just transitioned to published! Preparing newsletter queue...`);
 
     try {
       const resendApiKey = process.env.RESEND_API_KEY;
@@ -132,142 +133,118 @@ exports.onArticlePublished = onDocumentWritten(
       }
       const resend = new Resend(resendApiKey);
 
-            // Paginate subscribers to avoid loading entire collection into memory
-            const subscriberMap = new Map();
-            const emailsRef = db.collection("emails");
-            const pageLimit = parseInt(process.env.NEWSLETTER_PAGE_LIMIT || '500', 10);
-            let lastDoc = null;
-            let totalFetched = 0;
+      // Paginate subscribers to avoid loading entire collection into memory
+      const subscriberMap = new Map();
+      const emailsRef = db.collection("emails");
+      const pageLimit = parseInt(process.env.NEWSLETTER_PAGE_LIMIT || '500', 10);
+      let lastDoc = null;
+      let totalFetched = 0;
 
-            while (true) {
-                let q = emailsRef.orderBy(admin.firestore.FieldPath.documentId()).limit(pageLimit);
-                if (lastDoc) q = q.startAfter(lastDoc);
-                const snapshot = await q.get();
-                if (snapshot.empty) break;
-                snapshot.forEach(doc => {
-                    const docData = doc.data();
-                    const email = docData.email?.trim()?.toLowerCase();
-                    if (email && /^\S+@\S+\.\S+$/.test(email)) {
-                        subscriberMap.set(email, docData.name || "");
-                    }
-                });
-                totalFetched += snapshot.size;
-                lastDoc = snapshot.docs[snapshot.docs.length - 1];
-                if (snapshot.size < pageLimit) break;
-            }
+      while (true) {
+          let q = emailsRef.orderBy(admin.firestore.FieldPath.documentId()).limit(pageLimit);
+          if (lastDoc) q = q.startAfter(lastDoc);
+          const snapshot = await q.get();
+          if (snapshot.empty) break;
+          snapshot.forEach(doc => {
+              const docData = doc.data();
+              const email = docData.email?.trim()?.toLowerCase();
+              if (email && /^\S+@\S+\.\S+$/.test(email)) {
+                  subscriberMap.set(email, docData.name || "");
+              }
+          });
+          totalFetched += snapshot.size;
+          lastDoc = snapshot.docs[snapshot.docs.length - 1];
+          if (snapshot.size < pageLimit) break;
+      }
 
-            const subscriberEmails = Array.from(subscriberMap.keys());
-            console.log(`Found ${subscriberEmails.length} unique subscribers (fetched ${totalFetched} docs).`);
-            if (subscriberEmails.length === 0) return;
+      const subscriberEmails = Array.from(subscriberMap.keys());
+      console.log(`Found ${subscriberEmails.length} unique subscribers (fetched ${totalFetched} docs).`);
+      if (subscriberEmails.length === 0) return;
 
-            // Prevent duplicate sends: mark article as in_progress atomically
-            const articleRef = db.collection('articles').doc(articleId);
-            const nowTs = admin.firestore.Timestamp.now();
-            try {
-                await db.runTransaction(async (tx) => {
-                    const docSnap = await tx.get(articleRef);
-                    if (!docSnap.exists) throw new Error('Article not found');
-                    const data = docSnap.data() || {};
-                    if (data.newsletterSent === true || data.newsletterSent === 'in_progress') {
-                        throw new Error('Newsletter already sent or in progress');
-                    }
-                    tx.update(articleRef, { newsletterSent: 'in_progress', newsletterStartedAt: nowTs });
-                });
-            } catch (err) {
-                console.log('Aborting newsletter: ', err.message);
-                return;
-            }
+      // Prevent duplicate sends: mark article as queued atomically
+      const articleRef = db.collection('articles').doc(articleId);
+      const nowTs = admin.firestore.Timestamp.now();
+      try {
+          await db.runTransaction(async (tx) => {
+              const docSnap = await tx.get(articleRef);
+              if (!docSnap.exists) throw new Error('Article not found');
+              const data = docSnap.data() || {};
+              if (data.newsletterSent === true || data.newsletterSent === 'queued' || data.newsletterSent === 'in_progress') {
+                  throw new Error('Newsletter already sent or in progress');
+              }
+              tx.update(articleRef, { newsletterSent: 'queued', newsletterStartedAt: nowTs });
+          });
+      } catch (err) {
+          console.log('Aborting newsletter: ', err.message);
+          return;
+      }
 
-            const subject = `New from Diet With Dee: ${afterData.title}`;
-            const coverImage = afterData.coverImage || "";
-            // Use a simple placeholder {{name}} for safe personalization
-            const emailHtmlTemplate = createEmailTemplate(afterData.title, coverImage, articleId).replace('Hi there,', 'Hi {{name}},');
-            const unsubscribeBase = 'https://dietwithdee.org/unsubscribe';
+      const subject = `New from Diet With Dee: ${afterData.title}`;
+      const coverImage = afterData.coverImage || "";
+      const emailHtmlTemplate = createEmailTemplate(afterData.title, coverImage, articleId).replace('Hi there,', 'Hi {{name}},');
+      const unsubscribeBase = 'https://dietwithdee.org/unsubscribe';
+      const emailTextBase = `New Article: ${afterData.title}\n\nRead more at: https://dietwithdee.org/blog/${articleId}\n\nTo unsubscribe: ${unsubscribeBase}`;
 
-            const emailTextBase = `New Article: ${afterData.title}\n\nRead more at: https://dietwithdee.org/blog/${articleId}\n\nTo unsubscribe: ${unsubscribeBase}`;
+      const recipientsList = subscriberEmails.map(email => ({
+          email,
+          name: subscriberMap.get(email) || ''
+      }));
 
-            let sentCount = 0;
-            let failCount = 0;
+      // Enqueue with VIP prioritization (guarantees VIPs are sent first)
+      const campaignId = `article_${articleId}`;
+      const queuedCount = await enqueueCampaign(db, campaignId, recipientsList, ({ email, name }) => {
+          const personalizedHtml = emailHtmlTemplate.split('{{name}}').join(name || 'there');
+          const personalizedHtmlWithUnsub = personalizedHtml.split(unsubscribeBase).join(`${unsubscribeBase}?email=${encodeURIComponent(email)}`);
+          return {
+              from: 'Diet With Dee <newsletter@mail.dietwithdee.org>',
+              to: [email],
+              reply_to: 'hello@dietwithdee.org',
+              subject: subject,
+              html: personalizedHtmlWithUnsub,
+              text: emailTextBase + `?email=${encodeURIComponent(email)}`,
+              headers: {
+                  'List-Unsubscribe': `<${unsubscribeBase}?email=${encodeURIComponent(email)}>`
+              }
+          };
+      });
 
-            const batchSize = parseInt(process.env.NEWSLETTER_BATCH_SIZE || '50', 10);
-            const pauseMs = parseInt(process.env.NEWSLETTER_PAUSE_MS || '500', 10);
-            const maxRetries = parseInt(process.env.NEWSLETTER_MAX_RETRIES || '3', 10);
+      // Immediately process first batch (up to daily cap 60, VIPs first!)
+      const queueResult = await processMailQueue(db, resend);
+      console.log(`[onArticlePublished] Initial batch processed: ${queueResult.processed} sent, remaining quota today: ${queueResult.remainingQuota}`);
 
-            // Helper to send with retries
-            const sendBatchWithRetry = async (payloads) => {
-                let attempt = 0;
-                while (attempt < maxRetries) {
-                    try {
-                        const { data, error } = await resend.batch.send(payloads);
-                        if (error) {
-                            throw error;
-                        }
-                        return { success: true };
-                    } catch (err) {
-                        attempt++;
-                        const backoff = Math.pow(2, attempt) * 250;
-                        console.error(`Batch send attempt ${attempt} failed:`, err?.message || err);
-                        if (attempt >= maxRetries) return { success: false, error: err };
-                        await new Promise(r => setTimeout(r, backoff));
-                    }
-                }
-                return { success: false };
-            };
+      await articleRef.update({
+          newsletterSent: queueResult.processed >= queuedCount ? true : 'in_progress',
+          initialBatchSentAt: admin.firestore.Timestamp.now(),
+          initialBatchSentCount: queueResult.processed,
+          totalQueuedCount: queuedCount
+      });
 
-            for (let i = 0; i < subscriberEmails.length; i += batchSize) {
-                const batchEmails = subscriberEmails.slice(i, i + batchSize);
-                const batchedPayloads = batchEmails.map(email => {
-                    const name = subscriberMap.get(email) || 'there';
-                    const personalizedHtml = emailHtmlTemplate.split('{{name}}').join(name);
-                    const personalizedHtmlWithUnsub = personalizedHtml.split(unsubscribeBase).join(`${unsubscribeBase}?email=${encodeURIComponent(email)}`);
-                    return {
-                        from: 'Diet With Dee <newsletter@mail.dietwithdee.org>',
-                        to: [email],
-                        reply_to: 'hello@dietwithdee.org',
-                        subject: subject,
-                        html: personalizedHtmlWithUnsub,
-                        text: emailTextBase + `?email=${encodeURIComponent(email)}`,
-                        headers: {
-                            'List-Unsubscribe': `<${unsubscribeBase}?email=${encodeURIComponent(email)}>`
-                        }
-                    };
-                });
-
-                const res = await sendBatchWithRetry(batchedPayloads);
-                if (res.success) sentCount += batchEmails.length;
-                else failCount += batchEmails.length;
-
-                await new Promise(r => setTimeout(r, pauseMs));
-            }
-
-            console.log(`Newsletter task complete: ${sentCount} sent, ${failCount} failed.`);
-
-            // Mark sent (or failed) with timestamp
-            try {
-                await articleRef.update({ newsletterSent: sentCount > 0 ? true : 'failed', newsletterSentAt: admin.firestore.Timestamp.now(), newsletterSentCount: sentCount, newsletterFailCount: failCount });
-            } catch (err) {
-                console.error('Failed to update article newsletter status:', err);
-            }
-
-            // Compute monthly subscriber growth (best-effort using createdAt)
-            try {
-                const now = new Date();
-                const startOfThisMonth = new Date(now.getFullYear(), now.getMonth(), 1);
-                const startOfLastMonth = new Date(now.getFullYear(), now.getMonth() - 1, 1);
-                const thisMonthSnap = await db.collection('emails').where('createdAt', '>=', admin.firestore.Timestamp.fromDate(startOfThisMonth)).get();
-                const lastMonthSnap = await db.collection('emails').where('createdAt', '>=', admin.firestore.Timestamp.fromDate(startOfLastMonth)).where('createdAt', '<', admin.firestore.Timestamp.fromDate(startOfThisMonth)).get();
-                const thisCount = thisMonthSnap.size || 0;
-                const lastCount = lastMonthSnap.size || 0;
-                let growth = null;
-                if (lastCount > 0) growth = ((thisCount - lastCount) / lastCount) * 100;
-                console.log(`Subscriber growth month-over-month: ${growth === null ? 'N/A' : growth.toFixed(2) + '%'} (thisMonth=${thisCount}, lastMonth=${lastCount})`);
-                // Optionally store metric
-                await db.collection('metrics').doc('newsletter_subscribers').set({ lastRun: admin.firestore.Timestamp.now(), thisMonthCount: thisCount, lastMonthCount: lastCount, growthPct: growth }, { merge: true });
-            } catch (err) {
-                console.error('Error computing subscriber growth metric:', err);
-            }
     } catch (error) {
       console.error("Error in newsletter distribution:", error);
+    }
+  }
+);
+
+// 2.1. Scheduled Function to Process Mail Queue (runs every 30 minutes)
+exports.processMailQueueSchedule = onSchedule(
+  {
+    schedule: "every 30 minutes",
+    secrets: ["RESEND_API_KEY"],
+    memory: "512MiB",
+    timeoutSeconds: 300
+  },
+  async (event) => {
+    try {
+      const resendApiKey = process.env.RESEND_API_KEY;
+      if (!resendApiKey) {
+        console.warn("[processMailQueueSchedule] RESEND_API_KEY is missing. Skipping.");
+        return;
+      }
+      const resend = new Resend(resendApiKey);
+      const result = await processMailQueue(db, resend);
+      console.log(`[processMailQueueSchedule] Cycle finished: ${result.processed} sent, remaining quota today: ${result.remainingQuota}`);
+    } catch (error) {
+      console.error("[processMailQueueSchedule] Error:", error);
     }
   }
 );
@@ -317,6 +294,7 @@ exports.onNewSubscriber = onDocumentCreated(
                 console.error(`Error sending email to ${email}:`, error);
             } else {
                 console.log(`Email successfully sent to ${email}. ID: ${result.id}`);
+                await recordTransactionalSent(db, 1);
             }
         } catch (error) {
             console.error("Error in onNewSubscriber email logic:", error);
@@ -373,6 +351,7 @@ exports.onNewSurveySubmission = onDocumentCreated(
                 console.error(`[onNewSurveySubmission] Error sending voucher to ${email}:`, error);
             } else {
                 console.log(`[onNewSurveySubmission] Voucher successfully sent to ${email}. ID: ${result.id}`);
+                await recordTransactionalSent(db, 1);
                 try {
                     await snapshot.ref.update({
                         voucherEmailSent: true,
@@ -710,6 +689,7 @@ exports.processBooking = onCall(
             });
 
             console.log(`Confirmation emails sent for ${reference}.`);
+            await recordTransactionalSent(db, 2);
             return { success: true, bookingId: reference };
 
         } catch (emailError) {
@@ -853,8 +833,8 @@ exports.unsubscribeUser = onCall(async (request) => {
 exports.sendBulkCustomEmails = onCall(
     { 
       secrets: ["RESEND_API_KEY"],
-      memory: "1GiB",
-      timeoutSeconds: 540
+      memory: "512MiB",
+      timeoutSeconds: 300
     },
     async (request) => {
         // Check authorization
@@ -886,9 +866,6 @@ exports.sendBulkCustomEmails = onCall(
 
             const resend = new Resend(resendApiKey);
 
-            let sentCount = 0;
-            let failCount = 0;
-
             // Clean and validate email addresses
             const validEmails = recipients.filter(email => {
                 const trimmed = email?.trim()?.toLowerCase();
@@ -899,47 +876,29 @@ exports.sendBulkCustomEmails = onCall(
                 throw new HttpsError("invalid-argument", "No valid email addresses provided.");
             }
 
-            // Send in batches to avoid rate limiting
-            const batchSize = 50;
-            for (let i = 0; i < validEmails.length; i += batchSize) {
-                const batchEmails = validEmails.slice(i, i + batchSize);
-
-                const batchedPayloads = batchEmails.map(email => ({
-                    from: 'Diet With Dee <hello@mail.dietwithdee.org>',
-                    to: [email],
-                    reply_to: 'hello@dietwithdee.org',
-                    subject: subject.trim(),
-                    html: htmlContent.trim() + '\n\n<div style="text-align: center; margin-top: 40px; font-size: 12px; color: #999;"><p><a href="https://dietwithdee.org/unsubscribe?email=' + encodeURIComponent(email) + '" style="color: #16a34a; text-decoration: none;">Unsubscribe</a></p></div>',
-                    text: (textContent || htmlContent.replace(/<[^>]*>/g, '')).trim() + '\n\n---\nUnsubscribe: https://dietwithdee.org/unsubscribe?email=' + encodeURIComponent(email),
-                    headers: {
-                        'List-Unsubscribe': `<https://dietwithdee.org/unsubscribe?email=${encodeURIComponent(email)}>`
-                    }
-                }));
-
-                try {
-                    const { data, error } = await resend.batch.send(batchedPayloads);
-                    if (error) {
-                        console.error("Batch send error:", error);
-                        failCount += batchEmails.length;
-                    } else {
-                        sentCount += batchEmails.length;
-                    }
-                } catch (err) {
-                    console.error("Batch send failed:", err);
-                    failCount += batchEmails.length;
+            const campaignId = `custom_${Date.now()}`;
+            const queuedCount = await enqueueCampaign(db, campaignId, validEmails, ({ email }) => ({
+                from: 'Diet With Dee <hello@mail.dietwithdee.org>',
+                to: [email],
+                reply_to: 'hello@dietwithdee.org',
+                subject: subject.trim(),
+                html: htmlContent.trim() + '\n\n<div style="text-align: center; margin-top: 40px; font-size: 12px; color: #999;"><p><a href="https://dietwithdee.org/unsubscribe?email=' + encodeURIComponent(email) + '" style="color: #16a34a; text-decoration: none;">Unsubscribe</a></p></div>',
+                text: (textContent || htmlContent.replace(/<[^>]*>/g, '')).trim() + '\n\n---\nUnsubscribe: https://dietwithdee.org/unsubscribe?email=' + encodeURIComponent(email),
+                headers: {
+                    'List-Unsubscribe': `<https://dietwithdee.org/unsubscribe?email=${encodeURIComponent(email)}>`
                 }
+            }));
 
-                // Rate limiting delay between batches
-                await new Promise(r => setTimeout(r, 500));
-            }
-
-            console.log(`Bulk email complete: ${sentCount} sent, ${failCount} failed.`);
+            // Immediately dispatch first batch (VIPs first, capped at 60/day)
+            const queueResult = await processMailQueue(db, resend);
+            console.log(`[sendBulkCustomEmails] Initial batch: ${queueResult.processed} sent, remaining quota: ${queueResult.remainingQuota}`);
 
             return {
                 success: true,
-                sentCount: sentCount,
-                failCount: failCount,
-                message: `Email sent to ${sentCount} subscriber${sentCount !== 1 ? 's' : ''}`
+                sentCount: queueResult.processed,
+                queuedCount: queuedCount,
+                remainingQuota: queueResult.remainingQuota,
+                message: `Enqueued ${queuedCount} emails. ${queueResult.processed} sent immediately (VIPs first, capped at 60/day). Remaining emails will dispatch on the next daily quota reset.`
             };
         } catch (error) {
             console.error("Error in sendBulkCustomEmails:", error);

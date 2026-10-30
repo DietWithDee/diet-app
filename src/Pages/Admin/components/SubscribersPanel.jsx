@@ -109,7 +109,7 @@ const SubscribersPanel = ({ showNotification }) => {
       });
 
       if (response.data.success) {
-        showNotification('success', `Emails sent successfully to ${response.data.sentCount} subscribers`);
+        showNotification('success', response.data.message || `Emails sent successfully to ${response.data.sentCount} subscribers`);
         setShowEmailComposer(false);
         setSelectedEmails(new Set());
         setEmailTemplate({ subject: '', htmlContent: '', textContent: '' });
