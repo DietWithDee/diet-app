@@ -225,10 +225,10 @@ exports.onArticlePublished = onDocumentWritten(
   }
 );
 
-// 2.1. Scheduled Function to Process Mail Queue (runs every 30 minutes)
+// 2.1. Scheduled Function to Process Mail Queue (runs every 1 hour)
 exports.processMailQueueSchedule = onSchedule(
   {
-    schedule: "every 30 minutes",
+    schedule: "every 1 hours",
     secrets: ["RESEND_API_KEY"],
     memory: "512MiB",
     timeoutSeconds: 300
