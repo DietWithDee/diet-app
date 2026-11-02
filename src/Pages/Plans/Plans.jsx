@@ -75,6 +75,7 @@ function Plans() {
   const [shareToast, setShareToast] = useState(null);
   const [currentTestimonial, setCurrentTestimonial] = useState(0);
   const [isAutoPlaying, setIsAutoPlaying] = useState(true);
+  const [isHovered, setIsHovered] = useState(false);
   const [loading, setLoading] = useState(true);
   const { showToast } = useToast();
   const [searchQuery, setSearchQuery] = useState("");
@@ -296,19 +297,11 @@ function Plans() {
 
   useEffect(() => {
     let interval;
-    if (isAutoPlaying && !loading && testimonials.length > 1) {
-      interval = setInterval(nextTestimonial, 3500); // Change testimonial every 3.5 seconds
+    if (isAutoPlaying && !isHovered && !loading && testimonials.length > 1) {
+      interval = setInterval(nextTestimonial, 7000); // Change testimonial every 7 seconds
     }
     return () => clearInterval(interval);
-  }, [isAutoPlaying, loading, nextTestimonial, testimonials.length]);
-
-  // Featured carousel auto-rotate - 3 second interval
-  useEffect(() => {
-    const interval = setInterval(() => {
-      setCurrentTestimonial((prev) => (prev + 1) % 6);
-    }, 3000);
-    return () => clearInterval(interval);
-  }, []);
+  }, [isAutoPlaying, isHovered, loading, nextTestimonial, testimonials.length]);
 
   // Star rating component
   const StarRating = ({ rating }) => {
@@ -745,11 +738,15 @@ function Plans() {
 
           <div className="relative max-w-6xl mx-auto px-4 sm:px-12">
             {/* Carousel Container */}
-            <div className="overflow-hidden py-10">
+            <div
+              className="overflow-hidden py-10"
+              onMouseEnter={() => setIsHovered(true)}
+              onMouseLeave={() => setIsHovered(false)}
+            >
               <motion.div
                 className={`flex ${testimonials.length > 1 ? "cursor-grab active:cursor-grabbing" : ""}`}
                 animate={{ x: `-${currentTestimonial * 100}%` }}
-                transition={{ type: "spring", stiffness: 300, damping: 30 }}
+                transition={{ duration: 0.8, ease: "easeInOut" }}
                 drag={testimonials.length > 1 ? "x" : false}
                 dragConstraints={{ left: 0, right: 0 }}
                 onDragStart={() => setIsAutoPlaying(false)}
