@@ -8,6 +8,7 @@ import BlogArticleSEO from '../../Components/BlogArticleSEO';
 import ScrollHideRefreshButton from '../../utils/ScrollHideRefreshButton';
 import NewsletterPopup from '../../Components/NewsletterPopup';
 import SafeImage from '../../Components/SafeImage';
+import { renderArticleLinkCardHTML } from '../../utils/articleLinkCardUtils';
 import 'react-lazy-load-image-component/src/effects/blur.css';
 import { logEvent } from 'firebase/analytics';
 import { analytics } from '../../firebaseConfig';
@@ -335,100 +336,92 @@ function Blog() {
       : plainText;
   };
 
-  const transformArticleContent = (html) => {
+  const transformArticleContent = (html, article = null) => {
     if (!html) return '';
     try {
+      // 1. Convert Markdown links [Text](URL) in article body to standard <a> tags
+      // Handles cases like [your-website-url](https://your-website-url/plans) or [DietWithDee Plans](https://dietwithdee.org/plans)
+      let processed = html.replace(/\[([^\]]+)\]\(([^)]+)\)/g, (match, linkText, url) => {
+        return `<a href="${url}">${linkText}</a>`;
+      });
+
       const parser = new DOMParser();
-      const doc = parser.parseFromString(html, 'text/html');
+      const doc = parser.parseFromString(processed, 'text/html');
 
-      const createPlanCard = (url, linkText) => {
-        let displayTitle = linkText;
-        const isAllPlans = url.includes('/plans') && !url.includes('#');
-
-        if (!displayTitle || displayTitle.trim() === url.trim() || displayTitle.startsWith('http') || displayTitle.startsWith('/plans')) {
-          const match = url.match(/\/(?:pay|product|buy)\/([a-zA-Z0-9_-]+)/);
-          if (match && match[1]) {
-            displayTitle = match[1].replace(/-/g, ' ');
-            displayTitle = displayTitle.split(' ').map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(' ') + ' Plan';
-          } else if (url.includes('/plans')) {
-            const hashMatch = url.match(/#([a-zA-Z0-9_-]+)/);
-            if (hashMatch && hashMatch[1]) {
-              displayTitle = hashMatch[1].replace(/-/g, ' ');
-              displayTitle = displayTitle.split(' ').map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(' ') + ' Plan';
-            } else {
-              displayTitle = 'View All Plans';
-            }
-          } else {
-            displayTitle = 'Premium Plan';
-          }
-        }
-
-        const buttonText = isAllPlans ? 'View All Plans' : 'View Plan';
-
+      const createCardNode = (url, linkText) => {
+        const cardHtml = renderArticleLinkCardHTML({ url, linkText, article });
         const wrapper = doc.createElement('div');
-        wrapper.className = 'my-8 p-5 sm:p-6 rounded-2xl border border-green-100/40 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 not-prose transition-all duration-300 shimmer-card';
-        wrapper.innerHTML = `
-          <div class="flex-1 min-w-0">
-            <div class="text-[10px] sm:text-xs font-bold text-green-600 uppercase tracking-wider mb-1.5 flex items-center gap-1.5">
-              <span>✨</span> Recommended Plan
-            </div>
-            <h4 class="text-lg sm:text-xl font-bold text-gray-800 m-0 leading-tight truncate-whitespace">${displayTitle}</h4>
-          </div>
-          <a href="${url}" target="_blank" rel="noopener noreferrer" class="w-full sm:w-auto shrink-0 inline-flex items-center justify-center px-6 py-2.5 sm:py-3 bg-gradient-to-r from-[#F6841F] to-orange-500 text-white text-sm font-bold rounded-full shadow-md hover:shadow-lg no-underline gap-2">
-            ${buttonText}
-            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14"/><path d="m12 5 7 7-7 7"/></svg>
-          </a>
-        `;
-        return wrapper;
+        wrapper.innerHTML = cardHtml;
+        return wrapper.firstElementChild || wrapper;
       };
 
-      // 1. Process explicit <a> tags
+      // 2. Process all explicit <a> tags
       const links = Array.from(doc.querySelectorAll('a'));
-      links.forEach(a => {
+      links.forEach((a) => {
         const href = a.getAttribute('href') || '';
-        const isPaystack = href.includes('paystack.shop/pay/') ||
-          href.includes('paystack.com/pay/') ||
-          href.includes('paystack.com/buy/') ||
-          href.includes('paystack.shop/product/') ||
-          href.includes('paystack.com/product/');
-        const isPlans = href.includes('/plans');
+        const lowerHref = href.toLowerCase();
+        const isPaystack =
+          lowerHref.includes('paystack.shop') || lowerHref.includes('paystack.com');
+        const isPlans =
+          lowerHref.includes('/plans') ||
+          lowerHref.includes('plans') ||
+          lowerHref.includes('your-website-url') ||
+          lowerHref.includes('ytd.org');
+        const isSurvey = lowerHref.includes('/survey') || lowerHref.includes('survey');
+        const isConsult = lowerHref.includes('/contact') || lowerHref.includes('consult');
 
-        if (isPaystack || isPlans) {
-          const wrapper = createPlanCard(href, a.textContent);
-          if (a.parentNode) a.parentNode.replaceChild(wrapper, a);
+        if (isPaystack || isPlans || isSurvey || isConsult) {
+          const cardNode = createCardNode(href, a.textContent);
+          if (a.parentNode) {
+            const parent = a.parentNode;
+            if (
+              parent.tagName === 'P' &&
+              parent.textContent.trim() === a.textContent.trim()
+            ) {
+              if (parent.parentNode) parent.parentNode.replaceChild(cardNode, parent);
+            } else {
+              parent.replaceChild(cardNode, a);
+            }
+          }
         }
       });
 
-      // 2. Process raw text nodes for unlinked plain-text URLs
+      // 3. Process raw text nodes for unlinked plain-text URLs
       const walker = doc.createTreeWalker(doc.body, NodeFilter.SHOW_TEXT, null, false);
       const textNodes = [];
       let node;
-      while (node = walker.nextNode()) {
+      while ((node = walker.nextNode())) {
         textNodes.push(node);
       }
 
-      const planRegex = /(https?:\/\/(?:www\.)?(?:paystack\.shop|paystack\.com)\/(?:pay|product|buy)\/[a-zA-Z0-9_-]+|https?:\/\/(?:www\.)?dietwithdee\.org\/plans(?:#[a-zA-Z0-9_-]+)?|\/plans(?:#[a-zA-Z0-9_-]+)?)/g;
+      const planUrlRegex =
+        /(https?:\/\/(?:www\.)?(?:paystack\.shop|paystack\.com)\/(?:pay|product|buy)\/[a-zA-Z0-9_-]+|https?:\/\/(?:www\.)?(?:your-website-url|ytd\.org|dietwithdee\.org|dietwithdee\.com)\/(?:plans|survey)(?:#[a-zA-Z0-9_-]+)?|\/(?:plans|survey)(?:#[a-zA-Z0-9_-]+)?)/gi;
 
-      textNodes.forEach(textNode => {
-        if (textNode.parentNode && textNode.parentNode.closest('a, .not-prose')) return;
+      textNodes.forEach((textNode) => {
+        if (
+          textNode.parentNode &&
+          textNode.parentNode.closest('a, .not-prose, .shimmer-card')
+        ) {
+          return;
+        }
 
         const text = textNode.nodeValue;
-        if (planRegex.test(text)) {
+        if (planUrlRegex.test(text)) {
           const fragment = doc.createDocumentFragment();
           let lastIndex = 0;
-          planRegex.lastIndex = 0;
+          planUrlRegex.lastIndex = 0;
           let match;
 
-          while ((match = planRegex.exec(text)) !== null) {
+          while ((match = planUrlRegex.exec(text)) !== null) {
             const matchedUrl = match[1];
             const beforeText = text.substring(lastIndex, match.index);
             if (beforeText) {
               fragment.appendChild(doc.createTextNode(beforeText));
             }
 
-            const wrapper = createPlanCard(matchedUrl, matchedUrl);
-            fragment.appendChild(wrapper);
-            lastIndex = planRegex.lastIndex;
+            const cardNode = createCardNode(matchedUrl, matchedUrl);
+            fragment.appendChild(cardNode);
+            lastIndex = planUrlRegex.lastIndex;
           }
 
           const afterText = text.substring(lastIndex);
@@ -436,7 +429,9 @@ function Blog() {
             fragment.appendChild(doc.createTextNode(afterText));
           }
 
-          if (textNode.parentNode) textNode.parentNode.replaceChild(fragment, textNode);
+          if (textNode.parentNode) {
+            textNode.parentNode.replaceChild(fragment, textNode);
+          }
         }
       });
 
@@ -774,7 +769,21 @@ function Blog() {
                 {/* Article Content */}
                 <div
                   className="prose prose-sm sm:prose-base lg:prose-lg max-w-none text-stone-800 leading-relaxed article-body"
-                  dangerouslySetInnerHTML={{ __html: transformArticleContent(selectedArticle.content) }}
+                  onClick={(e) => {
+                    const a = e.target.closest('a');
+                    if (!a) return;
+                    const href = a.getAttribute('href');
+                    if (href && (href.startsWith('/') || href.startsWith('#'))) {
+                      e.preventDefault();
+                      if (href.startsWith('#')) {
+                        const el = document.getElementById(href.slice(1));
+                        if (el) el.scrollIntoView({ behavior: 'smooth' });
+                      } else {
+                        navigate(href);
+                      }
+                    }
+                  }}
+                  dangerouslySetInnerHTML={{ __html: transformArticleContent(selectedArticle.content, selectedArticle) }}
                 />
 
                 {/* Clickable Tags */}
