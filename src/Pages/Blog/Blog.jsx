@@ -306,22 +306,80 @@ function Blog() {
     }
   };
 
-  const formatDate = (timestamp) => {
-    if (!timestamp) return 'Unknown date';
+  const safeToISOString = (timestamp) => {
+    if (!timestamp) return new Date().toISOString();
 
-    if (timestamp.toDate) {
-      return timestamp.toDate().toLocaleDateString('en-US', {
-        year: 'numeric',
-        month: 'long',
-        day: 'numeric'
-      });
+    try {
+      if (typeof timestamp.toDate === 'function') {
+        const d = timestamp.toDate();
+        if (d instanceof Date && !isNaN(d.getTime())) {
+          return d.toISOString();
+        }
+      }
+
+      if (typeof timestamp === 'object' && typeof timestamp.seconds === 'number') {
+        const d = new Date(timestamp.seconds * 1000);
+        if (!isNaN(d.getTime())) {
+          return d.toISOString();
+        }
+      }
+
+      if (timestamp instanceof Date) {
+        if (!isNaN(timestamp.getTime())) {
+          return timestamp.toISOString();
+        }
+      }
+
+      const d = new Date(timestamp);
+      if (!isNaN(d.getTime())) {
+        return d.toISOString();
+      }
+    } catch (e) {
+      console.warn('Error converting timestamp to ISO string:', e);
     }
 
-    return new Date(timestamp).toLocaleDateString('en-US', {
-      year: 'numeric',
-      month: 'long',
-      day: 'numeric'
-    });
+    return new Date().toISOString();
+  };
+
+  const formatDate = (timestamp) => {
+    if (!timestamp) return 'Recent';
+
+    try {
+      if (typeof timestamp.toDate === 'function') {
+        const d = timestamp.toDate();
+        if (d instanceof Date && !isNaN(d.getTime())) {
+          return d.toLocaleDateString('en-US', {
+            year: 'numeric',
+            month: 'long',
+            day: 'numeric'
+          });
+        }
+      }
+
+      if (typeof timestamp === 'object' && typeof timestamp.seconds === 'number') {
+        const d = new Date(timestamp.seconds * 1000);
+        if (!isNaN(d.getTime())) {
+          return d.toLocaleDateString('en-US', {
+            year: 'numeric',
+            month: 'long',
+            day: 'numeric'
+          });
+        }
+      }
+
+      const d = timestamp instanceof Date ? timestamp : new Date(timestamp);
+      if (!isNaN(d.getTime())) {
+        return d.toLocaleDateString('en-US', {
+          year: 'numeric',
+          month: 'long',
+          day: 'numeric'
+        });
+      }
+    } catch (e) {
+      console.warn('Error formatting date:', e);
+    }
+
+    return 'Recent';
   };
 
   const stripHtml = (html) => {
@@ -761,9 +819,7 @@ function Blog() {
     const articleImage = selectedArticle.coverImage || 'https://dietwithdee.org/LOGO.webp';
     const articleUrl = `https://dietwithdee.org/blog/${selectedArticle.slug || selectedArticle.id}`;
     const articleAuthor = selectedArticle.author || 'Nana Ama Dwamena';
-    const articleDate = selectedArticle.createdAt && selectedArticle.createdAt.toDate
-      ? selectedArticle.createdAt.toDate().toISOString()
-      : new Date(selectedArticle.createdAt).toISOString();
+    const articleDate = safeToISOString(selectedArticle.createdAt);
 
     return (
       <>

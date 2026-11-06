@@ -112,15 +112,27 @@ const ArticlesManager = React.memo(({ articles, setArticles, showNotification, l
     }, 100);
   };
 
+  const getSafeIsoLocal = (dateVal) => {
+    if (!dateVal) return '';
+    try {
+      let d = null;
+      if (typeof dateVal.toDate === 'function') d = dateVal.toDate();
+      else if (typeof dateVal === 'object' && typeof dateVal.seconds === 'number') d = new Date(dateVal.seconds * 1000);
+      else d = new Date(dateVal);
+      if (d && !isNaN(d.getTime())) return d.toISOString().slice(0, 16);
+    } catch {
+      return '';
+    }
+    return '';
+  };
+
   const handleEdit = (article) => {
     setFormData({
       title: article.title,
       content: article.content,
       imageUrl: article.coverImage || '',
       status: article.status || 'published',
-      scheduledPublishDate: article.scheduledPublishDate && article.scheduledPublishDate.toDate
-        ? article.scheduledPublishDate.toDate().toISOString().slice(0, 16)
-        : '',
+      scheduledPublishDate: getSafeIsoLocal(article.scheduledPublishDate),
       tags: article.tags || []
     });
     setImagePreview(article.coverImage || '');
