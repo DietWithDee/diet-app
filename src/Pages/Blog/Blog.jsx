@@ -336,41 +336,83 @@ function Blog() {
       : plainText;
   };
 
-  const transformArticleContent = (html, article = null) => {
+  const transformArticleContent = (html) => {
     if (!html) return '';
     try {
       // 1. Convert Markdown links [Text](URL) in article body to standard <a> tags
-      // Handles cases like [your-website-url](https://your-website-url/plans) or [DietWithDee Plans](https://dietwithdee.org/plans)
       let processed = html.replace(/\[([^\]]+)\]\(([^)]+)\)/g, (match, linkText, url) => {
-        return `<a href="${url}">${linkText}</a>`;
+        return `<a href="${url.trim()}">${linkText}</a>`;
       });
 
       const parser = new DOMParser();
       const doc = parser.parseFromString(processed, 'text/html');
 
+      const isButtonCardTarget = (href) => {
+        if (!href) return false;
+        const lower = href.toLowerCase();
+        return (
+          lower.includes('paystack.com') ||
+          lower.includes('paystack.shop') ||
+          lower.includes('/plans') ||
+          lower.includes('dietwithdee.org/plans') ||
+          lower.includes('dietwithdee.com/plans') ||
+          lower.includes('your-website-url/plans') ||
+          lower.includes('ytd.org/plans') ||
+          lower.includes('/survey') ||
+          lower.includes('/contact-us') ||
+          lower.includes('consult')
+        );
+      };
+
       const createCardNode = (url, linkText) => {
-        const cardHtml = renderArticleLinkCardHTML({ url, linkText, article });
+        const cardHtml = renderArticleLinkCardHTML({ url, linkText });
         const wrapper = doc.createElement('div');
         wrapper.innerHTML = cardHtml;
         return wrapper.firstElementChild || wrapper;
       };
 
-      // 2. Process all explicit <a> tags
-      const links = Array.from(doc.querySelectorAll('a'));
-      links.forEach((a) => {
-        const href = a.getAttribute('href') || '';
-        const lowerHref = href.toLowerCase();
-        const isPaystack =
-          lowerHref.includes('paystack.shop') || lowerHref.includes('paystack.com');
-        const isPlans =
-          lowerHref.includes('/plans') ||
-          lowerHref.includes('plans') ||
-          lowerHref.includes('your-website-url') ||
-          lowerHref.includes('ytd.org');
-        const isSurvey = lowerHref.includes('/survey') || lowerHref.includes('survey');
-        const isConsult = lowerHref.includes('/contact') || lowerHref.includes('consult');
+      // Helper to normalize and style links cleanly
+      const configureLinkElement = (a, rawHref) => {
+        let href = (rawHref || a.getAttribute('href') || '').trim();
+        if (!href) return;
 
-        if (isPaystack || isPlans || isSurvey || isConsult) {
+        // Strip known local domains/placeholders to internal routes
+        const normalizedHref = href.replace(
+          /^https?:\/\/(?:www\.)?(?:dietwithdee\.org|dietwithdee\.com|your-website-url|ytd\.org)/i,
+          ''
+        );
+
+        const isInternal = normalizedHref.startsWith('/') || normalizedHref.startsWith('#');
+        const finalHref = isInternal ? normalizedHref : href;
+
+        a.setAttribute('href', finalHref);
+
+        // Apply clean, accessible brand hyperlink styling
+        const currentClass = a.getAttribute('class') || '';
+        if (!currentClass.includes('text-emerald')) {
+          a.setAttribute(
+            'class',
+            `${currentClass} text-emerald-700 hover:text-emerald-800 underline font-semibold transition-colors duration-200 break-all`.trim()
+          );
+        }
+
+        if (!isInternal && (finalHref.startsWith('http://') || finalHref.startsWith('https://'))) {
+          a.setAttribute('target', '_blank');
+          a.setAttribute('rel', 'noopener noreferrer');
+        }
+      };
+
+      // 2. Process all explicit <a> tags
+      const existingLinks = Array.from(doc.querySelectorAll('a'));
+      existingLinks.forEach((a) => {
+        const href = a.getAttribute('href') || '';
+        if (isButtonCardTarget(href)) {
+          // If the link is inside a table or heading, keep it as an inline link
+          if (a.closest('table, h1, h2, h3, h4, h5, h6')) {
+            configureLinkElement(a, href);
+            return;
+          }
+
           const cardNode = createCardNode(href, a.textContent);
           if (a.parentNode) {
             const parent = a.parentNode;
@@ -383,6 +425,8 @@ function Blog() {
               parent.replaceChild(cardNode, a);
             }
           }
+        } else {
+          configureLinkElement(a, href);
         }
       });
 
@@ -394,34 +438,55 @@ function Blog() {
         textNodes.push(node);
       }
 
-      const planUrlRegex =
-        /(https?:\/\/(?:www\.)?(?:paystack\.shop|paystack\.com)\/(?:pay|product|buy)\/[a-zA-Z0-9_-]+|https?:\/\/(?:www\.)?(?:your-website-url|ytd\.org|dietwithdee\.org|dietwithdee\.com)\/(?:plans|survey)(?:#[a-zA-Z0-9_-]+)?|\/(?:plans|survey)(?:#[a-zA-Z0-9_-]+)?)/gi;
+      const urlRegex =
+        /(https?:\/\/[^\s<>\x22\x27)]+|\/(?:plans|survey|contact-us)(?:\/[a-zA-Z0-9_-]+)*(?:#[a-zA-Z0-9_-]+)?)/g;
 
       textNodes.forEach((textNode) => {
         if (
           textNode.parentNode &&
-          textNode.parentNode.closest('a, .not-prose, .shimmer-card')
+          textNode.parentNode.closest('a, script, style, code, pre, .not-prose')
         ) {
           return;
         }
 
         const text = textNode.nodeValue;
-        if (planUrlRegex.test(text)) {
+        if (urlRegex.test(text)) {
           const fragment = doc.createDocumentFragment();
           let lastIndex = 0;
-          planUrlRegex.lastIndex = 0;
+          urlRegex.lastIndex = 0;
           let match;
 
-          while ((match = planUrlRegex.exec(text)) !== null) {
-            const matchedUrl = match[1];
-            const beforeText = text.substring(lastIndex, match.index);
+          while ((match = urlRegex.exec(text)) !== null) {
+            let matchedUrl = match[1];
+            const matchIndex = match.index;
+
+            // Separate trailing punctuation (like . or ,) so it is not part of the clickable link
+            let trailing = '';
+            while (/[.,;:!?]$/.test(matchedUrl)) {
+              trailing = matchedUrl.slice(-1) + trailing;
+              matchedUrl = matchedUrl.slice(0, -1);
+            }
+
+            const beforeText = text.substring(lastIndex, matchIndex);
             if (beforeText) {
               fragment.appendChild(doc.createTextNode(beforeText));
             }
 
-            const cardNode = createCardNode(matchedUrl, matchedUrl);
-            fragment.appendChild(cardNode);
-            lastIndex = planUrlRegex.lastIndex;
+            if (isButtonCardTarget(matchedUrl)) {
+              const cardNode = createCardNode(matchedUrl, matchedUrl);
+              fragment.appendChild(cardNode);
+            } else {
+              const a = doc.createElement('a');
+              a.textContent = matchedUrl;
+              configureLinkElement(a, matchedUrl);
+              fragment.appendChild(a);
+            }
+
+            if (trailing) {
+              fragment.appendChild(doc.createTextNode(trailing));
+            }
+
+            lastIndex = urlRegex.lastIndex;
           }
 
           const afterText = text.substring(lastIndex);
@@ -783,7 +848,7 @@ function Blog() {
                       }
                     }
                   }}
-                  dangerouslySetInnerHTML={{ __html: transformArticleContent(selectedArticle.content, selectedArticle) }}
+                  dangerouslySetInnerHTML={{ __html: transformArticleContent(selectedArticle.content) }}
                 />
 
                 {/* Clickable Tags */}

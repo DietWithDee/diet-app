@@ -33,52 +33,42 @@ export const normalizeArticleUrl = (rawUrl) => {
 };
 
 /**
- * Checks article context (title, tags) to see if an article strongly corresponds to a plan.
- */
-export const findMatchingPlanByContext = (article) => {
-  if (!article) return null;
-  const text = `${article.title || ''} ${(article.tags || []).join(' ')}`.toLowerCase();
-
-  if (/fasting|fast|ramadan|intermittent/i.test(text)) {
-    return plans.find(p => p.id === 'fasting-guide');
-  }
-  if (/diabetes|blood\s*sugar|sugar|glucose|insulin/i.test(text)) {
-    return plans.find(p => p.id === 'blood-sugar-balance');
-  }
-  if (/hypertension|blood\s*pressure|pressure|heart|dash/i.test(text)) {
-    return plans.find(p => p.id === 'pressure-no-dey-catch-me');
-  }
-  if (/weight\s*loss|fat\s*loss|slimming|snatched|drop\s*weight|lose\s*weight/i.test(text)) {
-    return plans.find(p => p.id === 'snatched-nourished');
-  }
-  if (/weight\s*gain|muscle\s*gain|bulking|underweight/i.test(text)) {
-    return plans.find(p => p.id === 'weight-gain');
-  }
-  if (/reset|basics|clean\s*eating|detox|beginner|healthy\s*eating/i.test(text)) {
-    return plans.find(p => p.id === 'back-to-basics');
-  }
-  return null;
-};
-
-/**
  * Resolves complete metadata for an embedded link card.
+ * NOTE: General /plans links strictly remain All Plans links and are NEVER hijacked by article context.
  */
-export const resolveLinkCardData = (rawUrl, linkText = '', article = null) => {
+export const resolveLinkCardData = (rawUrl, linkText = '', _article = null) => {
   const url = normalizeArticleUrl(rawUrl);
   const lowerUrl = url.toLowerCase();
   const lowerText = (linkText || '').toLowerCase();
 
-  // 1. Check for specific plan by ID, hash, or Paystack link
+  // 1. Check for specific plan by Path, ID, Hash, or Paystack link
   let matchedPlan = null;
 
-  // Check by hash: e.g. /plans#blood-sugar-balance
-  const hashMatch = url.match(/#([a-zA-Z0-9_-]+)/);
-  if (hashMatch) {
-    const slug = hashMatch[1].toLowerCase();
-    matchedPlan = plans.find(p => p.id.toLowerCase() === slug || p.id.replace(/-/g, '') === slug.replace(/-/g, ''));
+  // Check by path: e.g. /plans/fasting-guide or /plans/preview/fasting-guide
+  const pathMatch = url.match(/\/plans\/(?:preview\/)?([a-zA-Z0-9_-]+)/);
+  if (pathMatch && pathMatch[1] && pathMatch[1] !== 'preview') {
+    const slug = pathMatch[1].toLowerCase();
+    matchedPlan = plans.find(
+      (p) =>
+        p.id.toLowerCase() === slug ||
+        p.id.replace(/-/g, '') === slug.replace(/-/g, '')
+    );
   }
 
-  // Check by Paystack or direct path: /buy/back-to-basics or /pay/back-to-basics
+  // Check by hash: e.g. /plans#blood-sugar-balance
+  if (!matchedPlan) {
+    const hashMatch = url.match(/#([a-zA-Z0-9_-]+)/);
+    if (hashMatch) {
+      const slug = hashMatch[1].toLowerCase();
+      matchedPlan = plans.find(
+        (p) =>
+          p.id.toLowerCase() === slug ||
+          p.id.replace(/-/g, '') === slug.replace(/-/g, '')
+      );
+    }
+  }
+
+  // Check by Paystack or direct path: /buy/fasting-guide, /buy/back-to-basics, etc.
   if (!matchedPlan) {
     for (const p of plans) {
       if (
@@ -102,53 +92,36 @@ export const resolveLinkCardData = (rawUrl, linkText = '', article = null) => {
     }
   }
 
-  // Case A: Matched specific plan
+  // Case A: Matched specific plan -> points strictly to that plan's preview page
   if (matchedPlan) {
+    const isPaystackDirect = lowerUrl.includes('paystack.com') || lowerUrl.includes('paystack.shop');
     return {
       type: 'plan',
-      badge: '✨ Recommended Diet Plan',
+      badge: 'Diet Plan Guide',
       badgeColor: 'text-emerald-700 bg-emerald-100/80',
       title: matchedPlan.title,
       subtitle: matchedPlan.Subtitle || 'Tailored Ghanaian Nutrition Guide',
       price: matchedPlan.price || '',
-      buttonText: `Get Plan ${matchedPlan.price ? '• ' + matchedPlan.price : ''} →`,
-      targetUrl: `/plans#${matchedPlan.id}`,
-      img: matchedPlan.img,
-      isExternal: false,
+      buttonText: isPaystackDirect ? 'Buy Now →' : 'Preview Plan →',
+      targetUrl: isPaystackDirect ? rawUrl : `/plans/${matchedPlan.id}`,
+      displayUrl: rawUrl || `/plans/${matchedPlan.id}`,
+      img: matchedPlan.previewCover || matchedPlan.img,
+      isExternal: isPaystackDirect,
     };
   }
 
-  // Case B: General plans link (/plans or dietwithdee.org/plans)
+  // Case B: General plans link (/plans or dietwithdee.org/plans) -> strictly All Plans
   if (lowerUrl.includes('/plans') || lowerText.includes('plan')) {
-    // If article specifically relates to a plan, highlight that plan!
-    const contextPlan = findMatchingPlanByContext(article);
-    if (contextPlan) {
-      return {
-        type: 'plan-context',
-        badge: '✨ Recommended For This Article',
-        badgeColor: 'text-emerald-700 bg-emerald-100/80',
-        title: contextPlan.title,
-        subtitle: contextPlan.Subtitle || 'Tailored Ghanaian Nutrition Guide',
-        price: contextPlan.price || '',
-        buttonText: `View ${contextPlan.title} →`,
-        targetUrl: `/plans#${contextPlan.id}`,
-        img: contextPlan.img,
-        secondaryText: 'or explore all 5 diet plans',
-        secondaryUrl: '/plans',
-        isExternal: false,
-      };
-    }
-
-    // Default: All Plans showcase card
     return {
       type: 'all-plans',
-      badge: '✨ All Nutrition Plans',
-      badgeColor: 'text-orange-700 bg-orange-100/80',
-      title: 'DietWithDee Meal Plans & Guides',
-      subtitle: '5 tailored Ghanaian meal plans for weight loss, diabetes, blood pressure & healthy eating.',
-      price: 'From ₵249',
-      buttonText: 'View All Plans (5 Guides) →',
+      badge: 'Nutrition Plans & Guides',
+      badgeColor: 'text-emerald-700 bg-emerald-100/80',
+      title: 'DietWithDee Plans Catalog',
+      subtitle: 'Tailored Ghanaian meal plans for weight loss, fasting, blood sugar balance & healthy habits.',
+      price: 'From ₵99',
+      buttonText: 'View All Plans →',
       targetUrl: '/plans',
+      displayUrl: rawUrl || '/plans',
       img: Logo,
       isExternal: false,
     };
@@ -158,13 +131,14 @@ export const resolveLinkCardData = (rawUrl, linkText = '', article = null) => {
   if (lowerUrl.includes('/survey')) {
     return {
       type: 'survey',
-      badge: '🎉 1-Year Anniversary Gift',
+      badge: 'Anniversary Gift',
       badgeColor: 'text-emerald-700 bg-emerald-100/80',
-      title: 'Take Our 2-Minute Survey — Get 20% Off',
+      title: 'Take Our 2-Minute Survey',
       subtitle: 'Share your health goals with us and get an instant 20% discount code for any meal plan!',
       price: '20% OFF',
-      buttonText: 'Take 2-Min Survey →',
+      buttonText: 'Take Survey →',
       targetUrl: '/survey',
+      displayUrl: rawUrl || '/survey',
       img: Logo,
       isExternal: false,
     };
@@ -174,83 +148,74 @@ export const resolveLinkCardData = (rawUrl, linkText = '', article = null) => {
   if (lowerUrl.includes('/contact') || lowerUrl.includes('consult')) {
     return {
       type: 'consultation',
-      badge: '🩺 1-on-1 Nutrition Guidance',
+      badge: '1-on-1 Guidance',
       badgeColor: 'text-emerald-700 bg-emerald-100/80',
-      title: 'Book a 1-on-1 Consultation with Dee',
+      title: '1-on-1 Nutrition Consultation',
       subtitle: 'Personalized dietary assessment, meal strategy, and direct clinical guidance.',
       price: 'Book Session',
       buttonText: 'Book Consultation →',
       targetUrl: '/contact-us',
+      displayUrl: rawUrl || '/contact-us',
       img: Logo,
       isExternal: false,
     };
   }
 
   // Case E: General link fallback
+  const isPaystack = lowerUrl.includes('paystack.com') || lowerUrl.includes('paystack.shop');
   const cleanTitle = (linkText && linkText !== 'your-website-url' && !linkText.startsWith('http'))
     ? linkText
-    : 'DietWithDee Resource';
+    : (isPaystack ? 'Direct Purchase Link' : 'DietWithDee Resource');
 
   return {
     type: 'general',
-    badge: '🌿 Featured Resource',
+    badge: 'Featured Resource',
     badgeColor: 'text-emerald-700 bg-emerald-100/80',
     title: cleanTitle,
     subtitle: 'Learn more about healthy living and nutrition on DietWithDee.',
     price: '',
-    buttonText: 'View Resource →',
+    buttonText: isPaystack ? 'Buy Now →' : 'View Resource →',
     targetUrl: url,
+    displayUrl: rawUrl || url,
     img: Logo,
-    isExternal: url.startsWith('http'),
+    isExternal: url.startsWith('http') || isPaystack,
   };
 };
 
 /**
- * Returns raw HTML string of the shimmering card for injection into dangerouslySetInnerHTML.
+ * Returns clean, lightweight HTML string of a sleek button bar with an attached link and thin title.
  */
 export const renderArticleLinkCardHTML = ({ url, linkText, article }) => {
   const data = resolveLinkCardData(url, linkText, article);
 
   const priceBadge = data.price
-    ? `<span style="display:inline-block; font-size:12px; font-weight:700; color:#15803d; background:#ecfdf5; border:1px solid #a7f3d0; padding:2px 8px; border-radius:9999px; margin-left:8px;">${data.price}</span>`
+    ? `<span style="font-size:11px; font-weight:600; color:#15803d; background:#ecfdf5; border:1px solid #a7f3d0; padding:1.5px 7px; border-radius:9999px; margin-left:8px; display:inline-block; vertical-align:middle; letter-spacing:0;">${data.price}</span>`
     : '';
 
-  const secondaryHtml = data.secondaryUrl
-    ? `<div style="margin-top:6px;"><a href="${data.secondaryUrl}" style="font-size:12px; color:#15803d; text-decoration:underline; font-weight:600;">${data.secondaryText}</a></div>`
-    : '';
-
-  const targetAttr = data.isExternal ? 'target="_blank" rel="noopener noreferrer nofollow"' : '';
+  const targetAttr = data.isExternal ? 'target="_blank" rel="noopener noreferrer"' : '';
+  const rawDisplay = (data.displayUrl || url || data.targetUrl).trim();
+  const cleanDisplayUrl = rawDisplay.startsWith('http')
+    ? rawDisplay
+    : `https://dietwithdee.org${rawDisplay.startsWith('/') ? '' : '/'}${rawDisplay}`;
 
   return `
-    <div class="my-8 p-4 sm:p-5 rounded-2xl border border-emerald-200/60 shadow-sm hover:shadow-md transition-all duration-300 shimmer-card not-prose" style="text-decoration:none;">
-      <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
-        
-        <div class="flex items-center gap-3 sm:gap-4 flex-1 min-w-0">
-          <div style="width:56px; height:56px; border-radius:12px; overflow:hidden; flex-shrink:0; background:#f0fdf4; border:1px solid #d1fae5; display:flex; align-items:center; justify-content:center;">
-            <img src="${data.img}" alt="${data.title}" style="width:100%; height:100%; object-fit:cover; display:block;" />
-          </div>
-
-          <div class="flex-1 min-w-0">
-            <div style="font-size:11px; font-weight:800; letter-spacing:0.05em; text-transform:uppercase; margin-bottom:2px; display:flex; align-items:center; gap:4px;" class="${data.badgeColor}">
-              <span>${data.badge}</span>
-              ${priceBadge}
-            </div>
-            <h4 style="font-size:16px; font-weight:800; color:#1f2937; margin:0; line-height:1.25; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;">
-              ${data.title}
-            </h4>
-            <p style="font-size:13px; color:#4b5563; margin:2px 0 0 0; line-height:1.35; display:-webkit-box; -webkit-line-clamp:2; -webkit-box-orient:vertical; overflow:hidden;">
-              ${data.subtitle}
-            </p>
-            ${secondaryHtml}
-          </div>
+    <div class="my-3 p-3 sm:px-4 sm:py-2.5 rounded-xl border border-emerald-100 bg-emerald-50/40 hover:bg-emerald-50/70 transition-all duration-200 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2.5 sm:gap-4 not-prose shadow-2xs" style="text-decoration:none;">
+      
+      <div class="min-w-0 flex-1">
+        <div style="font-size:15px; font-weight:500; color:#1f2937; line-height:1.3; margin:0; display:flex; align-items:center; flex-wrap:wrap;">
+          <span style="font-weight:500;">${data.title}</span>
+          ${priceBadge}
         </div>
-
-        <a href="${data.targetUrl}" ${targetAttr} class="w-full sm:w-auto shrink-0 inline-flex items-center justify-center px-5 py-2.5 bg-gradient-to-r from-[#F6841F] to-orange-500 hover:from-orange-600 hover:to-orange-500 text-white text-xs sm:text-sm font-bold rounded-full shadow-md hover:shadow-lg transition-all transform hover:scale-[1.02] active:scale-[0.98] gap-1.5 cursor-pointer" style="text-decoration:none !important; color:#ffffff !important;">
-          <span>${data.buttonText}</span>
-          <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0;"><path d="M5 12h14"/><path d="m12 5 7 7-7 7"/></svg>
+        <a href="${data.targetUrl}" ${targetAttr} class="text-xs text-stone-500 hover:text-emerald-700 underline truncate block mt-0.5" style="text-decoration:underline; font-weight:400; font-size:12px; color:#6b7280;">
+          ${cleanDisplayUrl}
         </a>
-
       </div>
+
+      <a href="${data.targetUrl}" ${targetAttr} class="inline-flex items-center justify-center gap-1.5 px-4 py-2 bg-[#F6841F] hover:bg-orange-600 active:scale-95 text-white text-xs sm:text-sm font-medium rounded-lg shadow-xs hover:shadow transition-all shrink-0 cursor-pointer" style="text-decoration:none !important; color:#ffffff !important; white-space:nowrap;">
+        <span>${data.buttonText}</span>
+        <svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0;"><path d="M5 12h14"/><path d="m12 5 7 7-7 7"/></svg>
+      </a>
+
     </div>
   `.trim();
 };
