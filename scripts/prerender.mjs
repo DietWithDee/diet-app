@@ -15,6 +15,12 @@ const ROUTES = [
   "/contactUs/",
   "/knowYourBody/",
   "/plans/",
+  "/plans/fasting-guide/",
+  "/plans/back-to-basics/",
+  "/plans/snatched-nourished/",
+  "/plans/blood-sugar-balance/",
+  "/plans/pressure-no-dey-catch-me/",
+  "/plans/weight-gain/",
   "/my-journey/",
   "/terms/",
   "/privacy/",
@@ -31,9 +37,9 @@ function outPathFor(route) {
 async function startStaticServer() {
   const app = express();
   app.use(express.static(DIST, { extensions: ["html"] }));
- app.use((req, res) => {
-  res.sendFile(path.join(DIST, "index.html"));
-});
+  app.use((req, res) => {
+    res.sendFile(path.join(DIST, "index.html"));
+  });
   return new Promise((resolve) => {
     const server = app.listen(PORT, () => resolve(server));
   });
@@ -78,7 +84,7 @@ function delay(ms) {
             !!document.querySelector('meta[name="description"]'),
           { timeout: 10_000 }
         )
-        .catch(() => {});
+        .catch(() => { });
 
       await delay(300);
 

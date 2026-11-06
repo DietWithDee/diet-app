@@ -3,13 +3,19 @@ import { writeFileSync } from "node:fs";
 const BASE = "https://dietwithdee.org";
 
 const routes = [
-  "/", 
+  "/",
   "/about/",
   "/services/",
   "/blog/",
   "/contactUs/",
   "/knowYourBody/",
   "/plans/",
+  "/plans/fasting-guide/",
+  "/plans/back-to-basics/",
+  "/plans/snatched-nourished/",
+  "/plans/blood-sugar-balance/",
+  "/plans/pressure-no-dey-catch-me/",
+  "/plans/weight-gain/",
   "/my-journey/",
   "/terms/",
   "/privacy/",

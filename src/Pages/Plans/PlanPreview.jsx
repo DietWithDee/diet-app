@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { useParams, useNavigate, Link } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import {
@@ -36,6 +36,30 @@ export default function PlanPreview() {
         p.id === planId ||
         (planId === "fasting-and-food" && p.id === "fasting-guide")
     ) || plans[0];
+
+  // Handle ESC key to close screenshot modal
+  useEffect(() => {
+    if (!activeScreenshot) return;
+    const handleKeyDown = (e) => {
+      if (e.key === "Escape") {
+        setActiveScreenshot(null);
+      }
+    };
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
+  }, [activeScreenshot]);
+
+  // Lock body scroll when preview modal is open
+  useEffect(() => {
+    if (activeScreenshot) {
+      document.body.style.overflow = "hidden";
+    } else {
+      document.body.style.overflow = "unset";
+    }
+    return () => {
+      document.body.style.overflow = "unset";
+    };
+  }, [activeScreenshot]);
 
   if (!plan) {
     return (
@@ -394,8 +418,20 @@ export default function PlanPreview() {
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
             onClick={() => setActiveScreenshot(null)}
-            className="fixed inset-0 z-50 bg-black/85 backdrop-blur-md flex items-center justify-center p-4 sm:p-6"
+            className="fixed inset-0 z-50 bg-black/85 backdrop-blur-md flex items-center justify-center p-3 sm:p-6"
           >
+            {/* Top-Right Fixed Floating Close Button */}
+            <button
+              type="button"
+              onClick={() => setActiveScreenshot(null)}
+              className="fixed top-4 right-4 sm:top-6 sm:right-6 z-50 p-2.5 sm:p-3 rounded-full bg-stone-900/95 hover:bg-stone-800 text-white border border-stone-700 shadow-2xl backdrop-blur-md transition-all active:scale-95 cursor-pointer flex items-center gap-2 group"
+              title="Close preview (Esc)"
+              aria-label="Close preview"
+            >
+              <X className="w-5 h-5 group-hover:rotate-90 transition-transform duration-200" />
+              <span className="text-xs font-bold pr-1 hidden sm:inline">Close</span>
+            </button>
+
             <motion.div
               initial={{ scale: 0.95, opacity: 0 }}
               animate={{ scale: 1, opacity: 1 }}
@@ -404,16 +440,19 @@ export default function PlanPreview() {
               className="relative max-w-3xl w-full max-h-[92vh] bg-stone-900 rounded-3xl overflow-hidden shadow-2xl border border-stone-700 flex flex-col"
             >
               {/* Modal Header */}
-              <div className="flex items-center justify-between px-5 py-3.5 border-b border-stone-800 bg-stone-900/90 text-white">
-                <div>
-                  <h4 className="text-sm font-bold truncate">{activeScreenshot.title}</h4>
+              <div className="flex items-center justify-between px-4 sm:px-6 py-3.5 border-b border-stone-800 bg-stone-900/95 text-white">
+                <div className="min-w-0 pr-3">
+                  <h4 className="text-sm sm:text-base font-bold truncate">{activeScreenshot.title}</h4>
                   <p className="text-xs text-stone-400 truncate">{activeScreenshot.caption}</p>
                 </div>
                 <button
+                  type="button"
                   onClick={() => setActiveScreenshot(null)}
-                  className="w-8 h-8 rounded-full bg-stone-800 hover:bg-stone-700 text-stone-300 flex items-center justify-center transition-colors cursor-pointer shrink-0 ml-3"
+                  className="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-stone-800 hover:bg-stone-700 text-stone-200 hover:text-white text-xs font-bold transition-all cursor-pointer border border-stone-700 shrink-0"
+                  aria-label="Close preview"
                 >
-                  <X className="w-5 h-5" />
+                  <X className="w-4 h-4" />
+                  <span>Close</span>
                 </button>
               </div>
 
@@ -422,16 +461,24 @@ export default function PlanPreview() {
                 <img
                   src={activeScreenshot.src}
                   alt={activeScreenshot.title}
-                  className="max-h-[75vh] w-auto object-contain rounded-xl shadow-2xl"
+                  className="max-h-[72vh] w-auto object-contain rounded-xl shadow-2xl"
                 />
               </div>
 
               {/* Modal Footer CTA */}
-              <div className="px-5 py-3 bg-stone-900 border-t border-stone-800 flex items-center justify-between text-xs text-stone-400">
-                <span>Diet With Dee Official PDF Preview</span>
+              <div className="px-4 sm:px-6 py-3 bg-stone-900 border-t border-stone-800 flex items-center justify-between text-xs text-stone-400 gap-3">
+                <button
+                  type="button"
+                  onClick={() => setActiveScreenshot(null)}
+                  className="px-3.5 py-2 rounded-xl bg-stone-800 hover:bg-stone-700 text-stone-300 hover:text-white font-medium text-xs transition-colors cursor-pointer border border-stone-700 flex items-center gap-1.5"
+                >
+                  <X className="w-3.5 h-3.5" />
+                  <span>Close Preview</span>
+                </button>
+
                 <button
                   onClick={handleBuyClick}
-                  className="px-4 py-2 bg-gradient-to-r from-orange-400 to-orange-500 text-white font-bold rounded-xl text-xs hover:brightness-105 transition-all cursor-pointer"
+                  className="px-4 py-2 bg-gradient-to-r from-orange-400 to-orange-500 text-white font-bold rounded-xl text-xs hover:brightness-105 transition-all cursor-pointer shrink-0"
                 >
                   Buy Complete Guide ({plan.price})
                 </button>
