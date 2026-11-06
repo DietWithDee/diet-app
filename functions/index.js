@@ -13,6 +13,9 @@ const { createAdminTestimonialEmail } = require("./testimonialEmailTemplate");
 admin.initializeApp();
 const db = admin.firestore();
 
+// Resend Audience ID (General audience)
+const RESEND_AUDIENCE_ID = process.env.RESEND_AUDIENCE_ID || "2e22a159-d193-46a0-8e66-f35b62b1d8bb";
+
 // Admin Authorization Whitelist
 const ADMIN_EMAILS = [
   'nanaamadwamena4@gmail.com',
@@ -124,7 +127,7 @@ exports.onArticlePublished = onDocumentWritten(
         return;
     }
 
-    console.log(`Article ${articleId} just transitioned to published! Preparing newsletter queue...`);
+    console.log(`Article ${articleId} just transitioned to published! Preparing newsletter broadcast...`);
 
     try {
       const resendApiKey = process.env.RESEND_API_KEY;
@@ -133,35 +136,7 @@ exports.onArticlePublished = onDocumentWritten(
       }
       const resend = new Resend(resendApiKey);
 
-      // Paginate subscribers to avoid loading entire collection into memory
-      const subscriberMap = new Map();
-      const emailsRef = db.collection("emails");
-      const pageLimit = parseInt(process.env.NEWSLETTER_PAGE_LIMIT || '500', 10);
-      let lastDoc = null;
-      let totalFetched = 0;
-
-      while (true) {
-          let q = emailsRef.orderBy(admin.firestore.FieldPath.documentId()).limit(pageLimit);
-          if (lastDoc) q = q.startAfter(lastDoc);
-          const snapshot = await q.get();
-          if (snapshot.empty) break;
-          snapshot.forEach(doc => {
-              const docData = doc.data();
-              const email = docData.email?.trim()?.toLowerCase();
-              if (email && /^\S+@\S+\.\S+$/.test(email)) {
-                  subscriberMap.set(email, docData.name || "");
-              }
-          });
-          totalFetched += snapshot.size;
-          lastDoc = snapshot.docs[snapshot.docs.length - 1];
-          if (snapshot.size < pageLimit) break;
-      }
-
-      const subscriberEmails = Array.from(subscriberMap.keys());
-      console.log(`Found ${subscriberEmails.length} unique subscribers (fetched ${totalFetched} docs).`);
-      if (subscriberEmails.length === 0) return;
-
-      // Prevent duplicate sends: mark article as queued atomically
+      // Prevent duplicate sends: mark article as in_progress atomically
       const articleRef = db.collection('articles').doc(articleId);
       const nowTs = admin.firestore.Timestamp.now();
       try {
@@ -172,7 +147,7 @@ exports.onArticlePublished = onDocumentWritten(
               if (data.newsletterSent === true || data.newsletterSent === 'queued' || data.newsletterSent === 'in_progress') {
                   throw new Error('Newsletter already sent or in progress');
               }
-              tx.update(articleRef, { newsletterSent: 'queued', newsletterStartedAt: nowTs });
+              tx.update(articleRef, { newsletterSent: 'in_progress', newsletterStartedAt: nowTs });
           });
       } catch (err) {
           console.log('Aborting newsletter: ', err.message);
@@ -181,42 +156,41 @@ exports.onArticlePublished = onDocumentWritten(
 
       const subject = `New from Diet With Dee: ${afterData.title}`;
       const coverImage = afterData.coverImage || "";
-      const emailHtmlTemplate = createEmailTemplate(afterData.title, coverImage, articleId).replace('Hi there,', 'Hi {{name}},');
-      const unsubscribeBase = 'https://dietwithdee.org/unsubscribe';
-      const emailTextBase = `New Article: ${afterData.title}\n\nRead more at: https://dietwithdee.org/blog/${articleId}\n\nTo unsubscribe: ${unsubscribeBase}`;
+      const emailHtmlTemplate = createEmailTemplate(afterData.title, coverImage, articleId)
+          .replace('Hi there,', 'Hi {{{FIRST_NAME|there}}},')
+          .replace(/https:\/\/dietwithdee\.org\/unsubscribe/g, '{{{RESEND_UNSUBSCRIBE_URL}}}');
+      const emailText = `New Article: ${afterData.title}\n\nRead more at: https://dietwithdee.org/blog/${articleId}\n\nTo unsubscribe: {{{RESEND_UNSUBSCRIBE_URL}}}`;
 
-      const recipientsList = subscriberEmails.map(email => ({
-          email,
-          name: subscriberMap.get(email) || ''
-      }));
-
-      // Enqueue with VIP prioritization (guarantees VIPs are sent first)
-      const campaignId = `article_${articleId}`;
-      const queuedCount = await enqueueCampaign(db, campaignId, recipientsList, ({ email, name }) => {
-          const personalizedHtml = emailHtmlTemplate.split('{{name}}').join(name || 'there');
-          const personalizedHtmlWithUnsub = personalizedHtml.split(unsubscribeBase).join(`${unsubscribeBase}?email=${encodeURIComponent(email)}`);
-          return {
-              from: 'Diet With Dee <newsletter@mail.dietwithdee.org>',
-              to: [email],
-              reply_to: 'hello@dietwithdee.org',
-              subject: subject,
-              html: personalizedHtmlWithUnsub,
-              text: emailTextBase + `?email=${encodeURIComponent(email)}`,
-              headers: {
-                  'List-Unsubscribe': `<${unsubscribeBase}?email=${encodeURIComponent(email)}>`
-              }
-          };
+      console.log(`[onArticlePublished] Creating broadcast to audience ${RESEND_AUDIENCE_ID}...`);
+      const { data: broadcast, error: broadcastError } = await resend.broadcasts.create({
+          audienceId: RESEND_AUDIENCE_ID,
+          from: 'Diet With Dee <newsletter@mail.dietwithdee.org>',
+          replyTo: 'hello@dietwithdee.org',
+          subject: subject,
+          html: emailHtmlTemplate,
+          text: emailText
       });
 
-      // Immediately process first batch (up to daily cap 60, VIPs first!)
-      const queueResult = await processMailQueue(db, resend);
-      console.log(`[onArticlePublished] Initial batch processed: ${queueResult.processed} sent, remaining quota today: ${queueResult.remainingQuota}`);
+      if (broadcastError) {
+          console.error("[onArticlePublished] Broadcast creation failed:", broadcastError);
+          await articleRef.update({ newsletterSent: false, lastNewsletterError: broadcastError.message });
+          return;
+      }
+
+      console.log(`[onArticlePublished] Dispatching broadcast ${broadcast.id}...`);
+      const { data: sendResult, error: sendError } = await resend.broadcasts.send(broadcast.id);
+      if (sendError) {
+          console.error("[onArticlePublished] Broadcast send failed:", sendError);
+          await articleRef.update({ newsletterSent: false, lastNewsletterError: sendError.message });
+          return;
+      }
+
+      console.log(`[onArticlePublished] Broadcast ${broadcast.id} dispatched successfully to audience.`);
 
       await articleRef.update({
-          newsletterSent: queueResult.processed >= queuedCount ? true : 'in_progress',
-          initialBatchSentAt: admin.firestore.Timestamp.now(),
-          initialBatchSentCount: queueResult.processed,
-          totalQueuedCount: queuedCount
+          newsletterSent: true,
+          newsletterSentAt: admin.firestore.Timestamp.now(),
+          resendBroadcastId: broadcast.id
       });
 
     } catch (error) {
@@ -249,7 +223,7 @@ exports.processMailQueueSchedule = onSchedule(
   }
 );
 
-// 3. Trigger Function for New Subscribers to Send Welcome Email
+// 3. Trigger Function for New Subscribers to Send Welcome Email & Sync to Resend Audience
 exports.onNewSubscriber = onDocumentCreated(
     { document: "emails/{emailId}", secrets: ["RESEND_API_KEY"] },
     async (event) => {
@@ -263,10 +237,42 @@ exports.onNewSubscriber = onDocumentCreated(
         const email = data.email?.trim()?.toLowerCase();
 
         if (!email) {
-            console.warn("New subscription document lacks an email address. Skipping welcome email.");
+            console.warn("New subscription document lacks an email address. Skipping.");
             return;
         }
 
+        const resendApiKey = process.env.RESEND_API_KEY;
+        if (!resendApiKey) {
+            console.warn("[onNewSubscriber] RESEND_API_KEY is missing. Skipping email and audience sync.");
+            return;
+        }
+        const resend = new Resend(resendApiKey);
+
+        // 1. Sync Contact to Resend Audience so they receive future Broadcasts
+        try {
+            const rawName = (data.name || "").trim();
+            const nameParts = rawName ? rawName.split(/\s+/) : [];
+            const firstName = nameParts[0] || undefined;
+            const lastName = nameParts.length > 1 ? nameParts.slice(1).join(" ") : undefined;
+
+            const { data: contactData, error: contactError } = await resend.contacts.create({
+                audienceId: RESEND_AUDIENCE_ID,
+                email: email,
+                firstName: firstName,
+                lastName: lastName,
+                unsubscribed: false
+            });
+
+            if (contactError) {
+                console.log(`[onNewSubscriber] Resend contact sync for ${email}: ${contactError.message}`);
+            } else {
+                console.log(`[onNewSubscriber] Successfully synced ${email} to Resend Audience (${contactData?.id})`);
+            }
+        } catch (contactErr) {
+            console.warn(`[onNewSubscriber] Error syncing contact ${email} to Resend:`, contactErr.message);
+        }
+
+        // 2. Send Welcome Email (Transactional) if not originated from survey
         if (data.source === "survey") {
             console.log(`Subscriber ${email} originated from survey submission; voucher is dispatched by onNewSurveySubmission trigger. Skipping welcome email to prevent duplicate.`);
             return;
@@ -275,12 +281,6 @@ exports.onNewSubscriber = onDocumentCreated(
         console.log(`New subscriber detected: ${email} (source: ${data.source || 'default'}). Sending welcome email...`);
 
         try {
-            const resendApiKey = process.env.RESEND_API_KEY;
-            if (!resendApiKey) {
-                throw new Error("RESEND_API_KEY is not set.");
-            }
-            const resend = new Resend(resendApiKey);
-
             const emailContent = createWelcomeTemplate(data.name);
             
             const { data: result, error } = await resend.emails.send({
@@ -333,6 +333,18 @@ exports.onNewSurveySubmission = onDocumentCreated(
                 throw new Error("RESEND_API_KEY is not set.");
             }
             const resend = new Resend(resendApiKey);
+
+            // Sync survey respondent into Resend Audience
+            try {
+                await resend.contacts.create({
+                    audienceId: RESEND_AUDIENCE_ID,
+                    email: email,
+                    unsubscribed: false
+                });
+                console.log(`[onNewSurveySubmission] Synced ${email} to Resend Audience.`);
+            } catch (syncErr) {
+                console.warn(`[onNewSurveySubmission] Resend audience sync notice for ${email}:`, syncErr.message);
+            }
 
             const emailContent = createSurveyVoucherTemplate({
                 email,
@@ -397,6 +409,18 @@ exports.sendSurveyDiscountEmail = onCall(
                 throw new Error("RESEND_API_KEY is not set.");
             }
             const resend = new Resend(resendApiKey);
+
+            // Sync survey respondent into Resend Audience
+            try {
+                await resend.contacts.create({
+                    audienceId: RESEND_AUDIENCE_ID,
+                    email: cleanEmail,
+                    unsubscribed: false
+                });
+                console.log(`[sendSurveyDiscountEmail] Synced ${cleanEmail} to Resend Audience.`);
+            } catch (syncErr) {
+                console.warn(`[sendSurveyDiscountEmail] Resend audience sync notice for ${cleanEmail}:`, syncErr.message);
+            }
 
             const emailContent = createSurveyVoucherTemplate({
                 email: cleanEmail,
@@ -808,7 +832,9 @@ exports.deleteOwnAccount = onCall(async (request) => {
 });
 
 // 9. Public: User unsubscription
-exports.unsubscribeUser = onCall(async (request) => {
+exports.unsubscribeUser = onCall(
+    { secrets: ["RESEND_API_KEY"] },
+    async (request) => {
     // We allow unauthenticated unsubscription because users click links from their email clients
     // where they are almost never signed into the web app.
     
@@ -822,6 +848,22 @@ exports.unsubscribeUser = onCall(async (request) => {
         const db = admin.firestore();
         console.log(`Unsubscribing email: ${email}`);
         await db.collection("emails").doc(email).delete();
+
+        // Also remove from Resend Audience
+        const resendApiKey = process.env.RESEND_API_KEY;
+        if (resendApiKey) {
+            try {
+                const resend = new Resend(resendApiKey);
+                await resend.contacts.remove({
+                    audienceId: RESEND_AUDIENCE_ID,
+                    email: email
+                });
+                console.log(`[unsubscribeUser] Successfully removed ${email} from Resend Audience.`);
+            } catch (resendErr) {
+                console.warn(`[unsubscribeUser] Resend contact removal notice for ${email}:`, resendErr.message);
+            }
+        }
+
         return { success: true, message: "Unsubscribed successfully." };
     } catch (error) {
         console.error("Unsubscribe error:", error);
@@ -876,8 +918,42 @@ exports.sendBulkCustomEmails = onCall(
                 throw new HttpsError("invalid-argument", "No valid email addresses provided.");
             }
 
-            const campaignId = `custom_${Date.now()}`;
-            const queuedCount = await enqueueCampaign(db, campaignId, validEmails, ({ email }) => ({
+            // If sending to a large recipient list (e.g. all subscribers), use Resend Broadcast (0 transactional quota)
+            if (validEmails.length >= 50) {
+                console.log(`[sendBulkCustomEmails] Dispatching Broadcast to audience ${RESEND_AUDIENCE_ID}...`);
+                const formattedHtml = htmlContent.trim() + 
+                    '\n\n<div style="text-align: center; margin-top: 40px; font-size: 12px; color: #999;"><p><a href="{{{RESEND_UNSUBSCRIBE_URL}}}" style="color: #16a34a; text-decoration: none;">Unsubscribe</a></p></div>';
+                const formattedText = (textContent || htmlContent.replace(/<[^>]*>/g, '')).trim() + 
+                    '\n\n---\nUnsubscribe: {{{RESEND_UNSUBSCRIBE_URL}}}';
+
+                const { data: broadcast, error: broadcastError } = await resend.broadcasts.create({
+                    audienceId: RESEND_AUDIENCE_ID,
+                    from: 'Diet With Dee <hello@mail.dietwithdee.org>',
+                    replyTo: 'hello@dietwithdee.org',
+                    subject: subject.trim(),
+                    html: formattedHtml,
+                    text: formattedText
+                });
+
+                if (broadcastError) {
+                    throw new HttpsError("internal", `Broadcast creation failed: ${broadcastError.message}`);
+                }
+
+                const { error: sendError } = await resend.broadcasts.send(broadcast.id);
+                if (sendError) {
+                    throw new HttpsError("internal", `Broadcast send failed: ${sendError.message}`);
+                }
+
+                console.log(`[sendBulkCustomEmails] Broadcast ${broadcast.id} dispatched successfully!`);
+                return {
+                    success: true,
+                    sentCount: validEmails.length,
+                    message: `Broadcast successfully sent to ${validEmails.length} subscribers instantly via Resend Broadcasts!`
+                };
+            }
+
+            // For smaller custom target lists (< 50), send immediately in batches
+            const payloads = validEmails.map(email => ({
                 from: 'Diet With Dee <hello@mail.dietwithdee.org>',
                 to: [email],
                 reply_to: 'hello@dietwithdee.org',
@@ -889,16 +965,15 @@ exports.sendBulkCustomEmails = onCall(
                 }
             }));
 
-            // Immediately dispatch first batch (VIPs first, capped at 60/day)
-            const queueResult = await processMailQueue(db, resend);
-            console.log(`[sendBulkCustomEmails] Initial batch: ${queueResult.processed} sent, remaining quota: ${queueResult.remainingQuota}`);
+            const { data: batchResult, error: batchError } = await resend.batch.send(payloads);
+            if (batchError) {
+                throw new HttpsError("internal", `Failed to send batch emails: ${batchError.message}`);
+            }
 
             return {
                 success: true,
-                sentCount: queueResult.processed,
-                queuedCount: queuedCount,
-                remainingQuota: queueResult.remainingQuota,
-                message: `Enqueued ${queuedCount} emails. ${queueResult.processed} sent immediately (VIPs first, capped at 60/day). Remaining emails will dispatch on the next daily quota reset.`
+                sentCount: validEmails.length,
+                message: `Successfully sent email to ${validEmails.length} recipient(s).`
             };
         } catch (error) {
             console.error("Error in sendBulkCustomEmails:", error);
