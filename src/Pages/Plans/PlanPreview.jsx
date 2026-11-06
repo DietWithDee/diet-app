@@ -461,18 +461,6 @@ export default function PlanPreview() {
             onClick={() => setActiveScreenshot(null)}
             className="fixed inset-0 z-50 bg-black/85 backdrop-blur-md flex items-center justify-center p-3 sm:p-6"
           >
-            {/* Top-Right Fixed Floating Close Button */}
-            <button
-              type="button"
-              onClick={() => setActiveScreenshot(null)}
-              className="fixed top-4 right-4 sm:top-6 sm:right-6 z-50 p-2.5 sm:p-3 rounded-full bg-stone-900/95 hover:bg-stone-800 text-white border border-stone-700 shadow-2xl backdrop-blur-md transition-all active:scale-95 cursor-pointer flex items-center gap-2 group"
-              title="Close preview (Esc)"
-              aria-label="Close preview"
-            >
-              <X className="w-5 h-5 group-hover:rotate-90 transition-transform duration-200" />
-              <span className="text-xs font-bold pr-1 hidden sm:inline">Close</span>
-            </button>
-
             <motion.div
               initial={{ scale: 0.95, opacity: 0 }}
               animate={{ scale: 1, opacity: 1 }}
@@ -489,11 +477,11 @@ export default function PlanPreview() {
                 <button
                   type="button"
                   onClick={() => setActiveScreenshot(null)}
-                  className="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-stone-800 hover:bg-stone-700 text-stone-200 hover:text-white text-xs font-bold transition-all cursor-pointer border border-stone-700 shrink-0"
+                  className="p-1.5 rounded-full text-stone-400 hover:text-white hover:bg-stone-800 transition-colors cursor-pointer shrink-0"
+                  title="Close preview (Esc)"
                   aria-label="Close preview"
                 >
-                  <X className="w-4 h-4" />
-                  <span>Close</span>
+                  <X className="w-5 h-5" />
                 </button>
               </div>
 
@@ -507,16 +495,7 @@ export default function PlanPreview() {
               </div>
 
               {/* Modal Footer CTA */}
-              <div className="px-4 sm:px-6 py-3 bg-stone-900 border-t border-stone-800 flex items-center justify-between text-xs text-stone-400 gap-3">
-                <button
-                  type="button"
-                  onClick={() => setActiveScreenshot(null)}
-                  className="px-3.5 py-2 rounded-xl bg-stone-800 hover:bg-stone-700 text-stone-300 hover:text-white font-medium text-xs transition-colors cursor-pointer border border-stone-700 flex items-center gap-1.5"
-                >
-                  <X className="w-3.5 h-3.5" />
-                  <span>Close Preview</span>
-                </button>
-
+              <div className="px-4 sm:px-6 py-3 bg-stone-900 border-t border-stone-800 flex items-center justify-end text-xs text-stone-400 gap-3">
                 {plan.isComingSoon ? (
                   <button
                     type="button"

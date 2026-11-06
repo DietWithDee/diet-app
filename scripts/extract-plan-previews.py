@@ -26,8 +26,8 @@ PLANS = [
     {
         "id": "blood-sugar-balance",
         "file": "Blood Sugar Balance.pdf",
-        "pages": [6, 9], # 1-based: Meal Plan (p6), Low Glycemic Guide (p9)
-        "labels": ["Diabetes-Friendly Daily Plan", "Low Glycemic Foods Guide"]
+        "pages": [5, 6], # 1-based: Blood Sugar Friendly Plate (p5), Easy-To-Follow Meal Plan (p6)
+        "labels": ["The Blood Sugar-Friendly Plate Method", "Easy-to-Follow Diabetes Meal Plan"]
     },
     {
         "id": "pressure-no-dey-catch-me",
@@ -38,8 +38,8 @@ PLANS = [
     {
         "id": "weight-gain",
         "file": "The Weight Gain  Wahala-Free Plan.pdf",
-        "pages": [5, 8], # 1-based: High Calorie Meal Plan (p5), Nutrient-Dense Booster (p8)
-        "labels": ["High-Calorie Daily Plan", "Nutrient-Dense Booster Guide"]
+        "pages": [5, 10], # 1-based: High Calorie Meal Plan (p5), Foods Cheat Sheet (p10)
+        "labels": ["High-Calorie Structured Meal Plan", "Weight Gain Foods Cheat Sheet"]
     }
 ]
 

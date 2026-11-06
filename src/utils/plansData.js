@@ -190,13 +190,13 @@ export const plans = [
     previewScreenshots: [
       {
         src: DiabetesPreview1,
-        title: "Diabetes-Friendly Daily Meal Plan",
-        caption: "Step-by-step plate method applied to local breakfast, lunch, and supper meals."
+        title: "The Blood Sugar-Friendly Plate",
+        caption: "Visual 1/2 non-starchy vegetables, 1/4 protein, and 1/4 healthy carbs portion control guide."
       },
       {
         src: DiabetesPreview2,
-        title: "Low Glycemic Local Foods Guide",
-        caption: "Practical guide to carbohydrates, tubers, and fruits that digest slowly without spikes."
+        title: "Easy-to-Follow 7-Day Meal Plan",
+        caption: "Structured diabetes-friendly Ghanaian meal combinations to maintain steady blood glucose."
       }
     ]
   },
@@ -277,8 +277,8 @@ export const plans = [
       },
       {
         src: GainPreview2,
-        title: "Nutrient-Dense Booster Guide",
-        caption: "Smart calorie-stacking methods to add 500+ extra calories daily without overwhelming digestion."
+        title: "Weight Gain Foods Cheat Sheet",
+        caption: "High-calorie foods to eat often and easy, stress-free ways to add calories without overwhelming digestion."
       }
     ]
   }
