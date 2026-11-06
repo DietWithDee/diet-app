@@ -177,11 +177,15 @@ export default function PlanPreview() {
               {/* Right Column: Title, Synopsis, Price & CTA */}
               <div className="md:col-span-7 flex flex-col justify-center">
                 <div className="flex flex-wrap gap-2 mb-3">
-                  {plan.isNew && (
+                  {plan.isComingSoon ? (
+                    <span className="text-[11px] font-black text-amber-900 bg-amber-100 border border-amber-300 px-3 py-0.5 rounded-full shadow-sm tracking-wider uppercase">
+                      COMING SOON
+                    </span>
+                  ) : plan.isNew ? (
                     <span className="text-[11px] font-black text-white bg-gradient-to-r from-emerald-600 to-teal-600 px-3 py-0.5 rounded-full shadow-sm tracking-wider uppercase">
                       NEW RELEASE
                     </span>
-                  )}
+                  ) : null}
                   {plan.tags?.slice(0, 3).map((tag, i) => (
                     <span
                       key={i}
@@ -215,19 +219,36 @@ export default function PlanPreview() {
                         One-time purchase
                       </span>
                     </div>
-                    <p className="text-xs text-emerald-700 flex items-center gap-1.5 font-medium mt-1">
-                      <Download className="w-3.5 h-3.5" />
-                      <span>Instant digital PDF download after payment</span>
-                    </p>
+                    {plan.isComingSoon ? (
+                      <p className="text-xs text-amber-800 flex items-center gap-1.5 font-medium mt-1">
+                        <Sparkles className="w-3.5 h-3.5 text-amber-600" />
+                        <span>Launching soon — explore the full preview below</span>
+                      </p>
+                    ) : (
+                      <p className="text-xs text-emerald-700 flex items-center gap-1.5 font-medium mt-1">
+                        <Download className="w-3.5 h-3.5" />
+                        <span>Instant digital PDF download after payment</span>
+                      </p>
+                    )}
                   </div>
 
-                  <button
-                    onClick={handleBuyClick}
-                    className="w-full sm:w-auto px-7 py-3.5 bg-gradient-to-r from-orange-400 to-orange-500 hover:from-orange-500 hover:to-orange-600 text-white font-bold text-sm sm:text-base rounded-2xl shadow-lg hover:shadow-orange-200 transition-all active:scale-95 text-center cursor-pointer flex items-center justify-center gap-2"
-                  >
-                    <span>Buy Now — {plan.price}</span>
-                    <ChevronRight className="w-4 h-4" />
-                  </button>
+                  {plan.isComingSoon ? (
+                    <button
+                      type="button"
+                      disabled
+                      className="w-full sm:w-auto px-7 py-3.5 bg-stone-200 text-stone-600 font-bold text-sm sm:text-base rounded-2xl cursor-not-allowed text-center"
+                    >
+                      Coming Soon
+                    </button>
+                  ) : (
+                    <button
+                      onClick={handleBuyClick}
+                      className="w-full sm:w-auto px-7 py-3.5 bg-gradient-to-r from-orange-400 to-orange-500 hover:from-orange-500 hover:to-orange-600 text-white font-bold text-sm sm:text-base rounded-2xl shadow-lg hover:shadow-orange-200 transition-all active:scale-95 text-center cursor-pointer flex items-center justify-center gap-2"
+                    >
+                      <span>Buy Now — {plan.price}</span>
+                      <ChevronRight className="w-4 h-4" />
+                    </button>
+                  )}
                 </div>
 
                 {/* Trust Highlights */}
@@ -380,13 +401,23 @@ export default function PlanPreview() {
             </div>
 
             <div className="relative z-10 shrink-0">
-              <button
-                onClick={handleBuyClick}
-                className="px-8 py-4 bg-gradient-to-r from-orange-400 to-orange-500 hover:from-orange-500 hover:to-orange-600 text-white font-bold text-base rounded-2xl shadow-xl hover:shadow-orange-300 transition-all active:scale-95 cursor-pointer flex items-center gap-2"
-              >
-                <span>Buy Now — {plan.price}</span>
-                <ChevronRight className="w-5 h-5" />
-              </button>
+              {plan.isComingSoon ? (
+                <button
+                  type="button"
+                  disabled
+                  className="px-8 py-4 bg-white/20 text-white/90 font-bold text-base rounded-2xl border border-white/30 cursor-not-allowed"
+                >
+                  Coming Soon
+                </button>
+              ) : (
+                <button
+                  onClick={handleBuyClick}
+                  className="px-8 py-4 bg-gradient-to-r from-orange-400 to-orange-500 hover:from-orange-500 hover:to-orange-600 text-white font-bold text-base rounded-2xl shadow-xl hover:shadow-orange-300 transition-all active:scale-95 cursor-pointer flex items-center gap-2"
+                >
+                  <span>Buy Now — {plan.price}</span>
+                  <ChevronRight className="w-5 h-5" />
+                </button>
+              )}
             </div>
 
             {/* Subtle background decoration */}
@@ -402,12 +433,22 @@ export default function PlanPreview() {
           <p className="text-xs font-bold text-stone-900 truncate">{plan.title}</p>
           <p className="text-sm font-black text-emerald-700">{plan.price}</p>
         </div>
-        <button
-          onClick={handleBuyClick}
-          className="px-5 py-2.5 bg-gradient-to-r from-orange-400 to-orange-500 text-white font-bold text-xs rounded-xl shadow-md cursor-pointer shrink-0"
-        >
-          Buy Now
-        </button>
+        {plan.isComingSoon ? (
+          <button
+            type="button"
+            disabled
+            className="px-5 py-2.5 bg-stone-200 text-stone-600 font-bold text-xs rounded-xl cursor-not-allowed shrink-0"
+          >
+            Coming Soon
+          </button>
+        ) : (
+          <button
+            onClick={handleBuyClick}
+            className="px-5 py-2.5 bg-gradient-to-r from-orange-400 to-orange-500 text-white font-bold text-xs rounded-xl shadow-md cursor-pointer shrink-0"
+          >
+            Buy Now
+          </button>
+        )}
       </div>
 
       {/* Lightbox / Zoom Modal for Screenshots */}
@@ -476,12 +517,22 @@ export default function PlanPreview() {
                   <span>Close Preview</span>
                 </button>
 
-                <button
-                  onClick={handleBuyClick}
-                  className="px-4 py-2 bg-gradient-to-r from-orange-400 to-orange-500 text-white font-bold rounded-xl text-xs hover:brightness-105 transition-all cursor-pointer shrink-0"
-                >
-                  Buy Complete Guide ({plan.price})
-                </button>
+                {plan.isComingSoon ? (
+                  <button
+                    type="button"
+                    disabled
+                    className="px-4 py-2 bg-stone-800 text-stone-400 font-bold rounded-xl text-xs cursor-not-allowed border border-stone-700 shrink-0"
+                  >
+                    Coming Soon
+                  </button>
+                ) : (
+                  <button
+                    onClick={handleBuyClick}
+                    className="px-4 py-2 bg-gradient-to-r from-orange-400 to-orange-500 text-white font-bold rounded-xl text-xs hover:brightness-105 transition-all cursor-pointer shrink-0"
+                  >
+                    Buy Complete Guide ({plan.price})
+                  </button>
+                )}
               </div>
             </motion.div>
           </motion.div>

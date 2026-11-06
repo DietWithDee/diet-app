@@ -10,8 +10,19 @@ import Gain from '../../../assets/images/Gain.webp';
 import Weightloss from '../../../assets/images/Weightloss.webp';
 import Diabetes from '../../../assets/images/Diabetes.webp';
 import Pressure from '../../../assets/images/Pressure.webp';
+import FastingFood from '../../../assets/images/FastingFood.webp';
 
 const PLANS = [
+    {
+        id: 'fasting',
+        title: 'Fasting Guide',
+        subtitle: 'How To Eat Before, During & After a Fast',
+        price: '₵99',
+        img: FastingFood,
+        url: 'https://paystack.com/buy/fasting-guide',
+        tags: ['fasting', 'intermittent'],
+        isNew: true,
+    },
     {
         id: 'b2b',
         title: 'Back to Basics',

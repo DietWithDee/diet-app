@@ -45,6 +45,7 @@ export const plans = [
     tags: ['Fasting', 'Intermittent Fasting', 'Ramadan', 'Daniel Fast', 'Prayer Fasting', 'Nutrition Guide', 'Ghanaian Food'],
     gradient: 'from-amber-500 to-orange-500',
     isNew: true,
+    isComingSoon: true,
     synopsis: "Fasting changes when you eat, but your body never stops needing essential protein, carbohydrates, and minerals. The Fasting Guide is an evidence-based, practical guide by Diet with Dee created to end the exhausting cycle of pre-fast overeating and post-fast digestive agony. Whether you practice intermittent fasting, observe Ramadan, or participate in Christian church prayer fasts, learn how to prepare your body, stay energized throughout the day, rehydrate safely, and enjoy nourishing Ghanaian meals without bloating or glucose crashes.",
     whoIsItFor: [
       "Anyone practicing intermittent fasting (16:8, OMAD, or flexible windows)",

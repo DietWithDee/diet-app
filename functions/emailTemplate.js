@@ -531,6 +531,13 @@ const createSurveyVoucherTemplate = ({ email, selectedPlan, discountCode }) => {
         normalPrice = "₵299";
         discountPrice = "₵239.20";
         code = discountCode || "PRESSURE20";
+    } else if (planKey === "fasting" || planKey === "fasting-guide") {
+        planTitle = "Fasting Guide";
+        planSubtitle = "How To Eat Before, During & After a Fast";
+        paystackDirectUrl = "https://paystack.com/buy/fasting-guide";
+        normalPrice = "₵99";
+        discountPrice = "₵79.20";
+        code = discountCode || "FASTING20";
     } else if (planKey === "weight-gain") {
         planTitle = "The Weight Gain";
         planSubtitle = "Wahala-Free High-Calorie Meal Plan";

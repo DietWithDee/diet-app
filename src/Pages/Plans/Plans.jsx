@@ -550,6 +550,10 @@ function Plans() {
                           <span className="bg-teal-50 text-teal-700 border border-teal-200 text-[10px] font-bold px-2.5 py-0.5 rounded-full">
                             ✨ MATCH
                           </span>
+                        ) : plan.isComingSoon ? (
+                          <span className="bg-amber-100 text-amber-900 border border-amber-300 text-[10px] font-bold px-2.5 py-0.5 rounded-full shadow-sm tracking-wider">
+                            COMING SOON
+                          </span>
                         ) : plan.isNew ? (
                           <span className="bg-gradient-to-r from-emerald-600 to-teal-600 text-white text-[10px] font-black px-2.5 py-0.5 rounded-full shadow-sm tracking-wider">
                             NEW RELEASE
@@ -586,11 +590,15 @@ function Plans() {
                           alt={plan.title}
                           className="w-full h-full object-cover object-center group-hover:scale-105 transition-transform duration-500"
                         />
-                        {plan.isNew && (
+                        {plan.isComingSoon ? (
+                          <div className="absolute top-2.5 left-2.5 bg-gradient-to-r from-amber-600 to-orange-600 text-white text-[10px] font-black tracking-widest px-2.5 py-1 rounded-lg shadow-md border border-white/20 uppercase">
+                            COMING SOON
+                          </div>
+                        ) : plan.isNew ? (
                           <div className="absolute top-2.5 left-2.5 bg-gradient-to-r from-emerald-600 to-teal-700 text-white text-[10px] font-black tracking-widest px-2.5 py-1 rounded-lg shadow-md border border-white/20 uppercase">
                             NEW
                           </div>
-                        )}
+                        ) : null}
                       </div>
 
                       {/* Tag Chips */}
@@ -640,32 +648,42 @@ function Plans() {
                       </ul>
                     </div>
 
-                    {/* Action Row - Orange Gradient CTA with In-View Shimmer on Scroll */}
+                    {/* Action Row */}
                     <div className="flex gap-2.5 pt-3 border-t border-gray-100">
-                      <motion.button
-                        onClick={() => handleBuyClick(plan)}
-                        initial="initial"
-                        whileInView="shimmer"
-                        viewport={{ once: false, amount: 0.25 }}
-                        className={`flex-1 py-3 px-4 bg-gradient-to-r ${plan.gradient || "from-orange-400 to-orange-500"} hover:brightness-105 text-white font-bold text-sm rounded-2xl transition-all shadow-md hover:shadow-orange-200 hover:shadow-lg active:scale-95 text-center cursor-pointer relative overflow-hidden group/btn`}
-                      >
-                        <span className="relative z-10">Buy Now →</span>
-                        {/* Recurring Light-Sweep Shimmer on scroll into view */}
-                        <motion.div
-                          variants={{
-                            initial: { x: "-130%" },
-                            shimmer: {
-                              x: "230%",
-                              transition: {
-                                duration: 1.1,
-                                ease: "easeInOut",
-                                delay: 0.15 + (index % 3) * 0.1,
+                      {plan.isComingSoon ? (
+                        <button
+                          type="button"
+                          disabled
+                          className="flex-1 py-3 px-4 bg-stone-100 border border-stone-200 text-stone-500 font-bold text-sm rounded-2xl cursor-not-allowed text-center"
+                        >
+                          Coming Soon
+                        </button>
+                      ) : (
+                        <motion.button
+                          onClick={() => handleBuyClick(plan)}
+                          initial="initial"
+                          whileInView="shimmer"
+                          viewport={{ once: false, amount: 0.25 }}
+                          className={`flex-1 py-3 px-4 bg-gradient-to-r ${plan.gradient || "from-orange-400 to-orange-500"} hover:brightness-105 text-white font-bold text-sm rounded-2xl transition-all shadow-md hover:shadow-orange-200 hover:shadow-lg active:scale-95 text-center cursor-pointer relative overflow-hidden group/btn`}
+                        >
+                          <span className="relative z-10">Buy Now →</span>
+                          {/* Recurring Light-Sweep Shimmer on scroll into view */}
+                          <motion.div
+                            variants={{
+                              initial: { x: "-130%" },
+                              shimmer: {
+                                x: "230%",
+                                transition: {
+                                  duration: 1.1,
+                                  ease: "easeInOut",
+                                  delay: 0.15 + (index % 3) * 0.1,
+                                },
                               },
-                            },
-                          }}
-                          className="absolute inset-0 w-3/4 h-full bg-gradient-to-r from-transparent via-white/50 to-transparent -skew-x-12 pointer-events-none z-0"
-                        />
-                      </motion.button>
+                            }}
+                            className="absolute inset-0 w-3/4 h-full bg-gradient-to-r from-transparent via-white/50 to-transparent -skew-x-12 pointer-events-none z-0"
+                          />
+                        </motion.button>
+                      )}
                       <button
                         onClick={() => handleShare(plan)}
                         className="p-3 bg-gray-50 hover:bg-gray-100 text-gray-600 rounded-2xl border border-gray-200 transition-all cursor-pointer relative group"
