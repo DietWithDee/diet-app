@@ -33,6 +33,7 @@ import Subscribe from "../Pages/Subscribe/Subscribe";
 import OnTrack from "../Pages/OnTrack/OnTrack";
 import Survey from "../Pages/Survey/Survey";
 import SurveyEnded from "../Pages/Survey/SurveyEnded";
+import PlanPreview from "../Pages/Plans/PlanPreview";
 
 // Inner component so usePageTracking can access the router context
 const AppRoutes = () => {
@@ -55,6 +56,8 @@ const AppRoutes = () => {
         <Route path="/admin" element={<AdminApp />} />
         <Route path="/admin/testimonials" element={<TestimonialAdmin />} />
         <Route path="/plans" element={<Plans />} />
+        <Route path="/plans/:planId" element={<PlanPreview />} />
+        <Route path="/plans/preview/:planId" element={<PlanPreview />} />
         {/* <Route path="/fathersday" element={<FathersDay />} /> */}
         <Route path="/ontrack" element={<OnTrack />} />
         <Route path="/OnTrack" element={<OnTrack />} />

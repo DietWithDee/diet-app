@@ -39,6 +39,9 @@ export const findMatchingPlanByContext = (article) => {
   if (!article) return null;
   const text = `${article.title || ''} ${(article.tags || []).join(' ')}`.toLowerCase();
 
+  if (/fasting|fast|ramadan|intermittent/i.test(text)) {
+    return plans.find(p => p.id === 'fasting-guide');
+  }
   if (/diabetes|blood\s*sugar|sugar|glucose|insulin/i.test(text)) {
     return plans.find(p => p.id === 'blood-sugar-balance');
   }

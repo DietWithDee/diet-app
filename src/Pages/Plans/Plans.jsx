@@ -534,6 +534,8 @@ function Plans() {
                           ? "border-emerald-500 ring-2 ring-emerald-400/60 shadow-emerald-100/80"
                           : isSecondarySearchMatch
                           ? "border-emerald-300 ring-1 ring-emerald-200 shadow-emerald-50"
+                          : plan.isNew
+                          ? "border-teal-300/90 ring-1 ring-teal-200/60 shadow-teal-50"
                           : "border-emerald-100/80"
                       }`}
                     >
@@ -547,6 +549,10 @@ function Plans() {
                         ) : isSecondarySearchMatch ? (
                           <span className="bg-teal-50 text-teal-700 border border-teal-200 text-[10px] font-bold px-2.5 py-0.5 rounded-full">
                             ✨ MATCH
+                          </span>
+                        ) : plan.isNew ? (
+                          <span className="bg-gradient-to-r from-emerald-600 to-teal-600 text-white text-[10px] font-black px-2.5 py-0.5 rounded-full shadow-sm tracking-wider">
+                            NEW RELEASE
                           </span>
                         ) : plan.isPopular ? (
                           <span className="bg-orange-50 text-orange-600 border border-orange-200 text-[10px] font-bold px-2.5 py-0.5 rounded-full">
@@ -580,6 +586,11 @@ function Plans() {
                           alt={plan.title}
                           className="w-full h-full object-cover object-center group-hover:scale-105 transition-transform duration-500"
                         />
+                        {plan.isNew && (
+                          <div className="absolute top-2.5 left-2.5 bg-gradient-to-r from-emerald-600 to-teal-700 text-white text-[10px] font-black tracking-widest px-2.5 py-1 rounded-lg shadow-md border border-white/20 uppercase">
+                            NEW
+                          </div>
+                        )}
                       </div>
 
                       {/* Tag Chips */}
@@ -675,6 +686,15 @@ function Plans() {
                         )}
                       </button>
                     </div>
+
+                    {/* Secondary Plan Preview Button - Frosted Glass, Black Text, No Emoji */}
+                    <button
+                      type="button"
+                      onClick={() => navigate(`/plans/${plan.id}`)}
+                      className="w-full mt-2.5 py-2.5 px-4 bg-white/75 hover:bg-white/95 backdrop-blur-md border border-stone-200/90 hover:border-stone-300 text-stone-900 font-semibold text-xs sm:text-sm rounded-2xl transition-all shadow-sm hover:shadow active:scale-98 text-center cursor-pointer"
+                    >
+                      Preview Plan
+                    </button>
                   </motion.div>
                 </React.Fragment>
               );
