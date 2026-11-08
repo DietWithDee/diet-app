@@ -80,6 +80,7 @@ function Plans() {
   const { showToast } = useToast();
   const [searchQuery, setSearchQuery] = useState("");
   const [showOnTrackModal, setShowOnTrackModal] = useState(false);
+  const [loadedPlanImages, setLoadedPlanImages] = useState({});
 
   const fuse = useMemo(() => {
     return new Fuse(plans, {
@@ -529,14 +530,23 @@ function Plans() {
                       transition={{
                         layout: { duration: 0.35, ease: "easeOut" },
                       }}
-                      className={`bg-white/95 backdrop-blur-md rounded-3xl p-5 sm:p-6 border flex flex-col justify-between relative shadow-lg hover:shadow-2xl transition-all duration-300 hover:-translate-y-1 scroll-mt-24 ${
+                      onClick={() => navigate(`/plans/${plan.id}`)}
+                      role="button"
+                      tabIndex={0}
+                      onKeyDown={(e) => {
+                        if (e.key === "Enter" || e.key === " ") {
+                          e.preventDefault();
+                          navigate(`/plans/${plan.id}`);
+                        }
+                      }}
+                      className={`group/card cursor-pointer bg-white/95 backdrop-blur-md rounded-3xl p-5 sm:p-6 border flex flex-col justify-between relative shadow-lg hover:shadow-2xl transition-all duration-300 hover:-translate-y-1.5 scroll-mt-24 ${
                         isTopSearchMatch
                           ? "border-emerald-500 ring-2 ring-emerald-400/60 shadow-emerald-100/80"
                           : isSecondarySearchMatch
                           ? "border-emerald-300 ring-1 ring-emerald-200 shadow-emerald-50"
                           : plan.isNew
                           ? "border-teal-300/90 ring-1 ring-teal-200/60 shadow-teal-50"
-                          : "border-emerald-100/80"
+                          : "border-emerald-100/80 hover:border-emerald-300"
                       }`}
                     >
                     <div>
@@ -576,26 +586,37 @@ function Plans() {
                       </div>
 
                       {/* Title & Subtitle */}
-                      <h3 className="text-xl sm:text-[22px] font-bold text-stone-900 mb-1 leading-tight tracking-tight">
+                      <h3 className="text-xl sm:text-[22px] font-bold text-stone-900 group-hover/card:text-emerald-700 transition-colors mb-1 leading-tight tracking-tight">
                         {plan.title}
                       </h3>
                       <p className="text-sm text-stone-700 font-normal mb-3.5 leading-normal">
                         {plan.Subtitle}
                       </p>
 
-                      {/* Visual Asset Container - Zoomed to fit container completely */}
-                      <div className="w-full h-44 sm:h-48 bg-gradient-to-br from-emerald-50 via-teal-50 to-green-50 rounded-2xl flex items-center justify-center mb-4 border border-emerald-100/60 overflow-hidden group relative">
+                      {/* Visual Asset Container - Zoomed to fit container completely with Shimmer Skeleton */}
+                      <div className="w-full h-44 sm:h-48 bg-stone-100 rounded-2xl flex items-center justify-center mb-4 border border-emerald-100/60 overflow-hidden relative">
+                        {!loadedPlanImages[plan.id] && (
+                          <div className="absolute inset-0 bg-stone-200/85 animate-shimmer z-10" />
+                        )}
                         <img
                           src={plan.img}
                           alt={plan.title}
-                          className="w-full h-full object-cover object-center group-hover:scale-105 transition-transform duration-500"
+                          onLoad={() =>
+                            setLoadedPlanImages((prev) => ({
+                              ...prev,
+                              [plan.id]: true,
+                            }))
+                          }
+                          className={`w-full h-full object-cover object-center group-hover/card:scale-105 transition-all duration-500 ${
+                            loadedPlanImages[plan.id] ? "opacity-100" : "opacity-0"
+                          }`}
                         />
                         {plan.isComingSoon ? (
-                          <div className="absolute top-2.5 left-2.5 bg-gradient-to-r from-amber-600 to-orange-600 text-white text-[10px] font-black tracking-widest px-2.5 py-1 rounded-lg shadow-md border border-white/20 uppercase">
+                          <div className="absolute top-2.5 left-2.5 bg-gradient-to-r from-amber-600 to-orange-600 text-white text-[10px] font-black tracking-widest px-2.5 py-1 rounded-lg shadow-md border border-white/20 uppercase z-20">
                             COMING SOON
                           </div>
                         ) : plan.isNew ? (
-                          <div className="absolute top-2.5 left-2.5 bg-gradient-to-r from-emerald-600 to-teal-700 text-white text-[10px] font-black tracking-widest px-2.5 py-1 rounded-lg shadow-md border border-white/20 uppercase">
+                          <div className="absolute top-2.5 left-2.5 bg-gradient-to-r from-emerald-600 to-teal-700 text-white text-[10px] font-black tracking-widest px-2.5 py-1 rounded-lg shadow-md border border-white/20 uppercase z-20">
                             NEW
                           </div>
                         ) : null}
@@ -654,13 +675,17 @@ function Plans() {
                         <button
                           type="button"
                           disabled
+                          onClick={(e) => e.stopPropagation()}
                           className="flex-1 py-3 px-4 bg-stone-100 border border-stone-200 text-stone-500 font-bold text-sm rounded-2xl cursor-not-allowed text-center"
                         >
                           Coming Soon
                         </button>
                       ) : (
                         <motion.button
-                          onClick={() => handleBuyClick(plan)}
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            handleBuyClick(plan);
+                          }}
                           initial="initial"
                           whileInView="shimmer"
                           viewport={{ once: false, amount: 0.25 }}
@@ -685,7 +710,10 @@ function Plans() {
                         </motion.button>
                       )}
                       <button
-                        onClick={() => handleShare(plan)}
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          handleShare(plan);
+                        }}
                         className="p-3 bg-gray-50 hover:bg-gray-100 text-gray-600 rounded-2xl border border-gray-200 transition-all cursor-pointer relative group"
                         title="Share this plan"
                       >
@@ -708,7 +736,10 @@ function Plans() {
                     {/* Secondary Plan Preview Button - Frosted Glass, Black Text, No Emoji */}
                     <button
                       type="button"
-                      onClick={() => navigate(`/plans/${plan.id}`)}
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        navigate(`/plans/${plan.id}`);
+                      }}
                       className="w-full mt-2.5 py-2.5 px-4 bg-white/75 hover:bg-white/95 backdrop-blur-md border border-stone-200/90 hover:border-stone-300 text-stone-900 font-semibold text-xs sm:text-sm rounded-2xl transition-all shadow-sm hover:shadow active:scale-98 text-center cursor-pointer"
                     >
                       Preview Plan

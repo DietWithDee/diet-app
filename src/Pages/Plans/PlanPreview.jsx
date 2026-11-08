@@ -28,6 +28,9 @@ export default function PlanPreview() {
   const navigate = useNavigate();
   const [activeScreenshot, setActiveScreenshot] = useState(null);
   const [copiedShare, setCopiedShare] = useState(false);
+  const [heroCoverLoaded, setHeroCoverLoaded] = useState(false);
+  const [loadedScreenshots, setLoadedScreenshots] = useState({});
+  const [modalImageLoaded, setModalImageLoaded] = useState(false);
 
   // Find plan by ID (supporting alias fallback)
   const plan =
@@ -36,6 +39,11 @@ export default function PlanPreview() {
         p.id === planId ||
         (planId === "fasting-and-food" && p.id === "fasting-guide")
     ) || plans[0];
+
+  // Reset modal image loaded state when opening a new screenshot
+  useEffect(() => {
+    setModalImageLoaded(false);
+  }, [activeScreenshot]);
 
   // Handle ESC key to close screenshot modal
   useEffect(() => {
@@ -159,10 +167,16 @@ export default function PlanPreview() {
               {/* Left Column: Plan Cover Art (Using exclusive cover image from Downloads) */}
               <div className="md:col-span-5 relative group">
                 <div className={`relative rounded-2xl overflow-hidden shadow-2xl border border-stone-100 ${plan.coverAspect || 'aspect-[10/9]'} bg-stone-100`}>
+                  {!heroCoverLoaded && (
+                    <div className="absolute inset-0 bg-stone-200/90 animate-shimmer z-10" />
+                  )}
                   <img
                     src={plan.previewCover || plan.img}
                     alt={plan.title}
-                    className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+                    onLoad={() => setHeroCoverLoaded(true)}
+                    className={`w-full h-full object-cover group-hover:scale-105 transition-all duration-500 ${
+                      heroCoverLoaded ? "opacity-100" : "opacity-0"
+                    }`}
                   />
                   <div className="absolute inset-0 bg-gradient-to-t from-black/50 via-transparent to-transparent opacity-40 pointer-events-none" />
                   
@@ -298,10 +312,18 @@ export default function PlanPreview() {
                   className="group bg-white rounded-3xl p-4 sm:p-5 border border-stone-200/90 shadow-md hover:shadow-xl transition-all duration-300 cursor-pointer flex flex-col justify-between"
                 >
                   <div className="relative rounded-2xl overflow-hidden bg-stone-100 border border-stone-200 mb-4 aspect-[1/1.414]">
+                    {!loadedScreenshots[idx] && (
+                      <div className="absolute inset-0 bg-stone-200/90 animate-shimmer z-10" />
+                    )}
                     <img
                       src={screenshot.src}
                       alt={screenshot.title}
-                      className="w-full h-full object-cover group-hover:scale-102 transition-transform duration-300"
+                      onLoad={() =>
+                        setLoadedScreenshots((prev) => ({ ...prev, [idx]: true }))
+                      }
+                      className={`w-full h-full object-cover group-hover:scale-102 transition-all duration-300 ${
+                        loadedScreenshots[idx] ? "opacity-100" : "opacity-0"
+                      }`}
                       loading="lazy"
                     />
                     
@@ -486,11 +508,17 @@ export default function PlanPreview() {
               </div>
 
               {/* Modal Image Display */}
-              <div className="overflow-y-auto p-4 flex items-center justify-center bg-stone-950">
+              <div className="overflow-y-auto p-4 flex items-center justify-center bg-stone-950 min-h-[360px] sm:min-h-[500px] relative">
+                {!modalImageLoaded && (
+                  <div className="w-full max-w-[420px] aspect-[1/1.414] bg-stone-800/80 rounded-xl animate-shimmer" />
+                )}
                 <img
                   src={activeScreenshot.src}
                   alt={activeScreenshot.title}
-                  className="max-h-[72vh] w-auto object-contain rounded-xl shadow-2xl"
+                  onLoad={() => setModalImageLoaded(true)}
+                  className={`max-h-[72vh] w-auto object-contain rounded-xl shadow-2xl transition-opacity duration-300 ${
+                    modalImageLoaded ? "opacity-100" : "opacity-0 absolute"
+                  }`}
                 />
               </div>
 
