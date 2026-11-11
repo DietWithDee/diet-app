@@ -280,6 +280,21 @@ const EmailTemplateBuilder = ({ emailTemplate, setEmailTemplate, showNotificatio
           { id: 306, type: 'button', value: 'Explore Our Meal Plans', url: 'https://dietwithdee.org/plans' }
         ];
         break;
+
+      case 'survey-thank-you':
+        subject = 'Thank You for Shaping DietWithDee! 💛 [Community Survey Wrap-Up]';
+        sections = [
+          { id: 401, type: 'heading', value: 'Thank You for Sharing Your Voice! 💛' },
+          { id: 402, type: 'paragraph', value: 'A huge, heartfelt thank you to everyone who took the time to fill out our DietWithDee Community Survey! Your feedback, candid reflections, and daily nutrition struggles gave us incredible clarity on what you need most.' },
+          { id: 403, type: 'divider' },
+          { id: 404, type: 'highlight', value: 'Our survey has officially closed, but the real work has just begun. We are actively shaping our upcoming meal guides, recipes, and resources around your direct requests.' },
+          { id: 405, type: 'tip', value: 'Did you complete the survey and receive a 20% discount code? Don’t forget that your code is still active on all personalized meal plans!' },
+          { id: 406, type: 'paragraph', value: 'Whether your goal is managing blood sugar, gentle weight management, or discovering healthier ways to prepare beloved Ghanaian staples, we are here to support your journey every step of the way.' },
+          { id: 407, type: 'button', value: 'Explore Meal Plans', url: 'https://dietwithdee.org/plans' },
+          { id: 408, type: 'divider' },
+          { id: 409, type: 'paragraph', value: 'Stay tuned for next week’s newsletter where we’ll share the key takeaways from the survey and our newest tips!' }
+        ];
+        break;
     }
     
     setContentSections(sections);
@@ -359,6 +374,13 @@ const EmailTemplateBuilder = ({ emailTemplate, setEmailTemplate, showNotificatio
                 className="px-4 py-1.5 bg-white border border-orange-300 rounded-full text-xs hover:bg-[#F6841F] hover:text-white hover:border-[#F6841F] transition-all font-semibold shadow-xs cursor-pointer"
               >
                 🌿 Welcome Community Email
+              </button>
+              <button
+                type="button"
+                onClick={() => loadTemplate('survey-thank-you')}
+                className="px-4 py-1.5 bg-white border border-emerald-300 text-emerald-800 rounded-full text-xs hover:bg-emerald-600 hover:text-white hover:border-emerald-600 transition-all font-semibold shadow-xs cursor-pointer"
+              >
+                💌 Survey Thank-You Newsletter
               </button>
             </div>
           </div>

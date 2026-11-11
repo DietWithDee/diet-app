@@ -36,7 +36,6 @@ import { plans } from "../../utils/plansData";
 import { useToast } from "../../Contexts/ToastContext";
 import PlanSearchBar from "./components/PlanSearchBar";
 import PlanCardSkeleton from "./components/PlanCardSkeleton";
-import AnniversarySurveyBanner from "./components/AnniversarySurveyBanner";
 import carousel1 from "../../assets/carousel/1.jpg?url";
 import carousel2 from "../../assets/carousel/2.jpg?url";
 import carousel3 from "../../assets/carousel/3.jpg?url";
@@ -441,9 +440,6 @@ function Plans() {
           </div>
         </div>
         */}
-
-        {/* 1-Year Anniversary Survey & Discount Banner */}
-        <AnniversarySurveyBanner />
 
         <div className="text-center space-y-4 max-w-3xl mx-auto mb-8">
           <h1 className="text-3xl sm:text-5xl lg:text-6xl font-serif-cormorant font-normal text-stone-900 tracking-tight leading-[1.12]">
