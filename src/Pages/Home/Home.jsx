@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useMemo } from 'react';
 import SEO from '../../Components/SEO';
 import { useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -7,7 +7,9 @@ import { analytics } from '../../firebaseConfig';
 import Dee from '../../assets/images/Dee1.webp';
 import heroBg from '../../assets/images/homeimg1.jpg';
 import fathersDayPromo from '../../assets/fathers_day_promo.png';
-import { X, Gift, ChevronRight, CheckCircle2 } from 'lucide-react';
+import { X, Gift, ChevronRight, ChevronLeft, Calendar, CheckCircle2, ArrowRight } from 'lucide-react';
+import { plans } from '../../utils/plansData';
+import { getAllEvents } from '../../firebaseEventsUtils';
 import { useClientCount } from '../../utils/clientStats';
 import carousel1 from '../../assets/carousel/1.jpg?url';
 import carousel2 from '../../assets/carousel/2.jpg?url';
@@ -75,10 +77,123 @@ const AnimatedCounter = ({ target, duration = 2000, suffix = '' }) => {
   );
 };
 
+// Helper to parse event date safely
+const parseEventDate = (dateStr) => {
+  if (!dateStr) return new Date(0);
+  const parts = dateStr.split('-').map(Number);
+  if (parts.length < 3) return new Date(dateStr);
+  return new Date(parts[0], parts[1] - 1, parts[2]);
+};
+
+// Format event date for display
+const formatEventDate = (dateStr) => {
+  try {
+    const d = parseEventDate(dateStr);
+    return d.toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' });
+  } catch (e) {
+    return dateStr;
+  }
+};
+
 function Home() {
   const navigate = useNavigate();
   const clientCount = useClientCount();
   const videoRef = useRef(null);
+  // Dynamic Plans & Upcoming Events Lineup State
+  const [upcomingEvents, setUpcomingEvents] = useState([]);
+  const [activeLineupIndex, setActiveLineupIndex] = useState(0);
+  const [isLineupPaused, setIsLineupPaused] = useState(false);
+
+  // Fetch upcoming events from Firebase
+  useEffect(() => {
+    let isMounted = true;
+    const fetchUpcomingEvents = async () => {
+      try {
+        const res = await getAllEvents();
+        if (res.success && isMounted) {
+          const events = res.data || [];
+          const today = new Date();
+          today.setHours(0, 0, 0, 0);
+          const upcoming = events.filter((e) => parseEventDate(e.date) >= today);
+          upcoming.sort((a, b) => parseEventDate(a.date) - parseEventDate(b.date));
+          setUpcomingEvents(upcoming);
+        }
+      } catch (err) {
+        console.warn('Failed to load events for homepage lineup:', err);
+      }
+    };
+    fetchUpcomingEvents();
+    return () => { isMounted = false; };
+  }, []);
+
+  // Assemble lineup: Upcoming event shows first, otherwise just plans
+  const lineup = useMemo(() => {
+    const eventItems = upcomingEvents.map((evt) => ({
+      type: 'event',
+      id: evt.id,
+      title: evt.title,
+      subtitle: evt.date ? `Upcoming Event • ${formatEventDate(evt.date)}` : 'Upcoming Community Event',
+      meta: evt.location ? `📍 ${evt.location}` : 'Live Outreach',
+      image: evt.imageUrl || Dee,
+      targetUrl: evt.eventLink || '/services#events-gallery',
+      isExternal: Boolean(evt.eventLink && evt.eventLink.startsWith('http'))
+    }));
+
+    const planItems = plans.map((plan) => ({
+      type: 'plan',
+      id: plan.id,
+      title: plan.title,
+      subtitle: plan.Subtitle,
+      meta: plan.price,
+      image: plan.previewCover || plan.img,
+      targetUrl: '/plans',
+      isExternal: false
+    }));
+
+    return [...eventItems, ...planItems];
+  }, [upcomingEvents]);
+
+  // Adjust active index if lineup shrinks
+  useEffect(() => {
+    if (activeLineupIndex >= lineup.length && lineup.length > 0) {
+      setActiveLineupIndex(0);
+    }
+  }, [lineup.length, activeLineupIndex]);
+
+  // Auto-advance slideshow every 4.5s (pauses on hover)
+  useEffect(() => {
+    if (lineup.length <= 1 || isLineupPaused) return;
+    const interval = setInterval(() => {
+      setActiveLineupIndex((prev) => (prev + 1) % lineup.length);
+    }, 4500);
+    return () => clearInterval(interval);
+  }, [lineup.length, isLineupPaused]);
+
+  const prevSlide = () => {
+    if (lineup.length === 0) return;
+    setActiveLineupIndex((prev) => (prev - 1 + lineup.length) % lineup.length);
+  };
+
+  const nextSlide = () => {
+    if (lineup.length === 0) return;
+    setActiveLineupIndex((prev) => (prev + 1) % lineup.length);
+  };
+
+  const handleLineupItemClick = (item) => {
+    if (!item) return;
+    if (item.type === 'event') {
+      if (item.isExternal) {
+        window.open(item.targetUrl, '_blank', 'noopener,noreferrer');
+      } else {
+        navigate(item.targetUrl);
+      }
+    } else {
+      navigate(item.targetUrl);
+    }
+  };
+
+  const currentItem = lineup[activeLineupIndex] || lineup[0];
+
   const [showFathersDayPopup, setShowFathersDayPopup] = useState(false);
   const [carouselIndex, setCarouselIndex] = useState(0);
 
@@ -530,6 +645,110 @@ function Home() {
                       Beyond individual consultations, we believe in the power of collective change. We are actively involved in community programs and health outreaches across Ghana to make nutrition education practical and fun.
                     </p>
                   </div>
+
+                                    {/* ── Dynamic Plan / Event Viewbox Showcase ── */}
+                  {lineup.length > 0 && currentItem && (
+                    <div
+                      className="relative overflow-hidden rounded-2xl bg-white border border-stone-200/90 shadow-sm hover:shadow-md transition-all duration-300 p-3.5 sm:p-4 group"
+                      onMouseEnter={() => setIsLineupPaused(true)}
+                      onMouseLeave={() => setIsLineupPaused(false)}
+                    >
+                      <div className="flex items-center gap-3.5 sm:gap-4">
+                        {/* Changing Image Viewbox */}
+                        <div
+                          onClick={() => handleLineupItemClick(currentItem)}
+                          className="relative w-20 h-24 sm:w-24 sm:h-28 shrink-0 rounded-xl overflow-hidden bg-stone-100 border border-stone-200/80 cursor-pointer shadow-xs group-hover:scale-102 transition-transform duration-300"
+                        >
+                          <AnimatePresence mode="wait">
+                            <motion.img
+                              key={currentItem.id || activeLineupIndex}
+                              src={currentItem.image}
+                              alt={currentItem.title}
+                              initial={{ opacity: 0, scale: 0.95 }}
+                              animate={{ opacity: 1, scale: 1 }}
+                              exit={{ opacity: 0, scale: 1.05 }}
+                              transition={{ duration: 0.35, ease: 'easeOut' }}
+                              className="w-full h-full object-cover"
+                            />
+                          </AnimatePresence>
+                          <div className="absolute inset-0 bg-gradient-to-t from-black/25 via-transparent to-transparent pointer-events-none" />
+                        </div>
+
+                        {/* Content Details */}
+                        <div className="flex-1 min-w-0 space-y-1.5 text-left">
+                          <div className="flex items-center justify-between gap-2">
+                            <h4
+                              onClick={() => handleLineupItemClick(currentItem)}
+                              className="font-bold text-stone-900 text-sm sm:text-base font-montserrat truncate cursor-pointer hover:text-[#F6841F] transition-colors"
+                              title={currentItem.title}
+                            >
+                              {currentItem.title}
+                            </h4>
+                            <div className="flex items-center gap-1 shrink-0">
+                              <button
+                                type="button"
+                                onClick={(e) => { e.stopPropagation(); prevSlide(); }}
+                                className="w-6 h-6 rounded-full bg-stone-100 hover:bg-stone-200 text-stone-600 flex items-center justify-center transition-colors cursor-pointer border-none"
+                                title="Previous"
+                                aria-label="Previous slide"
+                              >
+                                <ChevronLeft size={13} />
+                              </button>
+                              <button
+                                type="button"
+                                onClick={(e) => { e.stopPropagation(); nextSlide(); }}
+                                className="w-6 h-6 rounded-full bg-stone-100 hover:bg-stone-200 text-stone-600 flex items-center justify-center transition-colors cursor-pointer border-none"
+                                title="Next"
+                                aria-label="Next slide"
+                              >
+                                <ChevronRight size={13} />
+                              </button>
+                            </div>
+                          </div>
+
+                          <p className="text-xs sm:text-sm text-stone-600 truncate font-normal">
+                            {currentItem.subtitle}
+                          </p>
+
+                          <div className="flex items-center justify-between pt-1">
+                            <span className="text-xs sm:text-sm font-bold text-stone-900 font-montserrat">
+                              {currentItem.type === 'plan' ? currentItem.meta : (
+                                <span className="text-emerald-700 font-medium text-xs truncate max-w-[130px] sm:max-w-none inline-block">
+                                  {currentItem.meta}
+                                </span>
+                              )}
+                            </span>
+
+                            <button
+                              type="button"
+                              onClick={() => handleLineupItemClick(currentItem)}
+                              className="inline-flex items-center gap-1 text-xs font-semibold text-[#F6841F] hover:text-[#e07312] transition-colors cursor-pointer"
+                            >
+                              <span>{currentItem.type === 'event' ? 'View Event' : 'View Plan'}</span>
+                              <ChevronRight size={14} />
+                            </button>
+                          </div>
+                        </div>
+                      </div>
+
+                      {/* Slide Indicator Dots */}
+                      <div className="flex items-center justify-center gap-1.5 pt-2.5 border-t border-stone-100 mt-2.5">
+                        {lineup.map((item, idx) => (
+                          <button
+                            key={item.id || idx}
+                            type="button"
+                            onClick={() => setActiveLineupIndex(idx)}
+                            aria-label={`Go to ${item.title}`}
+                            className={`h-1.5 rounded-full transition-all duration-300 border-none cursor-pointer ${
+                              idx === activeLineupIndex
+                                ? item.type === 'event' ? 'w-5 bg-emerald-600' : 'w-5 bg-[#F6841F]'
+                                : 'w-1.5 bg-stone-200 hover:bg-stone-300'
+                            }`}
+                          />
+                        ))}
+                      </div>
+                    </div>
+                  )}
 
                   <div className="flex flex-wrap gap-4 pt-1">
                     <motion.button
