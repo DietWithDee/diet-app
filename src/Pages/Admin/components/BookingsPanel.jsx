@@ -28,12 +28,15 @@ import {
   Trash2,
   CalendarCheck,
   CalendarDays,
+  CalendarPlus,
+  Edit3,
   Filter
 } from 'lucide-react';
 import { 
   getBookingSettings, 
   updateBookingSettings, 
   setBookingStatus,
+  generateTimeSlots,
   DEFAULT_BOOKING_SETTINGS 
 } from '../../../firebaseBookingUtils';
 
@@ -72,6 +75,12 @@ const BookingsPanel = ({ showNotification, highlightRef = null }) => {
   const [selectedDateFilter, setSelectedDateFilter] = useState(null); // 'YYYY-MM-DD' or null
   const [calendarMonth, setCalendarMonth] = useState(() => new Date());
   const [isCalendarCollapsedMobile, setIsCalendarCollapsedMobile] = useState(false);
+
+  // Slot Editing State for an Individual Booking
+  const [editingBookingSlot, setEditingBookingSlot] = useState(null); // booking object or null
+  const [slotEditDate, setSlotEditDate] = useState('');
+  const [slotEditTime, setSlotEditTime] = useState('');
+  const [isSavingSlot, setIsSavingSlot] = useState(false);
 
   useEffect(() => {
     // Real-time listener on the bookings collection
@@ -172,6 +181,81 @@ const BookingsPanel = ({ showNotification, highlightRef = null }) => {
       ...prev,
       blockedDates: (prev.blockedDates || []).filter(d => d !== dateToRemove)
     }));
+  };
+
+  // Toggle individual time slots on/off for a weekday schedule
+  const handleToggleDaySlot = (dayKey, slotLabel) => {
+    if (!tempSettings) return;
+    const currentSchedule = tempSettings.weeklySchedule?.[dayKey] || {};
+    const disabled = currentSchedule.disabledSlots || [];
+    const isCurrentlyDisabled = disabled.includes(slotLabel);
+
+    const updatedDisabled = isCurrentlyDisabled
+      ? disabled.filter(s => s !== slotLabel)
+      : [...disabled, slotLabel];
+
+    setTempSettings(prev => ({
+      ...prev,
+      weeklySchedule: {
+        ...prev.weeklySchedule,
+        [dayKey]: {
+          ...prev.weeklySchedule[dayKey],
+          disabledSlots: updatedDisabled
+        }
+      }
+    }));
+  };
+
+  // Booking Slot Editing Handlers
+  const handleStartEditSlot = (booking, e) => {
+    if (e) e.stopPropagation();
+    setEditingBookingSlot(booking);
+    setSlotEditDate(booking.scheduledDate || new Date().toISOString().split('T')[0]);
+    setSlotEditTime(booking.scheduledTime || '10:00 AM');
+  };
+
+  const handleSaveBookingSlot = async () => {
+    if (!editingBookingSlot) return;
+    if (!slotEditDate || !slotEditTime) {
+      showNotification('error', 'Please provide both a date and time slot.');
+      return;
+    }
+    setIsSavingSlot(true);
+    try {
+      const bookingRef = doc(db, 'bookings', editingBookingSlot.id);
+      await updateDoc(bookingRef, {
+        scheduledDate: slotEditDate,
+        scheduledTime: slotEditTime,
+        updatedAt: new Date().toISOString()
+      });
+      showNotification('success', `Appointment slot updated: ${slotEditDate} at ${slotEditTime}.`);
+      setEditingBookingSlot(null);
+    } catch (err) {
+      console.error('Error saving slot:', err);
+      showNotification('error', 'Failed to update slot.');
+    } finally {
+      setIsSavingSlot(false);
+    }
+  };
+
+  const handleClearBookingSlot = async () => {
+    if (!editingBookingSlot) return;
+    setIsSavingSlot(true);
+    try {
+      const bookingRef = doc(db, 'bookings', editingBookingSlot.id);
+      await updateDoc(bookingRef, {
+        scheduledDate: null,
+        scheduledTime: null,
+        updatedAt: new Date().toISOString()
+      });
+      showNotification('success', 'Appointment slot removed. Reverted to flexible coordination.');
+      setEditingBookingSlot(null);
+    } catch (err) {
+      console.error('Error clearing slot:', err);
+      showNotification('error', 'Failed to clear slot.');
+    } finally {
+      setIsSavingSlot(false);
+    }
   };
 
   // When highlightRef is provided in URL, automatically select that booking for detail view
@@ -456,20 +540,30 @@ const BookingsPanel = ({ showNotification, highlightRef = null }) => {
             ? 'bg-emerald-50/70 border-emerald-200' 
             : 'bg-white border-stone-200'
         }`}>
-          <div className="flex items-center justify-between gap-2 mb-2">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 mb-2">
             <h4 className="text-xs font-semibold text-stone-800 uppercase tracking-wider flex items-center gap-1.5">
               <Calendar size={15} className={selectedBooking.scheduledDate ? "text-emerald-700" : "text-stone-400"} />
               <span>Appointment Session Slot</span>
             </h4>
-            {selectedBooking.scheduledDate ? (
-              <span className="px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-emerald-100 text-emerald-800 border border-emerald-300">
-                Booked via Calendar
-              </span>
-            ) : (
-              <span className="px-2.5 py-0.5 rounded-full text-[10px] font-medium bg-stone-100 text-stone-600 border border-stone-200">
-                Arranged via WhatsApp
-              </span>
-            )}
+            <div className="flex items-center gap-2">
+              {selectedBooking.scheduledDate ? (
+                <span className="px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-emerald-100 text-emerald-800 border border-emerald-300">
+                  Booked via Calendar
+                </span>
+              ) : (
+                <span className="px-2.5 py-0.5 rounded-full text-[10px] font-medium bg-stone-100 text-stone-600 border border-stone-200">
+                  Arranged via WhatsApp
+                </span>
+              )}
+              <button
+                type="button"
+                onClick={(e) => handleStartEditSlot(selectedBooking, e)}
+                className="px-2.5 py-1 bg-white hover:bg-stone-50 border border-stone-200 text-stone-700 hover:text-emerald-700 rounded-xl text-xs font-bold flex items-center gap-1 shadow-2xs transition-colors cursor-pointer"
+              >
+                <Edit3 size={12} className="text-emerald-600" />
+                <span>{selectedBooking.scheduledDate ? 'Reschedule Slot' : 'Assign Slot'}</span>
+              </button>
+            </div>
           </div>
           {selectedBooking.scheduledDate ? (
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 pt-1">
@@ -478,7 +572,7 @@ const BookingsPanel = ({ showNotification, highlightRef = null }) => {
                   {new Date(selectedBooking.scheduledDate).toLocaleDateString('en-GB', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' })} at {selectedBooking.scheduledTime || 'Slot pending'} (GMT)
                 </p>
                 <p className="text-xs text-stone-500 mt-0.5">
-                  Client pre-selected this consultation slot during online booking.
+                  Pre-selected session time for this consultation.
                 </p>
               </div>
               <div className="inline-flex items-center gap-1 px-3 py-1.5 rounded-xl bg-white border border-emerald-200 text-xs font-semibold text-emerald-850 shadow-2xs">
@@ -487,9 +581,11 @@ const BookingsPanel = ({ showNotification, highlightRef = null }) => {
               </div>
             </div>
           ) : (
-            <p className="text-xs text-stone-500 leading-relaxed">
-              No calendar slot was selected. Coordinate the date and time personally with the client on WhatsApp.
-            </p>
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 pt-1 text-xs text-stone-500">
+              <p className="leading-relaxed">
+                No calendar slot assigned yet. Coordinate personally with the client on WhatsApp or assign a specific date & time.
+              </p>
+            </div>
           )}
         </div>
 
@@ -718,21 +814,46 @@ const BookingsPanel = ({ showNotification, highlightRef = null }) => {
                         </label>
 
                         {sched.active ? (
-                          <div className="flex items-center gap-2 text-xs">
-                            <span className="text-stone-400 text-[11px]">From</span>
-                            <input
-                              type="time"
-                              value={sched.start || '10:00'}
-                              onChange={(e) => handleDayScheduleChange(key, 'start', e.target.value)}
-                              className="px-2 py-1 bg-white border border-stone-200 rounded-lg text-xs font-semibold text-stone-800 focus:outline-none focus:ring-1 focus:ring-emerald-500"
-                            />
-                            <span className="text-stone-400 text-[11px]">To</span>
-                            <input
-                              type="time"
-                              value={sched.end || '15:00'}
-                              onChange={(e) => handleDayScheduleChange(key, 'end', e.target.value)}
-                              className="px-2 py-1 bg-white border border-stone-200 rounded-lg text-xs font-semibold text-stone-800 focus:outline-none focus:ring-1 focus:ring-emerald-500"
-                            />
+                          <div className="space-y-2 w-full sm:w-auto">
+                            <div className="flex items-center gap-2 text-xs sm:justify-end">
+                              <span className="text-stone-400 text-[11px]">From</span>
+                              <input
+                                type="time"
+                                value={sched.start || '10:00'}
+                                onChange={(e) => handleDayScheduleChange(key, 'start', e.target.value)}
+                                className="px-2 py-1 bg-white border border-stone-200 rounded-lg text-xs font-semibold text-stone-800 focus:outline-none focus:ring-1 focus:ring-emerald-500"
+                              />
+                              <span className="text-stone-400 text-[11px]">To</span>
+                              <input
+                                type="time"
+                                value={sched.end || '15:00'}
+                                onChange={(e) => handleDayScheduleChange(key, 'end', e.target.value)}
+                                className="px-2 py-1 bg-white border border-stone-200 rounded-lg text-xs font-semibold text-stone-800 focus:outline-none focus:ring-1 focus:ring-emerald-500"
+                              />
+                            </div>
+                            
+                            {/* Granular Time Slots Selector (Tap to toggle on/off) */}
+                            <div className="flex flex-wrap items-center gap-1 sm:justify-end pt-1">
+                              <span className="text-[10px] text-stone-400 font-medium mr-1">Slots:</span>
+                              {generateTimeSlots(sched.start || '10:00', sched.end || '15:00', tempSettings.slotDurationMinutes || 60).map(slot => {
+                                const isDisabled = (sched.disabledSlots || []).includes(slot);
+                                return (
+                                  <button
+                                    key={slot}
+                                    type="button"
+                                    onClick={() => handleToggleDaySlot(key, slot)}
+                                    title={isDisabled ? "Click to enable this slot" : "Click to disable this slot"}
+                                    className={`px-2 py-0.5 rounded-md text-[10px] font-bold transition-all border cursor-pointer ${
+                                      isDisabled
+                                        ? 'bg-stone-100 text-stone-400 border-stone-200 line-through opacity-60'
+                                        : 'bg-emerald-50 text-emerald-800 border-emerald-200 hover:bg-emerald-100'
+                                    }`}
+                                  >
+                                    {slot}
+                                  </button>
+                                );
+                              })}
+                            </div>
                           </div>
                         ) : (
                           <span className="text-[11px] text-stone-400 italic">Day off (Unavailable)</span>
@@ -838,6 +959,131 @@ const BookingsPanel = ({ showNotification, highlightRef = null }) => {
               >
                 {isSavingSettings ? 'Saving...' : 'Save Settings'}
               </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Edit / Reschedule Appointment Slot Modal */}
+      {editingBookingSlot && (
+        <div className="fixed inset-0 bg-stone-900/50 backdrop-blur-xs z-50 flex items-center justify-center p-3 sm:p-4 overflow-y-auto">
+          <div className="bg-white rounded-3xl max-w-md w-full shadow-2xl border border-stone-200 my-auto overflow-hidden animate-in fade-in zoom-in-95 duration-150">
+            {/* Header */}
+            <div className="flex items-center justify-between p-4 sm:p-5 border-b border-stone-100 bg-stone-50/70">
+              <div className="flex items-center gap-2.5">
+                <div className="w-8 h-8 rounded-xl bg-emerald-50 text-emerald-800 flex items-center justify-center border border-emerald-200">
+                  <CalendarCheck size={18} />
+                </div>
+                <div>
+                  <h3 className="text-sm font-bold text-stone-900">
+                    {editingBookingSlot.scheduledDate ? 'Reschedule Consultation Slot' : 'Assign Consultation Slot'}
+                  </h3>
+                  <p className="text-[11px] text-stone-500 truncate max-w-xs">
+                    Client: {editingBookingSlot.name}
+                  </p>
+                </div>
+              </div>
+              <button
+                type="button"
+                onClick={() => setEditingBookingSlot(null)}
+                className="p-1.5 rounded-xl text-stone-400 hover:text-stone-700 hover:bg-stone-100 transition-colors cursor-pointer"
+              >
+                <X size={18} />
+              </button>
+            </div>
+
+            {/* Body */}
+            <div className="p-4 sm:p-5 space-y-4 text-xs">
+              
+              {/* Date Input */}
+              <div className="space-y-1.5">
+                <label className="font-bold text-stone-800 uppercase tracking-wider block text-[11px]">
+                  Consultation Date *
+                </label>
+                <input
+                  type="date"
+                  value={slotEditDate}
+                  onChange={(e) => setSlotEditDate(e.target.value)}
+                  className="w-full px-3 py-2.5 bg-stone-50 border border-stone-200 rounded-xl text-xs font-semibold text-stone-900 focus:outline-none focus:ring-1 focus:ring-emerald-500"
+                />
+              </div>
+
+              {/* Quick Time Slots Selection */}
+              <div className="space-y-1.5">
+                <label className="font-bold text-stone-800 uppercase tracking-wider block text-[11px]">
+                  Select Time Slot *
+                </label>
+                <div className="grid grid-cols-3 gap-1.5">
+                  {['10:00 AM', '11:00 AM', '12:00 PM', '1:00 PM', '2:00 PM', '3:00 PM'].map(time => (
+                    <button
+                      key={time}
+                      type="button"
+                      onClick={() => setSlotEditTime(time)}
+                      className={`py-2 px-2 rounded-xl text-xs font-semibold border transition-all cursor-pointer ${
+                        slotEditTime === time
+                          ? 'bg-emerald-600 text-white border-emerald-600 shadow-2xs font-bold'
+                          : 'bg-stone-50 text-stone-700 border-stone-200 hover:bg-stone-100'
+                      }`}
+                    >
+                      {time}
+                    </button>
+                  ))}
+                </div>
+
+                {/* Custom Time input */}
+                <div className="pt-2 flex items-center gap-2">
+                  <span className="text-[11px] text-stone-400 font-medium whitespace-nowrap">Or custom time:</span>
+                  <input
+                    type="text"
+                    value={slotEditTime}
+                    onChange={(e) => setSlotEditTime(e.target.value)}
+                    placeholder="e.g. 11:30 AM"
+                    className="flex-1 px-3 py-1.5 bg-stone-50 border border-stone-200 rounded-xl text-xs font-semibold text-stone-800 focus:outline-none focus:ring-1 focus:ring-emerald-500"
+                  />
+                </div>
+              </div>
+
+              {/* Slot Confirmation Preview */}
+              {slotEditDate && slotEditTime && (
+                <div className="p-3 rounded-xl bg-emerald-50 border border-emerald-200 text-emerald-900">
+                  <span className="text-[10px] uppercase font-bold text-emerald-800 tracking-wider block">Assigned Slot Preview</span>
+                  <p className="font-bold text-xs mt-0.5">
+                    {new Date(slotEditDate).toLocaleDateString('en-GB', { weekday: 'short', day: 'numeric', month: 'short', year: 'numeric' })} at {slotEditTime} (GMT)
+                  </p>
+                </div>
+              )}
+            </div>
+
+            {/* Footer */}
+            <div className="flex items-center justify-between p-4 sm:p-5 border-t border-stone-100 bg-stone-50/50">
+              {editingBookingSlot.scheduledDate ? (
+                <button
+                  type="button"
+                  onClick={handleClearBookingSlot}
+                  disabled={isSavingSlot}
+                  className="px-3 py-2 text-rose-600 hover:bg-rose-50 border border-rose-200 rounded-xl text-xs font-semibold transition-colors cursor-pointer"
+                >
+                  Clear Slot
+                </button>
+              ) : <div></div>}
+
+              <div className="flex items-center gap-2">
+                <button
+                  type="button"
+                  onClick={() => setEditingBookingSlot(null)}
+                  className="px-3 py-2 text-stone-600 hover:bg-stone-100 rounded-xl text-xs font-semibold transition-colors cursor-pointer"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="button"
+                  onClick={handleSaveBookingSlot}
+                  disabled={isSavingSlot}
+                  className="px-4 py-2 bg-emerald-600 hover:bg-emerald-700 disabled:opacity-50 text-white rounded-xl text-xs font-bold shadow-xs transition-colors cursor-pointer"
+                >
+                  {isSavingSlot ? 'Saving...' : 'Save Slot'}
+                </button>
+              </div>
             </div>
           </div>
         </div>
@@ -1226,8 +1472,18 @@ const BookingsPanel = ({ showNotification, highlightRef = null }) => {
                   </div>
                 </div>
 
-                {/* Right: Quick WhatsApp icon + Tap arrow */}
+                {/* Right: Quick Actions (Slot, WhatsApp, Details) */}
                 <div className="flex items-center gap-2 w-full sm:w-auto justify-between sm:justify-end pt-2 sm:pt-0 border-t sm:border-t-0 border-stone-100">
+                  <button
+                    type="button"
+                    onClick={(e) => handleStartEditSlot(booking, e)}
+                    title={booking.scheduledDate ? "Reschedule appointment slot" : "Assign appointment slot"}
+                    className="px-2 py-1 bg-stone-50 hover:bg-stone-100 border border-stone-200 text-stone-700 hover:text-emerald-700 rounded-lg text-xs font-medium flex items-center gap-1 transition-colors cursor-pointer"
+                  >
+                    <Edit3 size={11} className="text-stone-400 group-hover:text-emerald-600" />
+                    <span>{booking.scheduledDate ? 'Reschedule' : 'Set Slot'}</span>
+                  </button>
+
                   {whatsappUrl && (
                     <button
                       onClick={(e) => {

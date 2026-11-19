@@ -129,6 +129,9 @@ const BookingCalendar = ({
     const duration = settings?.slotDurationMinutes || 60;
 
     const allSlots = generateTimeSlots(start, end, duration);
+    if (daySchedule.disabledSlots && Array.isArray(daySchedule.disabledSlots)) {
+      return allSlots.filter(s => !daySchedule.disabledSlots.includes(s));
+    }
     return allSlots;
   }, [selectedDate, settings]);
 
