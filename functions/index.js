@@ -5,7 +5,7 @@ const { setGlobalOptions } = require("firebase-functions/v2");
 const admin = require("firebase-admin");
 const { Resend } = require("resend");
 const { enqueueCampaign, processMailQueue, recordTransactionalSent } = require("./mailEngine");
-const { createEmailTemplate, createWelcomeTemplate, createSurveyVoucherTemplate } = require("./emailTemplate");
+const { createEmailTemplate, createWelcomeTemplate, createSurveyVoucherTemplate, createEventBroadcastTemplate } = require("./emailTemplate");
 const { createAdminBookingEmail, createClientConfirmationEmail } = require("./bookingEmailTemplates");
 const { createAdminTestimonialEmail } = require("./testimonialEmailTemplate");
 
@@ -195,6 +195,113 @@ exports.onArticlePublished = onDocumentWritten(
 
     } catch (error) {
       console.error("Error in newsletter distribution:", error);
+    }
+  }
+);
+
+// 2.05 Trigger Function on Event Creation/Publish to Enqueue and Send Newsletter Broadcast
+exports.onEventPublished = onDocumentWritten(
+  { 
+    document: "events/{eventId}", 
+    secrets: ["RESEND_API_KEY"],
+    memory: "512MiB",
+    timeoutSeconds: 300
+  },
+  async (event) => {
+    const eventId = event.params.eventId;
+    
+    if (!event.data) {
+        return;
+    }
+
+    const afterData = event.data.after ? event.data.after.data() : null;
+
+    if (!afterData) {
+        return; // Document was deleted
+    }
+
+    // Only broadcast if explicitly marked to broadcast as newsletter
+    if (!afterData.broadcastNewsletter) {
+        return;
+    }
+
+    if (!afterData.title) {
+        console.warn(`Event ${eventId} lacks a title. Skipping event newsletter.`);
+        return;
+    }
+    
+    if (afterData.newsletterSent) {
+        console.log(`Newsletter already handled for event ${eventId}. Skipping.`);
+        return;
+    }
+
+    console.log(`Event ${eventId} marked for newsletter broadcast! Preparing broadcast...`);
+
+    try {
+      const resendApiKey = process.env.RESEND_API_KEY;
+      if (!resendApiKey) {
+        throw new Error("RESEND_API_KEY is not set.");
+      }
+      const resend = new Resend(resendApiKey);
+
+      // Prevent duplicate sends: mark event as in_progress atomically
+      const eventRef = db.collection('events').doc(eventId);
+      const nowTs = admin.firestore.Timestamp.now();
+      try {
+          await db.runTransaction(async (tx) => {
+              const docSnap = await tx.get(eventRef);
+              if (!docSnap.exists) throw new Error('Event not found');
+              const data = docSnap.data() || {};
+              if (data.newsletterSent === true || data.newsletterSent === 'queued' || data.newsletterSent === 'in_progress') {
+                  throw new Error('Newsletter already sent or in progress');
+              }
+              tx.update(eventRef, { newsletterSent: 'in_progress', newsletterStartedAt: nowTs });
+          });
+      } catch (err) {
+          console.log('Aborting event newsletter: ', err.message);
+          return;
+      }
+
+      const subject = `Upcoming Community Event: ${afterData.title}`;
+      const emailHtmlTemplate = createEventBroadcastTemplate(afterData)
+          .replace('Hi there,', 'Hi {{{FIRST_NAME|there}}},')
+          .replace(/https:\/\/dietwithdee\.org\/unsubscribe/g, '{{{RESEND_UNSUBSCRIBE_URL}}}');
+      const emailText = `Upcoming Event: ${afterData.title}\nDate: ${afterData.date || 'Upcoming'}\nLocation: ${afterData.location || 'Online'}\n${afterData.eventLink ? `Link: ${afterData.eventLink}\n` : ''}\nTo unsubscribe: {{{RESEND_UNSUBSCRIBE_URL}}}`;
+
+      console.log(`[onEventPublished] Creating broadcast to audience ${RESEND_AUDIENCE_ID}...`);
+      const { data: broadcast, error: broadcastError } = await resend.broadcasts.create({
+          audienceId: RESEND_AUDIENCE_ID,
+          from: 'Diet With Dee <newsletter@mail.dietwithdee.org>',
+          replyTo: 'hello@dietwithdee.org',
+          subject: subject,
+          html: emailHtmlTemplate,
+          text: emailText
+      });
+
+      if (broadcastError) {
+          console.error("[onEventPublished] Broadcast creation failed:", broadcastError);
+          await eventRef.update({ newsletterSent: false, lastNewsletterError: broadcastError.message });
+          return;
+      }
+
+      console.log(`[onEventPublished] Dispatching broadcast ${broadcast.id}...`);
+      const { data: sendResult, error: sendError } = await resend.broadcasts.send(broadcast.id);
+      if (sendError) {
+          console.error("[onEventPublished] Broadcast send failed:", sendError);
+          await eventRef.update({ newsletterSent: false, lastNewsletterError: sendError.message });
+          return;
+      }
+
+      console.log(`[onEventPublished] Event broadcast ${broadcast.id} dispatched successfully to audience.`);
+
+      await eventRef.update({
+          newsletterSent: true,
+          newsletterSentAt: admin.firestore.Timestamp.now(),
+          resendBroadcastId: broadcast.id
+      });
+
+    } catch (error) {
+      console.error("Error in event newsletter distribution:", error);
     }
   }
 );
@@ -653,6 +760,103 @@ exports.processBooking = onCall(
         }
 
         // 1. Save to Firestore
+        // Enrich userResults from Firestore if account exists and data is incomplete
+        let enrichedResults = { ...(userResults || {}) };
+        const cleanEmail = formData.email ? formData.email.trim().toLowerCase() : "";
+
+        if (cleanEmail) {
+            try {
+                const userSnap = await db.collection("users")
+                    .where("email", "==", cleanEmail)
+                    .limit(1)
+                    .get();
+
+                if (!userSnap.empty) {
+                    const userDoc = userSnap.docs[0];
+                    const profileData = userDoc.data() || {};
+                    const uid = userDoc.id;
+
+                    console.log(`Enriching booking for ${cleanEmail} from registered user profile (${uid})`);
+
+                    let latestWeight = profileData.weight || null;
+                    let latestHeight = profileData.height || null;
+                    let latestGoal = profileData.goal || null;
+                    let latestBmi = profileData.bmi || null;
+
+                    // Query latest log entry for up-to-date weight
+                    try {
+                        const logsSnap = await db.collection("users")
+                            .doc(uid)
+                            .collection("logs")
+                            .orderBy("loggedAt", "desc")
+                            .limit(1)
+                            .get();
+
+                        if (!logsSnap.empty) {
+                            const latestLog = logsSnap.docs[0].data();
+                            if (latestLog.weight) latestWeight = latestLog.weight;
+                            if (latestLog.height) latestHeight = latestLog.height;
+                            if (latestLog.goal) latestGoal = latestLog.goal;
+                        }
+                    } catch (logErr) {
+                        console.warn("Could not query user logs for enrichment:", logErr);
+                    }
+
+                    // Compute BMI if missing or zero
+                    if ((!latestBmi || latestBmi === 0 || latestBmi === "N/A") && latestWeight && latestHeight) {
+                        const hM = Number(latestHeight) / 100;
+                        latestBmi = Math.round((Number(latestWeight) / (hM * hM)) * 10) / 10;
+                    }
+
+                    // Compute daily calories if missing
+                    let calculatedCalories = enrichedResults.dailyCalories;
+                    if ((!calculatedCalories || calculatedCalories === 0) && latestWeight && latestHeight) {
+                        const w = Number(latestWeight);
+                        const h = Number(latestHeight);
+                        const age = Number(profileData.age) || 25;
+                        const genderFactor = profileData.gender === "male" ? 5 : -161;
+                        const bmr = 10 * w + 6.25 * h - 5 * age + genderFactor;
+                        const activityMultipliers = { sedentary: 1.15, light: 1.325, moderate: 1.475, active: 1.6 };
+                        const tdee = bmr * (activityMultipliers[profileData.activityLevel] || 1.15);
+                        let goalCals = tdee;
+                        if (latestGoal === "lose") goalCals = tdee - 300;
+                        else if (latestGoal === "gain") goalCals = tdee + 300;
+                        calculatedCalories = Math.round(goalCals);
+                    }
+
+                    const goalMap = {
+                        lose: "Weight Loss",
+                        gain: "Muscle Gain",
+                        maintain: "Weight Maintenance"
+                    };
+                    const cleanGoal = goalMap[latestGoal] || latestGoal || profileData.goal || enrichedResults.goal || "Not specified";
+
+                    enrichedResults = {
+                        ...enrichedResults,
+                        weight: latestWeight || enrichedResults.weight || null,
+                        height: latestHeight || enrichedResults.height || null,
+                        bmi: (latestBmi && latestBmi !== 0) ? latestBmi : (enrichedResults.bmi && enrichedResults.bmi !== 0 ? enrichedResults.bmi : null),
+                        dailyCalories: (calculatedCalories && calculatedCalories !== 0) ? calculatedCalories : null,
+                        goal: cleanGoal,
+                        gender: profileData.gender || enrichedResults.gender || null,
+                        age: profileData.age || enrichedResults.age || null,
+                        activityLevel: profileData.activityLevel || enrichedResults.activityLevel || null,
+                        dietaryRestrictions: profileData.dietaryRestrictions || enrichedResults.dietaryRestrictions || "None",
+                        healthConditions: profileData.healthConditions || enrichedResults.healthConditions || null,
+                        dislikes: profileData.dislikes || enrichedResults.dislikes || null,
+                        hasAccount: true,
+                        userId: uid
+                    };
+                }
+            } catch (userQueryErr) {
+                console.warn("Failed to check users collection for booking enrichment:", userQueryErr);
+            }
+        }
+
+        // Clean up zero values
+        if (enrichedResults.bmi === 0) enrichedResults.bmi = null;
+        if (enrichedResults.dailyCalories === 0) enrichedResults.dailyCalories = null;
+
         const bookingData = {
             ...formData,
             consultationType: actualType,
@@ -660,7 +864,7 @@ exports.processBooking = onCall(
             paystackReference: reference,
             status: 'pending',
             createdAt: admin.firestore.FieldValue.serverTimestamp(),
-            userResults: userResults || {},
+            userResults: enrichedResults,
             ...(isOntrack ? { isOntrack: true, source: 'ontrack' } : {})
         };
 

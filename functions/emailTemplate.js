@@ -785,4 +785,245 @@ const createSurveyVoucherTemplate = ({ email, selectedPlan, discountCode }) => {
     `;
 };
 
-module.exports = { createEmailTemplate, createWelcomeTemplate, createSurveyVoucherTemplate };
+const createEventBroadcastTemplate = ({ title, date, location, description, imageUrl, eventLink }) => {
+  const formattedDate = date ? new Date(date).toLocaleDateString('en-GB', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' }) : 'Upcoming (Date TBA)';
+  const cleanDescription = (description || '').replace(/<[^>]*>/g, '').trim();
+
+  return `
+    <!DOCTYPE html>
+    <html lang="en" xmlns="http://www.w3.org/1999/xhtml">
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <meta name="color-scheme" content="light">
+        <meta name="supported-color-schemes" content="light">
+        <title>Upcoming Event: ${title}</title>
+        <link rel="preconnect" href="https://fonts.googleapis.com">
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@600;700&family=Montserrat:wght@400;500;600;700&display=swap" rel="stylesheet">
+        <style>
+            :root { color-scheme: light; }
+            * { margin: 0; padding: 0; box-sizing: border-box; }
+            body {
+                font-family: 'Montserrat', -apple-system, BlinkMacSystemFont, Arial, sans-serif;
+                line-height: 1.7;
+                color: #1c1917;
+                background-color: #FAF9F6;
+                padding: 24px 10px;
+                -webkit-font-smoothing: antialiased;
+            }
+            .email-container {
+                max-width: 600px;
+                margin: 0 auto;
+                background-color: #ffffff;
+                border-radius: 24px;
+                overflow: hidden;
+                box-shadow: 0 10px 30px rgba(0, 0, 0, 0.05);
+                border: 1px solid #e7e5e4;
+            }
+            .header-accent {
+                display: block;
+                width: 100%;
+                height: 5px;
+                background: linear-gradient(90deg, #F6841F 0%, #166534 100%);
+            }
+            .header {
+                background-color: #ffffff;
+                padding: 36px 20px 24px;
+                text-align: center;
+                border-bottom: 1px solid #f5f5f4;
+            }
+            .logo-img {
+                width: 120px;
+                max-width: 100%;
+                margin: 0 auto 10px;
+                display: block;
+            }
+            .brand-name {
+                font-family: 'Cormorant Garamond', Georgia, serif;
+                font-size: 26px;
+                font-weight: 700;
+                color: #166534;
+                letter-spacing: 0.5px;
+                text-decoration: none;
+                display: block;
+            }
+            .subtitle {
+                font-family: 'Montserrat', Arial, sans-serif;
+                font-size: 11px;
+                font-weight: 600;
+                color: #78716c;
+                text-transform: uppercase;
+                letter-spacing: 1.5px;
+                margin-top: 6px;
+            }
+            .content {
+                padding: 40px 36px;
+                background-color: #ffffff;
+            }
+            .greeting {
+                font-family: 'Cormorant Garamond', Georgia, serif;
+                font-size: 26px;
+                font-weight: 700;
+                color: #166534;
+                margin-bottom: 20px;
+                text-align: left;
+                letter-spacing: -0.01em;
+            }
+            .message {
+                font-size: 15px;
+                line-height: 1.8;
+                color: #44403c;
+                margin-bottom: 24px;
+            }
+            .event-card {
+                background-color: #fcfbf9;
+                border: 1px solid #e7e5e4;
+                border-radius: 18px;
+                overflow: hidden;
+                margin: 28px 0;
+            }
+            .event-image {
+                width: 100%;
+                max-height: 280px;
+                object-fit: cover;
+                display: block;
+            }
+            .event-details {
+                padding: 24px 22px;
+            }
+            .event-title {
+                font-family: 'Cormorant Garamond', Georgia, serif;
+                font-size: 22px;
+                font-weight: 700;
+                color: #1c1917;
+                line-height: 1.3;
+                margin-bottom: 12px;
+            }
+            .event-meta {
+                margin: 12px 0 16px;
+                font-size: 13px;
+                color: #57534e;
+            }
+            .cta-button {
+                display: inline-block;
+                padding: 14px 32px;
+                background-color: #166534;
+                color: #ffffff !important;
+                text-decoration: none;
+                font-size: 14px;
+                font-weight: 600;
+                border-radius: 50px;
+                letter-spacing: 0.5px;
+            }
+            .footer {
+                background-color: #FAF9F6;
+                padding: 36px 30px;
+                text-align: center;
+                border-top: 1px solid #f5f5f4;
+            }
+            .footer-title {
+                font-family: 'Cormorant Garamond', Georgia, serif;
+                font-size: 18px;
+                font-weight: 700;
+                color: #1c1917;
+                margin-bottom: 6px;
+            }
+            .footer-text {
+                font-family: 'Montserrat', Arial, sans-serif;
+                color: #78716c;
+                font-size: 13px;
+                line-height: 1.6;
+                margin-bottom: 16px;
+            }
+            .footer-links {
+                font-family: 'Montserrat', Arial, sans-serif;
+                font-size: 12px;
+                margin: 16px 0;
+            }
+            .footer-links a {
+                color: #166534;
+                font-weight: 600;
+                text-decoration: none;
+                margin: 0 8px;
+            }
+            .unsubscribe {
+                color: #78716c;
+                font-size: 11px;
+                text-decoration: underline;
+                display: inline-block;
+                margin-top: 8px;
+            }
+        </style>
+    </head>
+    <body>
+        <div class="email-container">
+            <div class="header-accent"></div>
+            <div class="header">
+                <a href="https://dietwithdee.org" style="text-decoration: none;">
+                    <img src="https://dietwithdee.org/LOGO.png" alt="DietWithDee Logo" class="logo-img" width="120" height="auto" />
+                    <span class="brand-name">DietWithDee</span>
+                </a>
+                <div class="subtitle">Clinical Nutrition & Wellness • Community Event</div>
+            </div>
+            
+            <div class="content">
+                <div class="greeting">Hi there,</div>
+                
+                <div class="message">
+                    We're excited to invite you to our upcoming community wellness session! Join us to learn practical nutrition strategies, build lasting healthy habits, and ask your questions live.
+                </div>
+                
+                <div class="event-card">
+                    ${imageUrl ? `<img src="${imageUrl}" alt="${title}" class="event-image" />` : ''}
+                    <div class="event-details">
+                        <h2 class="event-title">${title}</h2>
+                        
+                        <div class="event-meta">
+                            <p style="margin-bottom: 6px;">📅 <strong>Date:</strong> ${formattedDate}</p>
+                            <p style="margin-bottom: 6px;">📍 <strong>Location:</strong> ${location || 'Online Session'}</p>
+                        </div>
+                        
+                        ${cleanDescription ? `<p style="font-size: 13px; color: #44403c; line-height: 1.7; margin-bottom: 20px;">${cleanDescription.length > 300 ? cleanDescription.substring(0, 300) + '...' : cleanDescription}</p>` : ''}
+                        
+                        <div style="text-align: center; margin-top: 18px;">
+                          <table role="presentation" cellpadding="0" cellspacing="0" border="0" style="margin: 0 auto;">
+                            <tr>
+                              <td align="center" style="border-radius: 50px; background-color: #166534;">
+                                <a href="${eventLink || 'https://dietwithdee.org'}" class="cta-button">
+                                    ${eventLink ? 'Register / Join Event &rarr;' : 'Learn More &rarr;'}
+                                </a>
+                              </td>
+                            </tr>
+                          </table>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="message" style="margin-top: 24px;">
+                    Spaces are limited for interactive Q&amp;A sessions, so be sure to save the date in your calendar. We look forward to connecting with you!
+                </div>
+            </div>
+            
+            <div class="footer">
+                <div class="footer-title">DietWithDee</div>
+                <div class="footer-text">
+                    Helping you build healthier habits for life with authentic local meals. &bull; Accra, Ghana
+                </div>
+                <div class="footer-links">
+                    <a href="https://dietwithdee.org/plans">Meal Plans</a> &bull;
+                    <a href="https://dietwithdee.org/services">Consultations</a> &bull;
+                    <a href="https://dietwithdee.org/blog">Blog</a>
+                </div>
+                <div class="footer-text" style="font-size: 11px; margin-top: 14px;">
+                    You’re receiving this email because you subscribed to the DietWithDee newsletter.<br>
+                    <a href="https://dietwithdee.org/unsubscribe" class="unsubscribe">Unsubscribe from this newsletter</a>
+                </div>
+            </div>
+        </div>
+    </body>
+    </html>
+  `;
+};
+
+module.exports = { createEmailTemplate, createWelcomeTemplate, createSurveyVoucherTemplate, createEventBroadcastTemplate };

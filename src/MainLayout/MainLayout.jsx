@@ -1,7 +1,7 @@
 import NavBar from "../Components/NavBar/NavBar";
 import SEOProvider from "../Components/SEOProvider";
 import AppErrorBoundary from "../Components/AppErrorBoundary";
-import { BrowserRouter, Route, Routes } from "react-router-dom";
+import { BrowserRouter, Route, Routes, useLocation } from "react-router-dom";
 import Home from "../Pages/Home/Home";
 import About from "../Pages/About/About";
 import Blog from "../Pages/Blog/Blog";
@@ -38,11 +38,14 @@ import PlanPreview from "../Pages/Plans/PlanPreview";
 // Inner component so usePageTracking can access the router context
 const AppRoutes = () => {
   usePageTracking();
+  const location = useLocation();
+  const isAdminRoute = location.pathname.toLowerCase().startsWith("/admin");
+
   return (
     <>
       <ScrollToTop />
-      <InstallPrompt />
-      <NavBar />
+      {!isAdminRoute && <InstallPrompt />}
+      {!isAdminRoute && <NavBar />}
       <Routes>
         <Route path="/" element={<Home />} />
         <Route path="/about" element={<About />} />
@@ -54,7 +57,7 @@ const AppRoutes = () => {
         <Route path="/knowYourBody" element={<KnowYourBody />} />
         <Route path="/my-journey" element={<MyJourney />} />
         <Route path="/admin" element={<AdminApp />} />
-        <Route path="/admin/testimonials" element={<TestimonialAdmin />} />
+        <Route path="/admin/:tab" element={<AdminApp />} />
         <Route path="/plans" element={<Plans />} />
         <Route path="/plans/:planId" element={<PlanPreview />} />
         <Route path="/plans/preview/:planId" element={<PlanPreview />} />
@@ -78,7 +81,7 @@ const AppRoutes = () => {
         <Route path="/unsubscribe" element={<Unsubscribe />} />
         <Route path="*" element={<Error />} />
       </Routes>
-      <Footer />
+      {!isAdminRoute && <Footer />}
     </>
   );
 };

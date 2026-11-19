@@ -575,14 +575,28 @@ function PaymentSuccess() {
           <div className="p-8 md:p-10 text-center space-y-8 relative">
             
             {/* What's next box */}
-            <div className="bg-blue-50/50 border border-blue-100 rounded-2xl p-6 relative">
-              <div className="absolute -top-3 left-1/2 transform -translate-x-1/2 bg-blue-100 text-blue-800 text-xs font-bold px-3 py-1 rounded-full uppercase tracking-wider">
-                 What's Next?
+            {formData?.scheduledDate ? (
+              <div className="bg-emerald-50/70 border border-emerald-200 rounded-2xl p-6 relative text-center">
+                <div className="absolute -top-3 left-1/2 transform -translate-x-1/2 bg-emerald-600 text-white text-xs font-bold px-3 py-1 rounded-full uppercase tracking-wider shadow-xs">
+                   Session Slot Confirmed
+                </div>
+                <p className="text-emerald-950 text-lg sm:text-xl font-bold mt-2">
+                  {new Date(formData.scheduledDate).toLocaleDateString('en-GB', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' })} at {formData.scheduledTime} (GMT)
+                </p>
+                <p className="text-emerald-800 text-sm leading-relaxed mt-2">
+                  Your consultation slot has been reserved. Nana Ama will connect with you via WhatsApp prior to your session with your video meeting link.
+                </p>
               </div>
-              <p className="text-gray-700 text-lg leading-relaxed mt-2">
-                My team will reach out to you directly via phone or email within the next <strong>24 hours</strong> to schedule the exact date and time for our session.
-              </p>
-            </div>
+            ) : (
+              <div className="bg-blue-50/50 border border-blue-100 rounded-2xl p-6 relative">
+                <div className="absolute -top-3 left-1/2 transform -translate-x-1/2 bg-blue-100 text-blue-800 text-xs font-bold px-3 py-1 rounded-full uppercase tracking-wider">
+                   What's Next?
+                </div>
+                <p className="text-gray-700 text-lg leading-relaxed mt-2">
+                  My team will reach out to you directly via phone or email within the next <strong>24 hours</strong> to coordinate the exact date and time for our session.
+                </p>
+              </div>
+            )}
 
             <div className="flex flex-col md:flex-row justify-center items-center gap-6 text-sm text-gray-600 bg-gray-50 rounded-xl p-4">
                <div>

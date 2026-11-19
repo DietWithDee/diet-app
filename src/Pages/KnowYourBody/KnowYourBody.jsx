@@ -474,20 +474,33 @@ const ResultsStep = ({ results, formData, navigate, trigger }) => (
           <button
             onClick={() => {
               trigger("success")
+              const testSnapshot = {
+                bmi: results.bmi,
+                bmiCategory: results.bmiCategory,
+                dailyCalories: results.tdee,
+                goal: formData.goal,
+                targetWeight: formData.targetWeight,
+                dietaryRestrictions: formData.dietaryRestrictions,
+                macros: results.macros,
+                gender: formData.gender,
+                age: formData.age,
+                height: formData.height,
+                weight: formData.weight,
+                activityLevel: formData.activityLevel,
+                sleepHours: formData.sleepHours,
+                healthConditions: formData.healthConditions,
+                dislikes: formData.dislikes,
+                savedAt: Date.now()
+              };
+              try {
+                localStorage.setItem('diet_test_results', JSON.stringify(testSnapshot));
+              } catch (e) {
+                console.warn('Could not save test results to storage:', e);
+              }
+
               navigate('/contactUs', {
                 state: {
-                  userResults: {
-                    bmi: results.bmi,
-                    bmiCategory: results.bmiCategory,
-                    dailyCalories: results.tdee,
-                    goal: formData.goal,
-                    dietaryRestrictions: formData.dietaryRestrictions,
-                    macros: results.macros,
-                    activityLevel: formData.activityLevel,
-                    sleepHours: formData.sleepHours,
-                    healthConditions: formData.healthConditions,
-                    dislikes: formData.dislikes
-                  }
+                  userResults: testSnapshot
                 }
               })
             }}
@@ -619,6 +632,30 @@ function KnowYourBody() {
       const calorieResults = calculateCalories();
       setResults(prev => ({ ...prev, ...calorieResults }));
       
+      try {
+        const testSnapshot = {
+          bmi: results.bmi,
+          bmiCategory: results.bmiCategory,
+          dailyCalories: calorieResults.tdee,
+          goal: formData.goal,
+          targetWeight: formData.targetWeight,
+          dietaryRestrictions: formData.dietaryRestrictions,
+          macros: calorieResults.macros,
+          gender: formData.gender,
+          age: formData.age,
+          height: formData.height,
+          weight: formData.weight,
+          activityLevel: formData.activityLevel,
+          sleepHours: formData.sleepHours,
+          healthConditions: formData.healthConditions,
+          dislikes: formData.dislikes,
+          savedAt: Date.now()
+        };
+        localStorage.setItem('diet_test_results', JSON.stringify(testSnapshot));
+      } catch (e) {
+        console.warn('Could not cache test results:', e);
+      }
+
       logEvent(analytics, 'generate_lead', {
         goal: formData.goal,
         bmi_category: results.bmiCategory

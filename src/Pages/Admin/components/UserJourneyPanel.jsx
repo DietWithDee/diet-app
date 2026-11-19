@@ -275,124 +275,123 @@ const UserJourneyPanel = React.memo(({ users, loading, showNotification, loadUse
 
   if (selectedUser) {
     return (
-      <div className="space-y-6 animate-in fade-in slide-in-from-left-4 duration-300">
+      <div className="space-y-4 animate-in fade-in duration-200">
         <button 
           onClick={() => setSelectedUser(null)}
-          className="flex items-center gap-2 text-gray-600 hover:text-green-700 font-medium transition-colors"
+          className="flex items-center gap-1.5 text-xs font-semibold text-stone-600 hover:text-stone-900 transition-colors p-1"
         >
-          <ArrowLeft size={20} /> Back to Overview
+          <ArrowLeft size={16} /> Back to all clients
         </button>
 
-        <div className="bg-white rounded-2xl shadow-lg border border-green-100 overflow-hidden">
-          <div className="bg-gradient-to-r from-green-600 to-emerald-600 p-6 text-white">
-            <div className="flex items-center gap-4">
-              {selectedUser.photoURL ? (
-                <SafeImage 
-                  src={selectedUser.photoURL} 
-                  alt="" 
-                  className="w-16 h-16 rounded-2xl border-2 border-white/20" 
-                  wrapperClassName="w-16 h-16"
-                />
-              ) : (
-                <div className="w-16 h-16 bg-white/20 rounded-2xl flex items-center justify-center text-2xl font-bold">
-                  {selectedUser.displayName?.charAt(0) || '?'}
+        <div className="bg-white rounded-2xl shadow-xs border border-stone-200 overflow-hidden">
+          <div className="bg-stone-900 p-5 text-white">
+            <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+              <div className="flex items-center gap-3">
+                {selectedUser.photoURL ? (
+                  <SafeImage 
+                    src={selectedUser.photoURL} 
+                    alt="" 
+                    className="w-12 h-12 rounded-2xl border border-stone-700 object-cover" 
+                    wrapperClassName="w-12 h-12"
+                  />
+                ) : (
+                  <div className="w-12 h-12 bg-emerald-600 text-white rounded-2xl flex items-center justify-center text-lg font-bold">
+                    {selectedUser.displayName?.charAt(0) || '?'}
+                  </div>
+                )}
+                <div>
+                  <h2 className="text-base sm:text-lg font-semibold text-white">{selectedUser.displayName || 'Client Profile'}</h2>
+                  <p className="text-xs text-stone-400">{selectedUser.email}</p>
                 </div>
-              )}
-              <div>
-                <h2 className="text-2xl font-bold">{selectedUser.displayName}</h2>
-                <p className="text-green-50 opacity-90">{selectedUser.email}</p>
               </div>
-              <div className="ml-auto">
+              <div className="w-full sm:w-auto">
                 <button
                   onClick={() => setIsDeleteModalOpen(true)}
                   disabled={isDeleting}
-                  className="flex items-center gap-2 px-4 py-2 bg-red-500 hover:bg-red-600 text-white rounded-xl font-bold text-sm transition-all shadow-lg active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed"
+                  className="w-full sm:w-auto flex items-center justify-center gap-1.5 px-3 py-1.5 bg-rose-600 hover:bg-rose-700 text-white rounded-xl font-semibold text-xs transition-all shadow-xs disabled:opacity-50 disabled:cursor-not-allowed"
                 >
                   {isDeleting ? (
-                    <Loader size={18} className="animate-spin" />
+                    <Loader size={14} className="animate-spin" />
                   ) : (
-                    <Trash2 size={18} />
+                    <Trash2 size={14} />
                   )}
-                  {isDeleting ? 'Deleting...' : 'Remove User'}
+                  <span>{isDeleting ? 'Deleting...' : 'Remove User'}</span>
                 </button>
               </div>
             </div>
           </div>
 
-          <div className="p-8 grid grid-cols-1 md:grid-cols-3 gap-8">
+          <div className="p-4 sm:p-6 grid grid-cols-1 md:grid-cols-3 gap-6">
             {/* Profile Info */}
-            <div className="space-y-6">
-              <h3 className="font-bold text-gray-800 border-b pb-2">Profile Details</h3>
-              <div className="space-y-3">
-                <div className="flex justify-between text-yellow-700 bg-yellow-50 px-2 py-1 rounded-lg">
-                  <span className="text-xs font-bold uppercase">Health Profile</span>
+            <div className="space-y-4">
+              <h3 className="font-semibold text-stone-800 text-xs uppercase tracking-wider border-b border-stone-100 pb-2">Profile Details</h3>
+              <div className="space-y-2.5 text-xs">
+                <div className="flex justify-between">
+                  <span className="text-stone-500 font-medium">Gender</span>
+                  <span className="font-semibold text-stone-900 capitalize">{selectedUser.gender || 'N/A'}</span>
                 </div>
                 <div className="flex justify-between">
-                  <span className="text-gray-600 font-medium">Gender</span>
-                  <span className="font-bold text-gray-900 capitalize">{selectedUser.gender || 'N/A'}</span>
+                  <span className="text-stone-500 font-medium">Age</span>
+                  <span className="font-semibold text-stone-900">{selectedUser.age || 'N/A'}</span>
                 </div>
                 <div className="flex justify-between">
-                  <span className="text-gray-600 font-medium">Age</span>
-                  <span className="font-bold text-gray-900">{selectedUser.age || 'N/A'}</span>
+                  <span className="text-stone-500 font-medium">Goal</span>
+                  <span className="font-semibold text-stone-900 capitalize">{selectedUser.goal || 'N/A'}</span>
                 </div>
                 <div className="flex justify-between">
-                  <span className="text-gray-600 font-medium">Goal</span>
-                  <span className="font-bold text-gray-900 capitalize">{selectedUser.goal || 'N/A'}</span>
+                  <span className="text-stone-500 font-medium">Activity</span>
+                  <span className="font-semibold text-stone-900 capitalize">{selectedUser.activityLevel || 'N/A'}</span>
                 </div>
-                <div className="flex justify-between">
-                  <span className="text-gray-600 font-medium">Activity</span>
-                  <span className="font-bold text-gray-900 capitalize">{selectedUser.activityLevel || 'N/A'}</span>
-                </div>
-                <div className="flex justify-between pt-2 border-t border-gray-100">
-                  <span className="text-gray-600 font-medium">Current BMI</span>
-                  <span className="font-black text-green-700">{getBMI(selectedUser) || 'N/A'}</span>
+                <div className="flex justify-between pt-2 border-t border-stone-100">
+                  <span className="text-stone-500 font-medium">Current BMI</span>
+                  <span className="font-semibold text-emerald-700">{getBMI(selectedUser) || 'N/A'}</span>
                 </div>
               </div>
 
-              <div className="bg-orange-50 rounded-xl p-4 mt-4 border border-orange-100">
-                <p className="text-xs text-orange-700 font-bold uppercase tracking-wider mb-2">Conditions / Concerns</p>
-                <p className="text-gray-900 font-bold">{selectedUser.healthConditions || 'None reported'}</p>
+              <div className="bg-amber-50/70 rounded-xl p-3 border border-amber-200/60 text-xs">
+                <p className="text-[10px] text-amber-800 font-semibold uppercase tracking-wider mb-1">Conditions / Concerns</p>
+                <p className="text-stone-900 font-medium">{selectedUser.healthConditions || 'None reported'}</p>
               </div>
 
-              <div className="bg-green-50 rounded-xl p-4 mt-4">
-                <p className="text-xs text-green-700 font-bold uppercase tracking-wider mb-2">Dietary Restrictions</p>
-                <p className="text-gray-900 font-bold">{selectedUser.dietaryRestrictions || 'None specified'}</p>
+              <div className="bg-emerald-50/70 rounded-xl p-3 border border-emerald-200/60 text-xs">
+                <p className="text-[10px] text-emerald-800 font-semibold uppercase tracking-wider mb-1">Dietary Restrictions</p>
+                <p className="text-stone-900 font-medium">{selectedUser.dietaryRestrictions || 'None specified'}</p>
               </div>
             </div>
 
             {/* Log History */}
-            <div className="md:col-span-2 space-y-6">
-              <h3 className="font-bold text-gray-800 border-b pb-2">Weight Log History</h3>
+            <div className="md:col-span-2 space-y-4">
+              <h3 className="font-semibold text-stone-800 text-xs uppercase tracking-wider border-b border-stone-100 pb-2">Weight Log History</h3>
               {loadingLogs ? (
                 <div className="flex justify-center py-10">
-                  <Loader className="animate-spin text-green-600" />
+                  <Loader className="animate-spin text-emerald-600" size={24} />
                 </div>
               ) : userLogs.length === 0 ? (
-                <p className="text-center py-10 text-gray-500">No log history found.</p>
+                <p className="text-center py-8 text-stone-400 text-xs">No log history found.</p>
               ) : (
-                <div className="overflow-hidden border border-gray-100 rounded-xl">
+                <div className="overflow-x-auto border border-stone-100 rounded-xl">
                   <table className="w-full text-left">
-                    <thead className="bg-gray-50 text-gray-500 text-xs font-bold uppercase tracking-wider">
+                    <thead className="bg-stone-50 text-stone-500 text-[10px] font-semibold uppercase tracking-wider">
                       <tr>
-                        <th className="px-4 py-3">Date</th>
-                        <th className="px-4 py-3">Weight (kg)</th>
-                        <th className="px-4 py-3">BMI</th>
-                        <th className="px-4 py-3">Goal</th>
+                        <th className="px-3.5 py-2.5">Date</th>
+                        <th className="px-3.5 py-2.5">Weight (kg)</th>
+                        <th className="px-3.5 py-2.5">BMI</th>
+                        <th className="px-3.5 py-2.5">Goal</th>
                       </tr>
                     </thead>
-                    <tbody className="divide-y divide-gray-100 text-sm">
+                    <tbody className="divide-y divide-stone-100 text-xs">
                       {userLogs.map(log => (
-                        <tr key={log.id} className="hover:bg-gray-50 transition-colors">
-                          <td className="px-4 py-3 text-gray-600">
+                        <tr key={log.id} className="hover:bg-stone-50/50 transition-colors">
+                          <td className="px-3.5 py-2.5 text-stone-600">
                             {new Date(log.loggedAt || log.createdAt).toLocaleDateString()}
                           </td>
-                          <td className="px-4 py-3 font-bold text-gray-800">{log.weight}</td>
-                          <td className="px-4 py-3 text-gray-600">
+                          <td className="px-3.5 py-2.5 font-semibold text-stone-800">{log.weight}</td>
+                          <td className="px-3.5 py-2.5 text-stone-600">
                             {log.weight && selectedUser.height ? 
                               (log.weight / Math.pow(selectedUser.height/100, 2)).toFixed(1) : 'N/A'}
                           </td>
-                          <td className="px-4 py-3">
-                            <span className="px-2 py-1 bg-green-50 text-green-700 rounded-md text-xs capitalize">
+                          <td className="px-3.5 py-2.5">
+                            <span className="px-2 py-0.5 bg-emerald-50 text-emerald-700 rounded text-[10px] font-semibold capitalize border border-emerald-100">
                               {log.goal || 'N/A'}
                             </span>
                           </td>
@@ -410,59 +409,62 @@ const UserJourneyPanel = React.memo(({ users, loading, showNotification, loadUse
   }
 
   return (
-    <div className="space-y-8 animate-in fade-in duration-500">
+    <div className="space-y-6 animate-in fade-in duration-300">
       {/* Top Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-        <div className="bg-white rounded-2xl shadow-sm border border-green-100 p-6">
-          <div className="flex justify-between items-start mb-4">
-            <div className="w-10 h-10 bg-green-100 rounded-xl flex items-center justify-center text-green-600">
-              <Users size={20} />
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
+        <div className="bg-white rounded-2xl shadow-xs border border-stone-200/80 p-4 sm:p-5">
+          <div className="flex justify-between items-start mb-2 sm:mb-3">
+            <div className="w-8 h-8 sm:w-9 sm:h-9 bg-emerald-50 rounded-xl flex items-center justify-center text-emerald-600">
+              <Users size={18} />
             </div>
-            <span className="text-xs font-bold text-green-600 bg-green-50 px-2 py-1 rounded-full">+12%</span>
+            <span className="text-[10px] font-semibold text-emerald-700 bg-emerald-50 border border-emerald-200/60 px-2 py-0.5 rounded-full">Active</span>
           </div>
-          <p className="text-2xl font-black text-gray-800">{stats?.total || 0}</p>
-          <p className="text-sm text-gray-500 font-medium">Total Registered</p>
+          <p className="text-xl sm:text-2xl font-bold text-stone-900">{stats?.total || 0}</p>
+          <p className="text-xs text-stone-500 font-medium mt-0.5">Total Registered</p>
         </div>
 
-        <div className="bg-white rounded-2xl shadow-sm border border-emerald-100 p-6">
-          <div className="flex justify-between items-start mb-4">
-            <div className="w-10 h-10 bg-emerald-100 rounded-xl flex items-center justify-center text-emerald-600">
-              <Activity size={20} />
+        <div className="bg-white rounded-2xl shadow-xs border border-stone-200/80 p-4 sm:p-5">
+          <div className="flex justify-between items-start mb-2 sm:mb-3">
+            <div className="w-8 h-8 sm:w-9 sm:h-9 bg-teal-50 rounded-xl flex items-center justify-center text-teal-600">
+              <Activity size={18} />
             </div>
-            <span className="text-xs font-bold text-emerald-600 bg-emerald-50 px-2 py-1 rounded-full">DAU</span>
+            <span className="text-[10px] font-semibold text-teal-700 bg-teal-50 border border-teal-200/60 px-2 py-0.5 rounded-full">24h</span>
           </div>
-          <p className="text-2xl font-black text-gray-800">{stats?.activeLast24h || 0}</p>
-          <p className="text-sm text-gray-500 font-medium">Active in last 24h</p>
+          <p className="text-xl sm:text-2xl font-bold text-stone-900">{stats?.activeLast24h || 0}</p>
+          <p className="text-xs text-stone-500 font-medium mt-0.5">Active in last 24h</p>
         </div>
 
-        <div className="bg-white rounded-2xl shadow-sm border border-blue-100 p-6">
-          <div className="flex justify-between items-start mb-4">
-            <div className="w-10 h-10 bg-blue-100 rounded-xl flex items-center justify-center text-blue-600">
-              <TrendingUp size={20} />
+        <div className="bg-white rounded-2xl shadow-xs border border-stone-200/80 p-4 sm:p-5">
+          <div className="flex justify-between items-start mb-2 sm:mb-3">
+            <div className="w-8 h-8 sm:w-9 sm:h-9 bg-blue-50 rounded-xl flex items-center justify-center text-blue-600">
+              <TrendingUp size={18} />
             </div>
+            <span className="text-[10px] font-semibold text-blue-700 bg-blue-50 border border-blue-200/60 px-2 py-0.5 rounded-full">Metric</span>
           </div>
-          <p className="text-2xl font-black text-gray-800">{stats?.avgBmi || 'N/A'}</p>
-          <p className="text-sm text-gray-500 font-medium">Average BMI</p>
+          <p className="text-xl sm:text-2xl font-bold text-stone-900">{stats?.avgBmi || 'N/A'}</p>
+          <p className="text-xs text-stone-500 font-medium mt-0.5">Average BMI</p>
         </div>
 
-        <div className="bg-white rounded-2xl shadow-sm border border-red-100 p-6">
-          <div className="flex justify-between items-start mb-4">
-            <div className="w-10 h-10 bg-red-100 rounded-xl flex items-center justify-center text-red-600">
-              <Heart size={20} />
+        <div className="bg-white rounded-2xl shadow-xs border border-stone-200/80 p-4 sm:p-5">
+          <div className="flex justify-between items-start mb-2 sm:mb-3">
+            <div className="w-8 h-8 sm:w-9 sm:h-9 bg-rose-50 rounded-xl flex items-center justify-center text-rose-600">
+              <Heart size={18} />
             </div>
+            <span className="text-[10px] font-semibold text-rose-700 bg-rose-50 border border-rose-200/60 px-2 py-0.5 rounded-full">Care</span>
           </div>
-          <p className="text-2xl font-black text-gray-800">{stats?.highRiskCount || 0}</p>
-          <p className="text-sm text-gray-500 font-medium">High Risk (Diabetes/BP)</p>
+          <p className="text-xl sm:text-2xl font-bold text-stone-900">{stats?.highRiskCount || 0}</p>
+          <p className="text-xs text-stone-500 font-medium mt-0.5">Special Care (BP/Sugar)</p>
         </div>
       </div>
 
       {/* Growth and Engagement Charts */}
-      <div className="grid grid-cols-1 gap-8">
-        <div className="bg-white rounded-2xl shadow-lg border border-blue-100 p-6">
-          <h3 className="text-lg font-bold text-gray-800 mb-6 flex items-center gap-2">
-            <TrendingUp size={20} className="text-blue-600" /> Registration Growth (Last 30 Days)
+      <div className="grid grid-cols-1 gap-6">
+        <div className="bg-white rounded-2xl shadow-xs border border-stone-200/80 p-4 sm:p-5">
+          <h3 className="text-sm font-semibold text-stone-800 mb-4 flex items-center gap-2">
+            <TrendingUp size={16} className="text-blue-600" />
+            <span>Registration Growth (Last 30 Days)</span>
           </h3>
-          <div className="h-72">
+          <div className="h-60 sm:h-72">
             <ResponsiveContainer width="100%" height="100%">
               <AreaChart data={stats?.growthData}>
                 <defs>
@@ -481,9 +483,9 @@ const UserJourneyPanel = React.memo(({ users, loading, showNotification, loadUse
                 />
                 <YAxis fontSize={10} tickLine={false} axisLine={false} />
                 <Tooltip 
-                  contentStyle={{ borderRadius: '12px', border: 'none', boxShadow: '0 10px 15px -3px rgb(0 0 0 / 0.1)' }}
+                  contentStyle={{ borderRadius: '12px', border: 'none', boxShadow: '0 4px 12px rgba(0,0,0,0.08)' }}
                 />
-                <Area type="monotone" dataKey="count" stroke="#3b82f6" strokeWidth={3} fillOpacity={1} fill="url(#colorCount)" />
+                <Area type="monotone" dataKey="count" stroke="#3b82f6" strokeWidth={2} fillOpacity={1} fill="url(#colorCount)" />
               </AreaChart>
             </ResponsiveContainer>
           </div>
@@ -491,38 +493,40 @@ const UserJourneyPanel = React.memo(({ users, loading, showNotification, loadUse
       </div>
 
       {/* Demographics Section */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-        <div className="bg-white rounded-2xl shadow-lg border border-purple-100 p-6">
-          <h3 className="text-lg font-bold text-gray-800 mb-6 flex items-center gap-2">
-            <Users size={20} className="text-purple-600" /> Age Distribution
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-6">
+        <div className="bg-white rounded-2xl shadow-xs border border-stone-200/80 p-4 sm:p-5">
+          <h3 className="text-sm font-semibold text-stone-800 mb-4 flex items-center gap-2">
+            <Users size={16} className="text-purple-600" />
+            <span>Age Distribution</span>
           </h3>
-          <div className="h-64">
+          <div className="h-56 sm:h-64">
             <ResponsiveContainer width="100%" height="100%">
               <BarChart data={stats?.ageData} layout="vertical">
                 <CartesianGrid strokeDasharray="3 3" horizontal={false} stroke="#f1f5f9" />
                 <XAxis type="number" hide />
-                <YAxis dataKey="name" type="category" fontSize={12} tickLine={false} axisLine={false} width={80} />
+                <YAxis dataKey="name" type="category" fontSize={11} tickLine={false} axisLine={false} width={65} />
                 <Tooltip />
-                <Bar dataKey="value" fill="#8b5cf6" radius={[0, 4, 4, 0]} barSize={24} />
+                <Bar dataKey="value" fill="#8b5cf6" radius={[0, 4, 4, 0]} barSize={20} />
               </BarChart>
             </ResponsiveContainer>
           </div>
         </div>
 
-        <div className="bg-white rounded-2xl shadow-lg border border-pink-100 p-6">
-          <h3 className="text-lg font-bold text-gray-800 mb-6 flex items-center gap-2">
-            <Users size={20} className="text-pink-600" /> Gender Breakdown
+        <div className="bg-white rounded-2xl shadow-xs border border-stone-200/80 p-4 sm:p-5">
+          <h3 className="text-sm font-semibold text-stone-800 mb-4 flex items-center gap-2">
+            <Users size={16} className="text-pink-600" />
+            <span>Gender Breakdown</span>
           </h3>
-          <div className="h-64">
+          <div className="h-56 sm:h-64">
             <ResponsiveContainer width="100%" height="100%">
               <PieChart>
                 <Pie
                   data={stats?.genderData}
                   cx="50%"
                   cy="50%"
-                  innerRadius={60}
-                  outerRadius={80}
-                  paddingAngle={5}
+                  innerRadius={50}
+                  outerRadius={75}
+                  paddingAngle={4}
                   dataKey="value"
                 >
                   {stats?.genderData.map((entry, index) => (
@@ -538,41 +542,43 @@ const UserJourneyPanel = React.memo(({ users, loading, showNotification, loadUse
       </div>
 
       {/* Existing BMI Charts Section */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-        <div className="bg-white rounded-2xl shadow-lg border border-green-100 p-6">
-          <h3 className="text-lg font-bold text-gray-800 mb-6 flex items-center gap-2">
-            <TrendingUp size={20} className="text-green-600" /> BMI Distribution
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-6">
+        <div className="bg-white rounded-2xl shadow-xs border border-stone-200/80 p-4 sm:p-5">
+          <h3 className="text-sm font-semibold text-stone-800 mb-4 flex items-center gap-2">
+            <TrendingUp size={16} className="text-emerald-600" />
+            <span>BMI Distribution</span>
           </h3>
-          <div className="h-64">
+          <div className="h-56 sm:h-64">
             <ResponsiveContainer width="100%" height="100%">
               <BarChart data={stats?.bmiData}>
-                <CartesianGrid strokeDasharray="3 3" vertical={false} />
-                <XAxis dataKey="name" fontSize={12} tickLine={false} axisLine={false} />
-                <YAxis fontSize={12} tickLine={false} axisLine={false} />
+                <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f1f5f9" />
+                <XAxis dataKey="name" fontSize={11} tickLine={false} axisLine={false} />
+                <YAxis fontSize={11} tickLine={false} axisLine={false} />
                 <Tooltip 
-                  cursor={{ fill: '#f1f5f9' }}
-                  contentStyle={{ borderRadius: '12px', border: 'none', boxShadow: '0 10px 15px -3px rgb(0 0 0 / 0.1)' }}
+                  cursor={{ fill: '#f8fafc' }}
+                  contentStyle={{ borderRadius: '12px', border: 'none', boxShadow: '0 4px 12px rgba(0,0,0,0.08)' }}
                 />
-                <Bar dataKey="value" fill="#10b981" radius={[6, 6, 0, 0]} barSize={40} />
+                <Bar dataKey="value" fill="#10b981" radius={[4, 4, 0, 0]} barSize={32} />
               </BarChart>
             </ResponsiveContainer>
           </div>
         </div>
 
-        <div className="bg-white rounded-2xl shadow-lg border border-emerald-100 p-6">
-          <h3 className="text-lg font-bold text-gray-800 mb-6 flex items-center gap-2">
-            <Target size={20} className="text-emerald-600" /> Goal Distribution
+        <div className="bg-white rounded-2xl shadow-xs border border-stone-200/80 p-4 sm:p-5">
+          <h3 className="text-sm font-semibold text-stone-800 mb-4 flex items-center gap-2">
+            <Target size={16} className="text-teal-600" />
+            <span>Goal Distribution</span>
           </h3>
-          <div className="h-64">
+          <div className="h-56 sm:h-64">
             <ResponsiveContainer width="100%" height="100%">
               <PieChart>
                 <Pie
                   data={stats?.goalData}
                   cx="50%"
                   cy="50%"
-                  innerRadius={60}
-                  outerRadius={80}
-                  paddingAngle={5}
+                  innerRadius={50}
+                  outerRadius={75}
+                  paddingAngle={4}
                   dataKey="value"
                 >
                   {stats?.goalData.map((entry, index) => (
@@ -589,94 +595,97 @@ const UserJourneyPanel = React.memo(({ users, loading, showNotification, loadUse
 
       {/* User Table Header */}
       <div className="space-y-4">
-        <div className="flex flex-col md:flex-row justify-between items-center gap-4">
-          <h3 className="text-xl font-bold text-gray-800">User Management</h3>
-          <div className="flex items-center gap-3 w-full md:w-auto">
-            <div className="relative flex-1 md:w-64">
-              <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" size={18} />
+        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3">
+          <div>
+            <h3 className="text-sm sm:text-base font-semibold text-stone-900">User Management</h3>
+            <p className="text-xs text-stone-500 font-medium">Browse client directory and health status</p>
+          </div>
+          <div className="flex items-center gap-2 w-full sm:w-auto">
+            <div className="relative flex-1 sm:w-60">
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-stone-400" size={15} />
               <input 
                 type="text" 
                 placeholder="Search name or email..."
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
-                className="w-full pl-10 pr-4 py-2 bg-white border border-gray-200 rounded-xl focus:ring-2 focus:ring-green-500 focus:border-transparent text-sm transition-all"
+                className="w-full pl-9 pr-3 py-1.5 bg-white border border-stone-200 rounded-xl focus:ring-1 focus:ring-emerald-500 focus:border-emerald-500 text-xs transition-all"
               />
             </div>
             <button 
               onClick={() => loadUsers(true)}
               disabled={loading}
-              className="p-2 bg-white border border-gray-200 text-gray-600 rounded-xl hover:bg-gray-50 hover:text-blue-600 transition-all flex items-center gap-2 disabled:opacity-50"
+              className="p-1.5 sm:px-3 sm:py-1.5 bg-white border border-stone-200 text-stone-600 rounded-xl hover:bg-stone-50 hover:text-emerald-700 transition-all flex items-center gap-1.5 disabled:opacity-50 flex-shrink-0"
               title="Refresh Data"
             >
-              <RotateCcw size={20} className={loading ? 'animate-spin' : ''} />
-              <span className="hidden md:inline font-bold text-sm">Refresh</span>
+              <RotateCcw size={15} className={loading ? 'animate-spin' : ''} />
+              <span className="hidden sm:inline font-semibold text-xs">Refresh</span>
             </button>
             <button 
               onClick={exportToCSV}
-              className="p-2 bg-white border border-gray-200 text-gray-600 rounded-xl hover:bg-gray-50 hover:text-green-600 transition-all flex items-center gap-2"
+              className="p-1.5 sm:px-3 sm:py-1.5 bg-white border border-stone-200 text-stone-600 rounded-xl hover:bg-stone-50 hover:text-emerald-700 transition-all flex items-center gap-1.5 flex-shrink-0"
               title="Export to CSV"
             >
-              <Download size={20} />
-              <span className="hidden md:inline font-bold text-sm">Export</span>
+              <Download size={15} />
+              <span className="hidden sm:inline font-semibold text-xs">Export</span>
             </button>
           </div>
         </div>
 
         {/* Filter Bar */}
-        <div className="flex gap-2 overflow-x-auto pb-2 no-scrollbar">
+        <div className="flex gap-1.5 overflow-x-auto pb-1 no-scrollbar">
           <button 
             onClick={() => setFilterGoal('all')}
-            className={`px-4 py-1.5 rounded-full text-xs font-bold transition-all whitespace-nowrap ${filterGoal === 'all' ? 'bg-green-600 text-white shadow-md' : 'bg-white text-gray-500 border border-gray-100 hover:border-green-200'}`}
+            className={`px-3 py-1 rounded-full text-xs font-semibold transition-all whitespace-nowrap ${filterGoal === 'all' ? 'bg-emerald-600 text-white shadow-xs' : 'bg-white text-stone-600 border border-stone-200 hover:border-emerald-300'}`}
           >
-            All Users
+            All Users ({users.length})
           </button>
           <button 
             onClick={() => setFilterGoal('lose')}
-            className={`px-4 py-1.5 rounded-full text-xs font-bold transition-all whitespace-nowrap ${filterGoal === 'lose' ? 'bg-green-600 text-white shadow-md' : 'bg-white text-gray-500 border border-gray-100 hover:border-green-200'}`}
+            className={`px-3 py-1 rounded-full text-xs font-semibold transition-all whitespace-nowrap ${filterGoal === 'lose' ? 'bg-emerald-600 text-white shadow-xs' : 'bg-white text-stone-600 border border-stone-200 hover:border-emerald-300'}`}
           >
             Weight Loss
           </button>
           <button 
             onClick={() => setFilterGoal('gain')}
-            className={`px-4 py-1.5 rounded-full text-xs font-bold transition-all whitespace-nowrap ${filterGoal === 'gain' ? 'bg-green-600 text-white shadow-md' : 'bg-white text-gray-500 border border-gray-100 hover:border-green-200'}`}
+            className={`px-3 py-1 rounded-full text-xs font-semibold transition-all whitespace-nowrap ${filterGoal === 'gain' ? 'bg-emerald-600 text-white shadow-xs' : 'bg-white text-stone-600 border border-stone-200 hover:border-emerald-300'}`}
           >
             Muscle Gain
           </button>
           <button 
             onClick={() => setFilterGoal('maintain')}
-            className={`px-4 py-1.5 rounded-full text-xs font-bold transition-all whitespace-nowrap ${filterGoal === 'maintain' ? 'bg-green-600 text-white shadow-md' : 'bg-white text-gray-500 border border-gray-100 hover:border-green-200'}`}
+            className={`px-3 py-1 rounded-full text-xs font-semibold transition-all whitespace-nowrap ${filterGoal === 'maintain' ? 'bg-emerald-600 text-white shadow-xs' : 'bg-white text-stone-600 border border-stone-200 hover:border-emerald-300'}`}
           >
             Maintenance
           </button>
         </div>
 
         {/* Users Table */}
-        <div className="bg-white rounded-2xl shadow-lg border border-gray-100 overflow-hidden">
+        <div className="bg-white rounded-2xl shadow-xs border border-stone-200/80 overflow-hidden">
           <div className="overflow-x-auto">
             <table className="w-full text-left">
-              <thead className="bg-gray-50 text-gray-500 text-xs font-black uppercase tracking-widest border-b border-gray-100">
+              <thead className="bg-stone-50/80 text-stone-500 text-[11px] font-semibold uppercase tracking-wider border-b border-stone-200/60">
                 <tr>
-                  <th className="px-6 py-4">User</th>
-                  <th className="px-6 py-4">Current BMI</th>
-                  <th className="px-6 py-4">Goal</th>
-                  <th className="px-6 py-4">Health Status</th>
-                  <th className="px-6 py-4">Last Activity</th>
-                  <th className="px-6 py-4 text-right">Actions</th>
+                  <th className="px-4 py-3">User</th>
+                  <th className="px-4 py-3">Current BMI</th>
+                  <th className="px-4 py-3">Goal</th>
+                  <th className="px-4 py-3">Health Status</th>
+                  <th className="px-4 py-3">Last Activity</th>
+                  <th className="px-4 py-3 text-right">Actions</th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-gray-50">
+              <tbody className="divide-y divide-stone-100">
                 {filteredUsers.length === 0 ? (
                   <tr>
-                    <td colSpan="5" className="px-6 py-12 text-center text-gray-500">
+                    <td colSpan="6" className="px-4 py-10 text-center text-xs text-stone-500">
                       No users found matching your criteria.
                     </td>
                   </tr>
                 ) : (
                   filteredUsers.map(user => (
-                    <tr key={user.uid} className="hover:bg-green-50/30 transition-colors group">
-                      <td className="px-6 py-4">
-                        <div className="flex items-center gap-3">
-                          <div className="w-10 h-10 rounded-xl bg-green-100 flex items-center justify-center text-green-700 font-bold overflow-hidden shadow-sm">
+                    <tr key={user.uid} className="hover:bg-stone-50/60 transition-colors group">
+                      <td className="px-4 py-3">
+                        <div className="flex items-center gap-2.5">
+                          <div className="w-8 h-8 rounded-xl bg-emerald-50 text-emerald-800 border border-emerald-100 flex items-center justify-center font-semibold text-xs overflow-hidden flex-shrink-0">
                             {user.photoURL ? (
                               <SafeImage 
                                 src={user.photoURL} 
@@ -686,51 +695,51 @@ const UserJourneyPanel = React.memo(({ users, loading, showNotification, loadUse
                               />
                              ) : (user.displayName?.charAt(0) || '?')}
                           </div>
-                          <div>
-                            <p className="font-bold text-gray-800 text-sm">{user.displayName || 'Unnamed User'}</p>
-                            <p className="text-xs text-gray-500 truncate max-w-[150px]">{user.email}</p>
+                          <div className="overflow-hidden">
+                            <p className="font-semibold text-stone-900 text-xs truncate max-w-[140px] sm:max-w-none">{user.displayName || 'Unnamed User'}</p>
+                            <p className="text-[11px] text-stone-400 truncate max-w-[140px] sm:max-w-none">{user.email}</p>
                           </div>
                         </div>
                       </td>
-                      <td className="px-6 py-4">
-                        <div className="flex items-center gap-2">
-                          <span className={`w-2 h-2 rounded-full ${getBMI(user) ? 'bg-green-500' : 'bg-gray-300'}`}></span>
-                          <span className="font-bold text-gray-800">{getBMI(user) || 'N/A'}</span>
+                      <td className="px-4 py-3">
+                        <div className="flex items-center gap-1.5">
+                          <span className={`w-1.5 h-1.5 rounded-full ${getBMI(user) ? 'bg-emerald-500' : 'bg-stone-300'}`}></span>
+                          <span className="font-semibold text-stone-800 text-xs">{getBMI(user) || 'N/A'}</span>
                         </div>
                       </td>
-                      <td className="px-6 py-4">
-                        <span className={`text-[10px] font-black uppercase tracking-wider px-2 py-1 rounded-md ${
-                          user.goal === 'lose' ? 'bg-orange-100 text-orange-700' : 
-                          user.goal === 'gain' ? 'bg-blue-100 text-blue-700' : 
-                          'bg-green-100 text-green-700'
+                      <td className="px-4 py-3">
+                        <span className={`text-[10px] font-semibold uppercase tracking-wider px-2 py-0.5 rounded-md ${
+                          user.goal === 'lose' ? 'bg-orange-50 text-orange-700 border border-orange-200/60' : 
+                          user.goal === 'gain' ? 'bg-blue-50 text-blue-700 border border-blue-200/60' : 
+                          'bg-emerald-50 text-emerald-700 border border-emerald-200/60'
                         }`}>
                           {user.goal || 'No Goal'}
                         </span>
                       </td>
-                      <td className="px-6 py-4">
+                      <td className="px-4 py-3">
                         <div className="flex flex-wrap gap-1">
                           {user.healthConditions?.toLowerCase().includes('diabetes') && (
-                            <span className="px-2 py-0.5 bg-red-100 text-red-700 rounded text-[10px] font-bold">DIABETES</span>
+                            <span className="px-1.5 py-0.5 bg-rose-50 text-rose-700 border border-rose-200/60 rounded text-[10px] font-medium">DIABETES</span>
                           )}
                           {user.healthConditions?.toLowerCase().includes('pressure') && (
-                            <span className="px-2 py-0.5 bg-blue-100 text-blue-700 rounded text-[10px] font-bold">BP</span>
+                            <span className="px-1.5 py-0.5 bg-blue-50 text-blue-700 border border-blue-200/60 rounded text-[10px] font-medium">BP</span>
                           )}
                           {!user.healthConditions?.toLowerCase().includes('diabetes') && !user.healthConditions?.toLowerCase().includes('pressure') && (
-                             <span className="text-gray-400 text-xs italic">{user.healthConditions ? 'Other' : 'None'}</span>
+                             <span className="text-stone-400 text-xs italic">{user.healthConditions ? 'Other' : 'None'}</span>
                           )}
                         </div>
                       </td>
-                      <td className="px-6 py-4">
-                        <p className="text-xs text-gray-600 font-medium">
-                          {user.updatedAt ? new Date(user.updatedAt).toLocaleDateString() : 'N/A'}
+                      <td className="px-4 py-3">
+                        <p className="text-xs text-stone-500 font-medium">
+                          {user.updatedAt ? (user.updatedAt.toDate ? user.updatedAt.toDate().toLocaleDateString() : new Date(user.updatedAt).toLocaleDateString()) : 'N/A'}
                         </p>
                       </td>
-                      <td className="px-6 py-4 text-right">
+                      <td className="px-4 py-3 text-right">
                         <button 
                           onClick={() => handleUserClick(user)}
-                          className="p-2 text-gray-400 hover:text-green-600 hover:bg-green-50 rounded-lg transition-all"
+                          className="p-1.5 text-stone-400 hover:text-emerald-700 hover:bg-emerald-50 rounded-lg transition-all"
                         >
-                          <ChevronRight size={20} />
+                          <ChevronRight size={16} />
                         </button>
                       </td>
                     </tr>
@@ -741,14 +750,14 @@ const UserJourneyPanel = React.memo(({ users, loading, showNotification, loadUse
           </div>
           
           {hasMore && (
-            <div className="p-6 border-t border-gray-100 flex justify-center">
+            <div className="p-4 border-t border-stone-100 flex justify-center">
               <button
                 onClick={() => loadUsers(false, true)}
                 disabled={loading}
-                className="px-6 py-2 bg-white border border-green-600 text-green-700 font-bold rounded-xl hover:bg-green-50 transition-all flex items-center gap-2 disabled:opacity-50"
+                className="px-4 py-1.5 bg-white border border-emerald-600 text-emerald-700 font-semibold text-xs rounded-xl hover:bg-emerald-50 transition-all flex items-center gap-1.5 disabled:opacity-50"
               >
-                {loading ? <Loader size={18} className="animate-spin" /> : null}
-                Load More Users
+                {loading ? <Loader size={14} className="animate-spin" /> : null}
+                <span>Load More Users</span>
               </button>
             </div>
           )}

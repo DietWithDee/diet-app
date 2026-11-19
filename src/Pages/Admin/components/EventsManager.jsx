@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Plus, Edit2, Trash2, Save, X, Loader, Calendar, MapPin, Link as LinkIcon } from 'lucide-react';
+import { Plus, Edit2, Trash2, Save, X, Loader, Calendar, MapPin, Link as LinkIcon, ExternalLink, Mail } from 'lucide-react';
 import { createEvent, updateEvent, deleteEvent, getAllEvents } from '../../../firebaseEventsUtils';
 import RichTextEditor from './RichTextEditor';
 import ProgressBar from './ProgressBar';
@@ -17,7 +17,8 @@ const EventsManager = React.memo(({ showNotification }) => {
     location: '',
     description: '',
     imageUrl: '',
-    eventLink: ''
+    eventLink: '',
+    broadcastNewsletter: false
   });
   const [uploadProgress, setUploadProgress] = useState(0);
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -79,18 +80,20 @@ const EventsManager = React.memo(({ showNotification }) => {
       let result;
 
       if (editingId) {
-        result = await updateEvent(editingId, formData.title, formData.date, formData.location, formData.description, formData.imageUrl, formData.eventLink);
+        result = await updateEvent(editingId, formData.title, formData.date, formData.location, formData.description, formData.imageUrl, formData.eventLink, formData.broadcastNewsletter);
       } else {
-        result = await createEvent(formData.title, formData.date, formData.location, formData.description, formData.imageUrl, formData.eventLink);
+        result = await createEvent(formData.title, formData.date, formData.location, formData.description, formData.imageUrl, formData.eventLink, formData.broadcastNewsletter);
       }
 
       clearInterval(interval);
       setUploadProgress(100);
 
       if (result.success) {
-        showNotification('success', editingId ? 'Event updated successfully!' : 'Event created successfully!');
+        const msg = editingId
+          ? (formData.broadcastNewsletter ? 'Event updated and queued for newsletter broadcast!' : 'Event updated successfully!')
+          : (formData.broadcastNewsletter ? 'Event created and queued for newsletter broadcast!' : 'Event created successfully!');
+        showNotification('success', msg);
         await loadEvents();
-
         resetForm();
       } else {
         showNotification('error', 'Failed to save event. Please try again.');
@@ -102,14 +105,10 @@ const EventsManager = React.memo(({ showNotification }) => {
       setIsSubmitting(false);
       setUploadProgress(0);
     }
-
-    setTimeout(() => {
-      window.scrollTo({ top: 0, behavior: 'smooth' });
-    }, 100);
   };
 
   const resetForm = () => {
-    setFormData({ title: '', date: '', location: '', description: '', imageUrl: '', eventLink: '' });
+    setFormData({ title: '', date: '', location: '', description: '', imageUrl: '', eventLink: '', broadcastNewsletter: false });
     setImagePreview('');
     setIsEditing(false);
     setEditingId(null);
@@ -125,7 +124,8 @@ const EventsManager = React.memo(({ showNotification }) => {
       location: event.location || '',
       description: event.description || '',
       imageUrl: event.imageUrl || '',
-      eventLink: event.eventLink || ''
+      eventLink: event.eventLink || '',
+      broadcastNewsletter: Boolean(event.broadcastNewsletter && !event.newsletterSent)
     });
     setImagePreview(event.imageUrl || '');
     setEditingId(event.id);
@@ -156,9 +156,13 @@ const EventsManager = React.memo(({ showNotification }) => {
   };
 
   return (
-    <div className="space-y-5">
-      <div className="flex justify-between items-center">
-        <h2 className="text-xl font-bold text-green-700">Events Management</h2>
+    <div className="space-y-4">
+      {/* Top Header Bar */}
+      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 bg-white p-3.5 sm:p-4 rounded-2xl border border-stone-200 shadow-xs">
+        <div>
+          <h2 className="text-sm sm:text-base font-semibold text-stone-900">Events Management</h2>
+          <p className="text-xs text-stone-500 font-medium">Create and publish community events</p>
+        </div>
         <button
           onClick={() => {
             resetForm();
@@ -167,60 +171,62 @@ const EventsManager = React.memo(({ showNotification }) => {
               formRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
             }, 50);
           }}
-          className="flex items-center gap-2 bg-gradient-to-r from-green-600 to-emerald-600 text-white px-4 py-2 rounded-lg hover:from-green-700 hover:to-emerald-700 transition-all duration-300 font-bold"
+          className="w-full sm:w-auto flex items-center justify-center gap-1.5 bg-emerald-600 hover:bg-emerald-700 text-white px-3.5 py-2 rounded-xl text-xs font-semibold transition-all shadow-xs"
         >
-          <Plus size={20} />
-          New Event
+          <Plus size={16} />
+          <span>New Event</span>
         </button>
       </div>
 
+      {/* Responsive Edit/Create Form */}
       {isEditing && (
-        <div ref={formRef} className="bg-white rounded-xl shadow-lg p-6 border border-green-100">
-          <div className="flex justify-between items-center mb-6">
-            <h3 className="text-xl font-semibold text-gray-800">
+        <div ref={formRef} className="bg-white rounded-2xl shadow-sm p-4 sm:p-6 border border-stone-200 animate-in fade-in duration-200">
+          <div className="flex justify-between items-center mb-4 pb-3 border-b border-stone-100">
+            <h3 className="text-sm font-semibold text-stone-800">
               {editingId ? 'Edit Event' : 'Create New Event'}
             </h3>
             <button
               onClick={resetForm}
-              className="text-gray-500 hover:text-gray-700"
+              className="text-stone-400 hover:text-stone-700 p-1"
             >
-              <X size={20} />
+              <X size={18} />
             </button>
           </div>
 
-          <form onSubmit={handleSubmit} className="space-y-6">
+          <form onSubmit={handleSubmit} className="space-y-4">
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">Title</label>
+              <label className="block text-xs font-medium text-stone-600 mb-1">Title</label>
               <input
                 type="text"
                 value={formData.title}
                 onChange={(e) => setFormData({ ...formData, title: e.target.value })}
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 text-gray-800"
+                className="w-full px-3 py-2 border border-stone-300 rounded-xl focus:ring-1 focus:ring-emerald-500 text-xs text-stone-900"
                 placeholder="Event title"
                 required
                 disabled={isSubmitting}
               />
             </div>
 
-            <div className="flex gap-4">
-              <div className="flex-1">
-                <label className="block text-sm font-medium text-gray-700 mb-2">Date</label>
+            {/* Responsive grid for Date & Location */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+              <div>
+                <label className="block text-xs font-medium text-stone-600 mb-1">Date</label>
                 <input
                   type="date"
                   value={formData.date}
                   onChange={(e) => setFormData({ ...formData, date: e.target.value })}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 text-gray-800"
+                  className="w-full px-3 py-2 border border-stone-300 rounded-xl focus:ring-1 focus:ring-emerald-500 text-xs text-stone-900"
                   required
                   disabled={isSubmitting}
                 />
               </div>
-              <div className="flex-1">
-                <label className="block text-sm font-medium text-gray-700 mb-2">Location</label>
+              <div>
+                <label className="block text-xs font-medium text-stone-600 mb-1">Location</label>
                 <input
                   type="text"
                   value={formData.location}
                   onChange={(e) => setFormData({ ...formData, location: e.target.value })}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 text-gray-800"
+                  className="w-full px-3 py-2 border border-stone-300 rounded-xl focus:ring-1 focus:ring-emerald-500 text-xs text-stone-900"
                   placeholder="e.g. Accra, Ghana or Zoom"
                   disabled={isSubmitting}
                 />
@@ -228,44 +234,46 @@ const EventsManager = React.memo(({ showNotification }) => {
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">Event Link (optional)</label>
+              <label className="block text-xs font-medium text-stone-600 mb-1">Event Link (optional)</label>
               <input
                 type="url"
                 value={formData.eventLink}
                 onChange={(e) => setFormData({ ...formData, eventLink: e.target.value })}
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 text-gray-800"
-                placeholder="e.g. https://zoom.us/j/123, https://forms.gle/..."
+                className="w-full px-3 py-2 border border-stone-300 rounded-xl focus:ring-1 focus:ring-emerald-500 text-xs text-stone-900"
+                placeholder="e.g. https://zoom.us/j/..., https://forms.gle/..."
                 disabled={isSubmitting}
               />
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-3">Description</label>
-              <RichTextEditor
-                value={formData.description}
-                onChange={(description) => setFormData({ ...formData, description })}
-                disabled={isSubmitting}
-              />
+              <label className="block text-xs font-medium text-stone-600 mb-1.5">Description</label>
+              <div className="border border-stone-200 rounded-xl overflow-hidden">
+                <RichTextEditor
+                  value={formData.description}
+                  onChange={(description) => setFormData({ ...formData, description })}
+                  disabled={isSubmitting}
+                />
+              </div>
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">Featured Image</label>
+              <label className="block text-xs font-medium text-stone-600 mb-1">Featured Image</label>
               <input
                 type="file"
                 accept="image/*"
                 onChange={handleImageFileChange}
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg text-gray-800 bg-white"
+                className="w-full px-3 py-2 border border-stone-300 rounded-xl text-xs text-stone-700 bg-white"
                 disabled={isSubmitting}
               />
               {imagePreview && (
-                <div className="mt-3">
-                  <p className="text-sm font-medium text-gray-700 mb-2">Preview:</p>
-                  <div className="border border-gray-200 rounded-lg p-2 bg-gray-50 inline-block">
+                <div className="mt-2.5">
+                  <p className="text-[11px] font-medium text-stone-500 mb-1">Preview:</p>
+                  <div className="border border-stone-200 rounded-xl p-1.5 bg-stone-50 inline-block">
                     <SafeImage
                       src={imagePreview}
                       alt="Preview"
-                      className="h-32 object-contain rounded"
-                      wrapperClassName="h-32"
+                      className="h-28 object-contain rounded-lg"
+                      wrapperClassName="h-28"
                     />
                   </div>
                 </div>
@@ -273,8 +281,8 @@ const EventsManager = React.memo(({ showNotification }) => {
             </div>
 
             {uploadProgress > 0 && uploadProgress < 100 && (
-              <div className="space-y-2">
-                <div className="flex justify-between text-sm text-gray-600">
+              <div className="space-y-1">
+                <div className="flex justify-between text-xs text-stone-500">
                   <span>Saving event...</span>
                   <span>{uploadProgress}%</span>
                 </div>
@@ -282,20 +290,42 @@ const EventsManager = React.memo(({ showNotification }) => {
               </div>
             )}
 
-            <div className="flex gap-3">
+            {/* Newsletter Broadcast Option */}
+            <div className="pt-1">
+              <label className="flex items-center gap-2.5 p-3 rounded-xl bg-stone-50 hover:bg-emerald-50/40 border border-stone-200 transition-colors cursor-pointer select-none">
+                <input
+                  type="checkbox"
+                  checked={formData.broadcastNewsletter}
+                  onChange={(e) => setFormData({ ...formData, broadcastNewsletter: e.target.checked })}
+                  className="w-4 h-4 text-emerald-600 rounded border-stone-300 focus:ring-emerald-500 cursor-pointer accent-emerald-600"
+                  disabled={isSubmitting}
+                />
+                <div className="flex items-center gap-1.5 text-xs text-stone-700">
+                  <Mail size={14} className="text-emerald-600 flex-shrink-0" />
+                  <span className="font-medium">Broadcast as a newsletter to subscribers</span>
+                  {formData.broadcastNewsletter && (
+                    <span className="px-1.5 py-0.5 rounded-full text-[10px] font-semibold bg-emerald-100 text-emerald-800">
+                      Will broadcast
+                    </span>
+                  )}
+                </div>
+              </label>
+            </div>
+
+            <div className="flex gap-2 pt-2">
               <button
                 type="submit"
                 disabled={isSubmitting}
-                className="flex items-center gap-2 bg-gradient-to-r from-green-600 to-emerald-600 text-white px-4 py-2 rounded-lg hover:from-green-700 hover:to-emerald-700 disabled:opacity-50"
+                className="flex items-center gap-1.5 bg-emerald-600 hover:bg-emerald-700 text-white px-4 py-2 rounded-xl text-xs font-semibold disabled:opacity-50 transition-all shadow-xs"
               >
-                {isSubmitting ? <Loader className="animate-spin" size={16} /> : <Save size={16} />}
-                {editingId ? 'Update' : 'Create'} Event
+                {isSubmitting ? <Loader className="animate-spin" size={14} /> : <Save size={14} />}
+                <span>{editingId ? 'Update' : 'Create'} Event</span>
               </button>
               <button
                 type="button"
                 onClick={resetForm}
                 disabled={isSubmitting}
-                className="px-4 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50"
+                className="px-3.5 py-2 border border-stone-200 text-stone-700 rounded-xl text-xs font-medium hover:bg-stone-50"
               >
                 Cancel
               </button>
@@ -304,48 +334,75 @@ const EventsManager = React.memo(({ showNotification }) => {
         </div>
       )}
 
-      <div className="grid gap-4">
+      {/* Events List */}
+      <div className="grid gap-3">
         {isLoading ? (
-           <div className="text-center py-12"><Loader className="animate-spin mx-auto text-green-600" size={32} /></div>
+          <div className="text-center py-12 bg-white rounded-2xl border border-stone-200">
+            <Loader className="animate-spin mx-auto text-emerald-600" size={24} />
+          </div>
         ) : events.length === 0 ? (
-          <div className="text-center py-12 text-gray-500">
-            <p>No events found. Create your first event!</p>
+          <div className="text-center py-12 text-stone-400 bg-white rounded-2xl border border-stone-200 text-xs">
+            No events found. Tap "New Event" to create one.
           </div>
         ) : (
           events.map(event => {
             const isUpcoming = new Date(event.date) >= new Date(new Date().setHours(0,0,0,0));
             return (
-              <div key={event.id} className="bg-white rounded-xl shadow-md p-6 border border-green-100 flex flex-col sm:flex-row gap-4">
+              <div key={event.id} className="bg-white rounded-2xl p-4 border border-stone-200 shadow-2xs flex flex-col sm:flex-row gap-3.5 items-start">
                 {event.imageUrl && (
-                  <div className="w-full sm:w-32 h-32 flex-shrink-0">
+                  <div className="w-full sm:w-28 h-28 flex-shrink-0 rounded-xl overflow-hidden bg-stone-100">
                     <SafeImage
                       src={event.imageUrl}
                       alt={event.title}
-                      className="w-full h-full object-cover rounded-lg"
+                      className="w-full h-full object-cover"
                       wrapperClassName="w-full h-full"
                     />
                   </div>
                 )}
-                <div className="flex-1 flex flex-col justify-between">
+                <div className="flex-1 flex flex-col justify-between w-full">
                   <div>
-                    <div className="flex justify-between items-start">
-                      <h3 className="text-lg font-semibold text-gray-800">{event.title}</h3>
-                      <span className={`px-2 py-1 text-xs font-bold rounded-full ${isUpcoming ? 'bg-green-100 text-green-700' : 'bg-gray-100 text-gray-600'}`}>
-                        {isUpcoming ? 'Upcoming' : 'Past'}
-                      </span>
+                    <div className="flex justify-between items-start gap-2">
+                      <h3 className="text-sm font-semibold text-stone-900 leading-snug">{event.title}</h3>
+                      <div className="flex items-center gap-1.5 flex-shrink-0">
+                        {event.newsletterSent ? (
+                          <span className="flex items-center gap-1 px-2 py-0.5 text-[10px] font-semibold rounded-full bg-emerald-50 text-emerald-700 border border-emerald-200">
+                            <Mail size={10} /> Newsletter Sent
+                          </span>
+                        ) : event.broadcastNewsletter ? (
+                          <span className="flex items-center gap-1 px-2 py-0.5 text-[10px] font-semibold rounded-full bg-amber-50 text-amber-700 border border-amber-200">
+                            <Mail size={10} /> Queued
+                          </span>
+                        ) : null}
+                        <span className={`px-2 py-0.5 text-[10px] font-semibold rounded-full ${isUpcoming ? 'bg-emerald-50 text-emerald-700 border border-emerald-200' : 'bg-stone-100 text-stone-500'}`}>
+                          {isUpcoming ? 'Upcoming' : 'Past'}
+                        </span>
+                      </div>
                     </div>
-                    <div className="flex items-center gap-4 text-sm text-gray-600 mt-2">
-                       <span className="flex items-center gap-1"><Calendar size={14}/> {event.date}</span>
-                       {event.location && <span className="flex items-center gap-1"><MapPin size={14}/> {event.location}</span>}
-                       {event.eventLink && <span className="flex items-center gap-1 text-blue-600"><LinkIcon size={14}/> <a href={event.eventLink} target="_blank" rel="noopener noreferrer" className="hover:underline truncate max-w-[200px]">{event.eventLink}</a></span>}
+                    <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-stone-500 mt-1.5">
+                      <span className="flex items-center gap-1"><Calendar size={13} className="text-stone-400" /> {event.date}</span>
+                      {event.location && <span className="flex items-center gap-1"><MapPin size={13} className="text-stone-400" /> {event.location}</span>}
+                      {event.eventLink && (
+                        <a href={event.eventLink} target="_blank" rel="noopener noreferrer" className="flex items-center gap-1 text-emerald-700 hover:underline truncate max-w-[200px]">
+                          <ExternalLink size={12} />
+                          <span>Link</span>
+                        </a>
+                      )}
                     </div>
                   </div>
-                  <div className="flex gap-2 mt-4 self-end">
-                    <button onClick={() => handleEdit(event)} className="p-2 text-blue-600 hover:bg-blue-50 rounded-lg transition-colors">
-                      <Edit2 size={16} />
+                  <div className="flex gap-1.5 mt-3 self-end">
+                    <button 
+                      onClick={() => handleEdit(event)} 
+                      className="p-1.5 text-stone-600 hover:text-emerald-700 hover:bg-stone-100 rounded-lg transition-colors text-xs flex items-center gap-1"
+                    >
+                      <Edit2 size={13} />
+                      <span className="hidden sm:inline">Edit</span>
                     </button>
-                    <button onClick={() => handleDeleteClick(event)} className="p-2 text-red-600 hover:bg-red-50 rounded-lg transition-colors">
-                      <Trash2 size={16} />
+                    <button 
+                      onClick={() => handleDeleteClick(event)} 
+                      className="p-1.5 text-stone-600 hover:text-rose-600 hover:bg-rose-50 rounded-lg transition-colors text-xs flex items-center gap-1"
+                    >
+                      <Trash2 size={13} />
+                      <span className="hidden sm:inline">Delete</span>
                     </button>
                   </div>
                 </div>
@@ -363,7 +420,7 @@ const EventsManager = React.memo(({ showNotification }) => {
         }}
         onConfirm={handleConfirmDelete}
         title="Delete Event"
-        message="Are you absolutely sure you want to delete this event? This will permanently remove it from the platform. This action cannot be undone."
+        message="Are you sure you want to delete this event? This action cannot be undone."
         itemName={eventToDelete?.title}
         isLoading={isDeleting}
       />

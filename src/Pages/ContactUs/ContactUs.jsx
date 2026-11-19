@@ -4,10 +4,11 @@ import { ArrowLeft, User, Mail, Calculator, Target, Heart, Utensils, MessageCirc
 import { useLocation, useNavigate } from 'react-router-dom';
 import FullyBooked from '../FullyBooked/FullyBooked';
 import Offline from '../Offline/Offline';
-import { getBookingStatus } from '../../firebaseBookingUtils';
+import { getBookingSettings } from '../../firebaseBookingUtils';
 import { isValidEmail } from '../../utils/validation';
 import { useAuth } from '../../AuthContext';
 import WhatsAppPopup from '../../Components/WhatsAppPopup';
+import BookingCalendar from '../../Components/BookingCalendar';
 import { logEvent } from 'firebase/analytics';
 import { analytics } from '../../firebaseConfig';
 import { motion } from 'framer-motion';
@@ -28,18 +29,23 @@ const computeResultsFromProfile = (profile) => {
 
   const genderFactor = profile.gender === 'male' ? 5 : -161;
   const bmr = 10 * w + 6.25 * parseFloat(profile.height) - 5 * age + genderFactor;
-  const activityMultipliers = { sedentary: 1.2, light: 1.375, moderate: 1.55, active: 1.725 };
-  const tdee = bmr * (activityMultipliers[profile.activityLevel] || 1.2);
+  const activityMultipliers = { sedentary: 1.15, light: 1.325, moderate: 1.475, active: 1.6 };
+  const tdee = bmr * (activityMultipliers[profile.activityLevel] || 1.15);
   let goalCalories = tdee;
-  if (profile.goal === 'lose') goalCalories = tdee - 500;
-  else if (profile.goal === 'gain') goalCalories = tdee + 500;
-  const goalLabels = { lose: 'Lose Weight', maintain: 'Maintain Weight', gain: 'Gain Weight' };
+  if (profile.goal === 'lose') goalCalories = tdee - 300;
+  else if (profile.goal === 'gain') goalCalories = tdee + 300;
+  const goalLabels = { lose: 'Weight Loss', maintain: 'Weight Maintenance', gain: 'Muscle Gain' };
   return {
     bmi,
     bmiCategory,
+    weight: w,
+    height: parseFloat(profile.height),
     dailyCalories: Math.round(goalCalories),
     goal: goalLabels[profile.goal] || profile.goal || 'Not specified',
     dietaryRestrictions: profile.dietaryRestrictions || 'None',
+    activityLevel: profile.activityLevel || null,
+    healthConditions: profile.healthConditions || null,
+    dislikes: profile.dislikes || null,
     macros: {
       protein: Math.round((goalCalories * 0.3) / 4),
       carbs: Math.round((goalCalories * 0.4) / 4),
@@ -48,11 +54,26 @@ const computeResultsFromProfile = (profile) => {
   };
 };
 
+const getStoredTestResults = () => {
+  try {
+    const raw = localStorage.getItem('diet_test_results');
+    if (!raw) return null;
+    const data = JSON.parse(raw);
+    if (data && (!data.savedAt || (Date.now() - data.savedAt < 30 * 24 * 60 * 60 * 1000))) {
+      return data;
+    }
+    return null;
+  } catch {
+    return null;
+  }
+};
+
 const ContactUs = () => {
   const navigate = useNavigate();
   const [isFullyBooked, setIsFullyBooked] = useState(false);
   const [isOffline, setIsOffline] = useState(false);
   const [isBookingOpen, setIsBookingOpen] = useState(true);
+  const [bookingSettings, setBookingSettings] = useState(null);
 
   const [showWhatsAppPopup, setShowWhatsAppPopup] = useState(false);
 
@@ -64,7 +85,9 @@ const ContactUs = () => {
     name: '',
     email: '',
     phone: '',
-    message: ''
+    message: '',
+    scheduledDate: '',
+    scheduledTime: ''
   });
 
   const [selectedType, setSelectedType] = useState('initial');
@@ -78,16 +101,19 @@ const ContactUs = () => {
   const handleTypeSelect = (type) => {
     setSelectedType(type);
   };
-  // Use router state first, then Firestore profile as fallback, then defaults
+  // Use router state first, then Firestore profile, then cached test results, then empty defaults
   const location = useLocation();
+  const storedTestResults = getStoredTestResults();
+  const profileComputed = computeResultsFromProfile(userProfile);
   const userResults = location.state?.userResults
-    || computeResultsFromProfile(userProfile)
+    || profileComputed
+    || storedTestResults
     || {
-      bmi: 0,
-      bmiCategory: 'Normal Weight',
-      dailyCalories: 0,
-      goal: 'Weight Loss',
-      dietaryRestrictions: 'No restrictions',
+      bmi: null,
+      bmiCategory: 'Pending Assessment',
+      dailyCalories: null,
+      goal: 'General Consultation',
+      dietaryRestrictions: 'None',
       macros: { protein: 0, carbs: 0, fats: 0 }
     };
 
@@ -111,11 +137,12 @@ const ContactUs = () => {
     });
 
     try {
-      const result = await getBookingStatus();
+      const result = await getBookingSettings();
       if (result.success) {
         // Successfully reached Firebase — check if bookings are open
         setIsOffline(false);
-        if (!result.isOpen) {
+        setBookingSettings(result.settings);
+        if (!result.settings.isOpen) {
           setIsFullyBooked(true);
         } else {
           setIsFullyBooked(false);
@@ -160,11 +187,20 @@ const ContactUs = () => {
       return;
     }
 
-    // 2. Store form data and consultation type in localStorage
+    // 2. Validate calendar slot selection IF dietitian has enabled the calendar feature
+    if (bookingSettings?.enableCalendarBooking) {
+      if (!formData.scheduledDate || !formData.scheduledTime) {
+        alert('Please select an available consultation date and time slot from the calendar.');
+        formRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        return;
+      }
+    }
+
+    // 3. Store form data and consultation type in localStorage
     localStorage.setItem('consultationFormData', JSON.stringify({ ...formData, consultationType: type }));
     localStorage.setItem('userResults', JSON.stringify(userResults));
 
-    // 3. Redirect to the correct Paystack link based on type
+    // 4. Redirect to the correct Paystack link based on type
     const paymentUrl = type === 'followup'
       ? 'https://paystack.shop/pay/follow-up'
       : 'https://paystack.shop/pay/bookdee';
@@ -181,7 +217,7 @@ const ContactUs = () => {
     return <FullyBooked />;
   }
 
-  const hasCalculatedResults = !!(location.state?.userResults || computeResultsFromProfile(userProfile));
+  const hasCalculatedResults = !!(location.state?.userResults || profileComputed || (storedTestResults?.bmi && storedTestResults.bmi !== 0));
 
   // Main booking form
   return (
@@ -362,14 +398,35 @@ const ContactUs = () => {
                     Pay now — GH₵ 400
                   </button>
                 </div>
+                {/* Interactive Booking Calendar (Displayed ONLY when dietitian turns calendar ON in Admin) */}
+                {bookingSettings?.enableCalendarBooking && (
+                  <div className="space-y-3">
+                    <BookingCalendar
+                      settings={bookingSettings}
+                      selectedDate={formData.scheduledDate}
+                      selectedTime={formData.scheduledTime}
+                      onSelectSlot={({ date, time }) => {
+                        setFormData(prev => ({
+                          ...prev,
+                          scheduledDate: date,
+                          scheduledTime: time
+                        }));
+                      }}
+                    />
+                  </div>
+                )}
+
+                {/* Default Consultation Hours Notice (Active when calendar slot selection is OFF) */}
+                {!bookingSettings?.enableCalendarBooking && (
                   <div className="flex flex-col md:flex-row items-center justify-center gap-4 py-4 px-6 bg-blue-50 border border-blue-200 rounded-2xl text-blue-950 text-sm sm:text-base font-medium">
-                <Clock size={20} className="text-blue-700 shrink-0 animate-pulse" />
-                <p className="text-center md:text-left">
-                  <span className="font-bold underline decoration-blue-300 decoration-2 underline-offset-4">Consultation Hours:</span> Tuesday – Sunday, 10:00 AM – 3:00 PM. 
-                  <span className="hidden md:inline mx-2 text-blue-400">|</span>
-                  <span className="block md:inline mt-1 md:mt-0 text-blue-900 font-normal">Actual session times will be arranged personally after payment is confirmed.</span>
-                </p>
-              </div>
+                    <Clock size={20} className="text-blue-700 shrink-0 animate-pulse" />
+                    <p className="text-center md:text-left">
+                      <span className="font-bold underline decoration-blue-300 decoration-2 underline-offset-4">Consultation Hours:</span> Tuesday – Sunday, 10:00 AM – 3:00 PM. 
+                      <span className="hidden md:inline mx-2 text-blue-400">|</span>
+                      <span className="block md:inline mt-1 md:mt-0 text-blue-900 font-normal">Actual session times will be arranged personally after payment is confirmed.</span>
+                    </p>
+                  </div>
+                )}
 
               {/* Form Card */}
               <div ref={formRef} className="bg-white shadow-xl rounded-3xl overflow-hidden border border-gray-100">
@@ -483,8 +540,30 @@ const ContactUs = () => {
                         </div>
                       </div>
 
+                      {/* Selected Slot Confirmation Chip (When calendar booking is active) */}
+                      {bookingSettings?.enableCalendarBooking && (
+                        formData.scheduledDate && formData.scheduledTime ? (
+                          <div className="p-3 bg-emerald-50 border border-emerald-200 rounded-2xl flex items-center justify-between text-xs animate-in fade-in">
+                            <div className="flex items-center gap-2">
+                              <span className="w-2.5 h-2.5 rounded-full bg-emerald-500"></span>
+                              <span className="font-semibold text-emerald-950">
+                                Reserved: {formData.scheduledDate} at {formData.scheduledTime} (GMT)
+                              </span>
+                            </div>
+                            <span className="text-[11px] text-emerald-700 font-bold bg-white px-2 py-0.5 rounded-full border border-emerald-200">
+                              Slot Confirmed
+                            </span>
+                          </div>
+                        ) : (
+                          <div className="p-3 bg-amber-50 border border-amber-200 rounded-2xl flex items-center gap-2 text-xs text-amber-900">
+                            <Clock size={15} className="text-amber-600 shrink-0" />
+                            <span>Please select an available consultation date & time from the calendar above before paying.</span>
+                          </div>
+                        )
+                      )}
+
                       {/* Pay Now Button */}
-                      <div className="pt-4">
+                      <div className="pt-2">
                         <button
                           type="button"
                           onClick={() => handlePaymentRedirect(selectedType)}

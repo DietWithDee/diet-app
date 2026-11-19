@@ -428,18 +428,33 @@ export const markArticleHelpful = async (articleId, isHelpful) => {
 // --- ANALYTICS / USER JOURNEY UTILS ---
 
 // Get all users (for admin)
-export const getAllUsers = async (limitCount = 100) => {
+export const getAllUsers = async () => {
   try {
-    const q = query(
-      collection(db, "users"), 
-      orderBy("updatedAt", "desc"), 
-      limit(limitCount)
-    );
-    const snapshot = await getDocs(q);
-    const users = snapshot.docs.map(doc => ({
-      uid: doc.id,
-      ...doc.data()
-    }));
+    const snapshot = await getDocs(collection(db, "users"));
+    const usersMap = new Map();
+    snapshot.docs.forEach(docSnap => {
+      usersMap.set(docSnap.id, {
+        uid: docSnap.id,
+        ...docSnap.data()
+      });
+    });
+    const users = Array.from(usersMap.values());
+    
+    // Sort descending by activity date (updatedAt or createdAt)
+    const getEpoch = (val) => {
+      if (!val) return 0;
+      if (val.toMillis) return val.toMillis();
+      if (val.toDate) return val.toDate().getTime();
+      const d = new Date(val);
+      return isNaN(d.getTime()) ? 0 : d.getTime();
+    };
+
+    users.sort((a, b) => {
+      const aTime = Math.max(getEpoch(a.updatedAt), getEpoch(a.createdAt));
+      const bTime = Math.max(getEpoch(b.updatedAt), getEpoch(b.createdAt));
+      return bTime - aTime;
+    });
+
     return { success: true, data: users };
   } catch (error) {
     console.error("Error fetching all users:", error);
@@ -448,31 +463,18 @@ export const getAllUsers = async (limitCount = 100) => {
 };
 
 // Get users with pagination (for admin)
-export const getAllUsersPaged = async (pageSize = 20, lastVisibleDoc = null) => {
+export const getAllUsersPaged = async (pageSize = 50, lastVisibleDoc = null) => {
   try {
-    let q;
-    const baseQuery = collection(db, "users");
-    const constraints = [orderBy("updatedAt", "desc"), limit(pageSize)];
-
-    if (lastVisibleDoc) {
-      q = query(baseQuery, ...constraints, startAfter(lastVisibleDoc));
-    } else {
-      q = query(baseQuery, ...constraints);
+    const result = await getAllUsers();
+    if (result.success) {
+      return { 
+        success: true, 
+        data: result.data, 
+        lastVisible: null,
+        hasMore: false 
+      };
     }
-
-    const snapshot = await getDocs(q);
-    const lastVisibleData = snapshot.docs[snapshot.docs.length - 1];
-    const users = snapshot.docs.map(doc => ({
-      uid: doc.id,
-      ...doc.data()
-    }));
-
-    return { 
-      success: true, 
-      data: users, 
-      lastVisible: lastVisibleData,
-      hasMore: users.length === pageSize
-    };
+    return result;
   } catch (error) {
     console.error("Error fetching paged users:", error);
     return { success: false, error: error.message };

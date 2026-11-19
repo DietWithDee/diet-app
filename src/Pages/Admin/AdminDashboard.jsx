@@ -1,9 +1,27 @@
-import React, { useState, useEffect } from 'react';
-import { Loader } from 'lucide-react';
-import { getArticles, getAllEmails, getAllUsers, getAllUsersPaged } from '../../firebaseUtils';
-
+import React, { useState, useEffect, useCallback, useMemo } from 'react';
+import { useParams, useNavigate, useLocation, useSearchParams } from 'react-router-dom';
+import logo from '../../assets/LOGO.webp';
+import { 
+  LayoutDashboard,
+  Loader, 
+  Calendar, 
+  Users, 
+  FileText, 
+  Mail, 
+  MessageSquare, 
+  ClipboardList, 
+  Ticket, 
+  Menu, 
+  X, 
+  ExternalLink, 
+  LogOut, 
+  RefreshCw, 
+  ShieldCheck
+} from 'lucide-react';
+import { getArticles, getAllEmails, getAllUsers } from '../../firebaseUtils';
 import { useAuth } from '../../AuthContext';
 import Notification from './components/Notification';
+import DashboardOverview from './components/DashboardOverview';
 import ArticlesManager from './components/ArticlesManager';
 import UserJourneyPanel from './components/UserJourneyPanel';
 import BookingsPanel from './components/BookingsPanel';
@@ -14,44 +32,107 @@ import SurveysPanel from './components/SurveysPanel';
 import { collection, query, where, onSnapshot } from 'firebase/firestore';
 import { db } from '../../firebaseConfig';
 
-// Main Admin Dashboard Component
 const AdminDashboard = () => {
+  const { tab: tabFromPath } = useParams();
+  const [searchParams] = useSearchParams();
+  const navigate = useNavigate();
+  const location = useLocation();
+
+  const refFromUrl = searchParams.get('ref');
+
+  // Allowed tabs: 'dashboard' | 'bookings' | 'journey' | 'articles' | 'subscribers' | 'testimonials' | 'surveys' | 'events'
+  const validTabs = useMemo(() => [
+    'dashboard', 
+    'bookings', 
+    'journey', 
+    'articles', 
+    'subscribers', 
+    'testimonials', 
+    'surveys', 
+    'events'
+  ], []);
+
+  // Determine current active tab from:
+  // 1. Path param: /admin/:tab
+  // 2. Query param: ?tab=... (for backwards compatibility)
+  // 3. Default: 'dashboard'
+  const resolveTab = useCallback(() => {
+    if (tabFromPath && validTabs.includes(tabFromPath.toLowerCase())) {
+      return tabFromPath.toLowerCase();
+    }
+    const tabFromQuery = searchParams.get('tab');
+    if (tabFromQuery && validTabs.includes(tabFromQuery.toLowerCase())) {
+      return tabFromQuery.toLowerCase();
+    }
+    return 'dashboard';
+  }, [tabFromPath, searchParams, validTabs]);
+
+  // Synchronous state for ZERO-DELAY (0ms) instant tab switching!
+  const [activeTab, setActiveTabState] = useState(resolveTab);
+
+  // Sync state if URL changes externally (e.g. browser back/forward buttons or direct link)
+  useEffect(() => {
+    const currentResolved = resolveTab();
+    if (currentResolved !== activeTab) {
+      setActiveTabState(currentResolved);
+    }
+  }, [resolveTab]);
+
+  // Cleanly redirect bare /admin or legacy /admin?tab=xyz to clean path /admin/xyz
+  useEffect(() => {
+    if (location.pathname === '/admin' || location.pathname === '/admin/') {
+      const tab = resolveTab();
+      const ref = searchParams.get('ref');
+      const search = (tab === 'bookings' && ref) ? `?ref=${encodeURIComponent(ref)}` : '';
+      navigate(`/admin/${tab}${search}`, { replace: true });
+    }
+  }, [location.pathname, resolveTab, searchParams, navigate]);
+
+  const setActiveTab = useCallback((newTab) => {
+    if (!validTabs.includes(newTab)) return;
+
+    // 1. Update local state immediately on current frame for 0ms instantaneous switch!
+    setActiveTabState(newTab);
+    setIsMobileMenuOpen(false);
+
+    // 2. Synchronize URL path to /admin/:tab without blocking the UI
+    const ref = searchParams.get('ref');
+    const search = (newTab === 'bookings' && ref) ? `?ref=${encodeURIComponent(ref)}` : '';
+    navigate(`/admin/${newTab}${search}`, { replace: false });
+  }, [validTabs, searchParams, navigate]);
+
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [articles, setArticles] = useState([]);
   const [notification, setNotification] = useState(null);
   const [isLoading, setIsLoading] = useState(true);
   const [subscriberCount, setSubscriberCount] = useState(0);
-  const [activeTab, setActiveTab] = useState('articles'); // 'articles' | 'journey' | 'bookings' | 'events' | 'subscribers' | 'testimonials'
   const [users, setUsers] = useState([]);
   const [usersLoading, setUsersLoading] = useState(false);
   const [usersFetched, setUsersFetched] = useState(false);
-  const [lastVisibleUser, setLastVisibleUser] = useState(null);
-  const [hasMoreUsers, setHasMoreUsers] = useState(false);
   const [pendingBookings, setPendingBookings] = useState(0);
   const [contactedBookings, setContactedBookings] = useState(0);
   const [pendingTestimonials, setPendingTestimonials] = useState(0);
   const [surveyCount, setSurveyCount] = useState(0);
 
+  const { user, signOut } = useAuth();
 
+  // Listeners for real-time counts across the collections
   useEffect(() => {
-    // Listener for pending bookings
     const qPending = query(collection(db, 'bookings'), where('status', '==', 'pending'));
     const unsubscribePending = onSnapshot(qPending, (snapshot) => {
       setPendingBookings(snapshot.docs.length);
     });
 
-    // Listener for contacted bookings
     const qContacted = query(collection(db, 'bookings'), where('status', '==', 'contacted'));
     const unsubscribeContacted = onSnapshot(qContacted, (snapshot) => {
       setContactedBookings(snapshot.docs.length);
     });
 
-    // Listener for pending testimonials
     const qTestimonials = query(collection(db, 'testimonials'), where('status', '==', 'pending'));
     const unsubscribeTestimonials = onSnapshot(qTestimonials, (snapshot) => {
       setPendingTestimonials(snapshot.docs.length);
     });
 
-    // Listener for survey submissions
     const qSurveys = query(collection(db, 'surveys'));
     const unsubscribeSurveys = onSnapshot(qSurveys, (snapshot) => {
       setSurveyCount(snapshot.docs.length);
@@ -65,25 +146,22 @@ const AdminDashboard = () => {
     };
   }, []);
 
-  const showNotification = React.useCallback((type, message) => {
+  const showNotification = useCallback((type, message) => {
     setNotification({ type, message });
   }, []);
 
-  const closeNotification = React.useCallback(() => {
+  const closeNotification = useCallback(() => {
     setNotification(null);
   }, []);
 
-
-
-  const loadArticles = React.useCallback(async () => {
+  const loadArticles = useCallback(async () => {
     setIsLoading(true);
     try {
-      const result = await getArticles(true); // Pass true to include drafts and scheduled
+      const result = await getArticles(true);
       if (result.success) {
         setArticles(result.data || []);
       } else {
         showNotification('error', 'Failed to load articles');
-        console.error('Error loading articles:', result.error);
       }
     } catch (error) {
       console.error('Error loading articles:', error);
@@ -93,10 +171,32 @@ const AdminDashboard = () => {
     }
   }, [showNotification]);
 
+  const loadUsers = useCallback(async (force = false) => {
+    if (usersLoading) return;
+    if (usersFetched && !force) return;
+    
+    setUsersLoading(true);
+    try {
+      const result = await getAllUsers();
+      if (result.success) {
+        setUsers(result.data || []);
+        setUsersFetched(true);
+      } else {
+        showNotification('error', 'Failed to load user journeys');
+      }
+    } catch (err) {
+      console.error('Error loading users:', err);
+      showNotification('error', 'Failed to load user journeys');
+    } finally {
+      setUsersLoading(false);
+    }
+  }, [usersLoading, usersFetched, showNotification]);
 
+  // Initial background data fetch (runs once on mount)
   useEffect(() => {
     loadArticles();
-    // Fetch subscriber count
+    loadUsers();
+
     const fetchSubscribers = async () => {
       try {
         const result = await getAllEmails();
@@ -108,55 +208,107 @@ const AdminDashboard = () => {
       }
     };
     fetchSubscribers();
-  }, [loadArticles]);
-
-
-  const { signOut } = useAuth();
+  }, [loadArticles, loadUsers]);
 
   const handleLogout = async () => {
     await signOut();
   };
 
-  const loadUsers = React.useCallback(async (force = false, isNextPage = false) => {
-    if (usersLoading) return;
-    if (usersFetched && !force && !isNextPage) return;
-    
-    setUsersLoading(true);
-    try {
-      const pageSize = 20;
-      const result = await getAllUsersPaged(pageSize, isNextPage ? lastVisibleUser : null);
-      
-      if (result.success) {
-        if (isNextPage) {
-          setUsers(prev => [...prev, ...result.data]);
-        } else {
-          setUsers(result.data || []);
+  const navItems = [
+    {
+      group: 'Overview',
+      items: [
+        {
+          id: 'dashboard',
+          label: 'Dashboard',
+          icon: LayoutDashboard,
         }
-        setLastVisibleUser(result.lastVisible);
-        setHasMoreUsers(result.hasMore);
-        setUsersFetched(true);
-      } else {
-        showNotification('error', 'Failed to load user data');
-      }
-    } catch (err) {
-      console.error('Error loading users:', err);
-      showNotification('error', 'Failed to load user data');
-    } finally {
-      setUsersLoading(false);
+      ]
+    },
+    {
+      group: 'Clinical Operations',
+      items: [
+        {
+          id: 'bookings',
+          label: 'Bookings',
+          icon: Calendar,
+          badge: pendingBookings > 0 ? `${pendingBookings} New` : null,
+          badgeColor: 'bg-rose-500 text-white animate-pulse',
+        },
+        {
+          id: 'journey',
+          label: 'User Journeys',
+          icon: Users,
+          badge: users.length > 0 ? `${users.length}` : null,
+          badgeColor: 'bg-stone-800 text-stone-300',
+        },
+      ]
+    },
+    {
+      group: 'Content & Publishing',
+      items: [
+        {
+          id: 'articles',
+          label: 'Articles & Blog',
+          icon: FileText,
+          badge: articles.length > 0 ? `${articles.length}` : null,
+          badgeColor: 'bg-stone-800 text-stone-300',
+        },
+        {
+          id: 'subscribers',
+          label: 'Subscribers',
+          icon: Mail,
+          badge: subscriberCount > 0 ? `${subscriberCount}` : null,
+          badgeColor: 'bg-emerald-950 text-emerald-400',
+        },
+        {
+          id: 'testimonials',
+          label: 'Testimonials',
+          icon: MessageSquare,
+          badge: pendingTestimonials > 0 ? `${pendingTestimonials}` : null,
+          badgeColor: 'bg-rose-500 text-white animate-pulse',
+        },
+        {
+          id: 'surveys',
+          label: 'Surveys',
+          icon: ClipboardList,
+          badge: surveyCount > 0 ? `${surveyCount}` : null,
+          badgeColor: 'bg-amber-950 text-amber-400',
+        },
+        {
+          id: 'events',
+          label: 'Events Manager',
+          icon: Ticket,
+        },
+      ]
     }
-  }, [usersLoading, usersFetched, lastVisibleUser, showNotification]);
+  ];
 
-  
-
-  // Handle tab switch - pre-fetch users if needed
-  useEffect(() => {
-    if (activeTab === 'journey' && !usersFetched) {
-      loadUsers();
+  const currentTabMeta = useMemo(() => {
+    switch (activeTab) {
+      case 'dashboard':
+        return { title: 'Clinical Dashboard', subtitle: 'Executive overview of appointments, patient progress, and community' };
+      case 'bookings':
+        return { title: 'Consultation Bookings', subtitle: 'Manage client bookings, health snapshots, and outreach' };
+      case 'journey':
+        return { title: 'User Journey Analytics', subtitle: 'Explore client health profiles, weight logs, and BMI progress' };
+      case 'articles':
+        return { title: 'Articles & Newsletter', subtitle: 'Create, schedule, and broadcast nutrition guides' };
+      case 'subscribers':
+        return { title: 'Subscribers Database', subtitle: 'View community audience and newsletter reach' };
+      case 'testimonials':
+        return { title: 'Client Testimonials', subtitle: 'Review and approve client success stories' };
+      case 'surveys':
+        return { title: 'Surveys & Feedback', subtitle: 'Analyze visitor pain points and consultation intent' };
+      case 'events':
+        return { title: 'Events Manager', subtitle: 'Organize and publish community wellness events' };
+      default:
+        return { title: 'Admin Portal', subtitle: 'DietWithDee Clinical Dashboard' };
     }
-  }, [activeTab, usersFetched, loadUsers]);
+  }, [activeTab]);
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-green-50 via-white to-emerald-50">
+    <div className="min-h-screen bg-stone-100/70 text-stone-900 flex flex-col md:flex-row antialiased font-sans">
       {notification && (
         <Notification
           type={notification.type}
@@ -165,209 +317,253 @@ const AdminDashboard = () => {
         />
       )}
 
-      <div className="bg-white shadow-sm border-b border-green-100">
-        <div className="container mx-auto px-4 py-4">
-          <div className="flex justify-between items-center">
-            <h1 className="text-2xl font-black text-transparent bg-clip-text bg-gradient-to-r from-green-700 to-emerald-600">
-              DietWithDee Admin
-            </h1>
-            <button
-              onClick={handleLogout}
-              className="px-4 py-2 text-gray-600 hover:text-gray-800 transition-colors"
+      {/* MOBILE BACKDROP FOR DRAWER */}
+      {isMobileMenuOpen && (
+        <div 
+          onClick={() => setIsMobileMenuOpen(false)}
+          className="fixed inset-0 bg-stone-950/70 backdrop-blur-xs z-40 md:hidden animate-in fade-in duration-200"
+        />
+      )}
+
+      {/* ================= SIDEBAR ================= */}
+      <aside 
+        className={`fixed md:sticky top-0 left-0 h-screen w-72 bg-stone-900 text-stone-200 flex flex-col justify-between border-r border-stone-800 z-50 transition-transform duration-300 ease-in-out md:translate-x-0 ${
+          isMobileMenuOpen ? 'translate-x-0 shadow-2xl' : '-translate-x-full'
+        }`}
+      >
+        <div className="flex flex-col h-full overflow-hidden">
+          
+          {/* Brand Header */}
+          <div className="p-4 sm:p-5 border-b border-stone-800/80 flex items-center justify-between flex-shrink-0">
+            <div className="flex items-center gap-3">
+              <img 
+                src={logo} 
+                alt="DietWithDee Logo" 
+                className="h-9 w-auto object-contain flex-shrink-0" 
+              />
+              <div>
+                <h1 className="font-bold text-white text-sm sm:text-base leading-tight tracking-tight">
+                  DietWithDee
+                </h1>
+                <p className="text-[11px] font-semibold text-emerald-400 flex items-center gap-1.5 mt-0.5">
+                  <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse"></span>
+                  Clinical Admin Portal
+                </p>
+              </div>
+            </div>
+
+            {/* Mobile close button */}
+            <button 
+              onClick={() => setIsMobileMenuOpen(false)}
+              className="p-1.5 rounded-xl text-stone-400 hover:text-white hover:bg-stone-800 md:hidden"
             >
-              Logout
+              <X size={18} />
             </button>
           </div>
-        </div>
-      </div>
 
-      <div className="container mx-auto px-4 py-8">
-        {/* Metrics */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
-          <button
-            onClick={() => setActiveTab('subscribers')}
-            className={`bg-white rounded-xl shadow-md p-5 border flex items-center gap-4 transition-all hover:shadow-lg text-left ${activeTab === 'subscribers' ? 'border-green-500 ring-2 ring-green-100' : 'border-green-100'}`}
-          >
-            <div className="w-12 h-12 rounded-full bg-green-100 flex items-center justify-center text-green-600 text-xl font-bold flex-shrink-0">
-              📧
-            </div>
-            <div>
-              <p className="text-2xl font-bold text-gray-800">{subscriberCount}</p>
-              <p className="text-sm text-green-600 font-medium">Total Subscribers</p>
-            </div>
-          </button>
-          <button 
-            onClick={() => setActiveTab('journey')}
-            className={`bg-white rounded-xl shadow-md p-5 border flex items-center gap-4 transition-all hover:shadow-lg text-left ${activeTab === 'journey' ? 'border-blue-500 ring-2 ring-blue-100' : 'border-blue-100'}`}
-          >
-            <div className="w-12 h-12 rounded-full bg-blue-100 flex items-center justify-center text-blue-600 text-xl font-bold flex-shrink-0">
-              📊
-            </div>
-            <div>
-              <p className="text-2xl font-bold text-gray-800">User Journey</p>
-              <p className="text-sm text-blue-600 font-medium">View Analytics</p>
-            </div>
-          </button>
-          
-          <button 
-            onClick={() => setActiveTab('bookings')}
-            className={`bg-white rounded-xl shadow-md p-5 border flex items-center gap-4 transition-all hover:shadow-lg text-left ${activeTab === 'bookings' ? 'border-amber-500 ring-2 ring-amber-100' : 'border-amber-100'}`}
-          >
-            <div className="w-12 h-12 rounded-full bg-amber-100 flex items-center justify-center text-amber-600 text-xl font-bold flex-shrink-0">
-              📅
-            </div>
-            <div>
-              <div className="flex items-center gap-2">
-                <div className="flex items-center gap-1">
-                  <p className="text-2xl font-bold text-gray-800">{pendingBookings}</p>
-                  {pendingBookings > 0 && (
-                    <span className="w-3 h-3 bg-red-500 rounded-full animate-pulse" title="Pending Contact"></span>
-                  )}
+          {/* Navigation Links */}
+          <div className="flex-1 overflow-y-auto p-3 sm:p-4 space-y-5 no-scrollbar">
+            {navItems.map((group, gIdx) => (
+              <div key={gIdx}>
+                <p className="text-[10px] font-semibold uppercase tracking-wider text-stone-500 px-3 mb-1.5">
+                  {group.group}
+                </p>
+                <nav className="space-y-0.5">
+                  {group.items.map((item) => {
+                    const Icon = item.icon;
+                    const isActive = activeTab === item.id;
+
+                    return (
+                      <button
+                        key={item.id}
+                        onClick={() => setActiveTab(item.id)}
+                        className={`w-full flex items-center justify-between px-3 py-2 rounded-xl font-semibold text-xs transition-all text-left ${
+                          isActive
+                            ? 'bg-emerald-600 text-white shadow-xs'
+                            : 'text-stone-400 hover:text-white hover:bg-stone-800/60'
+                        }`}
+                      >
+                        <div className="flex items-center gap-2.5">
+                          <Icon size={16} className={isActive ? 'text-white' : 'text-stone-400'} />
+                          <span>{item.label}</span>
+                        </div>
+                        {item.badge && (
+                          <span className={`px-2 py-0.5 rounded-md text-[10px] font-semibold uppercase tracking-wide ${item.badgeColor || 'bg-stone-800 text-stone-300'}`}>
+                            {item.badge}
+                          </span>
+                        )}
+                      </button>
+                    );
+                  })}
+                </nav>
+              </div>
+            ))}
+          </div>
+
+          {/* Sidebar Footer User Info */}
+          <div className="p-3 sm:p-4 border-t border-stone-800/80 flex-shrink-0 bg-stone-900/90">
+            <div className="flex items-center justify-between bg-stone-800/60 p-2 rounded-xl border border-stone-800 mb-2">
+              <div className="flex items-center gap-2 overflow-hidden">
+                <div className="w-7 h-7 rounded-lg bg-emerald-800 text-emerald-200 flex items-center justify-center font-bold text-xs flex-shrink-0">
+                  {user?.displayName ? user.displayName.charAt(0).toUpperCase() : 'A'}
                 </div>
-                <span className="text-gray-300">|</span>
-                <div className="flex items-center gap-1">
-                  <p className="text-2xl font-bold text-gray-800">{contactedBookings}</p>
-                  {contactedBookings > 0 && (
-                    <span className="w-3 h-3 bg-yellow-400 rounded-full animate-pulse" title="Contacted / In Progress"></span>
-                  )}
+                <div className="overflow-hidden">
+                  <p className="text-xs font-semibold text-white truncate">
+                    {user?.displayName || 'Authorized Admin'}
+                  </p>
+                  <p className="text-[10px] text-stone-400 truncate">
+                    {user?.email}
+                  </p>
                 </div>
               </div>
-              <p className="text-sm text-amber-600 font-medium">Pending Bookings</p>
+              <a 
+                href="/" 
+                target="_blank" 
+                rel="noreferrer"
+                title="View Website"
+                className="p-1 text-stone-400 hover:text-emerald-400 transition-colors flex-shrink-0"
+              >
+                <ExternalLink size={14} />
+              </a>
             </div>
-          </button>
 
-          <button 
-            onClick={() => setActiveTab('surveys')}
-            className={`bg-white rounded-xl shadow-md p-5 border flex items-center gap-4 transition-all hover:shadow-lg text-left ${activeTab === 'surveys' ? 'border-emerald-500 ring-2 ring-emerald-100' : 'border-emerald-100'}`}
-          >
-            <div className="w-12 h-12 rounded-full bg-emerald-100 flex items-center justify-center text-emerald-600 text-xl font-bold flex-shrink-0">
-              📋
-            </div>
-            <div>
-              <p className="text-2xl font-bold text-gray-800">{surveyCount}</p>
-              <p className="text-sm text-emerald-600 font-medium">Survey Responses</p>
-            </div>
-          </button>
-        </div>
-
-
-
-
-
-        <div className="bg-white rounded-xl shadow-lg overflow-hidden">
-          <div className="flex border-b border-gray-200">
-            <button 
-              onClick={() => setActiveTab('articles')}
-              className={`flex-1 py-4 px-6 text-center font-bold transition-all ${activeTab === 'articles' ? 'text-green-600 border-b-2 border-green-600 bg-green-50' : 'text-gray-400 hover:text-gray-600 hover:bg-gray-50'}`}
+            <button
+              onClick={handleLogout}
+              className="w-full flex items-center justify-center gap-1.5 py-1.5 px-3 text-xs font-semibold text-stone-400 hover:text-rose-400 hover:bg-rose-950/30 rounded-xl transition-all"
             >
-              Articles
-            </button>
-            <button 
-              onClick={() => setActiveTab('journey')}
-              className={`flex-1 py-4 px-6 text-center font-bold transition-all ${activeTab === 'journey' ? 'text-green-600 border-b-2 border-green-600 bg-green-50' : 'text-gray-400 hover:text-gray-600 hover:bg-gray-50'}`}
-            >
-              User Journey Analytics
-            </button>
-            <button 
-              onClick={() => setActiveTab('bookings')}
-              className={`flex-1 flex justify-center items-center gap-2 py-4 px-6 text-center font-bold transition-all ${activeTab === 'bookings' ? 'text-amber-600 border-b-2 border-amber-600 bg-amber-50' : 'text-gray-400 hover:text-gray-600 hover:bg-gray-50'}`}
-            >
-              Bookings Manager
-              {pendingBookings > 0 && (
-                <div className="relative">
-                  <span className="flex items-center justify-center px-1.5 py-0.5 bg-red-500 text-white text-[10px] rounded-full min-w-[20px] leading-tight">
-                    {pendingBookings}
-                  </span>
-                  <span className="absolute inset-0 rounded-full bg-red-500 animate-ping opacity-25"></span>
-                </div>
-              )}
-              {contactedBookings > 0 && (
-                <div className="relative">
-                  <span className="flex items-center justify-center px-1.5 py-0.5 bg-yellow-400 text-yellow-900 text-[10px] rounded-full min-w-[20px] leading-tight font-black">
-                    {contactedBookings}
-                  </span>
-                  <span className="absolute inset-0 rounded-full bg-yellow-400 animate-ping opacity-25"></span>
-                </div>
-              )}
-            </button>
-            <button 
-              onClick={() => setActiveTab('events')}
-              className={`flex-1 flex justify-center items-center gap-2 py-4 px-6 text-center font-bold transition-all ${activeTab === 'events' ? 'text-purple-600 border-b-2 border-purple-600 bg-purple-50' : 'text-gray-400 hover:text-gray-600 hover:bg-gray-50'}`}
-            >
-              Events Manager
-            </button>
-            <button 
-              onClick={() => setActiveTab('testimonials')}
-              className={`flex-1 flex justify-center items-center gap-2 py-4 px-6 text-center font-bold transition-all ${activeTab === 'testimonials' ? 'text-green-600 border-b-2 border-green-600 bg-green-50' : 'text-gray-400 hover:text-gray-600 hover:bg-gray-50'}`}
-            >
-              Testimonials
-              {pendingTestimonials > 0 && (
-                <div className="relative">
-                  <span className="flex items-center justify-center px-1.5 py-0.5 bg-red-500 text-white text-[10px] rounded-full min-w-[20px] leading-tight">
-                    {pendingTestimonials}
-                  </span>
-                  <span className="absolute inset-0 rounded-full bg-red-500 animate-ping opacity-25"></span>
-                </div>
-              )}
-            </button>
-            <button 
-              onClick={() => setActiveTab('subscribers')}
-              className={`flex-1 py-4 px-6 text-center font-bold transition-all ${activeTab === 'subscribers' ? 'text-green-600 border-b-2 border-green-600 bg-green-50' : 'text-gray-400 hover:text-gray-600 hover:bg-gray-50'}`}
-            >
-              Subscribers
-            </button>
-            <button 
-              onClick={() => setActiveTab('surveys')}
-              className={`flex-1 flex justify-center items-center gap-2 py-4 px-6 text-center font-bold transition-all ${activeTab === 'surveys' ? 'text-emerald-600 border-b-2 border-emerald-600 bg-emerald-50' : 'text-gray-400 hover:text-gray-600 hover:bg-gray-50'}`}
-            >
-              Surveys
-              {surveyCount > 0 && (
-                <span className="px-2 py-0.5 bg-emerald-100 text-emerald-800 text-[10px] rounded-full font-bold">
-                  {surveyCount}
-                </span>
-              )}
+              <LogOut size={13} />
+              <span>Sign Out</span>
             </button>
           </div>
 
+        </div>
+      </aside>
 
-          <div className="p-6">
-            {activeTab === 'articles' ? (
-              isLoading ? (
-                <div className="flex items-center justify-center py-12">
-                  <Loader className="animate-spin text-green-600" size={32} />
-                  <span className="ml-2 text-gray-600">Loading articles...</span>
-                </div>
-              ) : (
-                <ArticlesManager
-                  articles={articles}
-                  setArticles={setArticles}
-                  showNotification={showNotification}
-                  loadArticles={loadArticles}
-                />
-              )
-            ) : activeTab === 'journey' ? (
-              <UserJourneyPanel 
-                showNotification={showNotification} 
-                users={users}
-                loading={usersLoading}
-                loadUsers={loadUsers}
-                hasMore={hasMoreUsers}
-              />
-            ) : activeTab === 'events' ? (
-              <EventsManager showNotification={showNotification} />
-            ) : activeTab === 'testimonials' ? (
-              <TestimonialAdmin />
-            ) : activeTab === 'subscribers' ? (
-              <SubscribersPanel showNotification={showNotification} />
-            ) : activeTab === 'surveys' ? (
-              <SurveysPanel showNotification={showNotification} />
+      {/* ================= MAIN CONTENT CANVAS ================= */}
+      <main className="flex-1 flex flex-col min-h-screen w-full overflow-x-hidden">
+        
+        {/* Top Header Bar */}
+        <header className="sticky top-0 z-30 bg-white/95 backdrop-blur-md border-b border-stone-200/80 px-4 sm:px-8 py-3 flex items-center justify-between gap-4">
+          <div className="flex items-center gap-3">
+            {/* Mobile hamburger menu toggle */}
+            <button
+              onClick={() => setIsMobileMenuOpen(true)}
+              className="md:hidden p-1.5 text-stone-700 hover:bg-stone-100 rounded-xl transition-colors"
+              aria-label="Open sidebar menu"
+            >
+              <Menu size={20} />
+            </button>
+
+            <div>
+              <h2 className="text-sm sm:text-base font-bold text-stone-900 tracking-tight flex items-center gap-2">
+                <span>{currentTabMeta.title}</span>
+              </h2>
+              <p className="text-[11px] text-stone-500 font-medium hidden sm:block">
+                {currentTabMeta.subtitle}
+              </p>
+            </div>
+          </div>
+
+          {/* Quick Header Actions */}
+          <div className="flex items-center gap-2">
+            {activeTab === 'articles' && (
+              <button 
+                onClick={loadArticles}
+                disabled={isLoading}
+                className="px-3 py-1 bg-stone-100 hover:bg-stone-200 text-stone-700 rounded-xl text-xs font-semibold transition-all flex items-center gap-1.5"
+              >
+                <RefreshCw size={12} className={isLoading ? 'animate-spin' : ''} />
+                <span className="hidden sm:inline">Refresh</span>
+              </button>
+            )}
+
+            {activeTab === 'journey' && (
+              <button 
+                onClick={() => loadUsers(true)}
+                disabled={usersLoading}
+                className="px-3 py-1 bg-stone-100 hover:bg-stone-200 text-stone-700 rounded-xl text-xs font-semibold transition-all flex items-center gap-1.5"
+              >
+                <RefreshCw size={12} className={usersLoading ? 'animate-spin' : ''} />
+                <span className="hidden sm:inline">Refresh Users</span>
+              </button>
+            )}
+
+            <div className="hidden sm:flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-emerald-50 border border-emerald-200 text-emerald-800 text-[11px] font-semibold">
+              <ShieldCheck size={13} className="text-emerald-600" />
+              <span>Admin Verified</span>
+            </div>
+          </div>
+        </header>
+
+        {/* Keep-Alive Dynamic Content Body (0ms tab switching, persistent background state) */}
+        <div className="flex-1 p-3.5 sm:p-6 lg:p-8 max-w-7xl w-full mx-auto">
+          
+          <div className={activeTab === 'dashboard' ? 'block' : 'hidden'}>
+            <DashboardOverview 
+              user={user}
+              pendingBookings={pendingBookings}
+              contactedBookings={contactedBookings}
+              users={users}
+              articles={articles}
+              subscriberCount={subscriberCount}
+              pendingTestimonials={pendingTestimonials}
+              surveyCount={surveyCount}
+              onNavigate={setActiveTab}
+            />
+          </div>
+
+          <div className={activeTab === 'bookings' ? 'block' : 'hidden'}>
+            <BookingsPanel 
+              showNotification={showNotification} 
+              highlightRef={refFromUrl} 
+            />
+          </div>
+
+          <div className={activeTab === 'journey' ? 'block' : 'hidden'}>
+            <UserJourneyPanel 
+              showNotification={showNotification} 
+              users={users}
+              loading={usersLoading}
+              loadUsers={loadUsers}
+              hasMore={false}
+            />
+          </div>
+
+          <div className={activeTab === 'articles' ? 'block' : 'hidden'}>
+            {isLoading ? (
+              <div className="flex flex-col items-center justify-center py-20 bg-white rounded-3xl border border-stone-200">
+                <Loader className="animate-spin text-emerald-600 mb-3" size={28} />
+                <p className="text-xs font-medium text-stone-600">Loading articles...</p>
+              </div>
             ) : (
-              <BookingsPanel showNotification={showNotification} />
+              <ArticlesManager
+                articles={articles}
+                setArticles={setArticles}
+                showNotification={showNotification}
+                loadArticles={loadArticles}
+              />
             )}
           </div>
 
+          <div className={activeTab === 'subscribers' ? 'block' : 'hidden'}>
+            <SubscribersPanel showNotification={showNotification} />
+          </div>
+
+          <div className={activeTab === 'testimonials' ? 'block' : 'hidden'}>
+            <TestimonialAdmin />
+          </div>
+
+          <div className={activeTab === 'surveys' ? 'block' : 'hidden'}>
+            <SurveysPanel showNotification={showNotification} />
+          </div>
+
+          <div className={activeTab === 'events' ? 'block' : 'hidden'}>
+            <EventsManager showNotification={showNotification} />
+          </div>
+
         </div>
-      </div>
+
+      </main>
     </div>
   );
 };
