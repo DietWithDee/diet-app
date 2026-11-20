@@ -385,7 +385,7 @@ const ArticlesManager = React.memo(({ articles, setArticles, showNotification, l
               </div>
             )}
 
-            <div className="flex gap-3">
+            <div className="flex flex-wrap items-center gap-3">
               <button
                 type="button"
                 onClick={handleSubmit}
@@ -404,6 +404,41 @@ const ArticlesManager = React.memo(({ articles, setArticles, showNotification, l
                   </>
                 )}
               </button>
+
+              <button
+                type="button"
+                onClick={() => {
+                  try {
+                    const previewData = {
+                      id: editingId || 'draft-preview',
+                      title: formData.title || 'Untitled Draft',
+                      content: formData.content || '<p>Draft preview content...</p>',
+                      coverImage: imagePreview || (typeof formData.imageUrl === 'string' ? formData.imageUrl : ''),
+                      tags: formData.tags || [],
+                      status: formData.status || 'draft',
+                      scheduledPublishDate: formData.scheduledPublishDate || null,
+                      createdAt: new Date().toISOString(),
+                      likesCount: 0,
+                      helpfulCount: 0,
+                      notHelpfulCount: 0
+                    };
+                    sessionStorage.setItem('dwd_draft_preview', JSON.stringify(previewData));
+                    const targetUrl = editingId 
+                      ? `/blog/${editingId}?preview=true` 
+                      : `/blog/draft-preview?preview=true`;
+                    window.open(targetUrl, '_blank');
+                  } catch (err) {
+                    console.error('Error opening draft preview:', err);
+                  }
+                }}
+                disabled={isSubmitting || !formData.title}
+                className="flex items-center gap-1.5 px-4 py-2 border border-emerald-300 text-emerald-800 bg-emerald-50 hover:bg-emerald-100 rounded-lg transition-colors font-medium text-sm disabled:opacity-40 cursor-pointer"
+                title="Preview draft in live blog layout"
+              >
+                <Eye size={16} className="text-emerald-600" />
+                <span>Preview Draft</span>
+              </button>
+
               <button
                 type="button"
                 onClick={() => {
@@ -477,10 +512,11 @@ const ArticlesManager = React.memo(({ articles, setArticles, showNotification, l
                 </div>
                 <div className="flex gap-2">
                   <a
-                    href={`/blog/${article.slug || article.id}`}
+                    href={`/blog/${article.slug || article.id}?preview=true`}
                     target="_blank"
                     rel="noopener noreferrer"
                     className="p-2 text-green-600 hover:bg-green-50 rounded-lg transition-colors"
+                    title={article.status !== 'published' ? `Preview ${article.status || 'Draft'} in Blog` : 'View Live Article'}
                   >
                     <Eye size={16} />
                   </a>

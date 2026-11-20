@@ -26,33 +26,53 @@ const DashboardOverview = ({
   pendingTestimonials = 0,
   draftArticlesCount,
   surveyCount = 0,
+  cachedDashboard,
+  isLoading = false,
   onNavigate
 }) => {
+  // Check if initial data is still loading on an unprimed session (no cache)
+  const isUnprimedLoading = isLoading && !cachedDashboard;
+
+  // Derived counts with seamless cache hydration (prevents flash of 0s on refresh)
+  const displayUsersCount = users.length > 0 ? users.length : (cachedDashboard?.usersCount ?? 0);
+  const displayArticlesCount = articles.length > 0 ? articles.length : (cachedDashboard?.articlesCount ?? 0);
+  const displaySubscribers = subscriberCount > 0 ? subscriberCount : (cachedDashboard?.subscriberCount ?? 0);
+  const displaySurveys = surveyCount > 0 ? surveyCount : (cachedDashboard?.surveyCount ?? 0);
+  const displayContacted = contactedBookings > 0 ? contactedBookings : (cachedDashboard?.contactedBookings ?? 0);
+  const displayPending = pendingBookings > 0 ? pendingBookings : (cachedDashboard?.pendingBookings ?? 0);
+  const displayPendingTestimonials = pendingTestimonials > 0 ? pendingTestimonials : (cachedDashboard?.pendingTestimonials ?? 0);
+
   // Compute draft vs published counts
   const draftCount = useMemo(() => {
     if (typeof draftArticlesCount === 'number' && draftArticlesCount >= 0) {
       return draftArticlesCount;
     }
-    return (articles || []).filter(a => a.status === 'draft').length;
-  }, [draftArticlesCount, articles]);
+    if (articles.length > 0) {
+      return articles.filter(a => a.status === 'draft').length;
+    }
+    return cachedDashboard?.draftCount ?? cachedDashboard?.draftArticlesCount ?? 0;
+  }, [draftArticlesCount, articles, cachedDashboard]);
 
   const publishedCount = useMemo(() => {
-    return (articles || []).filter(a => a.status === 'published' || (!a.status && a.status !== 'draft')).length;
-  }, [articles]);
+    if (articles.length > 0) {
+      return articles.filter(a => a.status === 'published' || (!a.status && a.status !== 'draft')).length;
+    }
+    return cachedDashboard?.publishedCount ?? cachedDashboard?.publishedArticlesCount ?? 0;
+  }, [articles, cachedDashboard]);
 
-  // Compute intelligent alerts
+  // Compute intelligent alerts (using live or cached counts to prevent layout shift)
   const alerts = useMemo(() => {
     const list = [];
 
     // 1. Pending Bookings Alert
-    if (pendingBookings > 0) {
+    if (displayPending > 0) {
       list.push({
         id: 'pending-bookings',
         tab: 'bookings',
-        count: pendingBookings,
-        title: `${pendingBookings} New Consultation ${pendingBookings === 1 ? 'Booking' : 'Bookings'} Awaiting Outreach`,
+        count: displayPending,
+        title: `${displayPending} New Consultation ${displayPending === 1 ? 'Booking' : 'Bookings'} Awaiting Outreach`,
         description: 'New client inquiry paid and awaiting initial consultation coordination.',
-        badge: `${pendingBookings} New`,
+        badge: `${displayPending} New`,
         badgeStyle: 'bg-rose-100 text-rose-800 border-rose-300',
         cardStyle: 'bg-gradient-to-r from-rose-50/95 via-rose-50/50 to-white border-rose-200 hover:border-rose-300 hover:bg-rose-100/50',
         icon: Calendar,
@@ -85,14 +105,14 @@ const DashboardOverview = ({
     }
 
     // 3. Pending Testimonials Alert
-    if (pendingTestimonials > 0) {
+    if (displayPendingTestimonials > 0) {
       list.push({
         id: 'pending-testimonials',
         tab: 'testimonials',
-        count: pendingTestimonials,
-        title: `${pendingTestimonials} Client ${pendingTestimonials === 1 ? 'Testimonial' : 'Testimonials'} Pending Approval`,
+        count: displayPendingTestimonials,
+        title: `${displayPendingTestimonials} Client ${displayPendingTestimonials === 1 ? 'Testimonial' : 'Testimonials'} Pending Approval`,
         description: 'New transformation story submitted by a client awaiting your moderation.',
-        badge: `${pendingTestimonials} Pending`,
+        badge: `${displayPendingTestimonials} Pending`,
         badgeStyle: 'bg-purple-100 text-purple-800 border-purple-300',
         cardStyle: 'bg-gradient-to-r from-purple-50/95 via-purple-50/50 to-white border-purple-200 hover:border-purple-300 hover:bg-purple-100/50',
         icon: MessageSquare,
@@ -105,15 +125,20 @@ const DashboardOverview = ({
     }
 
     return list;
-  }, [pendingBookings, draftCount, pendingTestimonials]);
+  }, [displayPending, draftCount, displayPendingTestimonials]);
 
   const totalAlertsCount = useMemo(() => {
     return alerts.reduce((acc, a) => acc + (a.count || 1), 0);
   }, [alerts]);
 
-  // Compute basic live metrics from users
+  // Compute live metrics from users with fallback to cache
   const { activeLast24h, avgBmi } = useMemo(() => {
-    if (!users.length) return { activeLast24h: 0, avgBmi: 'N/A' };
+    if (!users.length) {
+      return { 
+        activeLast24h: cachedDashboard?.activeLast24h ?? 0, 
+        avgBmi: cachedDashboard?.avgBmi ?? 'N/A' 
+      };
+    }
     const now = new Date();
     let active24h = 0;
     let totalBmi = 0;
@@ -135,18 +160,18 @@ const DashboardOverview = ({
       activeLast24h: active24h,
       avgBmi: bmiCount > 0 ? (totalBmi / bmiCount).toFixed(1) : 'N/A'
     };
-  }, [users]);
+  }, [users, cachedDashboard]);
 
   const cards = [
     {
       id: 'bookings',
       title: 'Consultations',
-      metric: pendingBookings > 0 ? `${pendingBookings} Pending` : 'Up to date',
-      detail: pendingBookings > 0 
-        ? `${pendingBookings} new inquiry awaiting outreach` 
-        : `${contactedBookings} contacted appointments`,
-      badge: pendingBookings > 0 ? `${pendingBookings} New` : 'All Clear',
-      badgeColor: pendingBookings > 0 ? 'bg-rose-50 text-rose-700 border-rose-200' : 'bg-emerald-50 text-emerald-700 border-emerald-200',
+      metric: displayPending > 0 ? `${displayPending} Pending` : 'Up to date',
+      detail: displayPending > 0 
+        ? `${displayPending} new inquiry awaiting outreach` 
+        : `${displayContacted} contacted appointments`,
+      badge: displayPending > 0 ? `${displayPending} New` : 'All Clear',
+      badgeColor: displayPending > 0 ? 'bg-rose-50 text-rose-700 border-rose-200' : 'bg-emerald-50 text-emerald-700 border-emerald-200',
       icon: Calendar,
       iconBg: 'bg-rose-50 text-rose-600',
       actionText: 'Manage Bookings'
@@ -154,7 +179,7 @@ const DashboardOverview = ({
     {
       id: 'journey',
       title: 'Client Journeys',
-      metric: `${users.length} Clients`,
+      metric: `${displayUsersCount} Clients`,
       detail: `${activeLast24h} active today · ${avgBmi} avg BMI`,
       badge: 'Database',
       badgeColor: 'bg-emerald-50 text-emerald-700 border-emerald-200',
@@ -178,7 +203,7 @@ const DashboardOverview = ({
     {
       id: 'subscribers',
       title: 'Email Subscribers',
-      metric: `${subscriberCount} Readers`,
+      metric: `${displaySubscribers} Readers`,
       detail: 'Active community newsletter reach',
       badge: 'Audience',
       badgeColor: 'bg-purple-50 text-purple-700 border-purple-200',
@@ -189,10 +214,10 @@ const DashboardOverview = ({
     {
       id: 'testimonials',
       title: 'Testimonials',
-      metric: pendingTestimonials > 0 ? `${pendingTestimonials} Pending` : 'All Approved',
+      metric: displayPendingTestimonials > 0 ? `${displayPendingTestimonials} Pending` : 'All Approved',
       detail: 'Client transformation stories & reviews',
-      badge: pendingTestimonials > 0 ? 'Action Needed' : 'Published',
-      badgeColor: pendingTestimonials > 0 ? 'bg-amber-50 text-amber-700 border-amber-200' : 'bg-stone-50 text-stone-600 border-stone-200',
+      badge: displayPendingTestimonials > 0 ? 'Action Needed' : 'Published',
+      badgeColor: displayPendingTestimonials > 0 ? 'bg-amber-50 text-amber-700 border-amber-200' : 'bg-stone-50 text-stone-600 border-stone-200',
       icon: MessageSquare,
       iconBg: 'bg-amber-50 text-amber-600',
       actionText: 'Review Stories'
@@ -200,7 +225,7 @@ const DashboardOverview = ({
     {
       id: 'surveys',
       title: 'Surveys & Feedback',
-      metric: `${surveyCount} Responses`,
+      metric: `${displaySurveys} Responses`,
       detail: 'Visitor pain points & dietary goals',
       badge: 'Insights',
       badgeColor: 'bg-teal-50 text-teal-700 border-teal-200',
@@ -333,14 +358,26 @@ const DashboardOverview = ({
                     <div className={`w-9 h-9 rounded-xl flex items-center justify-center ${card.iconBg}`}>
                       <Icon size={18} />
                     </div>
-                    <span className={`px-2 py-0.5 rounded-full text-[10px] font-semibold border ${card.badgeColor}`}>
-                      {card.badge}
-                    </span>
+                    {isUnprimedLoading ? (
+                      <span className="inline-block h-4 w-12 bg-stone-100 animate-pulse rounded-full"></span>
+                    ) : (
+                      <span className={`px-2 py-0.5 rounded-full text-[10px] font-semibold border ${card.badgeColor}`}>
+                        {card.badge}
+                      </span>
+                    )}
                   </div>
 
                   <p className="text-xs font-medium text-stone-500">{card.title}</p>
-                  <p className="text-lg sm:text-xl font-bold text-stone-900 mt-0.5">{card.metric}</p>
-                  <p className="text-[11px] text-stone-500 font-normal mt-1 line-clamp-2">{card.detail}</p>
+                  {isUnprimedLoading ? (
+                    <div className="h-6 w-16 bg-stone-100 animate-pulse rounded-md my-1"></div>
+                  ) : (
+                    <p className="text-lg sm:text-xl font-bold text-stone-900 mt-0.5">{card.metric}</p>
+                  )}
+                  {isUnprimedLoading ? (
+                    <div className="h-3.5 w-32 bg-stone-100 animate-pulse rounded-md mt-1.5"></div>
+                  ) : (
+                    <p className="text-[11px] text-stone-500 font-normal mt-1 line-clamp-2">{card.detail}</p>
+                  )}
                 </div>
 
                 <div className="pt-3 mt-3 border-t border-stone-100 flex items-center justify-between text-xs font-semibold text-emerald-700 group-hover:text-emerald-800">

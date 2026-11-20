@@ -32,6 +32,18 @@ import SurveysPanel from './components/SurveysPanel';
 import { collection, query, where, onSnapshot } from 'firebase/firestore';
 import { db } from '../../firebaseConfig';
 
+const DASHBOARD_CACHE_KEY = 'dwd_admin_dashboard_cache_v1';
+
+const getCachedDashboardData = () => {
+  try {
+    const raw = localStorage.getItem(DASHBOARD_CACHE_KEY);
+    if (raw) return JSON.parse(raw);
+  } catch (e) {
+    console.warn('Dashboard cache read error:', e);
+  }
+  return null;
+};
+
 const AdminDashboard = () => {
   const { tab: tabFromPath } = useParams();
   const [searchParams] = useSearchParams();
@@ -39,6 +51,9 @@ const AdminDashboard = () => {
   const location = useLocation();
 
   const refFromUrl = searchParams.get('ref');
+
+  // Pre-load cached dashboard data for 0ms instantaneous render on refresh (no flashing zeros)
+  const cachedDashboard = useMemo(() => getCachedDashboardData(), []);
 
   // Allowed tabs: 'dashboard' | 'bookings' | 'journey' | 'articles' | 'subscribers' | 'testimonials' | 'surveys' | 'events'
   const validTabs = useMemo(() => [
@@ -105,15 +120,15 @@ const AdminDashboard = () => {
   const [articles, setArticles] = useState([]);
   const [notification, setNotification] = useState(null);
   const [isLoading, setIsLoading] = useState(true);
-  const [subscriberCount, setSubscriberCount] = useState(0);
+  const [subscriberCount, setSubscriberCount] = useState(() => cachedDashboard?.subscriberCount ?? 0);
   const [users, setUsers] = useState([]);
   const [usersLoading, setUsersLoading] = useState(false);
   const [usersFetched, setUsersFetched] = useState(false);
-  const [pendingBookings, setPendingBookings] = useState(0);
-  const [contactedBookings, setContactedBookings] = useState(0);
-  const [pendingTestimonials, setPendingTestimonials] = useState(0);
-  const [draftArticlesCount, setDraftArticlesCount] = useState(0);
-  const [surveyCount, setSurveyCount] = useState(0);
+  const [pendingBookings, setPendingBookings] = useState(() => cachedDashboard?.pendingBookings ?? 0);
+  const [contactedBookings, setContactedBookings] = useState(() => cachedDashboard?.contactedBookings ?? 0);
+  const [pendingTestimonials, setPendingTestimonials] = useState(() => cachedDashboard?.pendingTestimonials ?? 0);
+  const [draftArticlesCount, setDraftArticlesCount] = useState(() => cachedDashboard?.draftArticlesCount ?? 0);
+  const [surveyCount, setSurveyCount] = useState(() => cachedDashboard?.surveyCount ?? 0);
 
   const { user, signOut } = useAuth();
 
@@ -219,6 +234,38 @@ const AdminDashboard = () => {
     fetchSubscribers();
   }, [loadArticles, loadUsers]);
 
+  // Cache latest dashboard numbers for instant, zero-flash refresh
+  useEffect(() => {
+    try {
+      const payload = {
+        pendingBookings,
+        contactedBookings,
+        pendingTestimonials,
+        draftArticlesCount,
+        surveyCount,
+        subscriberCount,
+        usersCount: users.length || cachedDashboard?.usersCount || 0,
+        articlesCount: articles.length || cachedDashboard?.articlesCount || 0,
+        publishedCount: (articles.length ? articles.filter(a => a.status === 'published' || (!a.status && a.status !== 'draft')).length : cachedDashboard?.publishedCount) || 0,
+        draftCount: (draftArticlesCount > 0 ? draftArticlesCount : (articles.length ? articles.filter(a => a.status === 'draft').length : cachedDashboard?.draftCount)) || 0,
+        timestamp: Date.now()
+      };
+      localStorage.setItem(DASHBOARD_CACHE_KEY, JSON.stringify(payload));
+    } catch (e) {
+      console.warn('Dashboard cache write error:', e);
+    }
+  }, [
+    pendingBookings,
+    contactedBookings,
+    pendingTestimonials,
+    draftArticlesCount,
+    surveyCount,
+    subscriberCount,
+    users.length,
+    articles.length,
+    cachedDashboard
+  ]);
+
   const handleLogout = async () => {
     await signOut();
   };
@@ -248,7 +295,7 @@ const AdminDashboard = () => {
           id: 'journey',
           label: 'User Journeys',
           icon: Users,
-          badge: users.length > 0 ? `${users.length}` : null,
+          badge: (users.length || cachedDashboard?.usersCount) ? `${users.length || cachedDashboard.usersCount}` : null,
           badgeColor: 'bg-stone-800 text-stone-300',
         },
       ]
@@ -262,7 +309,7 @@ const AdminDashboard = () => {
           icon: FileText,
           badge: draftArticlesCount > 0 
             ? `${draftArticlesCount} Draft${draftArticlesCount === 1 ? '' : 's'}` 
-            : (articles.length > 0 ? `${articles.length}` : null),
+            : ((articles.length || cachedDashboard?.articlesCount) ? `${articles.length || cachedDashboard.articlesCount}` : null),
           badgeColor: draftArticlesCount > 0 
             ? 'bg-amber-500 text-white animate-pulse' 
             : 'bg-stone-800 text-stone-300',
@@ -271,7 +318,7 @@ const AdminDashboard = () => {
           id: 'subscribers',
           label: 'Subscribers',
           icon: Mail,
-          badge: subscriberCount > 0 ? `${subscriberCount}` : null,
+          badge: (subscriberCount || cachedDashboard?.subscriberCount) ? `${subscriberCount || cachedDashboard.subscriberCount}` : null,
           badgeColor: 'bg-emerald-950 text-emerald-400',
         },
         {
@@ -285,7 +332,7 @@ const AdminDashboard = () => {
           id: 'surveys',
           label: 'Surveys',
           icon: ClipboardList,
-          badge: surveyCount > 0 ? `${surveyCount}` : null,
+          badge: (surveyCount || cachedDashboard?.surveyCount) ? `${surveyCount || cachedDashboard.surveyCount}` : null,
           badgeColor: 'bg-amber-950 text-amber-400',
         },
         {
@@ -522,6 +569,8 @@ const AdminDashboard = () => {
               pendingTestimonials={pendingTestimonials}
               draftArticlesCount={draftArticlesCount}
               surveyCount={surveyCount}
+              cachedDashboard={cachedDashboard}
+              isLoading={isLoading || usersLoading}
               onNavigate={setActiveTab}
             />
           </div>

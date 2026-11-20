@@ -1,8 +1,9 @@
 import React, { useState, useEffect, useMemo, useCallback } from 'react';
 import SEO from '../../Components/SEO';
 import { useNavigate, useParams, useLocation, useSearchParams } from 'react-router-dom';
-import { Loader, Calendar, User, ArrowRight, ArrowLeft, Share2, Heart, MessageCircle, Tag, Search, X } from 'lucide-react';
+import { Loader, Calendar, User, ArrowRight, ArrowLeft, Share2, Heart, MessageCircle, Tag, Search, X, Eye } from 'lucide-react';
 import { getArticlesPaged, getArticles, getArticleBySlugOrId, getArticleTags, likeNews, markArticleHelpful } from '../../firebaseUtils';
+import { useAuth } from '../../AuthContext';
 import BlogImage from '../../assets/LOGO.webp'; // Fallback image (Logo)
 import BlogArticleSEO from '../../Components/BlogArticleSEO';
 import ScrollHideRefreshButton from '../../utils/ScrollHideRefreshButton';
@@ -20,6 +21,7 @@ function Blog() {
   const location = useLocation();
   const [searchParams, setSearchParams] = useSearchParams();
   const { slugOrId: routeId } = useParams();
+  const { user } = useAuth();
 
   const [blogPosts, setBlogPosts] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -118,6 +120,22 @@ function Blog() {
       return;
     }
 
+    // Check if previewing an unsaved draft from sessionStorage
+    if (routeId === 'draft-preview') {
+      try {
+        const raw = sessionStorage.getItem('dwd_draft_preview');
+        if (raw) {
+          const parsed = JSON.parse(raw);
+          setSelectedArticle(parsed);
+          setViewMode('article');
+          setIsInitialLoadingArticle(false);
+          return;
+        }
+      } catch (e) {
+        console.warn('Failed to parse draft preview from sessionStorage:', e);
+      }
+    }
+
     // Check if article data was passed via navigation state (instant render, zero queries)
     if (location.state?.article) {
       setSelectedArticle(location.state.article);
@@ -144,7 +162,9 @@ function Blog() {
     const fetchSingleArticle = async () => {
       setIsInitialLoadingArticle(true);
       try {
-        const res = await getArticleBySlugOrId(routeId);
+        const isPreviewRequested = searchParams.get('preview') === 'true';
+        const allowUnpublished = isPreviewRequested || Boolean(user);
+        const res = await getArticleBySlugOrId(routeId, allowUnpublished);
         if (res?.success) {
           setSelectedArticle(res.data);
           setViewMode('article');
@@ -165,7 +185,7 @@ function Blog() {
     };
 
     fetchSingleArticle();
-  }, [routeId, blogPosts]);
+  }, [routeId, blogPosts, searchParams, user]);
 
   const loadArticles = async (options = { scrollToTop: true }) => {
     setIsLoading(true);
@@ -848,6 +868,32 @@ function Blog() {
 
           {/* Article Content */}
           <article className="max-w-4xl mx-auto px-4 sm:px-6 py-8 lg:py-12">
+            {/* Draft / Scheduled Preview Mode Banner */}
+            {selectedArticle.status && selectedArticle.status !== 'published' && (
+              <div className="mb-6 p-4 rounded-2xl bg-amber-50 border border-amber-200 text-amber-900 shadow-xs flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
+                <div className="flex items-center gap-2.5">
+                  <span className="w-2.5 h-2.5 rounded-full bg-amber-500 animate-pulse flex-shrink-0"></span>
+                  <div>
+                    <p className="text-xs sm:text-sm font-bold flex items-center gap-2">
+                      <span>Article Preview Mode</span>
+                      <span className="px-2 py-0.5 rounded-full text-[10px] uppercase font-bold bg-amber-100 text-amber-800 border border-amber-300">
+                        {selectedArticle.status}
+                      </span>
+                    </p>
+                    <p className="text-[11px] text-amber-700 font-medium mt-0.5">
+                      This article is not live for public visitors yet. You are viewing this preview as an authorized admin.
+                    </p>
+                  </div>
+                </div>
+                <button
+                  onClick={() => navigate('/admin/articles')}
+                  className="px-3.5 py-1.5 bg-amber-600 hover:bg-amber-700 text-white rounded-xl text-xs font-semibold shadow-2xs transition-colors flex-shrink-0 cursor-pointer"
+                >
+                  Return to Admin
+                </button>
+              </div>
+            )}
+
             <div className="bg-white rounded-2xl lg:rounded-3xl shadow-lg overflow-hidden border border-stone-100">
               {/* Featured Image */}
               {selectedArticle.coverImage && (
