@@ -24,9 +24,93 @@ const DashboardOverview = ({
   articles = [],
   subscriberCount = 0,
   pendingTestimonials = 0,
+  draftArticlesCount,
   surveyCount = 0,
   onNavigate
 }) => {
+  // Compute draft vs published counts
+  const draftCount = useMemo(() => {
+    if (typeof draftArticlesCount === 'number' && draftArticlesCount >= 0) {
+      return draftArticlesCount;
+    }
+    return (articles || []).filter(a => a.status === 'draft').length;
+  }, [draftArticlesCount, articles]);
+
+  const publishedCount = useMemo(() => {
+    return (articles || []).filter(a => a.status === 'published' || (!a.status && a.status !== 'draft')).length;
+  }, [articles]);
+
+  // Compute intelligent alerts
+  const alerts = useMemo(() => {
+    const list = [];
+
+    // 1. Pending Bookings Alert
+    if (pendingBookings > 0) {
+      list.push({
+        id: 'pending-bookings',
+        tab: 'bookings',
+        count: pendingBookings,
+        title: `${pendingBookings} New Consultation ${pendingBookings === 1 ? 'Booking' : 'Bookings'} Awaiting Outreach`,
+        description: 'New client inquiry paid and awaiting initial consultation coordination.',
+        badge: `${pendingBookings} New`,
+        badgeStyle: 'bg-rose-100 text-rose-800 border-rose-300',
+        cardStyle: 'bg-gradient-to-r from-rose-50/95 via-rose-50/50 to-white border-rose-200 hover:border-rose-300 hover:bg-rose-100/50',
+        icon: Calendar,
+        iconBg: 'bg-rose-600 text-white shadow-rose-200',
+        titleColor: 'text-rose-950',
+        descColor: 'text-rose-700',
+        actionColor: 'text-rose-700 group-hover:text-rose-900',
+        actionText: 'Review Bookings'
+      });
+    }
+
+    // 2. Draft Articles Alert
+    if (draftCount > 0) {
+      list.push({
+        id: 'draft-articles',
+        tab: 'articles',
+        count: draftCount,
+        title: `${draftCount} Article ${draftCount === 1 ? 'Draft' : 'Drafts'} Ready for Review`,
+        description: 'Unpublished nutrition guides or wellness posts in draft status awaiting publication.',
+        badge: `${draftCount} Draft${draftCount === 1 ? '' : 's'}`,
+        badgeStyle: 'bg-amber-100 text-amber-800 border-amber-300',
+        cardStyle: 'bg-gradient-to-r from-amber-50/95 via-amber-50/50 to-white border-amber-200 hover:border-amber-300 hover:bg-amber-100/50',
+        icon: FileText,
+        iconBg: 'bg-amber-600 text-white shadow-amber-200',
+        titleColor: 'text-amber-950',
+        descColor: 'text-amber-800',
+        actionColor: 'text-amber-800 group-hover:text-amber-950',
+        actionText: 'Open Articles'
+      });
+    }
+
+    // 3. Pending Testimonials Alert
+    if (pendingTestimonials > 0) {
+      list.push({
+        id: 'pending-testimonials',
+        tab: 'testimonials',
+        count: pendingTestimonials,
+        title: `${pendingTestimonials} Client ${pendingTestimonials === 1 ? 'Testimonial' : 'Testimonials'} Pending Approval`,
+        description: 'New transformation story submitted by a client awaiting your moderation.',
+        badge: `${pendingTestimonials} Pending`,
+        badgeStyle: 'bg-purple-100 text-purple-800 border-purple-300',
+        cardStyle: 'bg-gradient-to-r from-purple-50/95 via-purple-50/50 to-white border-purple-200 hover:border-purple-300 hover:bg-purple-100/50',
+        icon: MessageSquare,
+        iconBg: 'bg-purple-600 text-white shadow-purple-200',
+        titleColor: 'text-purple-950',
+        descColor: 'text-purple-800',
+        actionColor: 'text-purple-800 group-hover:text-purple-950',
+        actionText: 'Moderate Reviews'
+      });
+    }
+
+    return list;
+  }, [pendingBookings, draftCount, pendingTestimonials]);
+
+  const totalAlertsCount = useMemo(() => {
+    return alerts.reduce((acc, a) => acc + (a.count || 1), 0);
+  }, [alerts]);
+
   // Compute basic live metrics from users
   const { activeLast24h, avgBmi } = useMemo(() => {
     if (!users.length) return { activeLast24h: 0, avgBmi: 'N/A' };
@@ -81,12 +165,14 @@ const DashboardOverview = ({
     {
       id: 'articles',
       title: 'Articles & Blog',
-      metric: `${articles.length} Published`,
-      detail: 'Nutrition education & dietary guides',
-      badge: 'Content',
-      badgeColor: 'bg-blue-50 text-blue-700 border-blue-200',
+      metric: `${publishedCount} Published`,
+      detail: draftCount > 0 
+        ? `${draftCount} in draft · Nutrition guides & education`
+        : 'Nutrition education & dietary guides',
+      badge: draftCount > 0 ? `${draftCount} Draft${draftCount === 1 ? '' : 's'}` : 'Content',
+      badgeColor: draftCount > 0 ? 'bg-amber-50 text-amber-700 border-amber-200' : 'bg-blue-50 text-blue-700 border-blue-200',
       icon: FileText,
-      iconBg: 'bg-blue-50 text-blue-600',
+      iconBg: draftCount > 0 ? 'bg-amber-50 text-amber-600' : 'bg-blue-50 text-blue-600',
       actionText: 'Manage Guides'
     },
     {
@@ -171,30 +257,57 @@ const DashboardOverview = ({
         </div>
       </div>
 
-      {/* Priority Action Alert for Pending Bookings */}
-      {pendingBookings > 0 && (
-        <div 
-          onClick={() => onNavigate('bookings')}
-          className="bg-rose-50/90 border border-rose-200 rounded-2xl p-4 flex items-center justify-between gap-3 cursor-pointer hover:bg-rose-100/70 transition-all shadow-xs"
-        >
-          <div className="flex items-center gap-3">
-            <div className="w-9 h-9 rounded-xl bg-rose-600 text-white flex items-center justify-center flex-shrink-0 shadow-xs">
-              <AlertCircle size={18} />
+      {/* Intelligent Actionable Alerts Feed (Hidden when 0 alerts) */}
+      {alerts.length > 0 && (
+        <section aria-label="Actionable alerts" className="space-y-2.5">
+          <div className="flex items-center justify-between px-1">
+            <div className="flex items-center gap-2">
+              <span className="w-2 h-2 rounded-full bg-rose-500 animate-pulse"></span>
+              <h3 className="text-xs font-bold uppercase tracking-wider text-stone-700">
+                Action Required ({totalAlertsCount})
+              </h3>
             </div>
-            <div>
-              <p className="text-xs sm:text-sm font-semibold text-rose-950">
-                {pendingBookings} New Consultation {pendingBookings === 1 ? 'Booking' : 'Bookings'} Awaiting Outreach
-              </p>
-              <p className="text-[11px] text-rose-700 font-medium">
-                Tap to inspect client health snapshot, BMI, and open direct WhatsApp chat.
-              </p>
-            </div>
+            <span className="text-[11px] text-stone-400 font-medium hidden sm:inline">
+              Tap any alert to resolve immediately
+            </span>
           </div>
-          <div className="flex items-center gap-1 text-xs font-semibold text-rose-700 flex-shrink-0">
-            <span className="hidden sm:inline">Review Now</span>
-            <ArrowRight size={14} />
+
+          <div className="grid grid-cols-1 gap-2.5">
+            {alerts.map((alert) => {
+              const Icon = alert.icon;
+              return (
+                <div 
+                  key={alert.id}
+                  onClick={() => onNavigate(alert.tab)}
+                  className={`group p-3.5 sm:p-4 rounded-2xl border transition-all cursor-pointer flex items-center justify-between gap-3 shadow-2xs hover:shadow-md ${alert.cardStyle}`}
+                >
+                  <div className="flex items-center gap-3 min-w-0">
+                    <div className={`w-9 sm:w-10 h-9 sm:h-10 rounded-xl flex items-center justify-center flex-shrink-0 shadow-xs ${alert.iconBg}`}>
+                      <Icon size={18} />
+                    </div>
+                    <div className="min-w-0">
+                      <div className="flex flex-wrap items-center gap-2">
+                        <p className={`text-xs sm:text-sm font-bold truncate ${alert.titleColor}`}>
+                          {alert.title}
+                        </p>
+                        <span className={`px-2 py-0.5 rounded-full text-[10px] font-bold border ${alert.badgeStyle}`}>
+                          {alert.badge}
+                        </span>
+                      </div>
+                      <p className={`text-[11px] font-medium mt-0.5 truncate ${alert.descColor}`}>
+                        {alert.description}
+                      </p>
+                    </div>
+                  </div>
+                  <div className={`flex items-center gap-1.5 text-xs font-bold flex-shrink-0 group-hover:translate-x-1 transition-transform ${alert.actionColor}`}>
+                    <span className="hidden sm:inline">{alert.actionText}</span>
+                    <ArrowRight size={15} />
+                  </div>
+                </div>
+              );
+            })}
           </div>
-        </div>
+        </section>
       )}
 
       {/* Interactive Stats Cards Grid */}

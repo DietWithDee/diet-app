@@ -112,6 +112,7 @@ const AdminDashboard = () => {
   const [pendingBookings, setPendingBookings] = useState(0);
   const [contactedBookings, setContactedBookings] = useState(0);
   const [pendingTestimonials, setPendingTestimonials] = useState(0);
+  const [draftArticlesCount, setDraftArticlesCount] = useState(0);
   const [surveyCount, setSurveyCount] = useState(0);
 
   const { user, signOut } = useAuth();
@@ -133,6 +134,13 @@ const AdminDashboard = () => {
       setPendingTestimonials(snapshot.docs.length);
     });
 
+    const qDraftArticles = query(collection(db, 'articles'), where('status', '==', 'draft'));
+    const unsubscribeDraftArticles = onSnapshot(qDraftArticles, (snapshot) => {
+      setDraftArticlesCount(snapshot.docs.length);
+    }, (err) => {
+      console.warn('Draft articles listener:', err);
+    });
+
     const qSurveys = query(collection(db, 'surveys'));
     const unsubscribeSurveys = onSnapshot(qSurveys, (snapshot) => {
       setSurveyCount(snapshot.docs.length);
@@ -142,6 +150,7 @@ const AdminDashboard = () => {
       unsubscribePending();
       unsubscribeContacted();
       unsubscribeTestimonials();
+      unsubscribeDraftArticles();
       unsubscribeSurveys();
     };
   }, []);
@@ -251,8 +260,12 @@ const AdminDashboard = () => {
           id: 'articles',
           label: 'Articles & Blog',
           icon: FileText,
-          badge: articles.length > 0 ? `${articles.length}` : null,
-          badgeColor: 'bg-stone-800 text-stone-300',
+          badge: draftArticlesCount > 0 
+            ? `${draftArticlesCount} Draft${draftArticlesCount === 1 ? '' : 's'}` 
+            : (articles.length > 0 ? `${articles.length}` : null),
+          badgeColor: draftArticlesCount > 0 
+            ? 'bg-amber-500 text-white animate-pulse' 
+            : 'bg-stone-800 text-stone-300',
         },
         {
           id: 'subscribers',
@@ -507,6 +520,7 @@ const AdminDashboard = () => {
               articles={articles}
               subscriberCount={subscriberCount}
               pendingTestimonials={pendingTestimonials}
+              draftArticlesCount={draftArticlesCount}
               surveyCount={surveyCount}
               onNavigate={setActiveTab}
             />
