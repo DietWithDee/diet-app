@@ -86,11 +86,14 @@ export const AuthProvider = ({ children }) => {
   }, []);
 
 
-  // Handle redirect result (for mobile/PWA sign-in)
+  // Handle redirect result (for mobile/PWA sign-in fallback)
   useEffect(() => {
     getRedirectResult(auth)
       .then((result) => {
         if (result && result.user) {
+          if (result.user.email) {
+            localStorage.setItem('lastSignInEmail', result.user.email);
+          }
           const redirectUrl = localStorage.getItem('authRedirect');
           if (redirectUrl) {
             localStorage.removeItem('authRedirect');
@@ -103,7 +106,6 @@ export const AuthProvider = ({ children }) => {
       .catch((err) => {
         if (err.code !== 'auth/redirect-cancelled-by-user') {
           console.error('Redirect sign-in error:', err);
-          alert(`Redirect Error: ${err.message || err.code}`);
         }
       });
   }, []);
@@ -112,31 +114,21 @@ export const AuthProvider = ({ children }) => {
   const signInWithGoogle = async () => {
     const provider = new GoogleAuthProvider();
     auth.useDeviceLanguage();
-    const isStandalone = window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone === true;
-    const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
 
     // Remember returning users — skip the "type your email" step
     const lastEmail = localStorage.getItem('lastSignInEmail');
+    const customParams = {};
     if (lastEmail) {
-      provider.setCustomParameters({ login_hint: lastEmail });
+      customParams.login_hint = lastEmail;
     }
-
-    // In PWA standalone mode, always use redirect — popups open an isolated
-    // webview with no access to the device's Google accounts.
-    if (isStandalone) {
-      localStorage.setItem('authRedirect', window.location.pathname + window.location.search);
-      await signInWithRedirect(auth, provider);
-      return null;
-    }
-
-    // On desktop browser, show account picker
-    if (!isMobile && !lastEmail) {
-      provider.setCustomParameters({
-        prompt: 'select_account'
-      });
-    }
+    customParams.prompt = 'select_account';
+    provider.setCustomParameters(customParams);
 
     try {
+      // Primary: signInWithPopup works natively and reliably across Web and PWAs
+      // (Desktop PWA, iOS PWA, Android PWA) via postMessage with opener window.
+      // signInWithRedirect fails on PWAs due to third-party partitioned storage
+      // between dietwithdee.org and firebaseapp.com authDomain.
       const result = await signInWithPopup(auth, provider);
       // Save email for next time
       if (result.user?.email) {
@@ -146,8 +138,16 @@ export const AuthProvider = ({ children }) => {
     } catch (err) {
       console.error('Google popup sign-in error:', err);
 
-      // If popup is blocked, fallback to redirect
-      if (err.code === 'auth/popup-blocked' || err.code === 'auth/popup-closed-by-user') {
+      // If user deliberately closed or cancelled the popup, do not force a redirect
+      if (
+        err.code === 'auth/popup-closed-by-user' || 
+        err.code === 'auth/cancelled-popup-request'
+      ) {
+        return null;
+      }
+
+      // If popup is strictly blocked by the browser, fallback to redirect
+      if (err.code === 'auth/popup-blocked') {
         if (typeof window !== 'undefined') {
           localStorage.setItem('authRedirect', window.location.pathname + window.location.search);
         }
