@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useCallback } from 'react';
 import {
   User,
   Mail,
@@ -21,6 +21,23 @@ import { isValidEmail } from '../utils/validation';
 import { useToast } from '../Contexts/ToastContext';
 import BookingCalendar from './BookingCalendar';
 import { functions, safeLogEvent } from '../firebaseConfig';
+
+const CHECKOUT_API_TIMEOUT_MS = 15000;
+const REDIRECT_TIMEOUT_MS = 8000;
+
+const withTimeout = (promise, timeoutMs, timeoutMessage) => {
+  let timerId;
+  const timeoutPromise = new Promise((_, reject) => {
+    timerId = setTimeout(() => {
+      const err = new Error(timeoutMessage);
+      err.code = 'checkout/timeout';
+      reject(err);
+    }, timeoutMs);
+  });
+  return Promise.race([promise, timeoutPromise]).finally(() => {
+    clearTimeout(timerId);
+  });
+};
 
 /**
  * Shared Clinical Ledger accordion + single-step Paystack checkout + Tier 03 bespoke inquiry flow.
@@ -67,6 +84,55 @@ export default function ConsultationLedger({
 
   const tierRefs = useRef({});
   const formStartRef = useRef(null);
+  const redirectStartedRef = useRef(false);
+  const redirectTimerRef = useRef(null);
+  const isMountedRef = useRef(true);
+
+  const clearRedirectTimer = useCallback(() => {
+    if (redirectTimerRef.current) {
+      clearTimeout(redirectTimerRef.current);
+      redirectTimerRef.current = null;
+    }
+  }, []);
+
+  const resetCheckoutState = useCallback(() => {
+    clearRedirectTimer();
+    redirectStartedRef.current = false;
+    if (isMountedRef.current) {
+      setIsSubmittingCheckout(false);
+    }
+  }, [clearRedirectTimer]);
+
+  // Reset spinner when returning via browser Back button (bfcache restore) or leaving page
+  useEffect(() => {
+    isMountedRef.current = true;
+
+    const handlePageHideOrShow = () => {
+      resetCheckoutState();
+    };
+
+    const handleVisibilityOrFocus = () => {
+      if (redirectStartedRef.current && document.visibilityState === 'visible') {
+        resetCheckoutState();
+      }
+    };
+
+    window.addEventListener('pageshow', handlePageHideOrShow);
+    window.addEventListener('pagehide', handlePageHideOrShow);
+    window.addEventListener('popstate', handlePageHideOrShow);
+    window.addEventListener('focus', handleVisibilityOrFocus);
+    document.addEventListener('visibilitychange', handleVisibilityOrFocus);
+
+    return () => {
+      isMountedRef.current = false;
+      clearRedirectTimer();
+      window.removeEventListener('pageshow', handlePageHideOrShow);
+      window.removeEventListener('pagehide', handlePageHideOrShow);
+      window.removeEventListener('popstate', handlePageHideOrShow);
+      window.removeEventListener('focus', handleVisibilityOrFocus);
+      document.removeEventListener('visibilitychange', handleVisibilityOrFocus);
+    };
+  }, [resetCheckoutState, clearRedirectTimer]);
 
   // Auto-fill form from signed-in Google account when fields are still empty
   useEffect(() => {
@@ -138,6 +204,18 @@ export default function ConsultationLedger({
     return true;
   };
 
+  const navigateToCheckoutUrl = (url) => {
+    clearRedirectTimer();
+    redirectStartedRef.current = true;
+    redirectTimerRef.current = setTimeout(() => {
+      if (isMountedRef.current && redirectStartedRef.current) {
+        resetCheckoutState();
+        showToast('Checkout took too long to open. Please try again.', 'error');
+      }
+    }, REDIRECT_TIMEOUT_MS);
+    window.location.href = url;
+  };
+
   const handleCheckout = async (tierId) => {
     if (isSubmittingCheckout) return;
     if (!validateContactFields({ requireCalendar: true })) return;
@@ -176,27 +254,38 @@ export default function ConsultationLedger({
       // Paystack metadata also carries the payload
     }
 
+    clearRedirectTimer();
+    redirectStartedRef.current = false;
     setIsSubmittingCheckout(true);
     try {
-      const initPaystackFn = httpsCallable(functions, 'initializePaystackTransaction');
-      const result = await initPaystackFn({
-        tier: tierConfig.paystackTier || tierId,
-        formData: cleanFormData,
-        userResults: userResults || {},
-        callbackOrigin: window.location.origin
+      const initPaystackFn = httpsCallable(functions, 'initializePaystackTransaction', {
+        timeout: CHECKOUT_API_TIMEOUT_MS
       });
+      const result = await withTimeout(
+        initPaystackFn({
+          tier: tierConfig.paystackTier || tierId,
+          formData: cleanFormData,
+          userResults: userResults || {},
+          callbackOrigin: window.location.origin
+        }),
+        CHECKOUT_API_TIMEOUT_MS,
+        'Paystack checkout timed out. Please check your connection and try again.'
+      );
+
+      if (!isMountedRef.current) return;
 
       if (result.data?.success && result.data?.authorizationUrl) {
-        window.location.href = result.data.authorizationUrl;
+        navigateToCheckoutUrl(result.data.authorizationUrl);
         return;
       }
 
       throw new Error('Paystack checkout URL was not returned.');
     } catch (err) {
+      if (!isMountedRef.current) return;
       const code = err?.code || '';
       if ((code === 'functions/not-found' || code === 'functions/unimplemented') && tierConfig.fallbackUrl) {
         console.warn('initializePaystackTransaction unavailable, falling back to Paystack Shop link:', err);
-        window.location.href = tierConfig.fallbackUrl;
+        navigateToCheckoutUrl(tierConfig.fallbackUrl);
         return;
       }
 
@@ -205,7 +294,7 @@ export default function ConsultationLedger({
         err?.message || 'Unable to start Paystack checkout right now. Please try again.',
         'error'
       );
-      setIsSubmittingCheckout(false);
+      resetCheckoutState();
     }
   };
 
@@ -216,14 +305,22 @@ export default function ConsultationLedger({
 
     setIsSubmittingInquiry(true);
     try {
-      const submitInquiryFn = httpsCallable(functions, 'submitBespokeInquiry');
-      const result = await submitInquiryFn({
-        name: formData.name.trim(),
-        email: formData.email.trim(),
-        phone: formData.phone.trim(),
-        message: formData.message.trim(),
-        inquiryTopic
+      const submitInquiryFn = httpsCallable(functions, 'submitBespokeInquiry', {
+        timeout: CHECKOUT_API_TIMEOUT_MS
       });
+      const result = await withTimeout(
+        submitInquiryFn({
+          name: formData.name.trim(),
+          email: formData.email.trim(),
+          phone: formData.phone.trim(),
+          message: formData.message.trim(),
+          inquiryTopic
+        }),
+        CHECKOUT_API_TIMEOUT_MS,
+        'Request timed out. Please check your connection or message us on WhatsApp.'
+      );
+
+      if (!isMountedRef.current) return;
 
       if (result.data?.success) {
         safeLogEvent('generate_lead', {
@@ -237,6 +334,7 @@ export default function ConsultationLedger({
 
       throw new Error('Could not submit inquiry.');
     } catch (err) {
+      if (!isMountedRef.current) return;
       const code = err?.code || '';
       if (code === 'functions/not-found' || code === 'functions/unimplemented') {
         const waText = `Hello Nana Ama, my name is ${formData.name.trim()} (${formData.email.trim()}). I'm inquiring about ${inquiryTopic}: ${formData.message.trim()}`;
@@ -247,7 +345,9 @@ export default function ConsultationLedger({
         showToast(err?.message || 'Could not send inquiry. Please try WhatsApp below.', 'error');
       }
     } finally {
-      setIsSubmittingInquiry(false);
+      if (isMountedRef.current) {
+        setIsSubmittingInquiry(false);
+      }
     }
   };
 
