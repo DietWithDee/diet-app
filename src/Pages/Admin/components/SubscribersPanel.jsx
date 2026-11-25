@@ -11,6 +11,7 @@ const SubscribersPanel = ({ showNotification }) => {
   const [showEmailComposer, setShowEmailComposer] = useState(false);
   const [selectedEmails, setSelectedEmails] = useState(new Set());
   const [searchTerm, setSearchTerm] = useState('');
+  const [sourceFilter, setSourceFilter] = useState('all'); // 'all' | 'knowyourbody' | 'other'
   const [emailTemplate, setEmailTemplate] = useState({
     subject: '',
     htmlContent: '',
@@ -40,10 +41,26 @@ const SubscribersPanel = ({ showNotification }) => {
     fetchEmails();
   }, [showNotification]);
 
-  // Filter emails based on search
-  const filteredEmails = emails.filter(e => 
-    e.email.toLowerCase().includes(searchTerm.toLowerCase())
-  );
+  const isKybSubscriber = (subscriber) =>
+    Boolean(
+      subscriber.hasKnowYourBodyCheck ||
+      subscriber.source === 'knowyourbody' ||
+      (Array.isArray(subscriber.sources) && subscriber.sources.includes('knowyourbody'))
+    );
+
+  const kybSubscribersCount = emails.filter(isKybSubscriber).length;
+
+  // Filter emails based on search and source filter
+  const filteredEmails = emails.filter((e) => {
+    const matchesText =
+      (e.email || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
+      (e.lastGoal || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
+      (e.lastHealthConditions || '').toLowerCase().includes(searchTerm.toLowerCase());
+    if (!matchesText) return false;
+    if (sourceFilter === 'knowyourbody') return isKybSubscriber(e);
+    if (sourceFilter === 'other') return !isKybSubscriber(e);
+    return true;
+  });
 
   // Handle email selection
   const toggleEmailSelection = (emailId) => {
@@ -140,10 +157,14 @@ const SubscribersPanel = ({ showNotification }) => {
       </div>
 
       {/* Stats */}
-      <div className="grid grid-cols-2 gap-4">
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
         <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
           <p className="text-3xl font-bold text-blue-600">{emails.length}</p>
           <p className="text-sm text-blue-600 font-medium">Total Subscribers</p>
+        </div>
+        <div className="bg-emerald-50 border border-emerald-200 rounded-lg p-4">
+          <p className="text-3xl font-bold text-emerald-700">{kybSubscribersCount}</p>
+          <p className="text-sm text-emerald-700 font-medium">KnowYourBody Leads</p>
         </div>
         <div className="bg-purple-50 border border-purple-200 rounded-lg p-4">
           <p className="text-3xl font-bold text-purple-600">{selectedEmails.size}</p>
@@ -151,14 +172,36 @@ const SubscribersPanel = ({ showNotification }) => {
         </div>
       </div>
 
-      {/* Search */}
-      <input
-        type="text"
-        placeholder="Search subscribers by email..."
-        value={searchTerm}
-        onChange={(e) => setSearchTerm(e.target.value)}
-        className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500"
-      />
+      {/* Search & Filter */}
+      <div className="flex flex-col sm:flex-row gap-3 items-stretch sm:items-center">
+        <input
+          type="text"
+          placeholder="Search email, goal, or condition..."
+          value={searchTerm}
+          onChange={(e) => setSearchTerm(e.target.value)}
+          className="flex-1 px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500"
+        />
+        <div className="flex gap-1.5">
+          {[
+            { id: 'all', label: `All (${emails.length})` },
+            { id: 'knowyourbody', label: `KnowYourBody (${kybSubscribersCount})` },
+            { id: 'other', label: 'Other Sources' }
+          ].map((tab) => (
+            <button
+              key={tab.id}
+              type="button"
+              onClick={() => setSourceFilter(tab.id)}
+              className={`px-3 py-2 rounded-lg text-xs font-semibold transition-colors cursor-pointer ${
+                sourceFilter === tab.id
+                  ? 'bg-green-600 text-white'
+                  : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+              }`}
+            >
+              {tab.label}
+            </button>
+          ))}
+        </div>
+      </div>
 
       {/* Subscribers List */}
       <div className="border border-gray-200 rounded-lg overflow-hidden">
@@ -201,14 +244,36 @@ const SubscribersPanel = ({ showNotification }) => {
                         className="rounded"
                       />
                     </td>
-                    <td className="px-4 py-3 text-sm text-gray-800 font-medium">{subscriber.email}</td>
+                    <td className="px-4 py-3 text-sm text-gray-800 font-medium">
+                      <div>{subscriber.email}</div>
+                      {isKybSubscriber(subscriber) && (
+                        <div className="text-[11px] text-emerald-700 font-medium mt-0.5 flex flex-wrap items-center gap-1.5">
+                          {subscriber.lastBmi && <span>BMI {subscriber.lastBmi}</span>}
+                          {subscriber.lastGoal && <span className="capitalize">· Goal: {subscriber.lastGoal}</span>}
+                          {subscriber.lastDailyCalories && <span>· {subscriber.lastDailyCalories} kcal</span>}
+                          {subscriber.knowYourBodyCount > 1 && <span>({subscriber.knowYourBodyCount} checks)</span>}
+                          {subscriber.lastHealthConditions && (
+                            <span className="px-1.5 py-0.2 bg-rose-50 text-rose-700 rounded border border-rose-200">
+                              {subscriber.lastHealthConditions}
+                            </span>
+                          )}
+                        </div>
+                      )}
+                    </td>
                     <td className="px-4 py-3 text-sm text-gray-600">
                       {subscriber.createdAt ? new Date(subscriber.createdAt.toDate?.() || subscriber.createdAt).toLocaleDateString() : 'N/A'}
                     </td>
                     <td className="px-4 py-3 text-sm text-gray-600">
-                      <span className="bg-blue-100 text-blue-800 px-2 py-1 rounded-full text-xs">
-                        {subscriber.source || 'newsletter'}
-                      </span>
+                      <div className="flex flex-wrap gap-1">
+                        <span className="bg-blue-100 text-blue-800 px-2 py-0.5 rounded-full text-xs">
+                          {subscriber.source || 'newsletter'}
+                        </span>
+                        {isKybSubscriber(subscriber) && subscriber.source !== 'knowyourbody' && (
+                          <span className="bg-emerald-100 text-emerald-800 px-2 py-0.5 rounded-full text-xs">
+                            knowyourbody
+                          </span>
+                        )}
+                      </div>
                     </td>
                     <td className="px-4 py-3 text-center">
                       <button

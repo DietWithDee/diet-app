@@ -52,6 +52,7 @@ function MyJourney() {
   const [signingIn, setSigningIn] = useState(false);
   const [bookings, setBookings] = useState([]);
   const [inquiries, setInquiries] = useState([]);
+  const [emailAssessments, setEmailAssessments] = useState([]);
   const [portalLoading, setPortalLoading] = useState(false);
   const [portalError, setPortalError] = useState('');
 
@@ -77,6 +78,7 @@ function MyJourney() {
       if (result.data?.success) {
         setBookings(result.data.bookings || []);
         setInquiries(result.data.inquiries || []);
+        setEmailAssessments(result.data.emailAssessments || []);
       }
     } catch (err) {
       console.error('Failed to load consultation portal:', err);
@@ -92,6 +94,7 @@ function MyJourney() {
     } else {
       setBookings([]);
       setInquiries([]);
+      setEmailAssessments([]);
       setPortalError('');
     }
   }, [user, loadCarePortal]);
@@ -562,6 +565,7 @@ function MyJourney() {
                 </p>
               </div>
               <AssessmentsSection
+                extraAssessments={emailAssessments}
                 onRunAssessment={() => navigate('/knowyourbody')}
                 onBookWithLatest={() => navigateToBooking('/contactUs')}
               />

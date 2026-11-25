@@ -83,6 +83,7 @@ export const buildKnowYourBodySnapshot = (formData, units = 'metric', savedAt = 
   if (!metrics) return null;
 
   return {
+    ...(formData?.email ? { email: String(formData.email).trim().toLowerCase() } : {}),
     bmi: metrics.bmi,
     bmiCategory: metrics.bmiCategory,
     bmr: metrics.bmr,

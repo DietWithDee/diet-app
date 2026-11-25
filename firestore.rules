@@ -81,6 +81,11 @@ service cloud.firestore {
       allow read, update, delete: if isAdmin();
     }
 
+    match /knowYourBodyLogs/{logId} {
+      // Written by verified server Cloud Function, readable/manageable by Admin only
+      allow read, write: if isAdmin();
+    }
+
     // Default deny for anything not explicitly specified above
     match /{document=**} {
       allow read, write: if false;

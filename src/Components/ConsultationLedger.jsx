@@ -134,17 +134,25 @@ export default function ConsultationLedger({
     };
   }, [resetCheckoutState, clearRedirectTimer]);
 
-  // Auto-fill form from signed-in Google account when fields are still empty
+  // Auto-fill form from signed-in Google account or captured KnowYourBody email when fields are empty
   useEffect(() => {
-    if (user) {
+    let kybEmail = '';
+    try {
+      kybEmail = localStorage.getItem('knowyourbody_email') || '';
+    } catch {
+      kybEmail = '';
+    }
+    const candidateEmail = user?.email || userResults?.email || kybEmail || '';
+
+    if (user || candidateEmail) {
       setFormData((prev) => ({
         ...prev,
-        name: prev.name || user.displayName || '',
-        email: prev.email || user.email || '',
+        name: prev.name || user?.displayName || '',
+        email: prev.email || candidateEmail,
         phone: prev.phone || userProfile?.phone || ''
       }));
     }
-  }, [user, userProfile]);
+  }, [user, userProfile, userResults?.email]);
 
   const handleToggleTier = (tierId) => {
     setFieldErrors({});

@@ -1,258 +1,348 @@
-import React, { useState } from 'react';
-import { ChevronRight, Calculator, Target, BookOpen, User, Activity, Moon, Heart, Utensils, Angry, CheckCircle2, Loader2 } from 'lucide-react';
+import React, { useState, useEffect, useRef } from 'react';
+import {
+  ChevronRight,
+  ChevronLeft,
+  Calculator,
+  Target,
+  BookOpen,
+  User,
+  Activity,
+  Moon,
+  Heart,
+  Utensils,
+  Angry,
+  CheckCircle2,
+  Loader2,
+  Mail,
+  Scale,
+  Ruler
+} from 'lucide-react';
 import { FcGoogle } from 'react-icons/fc';
 import { useNavigate } from 'react-router-dom';
-import { BsQuestion } from 'react-icons/bs';
+import { httpsCallable } from 'firebase/functions';
 import { useWebHaptics } from 'web-haptics/react';
 import { logEvent } from 'firebase/analytics';
-import { analytics } from '../../firebaseConfig';
 import { motion, AnimatePresence } from 'framer-motion';
+import SEO from '../../Components/SEO';
+import HapticRulerSlider from '../../Components/HapticRulerSlider';
+import { analytics, functions } from '../../firebaseConfig';
 import { useAuth } from '../../AuthContext';
-import { calculateBodyMetrics, buildKnowYourBodySnapshot } from '../../utils/bookingProfile';
+import { saveEmailToFirestore } from '../../firebaseUtils';
+import { isValidEmail } from '../../utils/validation';
+import { calculateBodyMetrics, buildKnowYourBodySnapshot, getStoredTestResults } from '../../utils/bookingProfile';
+import {
+  RULER_RANGES,
+  formatInchesToFeetInches,
+  convertHeight,
+  convertWeight,
+  suggestTargetWeight,
+  toggleDietaryChoice,
+  snapToStep
+} from '../../utils/knowYourBodyFlow';
 
-// Progress Bar
 const ProgressBar = ({ step }) => {
-  const progress = (step / 3) * 100;
-  return (<div className='pt-14'>
-    <div className="w-full bg-gray-200 rounded-full h-3 mb-8">
-      <div
-        className="bg-gradient-to-r from-green-500 to-emerald-500 h-3 rounded-full transition-all duration-500"
-        style={{ width: `${progress}%` }}
-      />
-      <div className="flex justify-between text-xs text-gray-500 mt-2">
-        <span>Welcome</span>
-        <span>BMI</span>
-        <span>Calories</span>
-        <span>Results</span>
+  const progress = Math.max(8, (step / 3) * 100);
+  return (
+    <div className="pt-12 max-w-2xl mx-auto">
+      <div className="w-full bg-stone-200/80 rounded-full h-2.5 mb-2.5 overflow-hidden">
+        <div
+          className="bg-gradient-to-r from-[#1F4E36] to-emerald-600 h-2.5 rounded-full transition-all duration-500"
+          style={{ width: `${progress}%` }}
+        />
+      </div>
+      <div className="flex justify-between text-[11px] font-semibold uppercase tracking-wider text-stone-500">
+        <span className={step === 0 ? 'text-emerald-800' : ''}>Start</span>
+        <span className={step === 1 ? 'text-emerald-800' : ''}>Body</span>
+        <span className={step === 2 ? 'text-emerald-800' : ''}>Lifestyle</span>
+        <span className={step === 3 ? 'text-emerald-800' : ''}>Results</span>
       </div>
     </div>
-  </div>
   );
 };
 
-// Welcome Step
-const WelcomeStep = ({ onNext }) => (
-  <div className="text-center space-y-8">
-    <div className="space-y-4">
-      <div className="text-6xl">🧭</div>
-      <h1 className="text-3xl sm:text-5xl font-serif-cormorant font-normal text-stone-900 mb-4 pt-15 tracking-tight">
-        Let's personalize your nutrition journey
+// Step 0: Enter Email to Get Started
+const WelcomeStep = ({ user, email, setEmail, emailError, setEmailError, onNext }) => (
+  <div className="max-w-2xl mx-auto text-center space-y-7 pt-6">
+    <div className="space-y-3">
+      <p className="text-[11px] font-bold uppercase tracking-[0.2em] text-emerald-800">
+        2-Minute Nutrition Check
+      </p>
+      <h1 className="text-3xl sm:text-5xl font-serif-cormorant font-normal text-stone-900 tracking-tight leading-[1.12]">
+        Understand your body &amp; daily calorie needs.
       </h1>
-      <p className="text-base sm:text-lg text-stone-700 font-normal max-w-2xl mx-auto leading-relaxed">
-        Track your daily calories with our easy-to-use tool and stay on top of your health goals. Get expert guidance and book a session with our dietitians when you're ready.
+      <p className="text-sm sm:text-base text-stone-600 max-w-xl mx-auto leading-relaxed">
+        Slide to set your measurements, discover your BMI and macro targets, and receive your personalized breakdown in your inbox.
       </p>
     </div>
-    <div className="flex justify-center space-x-4">
-      <div className="flex items-center space-x-2 text-green-700 font-medium">
-        <Calculator size={20} />
-        <span>BMI Calculator</span>
-      </div>
-      <div className="flex items-center space-x-2 text-emerald-700 font-medium">
-        <Target size={20} />
-        <span>Calorie Assessment</span>
-      </div>
-      <div className="flex items-center space-x-2 text-green-800 font-medium">
-        <BookOpen size={20} />
-        <span>Expert Consultation</span>
-      </div>
+
+    <div className="flex flex-wrap justify-center gap-4 text-xs sm:text-sm font-semibold text-emerald-900">
+      <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-white border border-stone-200">
+        <Calculator size={15} className="text-emerald-700" /> BMI &amp; Body Metrics
+      </span>
+      <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-white border border-stone-200">
+        <Target size={15} className="text-[#e07312]" /> Daily Calories &amp; Macros
+      </span>
+      <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-white border border-stone-200">
+        <BookOpen size={15} className="text-emerald-700" /> Dietitian Summary
+      </span>
     </div>
-    <button
-      onClick={() => {
-        onNext()
+
+    <form
+      onSubmit={(e) => {
+        e.preventDefault();
+        onNext();
       }}
-      className="px-8 py-4 bg-gradient-to-r from-orange-400 to-orange-400 text-white font-bold rounded-full shadow-lg hover:shadow-xl transform hover:-translate-y-1 transition-all duration-300 flex items-center space-x-2 mx-auto cursor-pointer"
+      className="bg-white rounded-3xl shadow-sm border border-stone-200/90 p-6 sm:p-8 max-w-md mx-auto text-left space-y-4"
     >
-      <span>Start Now</span>
-      <ChevronRight size={20} />
-    </button>
-    <p className="text-xs sm:text-sm text-stone-600 font-medium max-w-md mx-auto">
-      By proceeding, you agree to our{' '}
-      <a href="/privacy" className="text-green-700 hover:underline font-semibold">Privacy Policy</a>{' '}
+      {user?.email ? (
+        <div className="rounded-2xl bg-[#F4F7F4] border border-emerald-200/80 p-4 flex items-center gap-3">
+          <CheckCircle2 size={18} className="text-emerald-700 shrink-0" />
+          <div className="min-w-0 text-xs sm:text-sm">
+            <p className="font-bold text-emerald-950">Signed in as {user.displayName?.split(' ')[0] || 'you'}</p>
+            <p className="text-emerald-800 truncate">{user.email}</p>
+          </div>
+        </div>
+      ) : (
+        <div className="space-y-1.5">
+          <label htmlFor="kyb-email" className="block text-xs font-bold uppercase tracking-wider text-stone-700">
+            Enter your email address to get started
+          </label>
+          <div className="relative">
+            <Mail size={16} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-stone-400" />
+            <input
+              id="kyb-email"
+              type="email"
+              required
+              autoComplete="email"
+              value={email}
+              onChange={(e) => {
+                setEmail(e.target.value);
+                if (emailError) setEmailError('');
+              }}
+              placeholder="you@example.com"
+              className={`w-full pl-10 pr-4 py-3.5 rounded-xl border text-sm text-stone-900 placeholder-stone-400 focus:outline-none transition-colors ${
+                emailError
+                  ? 'border-rose-400 focus:border-rose-500 bg-rose-50/40'
+                  : 'border-stone-200 focus:border-emerald-600 bg-white'
+              }`}
+            />
+          </div>
+          {emailError ? (
+            <p className="text-xs font-semibold text-rose-600">{emailError}</p>
+          ) : (
+            <p className="text-[11px] text-stone-500 leading-relaxed">
+              We&apos;ll send your results breakdown plus weekly DietWithDee nutrition notes (unsubscribe anytime).
+            </p>
+          )}
+        </div>
+      )}
+
+      <button
+        type="submit"
+        className="w-full py-3.5 px-6 bg-[#F6841F] hover:bg-[#e07312] text-white font-bold rounded-2xl shadow-sm transition-colors flex items-center justify-center gap-2 text-sm sm:text-base cursor-pointer border-none"
+      >
+        <span>Start Assessment</span>
+        <ChevronRight size={18} />
+      </button>
+    </form>
+
+    <p className="text-xs text-stone-500 max-w-md mx-auto">
+      By continuing, you agree to our{' '}
+      <a href="/privacy" className="text-emerald-800 hover:underline font-semibold">Privacy Policy</a>{' '}
       and{' '}
-      <a href="/terms" className="text-green-700 hover:underline font-semibold">Terms of Service</a>.
+      <a href="/terms" className="text-emerald-800 hover:underline font-semibold">Terms of Service</a>.
     </p>
   </div>
 );
 
-// BMI Step
-const BMIStep = ({ formData, setFormData, units, setUnits, onNext }) => {
-  const ageRef = React.useRef(null);
-  const heightRef = React.useRef(null);
-  const weightRef = React.useRef(null);
-
-  const scrollToNext = (ref) => {
-    setTimeout(() => {
-      ref.current?.scrollIntoView({ behavior: 'smooth', block: 'center' });
-    }, 100);
-  };
+// Step 1: Gender + Horizontal Haptic Sliders
+const BMIStep = ({ formData, setFormData, units, onToggleUnits, onNext, onBack }) => {
+  const heightRange = units === 'imperial' ? RULER_RANGES.heightImperial : RULER_RANGES.heightMetric;
+  const weightRange = units === 'imperial' ? RULER_RANGES.weightImperial : RULER_RANGES.weightMetric;
 
   return (
-    <div className="max-w-2xl mx-auto space-y-8">
-      <div className="text-center space-y-4">
-        <Calculator className="mx-auto text-green-600" size={48} />
-        <h2 className="text-2xl sm:text-3xl font-serif-cormorant font-normal text-stone-900">BMI Calculator</h2>
-        <p className="text-stone-700 font-normal text-base sm:text-lg">Let's start with your basic measurements</p>
+    <div className="max-w-2xl mx-auto space-y-6 pt-4">
+      <div className="text-center space-y-2">
+        <h2 className="text-2xl sm:text-3xl font-serif-cormorant font-normal text-stone-900">
+          Your Body Measurements
+        </h2>
+        <p className="text-stone-600 text-sm sm:text-base">
+          Slide the rulers below — no tedious typing needed.
+        </p>
       </div>
-      <div className="bg-white rounded-2xl shadow-xl p-8 space-y-6">
+
+      <div className="bg-white rounded-3xl shadow-sm border border-stone-200/90 p-5 sm:p-7 space-y-5">
         {/* Units Toggle */}
-        <div className="flex justify-center mb-6">
-          <div className="bg-gray-100 rounded-full p-1 flex items-center space-x-1">
-            <button
-              onClick={() => {
-                setUnits('metric');
-                setFormData(prev => ({ ...prev, height: '', weight: '' }));
-              }}
-              className={`flex items-center space-x-2 px-4 py-2 rounded-full transition-all ${units === 'metric'
-                  ? 'bg-white shadow-md text-green-700 font-semibold'
-                  : 'text-gray-600'
-                }`}
-            >
-              <span className="text-lg">🇬🇧</span>
-              <span>Metric</span>
-            </button>
-            <button
-              onClick={() => {
-                setUnits('imperial');
-                setFormData(prev => ({ ...prev, height: '', weight: '' }));
-              }}
-              className={`flex items-center space-x-2 px-4 py-2 rounded-full transition-all ${units === 'imperial'
-                  ? 'bg-white shadow-md text-green-700 font-semibold'
-                  : 'text-gray-600'
-                }`}
-            >
-              <span className="text-lg">🇺🇸</span>
-              <span>Imperial</span>
-            </button>
-          </div>
-        </div>
-        {/* Gender */}
-        <div className="space-y-3">
-          <label className="block text-lg font-semibold text-gray-700">Gender</label>
-          <div className="flex space-x-4 text-gray-600">
-            {['male', 'female'].map(gender => (
+        <div className="flex justify-center">
+          <div className="bg-stone-100 rounded-full p-1 inline-flex items-center gap-1">
+            {[
+              { id: 'metric', label: 'Metric (cm · kg)' },
+              { id: 'imperial', label: 'Imperial (ft/in · lbs)' }
+            ].map((opt) => (
               <button
-                key={gender}
-                onClick={() => {
-                  setFormData(prev => ({ ...prev, gender }));
-                  scrollToNext(ageRef);
-                }}
-                className={`flex-1 py-3 px-6 rounded-xl border-2 font-medium capitalize transition-all ${formData.gender === gender
-                    ? 'border-green-500 bg-green-50 text-green-700'
-                    : 'border-gray-200 hover:border-green-300'
-                  }`}
+                key={opt.id}
+                type="button"
+                onClick={() => onToggleUnits(opt.id)}
+                className={`px-4 py-1.5 rounded-full text-xs font-bold transition-all cursor-pointer border-none ${
+                  units === opt.id
+                    ? 'bg-white shadow-xs text-emerald-900'
+                    : 'bg-transparent text-stone-500 hover:text-stone-800'
+                }`}
               >
-                <User className="inline mr-2" size={18} />
-                {gender}
+                {opt.label}
               </button>
             ))}
           </div>
         </div>
-        {/* Age */}
-        <div ref={ageRef} className="space-y-3 pt-4">
-          <label className="block text-lg font-semibold text-gray-700">Age (years)</label>
-          <input
-            type="number"
-            value={formData.age}
-            onChange={e => {
-              setFormData(prev => ({ ...prev, age: e.target.value }));
-              if (e.target.value.length >= 2) scrollToNext(heightRef);
-            }}
-            className="w-full py-3 px-4 border-2 border-gray-200 rounded-xl focus:border-green-500 focus:outline-none text-lg text-gray-900 placeholder-gray-500"
-            placeholder="Enter your age"
-          />
+
+        {/* Gender */}
+        <div className="space-y-2">
+          <label className="block text-sm font-bold text-stone-800">Biological Sex</label>
+          <div className="grid grid-cols-2 gap-3">
+            {['female', 'male'].map((gender) => (
+              <button
+                key={gender}
+                type="button"
+                onClick={() => setFormData((prev) => ({ ...prev, gender }))}
+                className={`py-3 px-4 rounded-xl border-2 font-semibold text-sm capitalize transition-all flex items-center justify-center gap-2 cursor-pointer ${
+                  formData.gender === gender
+                    ? 'border-emerald-600 bg-emerald-50/70 text-emerald-900'
+                    : 'border-stone-200 bg-white text-stone-600 hover:border-emerald-300'
+                }`}
+              >
+                <User size={16} />
+                <span>{gender}</span>
+              </button>
+            ))}
+          </div>
         </div>
-        {/* Height */}
-        <div ref={heightRef} className="space-y-3 pt-4">
-          <label className="block text-lg font-semibold text-gray-700">
-            Height ({units === 'metric' ? 'cm' : 'inches'})
-          </label>
-          <input
-            type="number"
-            value={formData.height}
-            onChange={e => {
-              setFormData(prev => ({ ...prev, height: e.target.value }));
-              if (e.target.value.length >= 2) scrollToNext(weightRef);
-            }}
-            className="w-full py-3 px-4 border-2 border-gray-200 rounded-xl focus:border-green-500 focus:outline-none text-lg text-gray-900 placeholder-gray-500"
-            placeholder={units === 'metric' ? 'Enter height in cm' : 'Enter height in inches'}
-          />
-        </div>
-        {/* Weight */}
-        <div ref={weightRef} className="space-y-3 pt-4">
-          <label className="text-lg font-semibold text-gray-700">
-            Weight ({units === 'metric' ? 'kg' : 'lbs'})
-          </label>
-          <input
-            type="number"
-            value={formData.weight}
-            onChange={e => setFormData(prev => ({ ...prev, weight: e.target.value }))}
-            className="w-full py-3 px-4 border-2 border-gray-200 rounded-xl focus:border-green-500 focus:outline-none text-lg text-gray-900 placeholder-gray-500"
-            placeholder={units === 'metric' ? 'Enter weight in kg' : 'Enter weight in lbs'}
-          />
-        </div>
+
+        {/* Age Ruler */}
+        <HapticRulerSlider
+          label="Age"
+          icon={<User size={16} />}
+          value={Number(formData.age)}
+          min={RULER_RANGES.age.min}
+          max={RULER_RANGES.age.max}
+          step={RULER_RANGES.age.step}
+          majorEvery={RULER_RANGES.age.majorEvery}
+          unit="yrs"
+          onChange={(val) => setFormData((prev) => ({ ...prev, age: val }))}
+        />
+
+        {/* Height Ruler */}
+        <HapticRulerSlider
+          label="Height"
+          icon={<Ruler size={16} />}
+          value={Number(formData.height)}
+          min={heightRange.min}
+          max={heightRange.max}
+          step={heightRange.step}
+          majorEvery={heightRange.majorEvery}
+          unit={heightRange.unit}
+          formatDisplay={units === 'imperial' ? formatInchesToFeetInches : null}
+          helperText={
+            units === 'imperial'
+              ? `${Math.round(Number(formData.height) * 2.54)} cm`
+              : `${formatInchesToFeetInches(Number(formData.height) / 2.54)}`
+          }
+          onChange={(val) => setFormData((prev) => ({ ...prev, height: val }))}
+        />
+
+        {/* Weight Ruler */}
+        <HapticRulerSlider
+          label="Current Weight"
+          icon={<Scale size={16} />}
+          value={Number(formData.weight)}
+          min={weightRange.min}
+          max={weightRange.max}
+          step={weightRange.step}
+          majorEvery={weightRange.majorEvery}
+          unit={weightRange.unit}
+          helperText={
+            units === 'imperial'
+              ? `${Math.round(Number(formData.weight) * 0.453592 * 10) / 10} kg`
+              : null
+          }
+          onChange={(val) => setFormData((prev) => ({ ...prev, weight: val }))}
+        />
       </div>
-      <button
-        onClick={() => {
-          onNext()
-        }}
-        disabled={!formData.gender || !formData.age || !formData.height || !formData.weight}
-        className="w-full py-4 bg-gradient-to-r from-orange-400 to-orange-400 text-white font-bold rounded-full shadow-lg hover:shadow-xl transform hover:-translate-y-1 transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center space-x-2"
-      >
-        <span>Next Step</span>
-        <ChevronRight size={20} />
-      </button>
+
+      <div className="flex gap-3">
+        <button
+          type="button"
+          onClick={onBack}
+          className="px-5 py-3.5 rounded-2xl border border-stone-300 bg-white hover:bg-stone-50 text-stone-700 font-semibold text-sm flex items-center gap-1.5 cursor-pointer"
+        >
+          <ChevronLeft size={16} />
+          <span>Back</span>
+        </button>
+        <button
+          type="button"
+          onClick={onNext}
+          disabled={!formData.gender}
+          className="flex-1 py-3.5 bg-[#F6841F] hover:bg-[#e07312] text-white font-bold rounded-2xl shadow-sm transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2 text-sm sm:text-base cursor-pointer border-none"
+        >
+          <span>Next: Goal &amp; Lifestyle</span>
+          <ChevronRight size={18} />
+        </button>
+      </div>
     </div>
   );
 };
 
-// Calorie Step
-const CalorieStep = ({ formData, setFormData, onNext }) => {
-  const activityRef = React.useRef(null);
-  const sleepRef = React.useRef(null);
-  const healthRef = React.useRef(null);
-  const dietRef = React.useRef(null);
+// Step 2: Goal (with Haptic Target Weight Slider) & Lifestyle
+const CalorieStep = ({ formData, setFormData, units, onNext, onBack }) => {
+  const weightRange = units === 'imperial' ? RULER_RANGES.weightImperial : RULER_RANGES.weightMetric;
 
-  const scrollToNext = (ref) => {
-    setTimeout(() => {
-      ref.current?.scrollIntoView({ behavior: 'smooth', block: 'center' });
-    }, 100);
+  const handleSelectGoal = (goalKey) => {
+    setFormData((prev) => ({
+      ...prev,
+      goal: goalKey,
+      targetWeight:
+        goalKey === 'maintain'
+          ? null
+          : suggestTargetWeight(prev.weight, goalKey, units)
+    }));
   };
 
   return (
-    <div className="max-w-2xl mx-auto space-y-8">
-      <div className="text-center space-y-4">
-        <Target className="mx-auto text-emerald-600" size={48} />
-        <h2 className="text-2xl sm:text-3xl font-serif-cormorant font-normal text-stone-900">Let's get to know your body a bit more…</h2>
-        <p className="text-stone-700 font-normal text-base sm:text-lg">This helps us calculate your daily calorie needs</p>
+    <div className="max-w-2xl mx-auto space-y-6 pt-4">
+      <div className="text-center space-y-2">
+        <h2 className="text-2xl sm:text-3xl font-serif-cormorant font-normal text-stone-900">
+          Your Goal &amp; Routine
+        </h2>
+        <p className="text-stone-600 text-sm sm:text-base">
+          Tailors your calorie target, macro balance, and clinical context.
+        </p>
       </div>
-      <div className="bg-white rounded-2xl shadow-xl p-8 space-y-8">
-        <div className="space-y-6">
-          <div className="space-y-4">
-            <label className="text-lg font-semibold text-gray-700 flex items-center">
-              <Target className="mr-2" size={20} /> What's your goal?
-            </label>
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-3 text-gray-600">
-              {[
-                { key: 'lose', label: 'Lose Weight', icon: '📉' },
-                { key: 'maintain', label: 'Maintain Weight', icon: '⚖️' },
-                { key: 'gain', label: 'Gain Weight', icon: '📈' }
-              ].map(goal => (
-                <button
-                  key={goal.key}
-                  onClick={() => {
-                    setFormData(prev => ({ ...prev, goal: goal.key }));
-                    scrollToNext(activityRef);
-                  }}
-                  className={`py-4 px-4 rounded-xl border-2 font-medium transition-all text-center ${formData.goal === goal.key
-                      ? 'border-green-500 bg-green-50 text-green-700'
-                      : 'border-gray-200 hover:border-green-300'
-                    }`}
-                >
-                  <div className="text-2xl mb-2">{goal.icon}</div>
-                  {goal.label}
-                </button>
-              ))}
-            </div>
+
+      <div className="bg-white rounded-3xl shadow-sm border border-stone-200/90 p-5 sm:p-7 space-y-7">
+        {/* Primary Goal */}
+        <div className="space-y-3">
+          <label className="text-sm sm:text-base font-bold text-stone-800 flex items-center gap-2">
+            <Target size={17} className="text-[#e07312]" /> What&apos;s your main goal?
+          </label>
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+            {[
+              { key: 'lose', label: 'Lose Weight', icon: '📉' },
+              { key: 'maintain', label: 'Maintain Weight', icon: '⚖️' },
+              { key: 'gain', label: 'Gain Weight', icon: '📈' }
+            ].map((goal) => (
+              <button
+                key={goal.key}
+                type="button"
+                onClick={() => handleSelectGoal(goal.key)}
+                className={`py-3.5 px-4 rounded-xl border-2 font-semibold text-sm transition-all text-center cursor-pointer ${
+                  formData.goal === goal.key
+                    ? 'border-emerald-600 bg-emerald-50/70 text-emerald-900'
+                    : 'border-stone-200 bg-white text-stone-700 hover:border-emerald-300'
+                }`}
+              >
+                <span className="mr-1.5">{goal.icon}</span>
+                {goal.label}
+              </button>
+            ))}
           </div>
 
           <AnimatePresence>
@@ -261,343 +351,376 @@ const CalorieStep = ({ formData, setFormData, onNext }) => {
                 initial={{ opacity: 0, height: 0 }}
                 animate={{ opacity: 1, height: 'auto' }}
                 exit={{ opacity: 0, height: 0 }}
-                className="space-y-4 overflow-hidden pt-2"
+                className="pt-2 overflow-hidden"
               >
-                <label className="text-lg font-semibold text-gray-700 flex items-center">
-                  🎯 Target Weight (kg)
-                </label>
-                <input
-                  type="number"
-                  min="20"
-                  max="500"
-                  value={formData.targetWeight || ''}
-                  onChange={e => setFormData(p => ({ ...p, targetWeight: e.target.value }))}
-                  className="w-full py-3 px-4 border-2 border-green-200 rounded-xl focus:border-green-500 focus:outline-none text-lg text-gray-900 placeholder-gray-400 font-bold"
-                  placeholder={`e.g., ${formData.goal === 'lose' ? (formData.weight ? formData.weight - 5 : '65') : (formData.weight ? parseFloat(formData.weight) + 5 : '75')} kg`}
+                <HapticRulerSlider
+                  label="Target Weight"
+                  icon={<Target size={16} />}
+                  value={Number(
+                    formData.targetWeight || suggestTargetWeight(formData.weight, formData.goal, units)
+                  )}
+                  min={weightRange.min}
+                  max={weightRange.max}
+                  step={weightRange.step}
+                  majorEvery={weightRange.majorEvery}
+                  unit={weightRange.unit}
+                  onChange={(val) => setFormData((prev) => ({ ...prev, targetWeight: val }))}
                 />
-                <div className="p-3 bg-emerald-50 rounded-xl border border-emerald-100">
-                  <p className="text-sm text-emerald-700 font-medium italic">
-                    {formData.goal === 'lose' ? '✨ Setting a specific target helps you stay motivated and track your progress accurately!' : '💪 Fuel your body to reach your strength and weight targets!'}
-                  </p>
-                </div>
               </motion.div>
             )}
           </AnimatePresence>
         </div>
-        {/* Activity */}
-        <div ref={activityRef} className="space-y-4 pt-4">
-          <label className="text-lg font-semibold text-gray-700 flex items-center">
-            <Activity className="mr-2" size={20} /> What's your daily activity level?
+
+        {/* Activity Level */}
+        <div className="space-y-3">
+          <label className="text-sm sm:text-base font-bold text-stone-800 flex items-center gap-2">
+            <Activity size={17} className="text-emerald-700" /> Daily activity level
           </label>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-3 text-green-600">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
             {[
-              { key: 'sedentary', label: 'Sedentary', desc: 'Little to no exercise' },
-              { key: 'light', label: 'Light', desc: 'Light exercise 1-3 days/week' },
-              { key: 'moderate', label: 'Moderate', desc: 'Moderate exercise 3-5 days/week' },
-              { key: 'active', label: 'Very Active', desc: 'Heavy exercise 6-7 days/week' }
-            ].map(activity => (
+              { key: 'sedentary', label: 'Sedentary', desc: 'Desk work, little exercise' },
+              { key: 'light', label: 'Light', desc: 'Walk or workout 1–3 days/wk' },
+              { key: 'moderate', label: 'Moderate', desc: 'Active 3–5 days/wk' },
+              { key: 'active', label: 'Very Active', desc: 'Intense training 6–7 days/wk' }
+            ].map((act) => (
               <button
-                key={activity.key}
-                onClick={() => {
-                  setFormData(prev => ({ ...prev, activityLevel: activity.key }));
-                  scrollToNext(sleepRef);
-                }}
-                className={`py-4 px-4 rounded-xl border-2 font-medium transition-all text-left ${formData.activityLevel === activity.key
-                    ? 'border-green-500 bg-green-50 text-green-700'
-                    : 'border-gray-200 hover:border-green-300'
-                  }`}
+                key={act.key}
+                type="button"
+                onClick={() => setFormData((prev) => ({ ...prev, activityLevel: act.key }))}
+                className={`p-3.5 rounded-xl border-2 text-left transition-all cursor-pointer ${
+                  formData.activityLevel === act.key
+                    ? 'border-emerald-600 bg-emerald-50/70 text-emerald-950'
+                    : 'border-stone-200 bg-white text-stone-700 hover:border-emerald-300'
+                }`}
               >
-                <div className="font-semibold">{activity.label}</div>
-                <div className="text-sm text-gray-600">{activity.desc}</div>
+                <div className="font-bold text-sm">{act.label}</div>
+                <div className="text-xs text-stone-500 mt-0.5">{act.desc}</div>
               </button>
             ))}
           </div>
         </div>
+
         {/* Sleep */}
-        <div ref={sleepRef} className="space-y-4 pt-4">
-          <label className="text-lg font-semibold text-gray-700 flex items-center">
-            <Moon className="mr-2" size={20} /> How many hours of sleep do you get?
+        <div className="space-y-2.5">
+          <label className="text-sm sm:text-base font-bold text-stone-800 flex items-center gap-2">
+            <Moon size={17} className="text-emerald-700" /> Typical sleep per night
           </label>
-          <div className="grid grid-cols-3 gap-3 text-gray-400">
-            {['4-5 hours', '6-7 hours', '8+ hours'].map(sleep => (
+          <div className="grid grid-cols-3 gap-2.5">
+            {['4-5 hours', '6-7 hours', '8+ hours'].map((sleep) => (
               <button
                 key={sleep}
-                onClick={() => {
-                  setFormData(prev => ({ ...prev, sleepHours: sleep }));
-                  scrollToNext(healthRef);
-                }}
-                className={`py-3 px-4 rounded-xl border-2 font-medium transition-all ${formData.sleepHours === sleep
-                    ? 'border-green-500 bg-green-50 text-green-700'
-                    : 'border-gray-200 hover:border-green-300'
-                  }`}
+                type="button"
+                onClick={() => setFormData((prev) => ({ ...prev, sleepHours: sleep }))}
+                className={`py-2.5 px-3 rounded-xl border-2 text-xs sm:text-sm font-semibold transition-all cursor-pointer ${
+                  formData.sleepHours === sleep
+                    ? 'border-emerald-600 bg-emerald-50/70 text-emerald-900'
+                    : 'border-stone-200 bg-white text-stone-600 hover:border-emerald-300'
+                }`}
               >
                 {sleep}
               </button>
             ))}
           </div>
         </div>
-        {/* Dietary Restrictions */}
-        <div ref={dietRef} className="space-y-4 pt-4">
-          <label className="text-lg font-semibold text-gray-700 flex items-center">
-            <Utensils className="mr-2" size={20} /> Dietary restrictions/preferences?
+
+        {/* Dietary Restrictions (Multi-chip) */}
+        <div className="space-y-2.5">
+          <label className="text-sm sm:text-base font-bold text-stone-800 flex items-center gap-2">
+            <Utensils size={17} className="text-emerald-700" /> Dietary style or preferences
           </label>
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-3 text-gray-400">
-            {['Vegan', 'Vegetarian', 'Gluten-free', 'None'].map(diet => (
-              <button
-                key={diet}
-                onClick={() => {
-                  setFormData(prev => ({ ...prev, dietaryRestrictions: diet }))
-                }}
-                className={`py-3 px-4 rounded-xl border-2 font-medium transition-all ${formData.dietaryRestrictions === diet
-                    ? 'border-green-500 bg-green-50 text-green-700'
-                    : 'border-gray-200 hover:border-green-300'
+          <div className="flex flex-wrap gap-2">
+            {['None', 'Low Sugar / Diabetes', 'Vegetarian', 'Vegan', 'Dairy-free', 'Gluten-free'].map((diet) => {
+              const selectedList = String(formData.dietaryRestrictions || '')
+                .split(',')
+                .map((s) => s.trim())
+                .filter(Boolean);
+              const isSelected = selectedList.includes(diet);
+
+              return (
+                <button
+                  key={diet}
+                  type="button"
+                  onClick={() =>
+                    setFormData((prev) => ({
+                      ...prev,
+                      dietaryRestrictions: toggleDietaryChoice(prev.dietaryRestrictions, diet)
+                    }))
+                  }
+                  className={`py-2 px-3.5 rounded-full border text-xs font-semibold transition-all cursor-pointer ${
+                    isSelected
+                      ? 'border-emerald-600 bg-emerald-50 text-emerald-900'
+                      : 'border-stone-200 bg-white text-stone-600 hover:border-emerald-300'
                   }`}
-              >
-                {diet}
-              </button>
-            ))}
+                >
+                  {diet}
+                </button>
+              );
+            })}
           </div>
         </div>
 
-        {/* Health Conditions */}
-        <div ref={healthRef} className="space-y-3 pt-4">
-          <label className="text-lg font-semibold text-gray-700 flex items-center">
-            <Heart className="mr-2" size={20} /> Any health conditions? (Optional)
-          </label>
-          <input
-            type="text"
-            value={formData.healthConditions}
-            onChange={e => setFormData(prev => ({ ...prev, healthConditions: e.target.value }))}
-            className="w-full py-3 px-4 border-2 border-gray-200 rounded-xl focus:border-green-500 focus:outline-none text-gray-900 placeholder-gray-500"
-            placeholder="e.g., Diabetes, High blood pressure..."
-          />
-        </div>
+        {/* Optional Clinical Notes */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <div className="space-y-1.5">
+            <label className="text-xs font-bold uppercase tracking-wider text-stone-700 flex items-center gap-1.5">
+              <Heart size={14} className="text-rose-600" /> Health conditions (optional)
+            </label>
+            <input
+              type="text"
+              value={formData.healthConditions}
+              onChange={(e) => setFormData((prev) => ({ ...prev, healthConditions: e.target.value }))}
+              placeholder="e.g., Diabetes, High BP, PCOS"
+              className="w-full py-2.5 px-3.5 border border-stone-200 rounded-xl focus:border-emerald-600 focus:outline-none text-sm text-stone-900 placeholder-stone-400"
+            />
+          </div>
 
-        {/* Food Allergies */}
-        <div className="space-y-3 pt-4">
-          <label className="text-lg font-semibold text-gray-700 flex items-center">
-            <Angry className="mr-2" size={30} /> Do you have any Food Allergies or Dislikes? (Optional)
-          </label>
-          <input
-            type="text"
-            value={formData.dislikes}
-            onChange={e => setFormData(prev => ({ ...prev, dislikes: e.target.value }))}
-            className="w-full py-3 px-4 border-2 border-gray-200 rounded-xl focus:border-green-500 focus:outline-none text-gray-900 placeholder-gray-500"
-            placeholder="e.g., Lactose Intolerance, Gluten Insensitivity..."
-          />
+          <div className="space-y-1.5">
+            <label className="text-xs font-bold uppercase tracking-wider text-stone-700 flex items-center gap-1.5">
+              <Angry size={14} className="text-amber-600" /> Allergies / Dislikes (optional)
+            </label>
+            <input
+              type="text"
+              value={formData.dislikes}
+              onChange={(e) => setFormData((prev) => ({ ...prev, dislikes: e.target.value }))}
+              placeholder="e.g., Peanuts, seafood"
+              className="w-full py-2.5 px-3.5 border border-stone-200 rounded-xl focus:border-emerald-600 focus:outline-none text-sm text-stone-900 placeholder-stone-400"
+            />
+          </div>
         </div>
       </div>
-      <button
-        onClick={() => {
-          onNext()
-        }}
-        disabled={!formData.goal || !formData.activityLevel || !formData.sleepHours || !formData.dietaryRestrictions}
-        className="w-full py-4 bg-gradient-to-r from-orange-400 to-orange-400 text-white font-bold rounded-full shadow-lg hover:shadow-xl transform hover:-translate-y-1 transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center space-x-2"
-      >
-        <span>See Results</span>
-        <ChevronRight size={20} />
-      </button>
+
+      <div className="flex gap-3">
+        <button
+          type="button"
+          onClick={onBack}
+          className="px-5 py-3.5 rounded-2xl border border-stone-300 bg-white hover:bg-stone-50 text-stone-700 font-semibold text-sm flex items-center gap-1.5 cursor-pointer"
+        >
+          <ChevronLeft size={16} />
+          <span>Back</span>
+        </button>
+        <button
+          type="button"
+          onClick={onNext}
+          disabled={!formData.goal || !formData.activityLevel || !formData.sleepHours}
+          className="flex-1 py-3.5 bg-[#F6841F] hover:bg-[#e07312] text-white font-bold rounded-2xl shadow-sm transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2 text-sm sm:text-base cursor-pointer border-none"
+        >
+          <span>See My Results</span>
+          <ChevronRight size={18} />
+        </button>
+      </div>
     </div>
   );
 };
 
-// Results Step
+// Step 3: Results + Email/Portal Status + Consult CTA
 const ResultsStep = ({
   results,
   snapshot,
+  emailUsed,
   navigate,
   trigger,
   user,
-  autoSaveStatus,
+  syncStatus,
   signingInToSave,
-  onSignInToSave
+  onSignInToSave,
+  onRetake
 }) => (
-  <div className="max-w-4xl mx-auto space-y-8">
-    <div className="text-center space-y-4">
-      <div className="text-6xl">📊</div>
-      <h2 className="text-3xl font-bold text-green-900">Your Personalized Results</h2>
-      <p className="text-stone-700 text-base sm:text-lg font-normal">Here's what we calculated based on your information</p>
+  <div className="max-w-4xl mx-auto space-y-7 pt-4">
+    <div className="text-center space-y-3">
+      <p className="text-[11px] font-bold uppercase tracking-[0.2em] text-emerald-800">
+        Your Nutrition Snapshot
+      </p>
+      <h2 className="text-3xl sm:text-4xl font-serif-cormorant font-normal text-stone-900">
+        Your Personalized Results
+      </h2>
 
-      {user && (
-        <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full text-xs sm:text-sm font-semibold border bg-white/90 shadow-xs">
-          {autoSaveStatus === 'saving' && (
+      {(emailUsed || user) && (
+        <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full text-xs font-semibold border border-stone-200 bg-white shadow-2xs">
+          {syncStatus === 'saving' ? (
             <>
-              <Loader2 size={14} className="animate-spin text-emerald-600" />
-              <span className="text-stone-700">Saving test to your My Journey profile...</span>
+              <Loader2 size={13} className="animate-spin text-emerald-700" />
+              <span className="text-stone-700">
+                {user
+                  ? `Saving & sending summary to ${emailUsed || user.email}...`
+                  : `Sending summary to ${emailUsed}...`}
+              </span>
             </>
-          )}
-          {autoSaveStatus === 'saved' && (
+          ) : (
             <>
-              <CheckCircle2 size={15} className="text-emerald-600" />
-              <span className="text-emerald-800">Automatically saved to your My Journey profile</span>
+              <CheckCircle2 size={14} className="text-emerald-600" />
+              <span className="text-emerald-900">
+                {user
+                  ? `Saved to My Journey & summary sent to ${emailUsed || user.email}`
+                  : `Summary emailed to ${emailUsed}`}
+              </span>
             </>
-          )}
-          {autoSaveStatus === 'error' && (
-            <span className="text-amber-700">Saved on this device (cloud sync skipped)</span>
           )}
         </div>
       )}
     </div>
-    <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-      {/* BMI Results */}
-      <div className="bg-white rounded-2xl shadow-xl p-8 space-y-6">
-        <div className="text-center space-y-4">
-          <div className="text-4xl">🧍</div>
-          <h3 className="text-2xl font-bold text-green-900">Your BMI</h3>
-          <div className="space-y-2">
-            <div className="text-4xl font-bold text-green-600">{results.bmi}</div>
-            <div className={`text-lg font-semibold px-4 py-2 rounded-full inline-block ${results.bmiCategory === 'Normal Weight' ? 'bg-green-100 text-green-800' :
-                results.bmiCategory === 'Underweight' ? 'bg-blue-100 text-blue-800' :
-                  results.bmiCategory === 'Overweight' ? 'bg-yellow-100 text-yellow-800' :
-                    'bg-red-100 text-red-800'
-              }`}>
-              {results.bmiCategory}
-            </div>
-          </div>
-          <p className="text-base text-stone-700 font-medium">
-            {results.bmiCategory === 'Normal Weight' && "Great! You're in the healthy weight range."}
-            {results.bmiCategory === 'Underweight' && "Consider consulting with our Dietitian for healthy weight gain."}
-            {results.bmiCategory === 'Overweight' && "A personalized plan can help you reach your ideal weight."}
-            {results.bmiCategory === 'Obese' && "Let's work together on a safe, effective weight management plan."}
-          </p>
+
+    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+      <div className="bg-white rounded-3xl shadow-sm border border-stone-200/90 p-7 text-center space-y-4">
+        <span className="text-xs font-bold uppercase tracking-widest text-stone-500">Body Mass Index</span>
+        <div className="text-5xl font-bold text-emerald-800 tabular-nums">{results.bmi}</div>
+        <div>
+          <span
+            className={`text-sm font-bold px-4 py-1.5 rounded-full inline-block border ${
+              results.bmiCategory === 'Normal Weight'
+                ? 'bg-emerald-50 text-emerald-800 border-emerald-200'
+                : results.bmiCategory === 'Underweight'
+                ? 'bg-sky-50 text-sky-800 border-sky-200'
+                : results.bmiCategory === 'Overweight'
+                ? 'bg-amber-50 text-amber-800 border-amber-200'
+                : 'bg-rose-50 text-rose-800 border-rose-200'
+            }`}
+          >
+            {results.bmiCategory}
+          </span>
         </div>
+        <p className="text-sm text-stone-600 leading-relaxed">
+          {results.bmiCategory === 'Normal Weight' && "You're in a healthy range — focus on quality, consistency, and balanced local meals."}
+          {results.bmiCategory === 'Underweight' && 'A structured, nutrient-dense Ghanaian meal plan can help you build healthy weight safely.'}
+          {results.bmiCategory === 'Overweight' && 'A tailored meal structure around foods you enjoy makes sustainable fat loss straightforward.'}
+          {results.bmiCategory === 'Obese' && "Let's build a calm, clinical roadmap together for safe weight & metabolic health."}
+        </p>
       </div>
-      {/* Calorie Results */}
-      <div className="bg-white rounded-2xl shadow-xl p-8 space-y-6">
-        <div className="text-center space-y-4">
-          <div className="text-4xl">🔥</div>
-          <h3 className="text-2xl font-bold text-emerald-900">Daily Calorie Needs</h3>
-          <div className="space-y-3">
+
+      <div className="bg-white rounded-3xl shadow-sm border border-stone-200/90 p-7 text-center space-y-4">
+        <span className="text-xs font-bold uppercase tracking-widest text-stone-500">Daily Target</span>
+        <div>
+          <div className="text-5xl font-bold text-[#e07312] tabular-nums">{results.tdee}</div>
+          <div className="text-xs font-semibold text-stone-500 mt-1">kcal / day</div>
+        </div>
+        <div className="bg-stone-50 rounded-2xl p-4 border border-stone-200/70 space-y-2">
+          <h4 className="text-xs font-bold uppercase tracking-wider text-stone-600">
+            Daily Macro Split
+          </h4>
+          <div className="grid grid-cols-3 gap-3">
             <div>
-              <div className="text-3xl font-bold text-emerald-600">{results.tdee}</div>
-              <div className="text-sm text-stone-700 font-medium">calories per day</div>
+              <div className="font-bold text-emerald-800 text-lg tabular-nums">{results.macros.protein}g</div>
+              <div className="text-[11px] text-stone-500 font-semibold">Protein</div>
             </div>
-            <div className="bg-gray-50 rounded-xl p-4 space-y-2 border border-gray-100">
-              <h4 className="font-bold text-stone-800">Recommended Macros:</h4>
-              <div className="grid grid-cols-3 gap-4 text-center">
-                <div>
-                  <div className="font-bold text-green-700 text-base">{results.macros.protein}g</div>
-                  <div className="text-xs sm:text-sm text-stone-700 font-semibold">Protein</div>
-                </div>
-                <div>
-                  <div className="font-bold text-emerald-700 text-base">{results.macros.carbs}g</div>
-                  <div className="text-xs sm:text-sm text-stone-700 font-semibold">Carbs</div>
-                </div>
-                <div>
-                  <div className="font-bold text-green-800 text-base">{results.macros.fats}g</div>
-                  <div className="text-xs sm:text-sm text-stone-700 font-semibold">Fats</div>
-                </div>
-              </div>
+            <div>
+              <div className="font-bold text-stone-900 text-lg tabular-nums">{results.macros.carbs}g</div>
+              <div className="text-[11px] text-stone-500 font-semibold">Carbs</div>
+            </div>
+            <div>
+              <div className="font-bold text-stone-900 text-lg tabular-nums">{results.macros.fats}g</div>
+              <div className="text-[11px] text-stone-500 font-semibold">Fats</div>
             </div>
           </div>
         </div>
       </div>
     </div>
-    {/* CTA */}
-    <div className="bg-gradient-to-br from-green-50 to-emerald-50 rounded-2xl p-8 text-center space-y-6 border border-emerald-100">
-      <div className="space-y-4">
-        <h3 className="text-2xl sm:text-3xl font-bold text-green-900">Ready for Your Personal Plan?</h3>
-        <p className="text-base sm:text-lg text-stone-800 max-w-3xl mx-auto font-normal leading-relaxed">
-          📊 <em>This is a general guide based on standard calculations.</em> For a tailored nutrition plan that considers your unique needs, health conditions, and preferences, book a consultation with our expert Dietitians.
+
+    <div className="bg-white rounded-3xl border border-stone-200/90 shadow-sm p-6 sm:p-8 text-center space-y-5">
+      <div className="space-y-2">
+        <h3 className="text-2xl sm:text-3xl font-serif-cormorant font-semibold text-stone-900">
+          Turn these numbers into a real meal plan
+        </h3>
+        <p className="text-sm text-stone-600 max-w-2xl mx-auto leading-relaxed">
+          These metrics are already attached for booking. Work 1-on-1 with Registered Dietitian Nana Ama Dwamena to tailor portions around your Ghanaian staples and schedule.
         </p>
       </div>
-      <div className="space-y-6 flex flex-col items-center">
-        <div className="flex flex-col sm:flex-row gap-4 w-full justify-center items-center">
+
+      <div className="flex flex-col sm:flex-row gap-3 justify-center max-w-xl mx-auto">
+        <button
+          type="button"
+          onClick={() => {
+            trigger('success');
+            navigate('/contactUs', { state: { userResults: snapshot } });
+          }}
+          className="flex-1 py-3.5 px-6 bg-[#F6841F] hover:bg-[#e07312] text-white font-bold rounded-2xl shadow-sm transition-colors flex items-center justify-center gap-2 text-sm sm:text-base cursor-pointer border-none"
+        >
+          <BookOpen size={18} />
+          <span>Book a Consultation →</span>
+        </button>
+
+        {user ? (
           <button
+            type="button"
             onClick={() => {
-              trigger("success");
-              if (snapshot) {
-                try {
-                  localStorage.setItem('diet_test_results', JSON.stringify(snapshot));
-                } catch (e) {
-                  console.warn('Could not save test results to storage:', e);
-                }
-              }
-
-              navigate('/contactUs', {
-                state: {
-                  userResults: snapshot
-                }
-              });
+              trigger('success');
+              navigate('/my-journey');
             }}
-            className="w-full sm:flex-1 max-w-sm px-6 py-3 sm:px-8 sm:py-4 bg-gradient-to-r from-orange-400 to-orange-400 text-white font-bold rounded-full shadow-lg hover:shadow-xl transform hover:-translate-y-1 transition-all duration-300 flex items-center justify-center space-x-2 text-base sm:text-lg cursor-pointer border-none"
+            className="flex-1 py-3.5 px-6 border-2 border-[#1F4E36] text-[#1F4E36] hover:bg-emerald-50 font-bold rounded-2xl transition-colors flex items-center justify-center gap-2 text-sm sm:text-base cursor-pointer bg-white"
           >
-            <BookOpen size={21} />
-            <span>Book a Consultation →</span>
+            <span>Open My Journey</span>
           </button>
+        ) : (
+          <button
+            type="button"
+            onClick={onSignInToSave}
+            disabled={signingInToSave}
+            className="flex-1 py-3.5 px-6 border border-stone-300 bg-white hover:bg-stone-50 text-stone-800 font-bold rounded-2xl transition-colors flex items-center justify-center gap-2 text-sm sm:text-base cursor-pointer disabled:opacity-60"
+          >
+            {signingInToSave ? <Loader2 size={16} className="animate-spin" /> : <FcGoogle size={18} />}
+            <span>{signingInToSave ? 'Saving...' : 'Save to My Journey'}</span>
+          </button>
+        )}
+      </div>
 
-          {user ? (
-            <button
-              onClick={() => {
-                trigger("success");
-                navigate('/my-journey');
-              }}
-              className="w-full sm:flex-1 max-w-sm px-6 py-3 sm:px-8 sm:py-4 border-2 border-green-600 text-green-700 font-bold rounded-full hover:bg-green-50 transition-all duration-300 hover:shadow-md text-base sm:text-lg flex items-center justify-center space-x-2 cursor-pointer"
-            >
-              <span>Go to My Journey</span>
-            </button>
-          ) : (
-            <button
-              onClick={onSignInToSave}
-              disabled={signingInToSave}
-              className="w-full sm:flex-1 max-w-sm px-6 py-3 sm:px-8 sm:py-4 border-2 border-green-600 bg-white text-green-700 font-bold rounded-full hover:bg-green-50 transition-all duration-300 hover:shadow-md text-base sm:text-lg flex items-center justify-center space-x-2 cursor-pointer disabled:opacity-60"
-            >
-              {signingInToSave ? (
-                <Loader2 size={18} className="animate-spin text-green-700" />
-              ) : (
-                <FcGoogle size={20} />
-              )}
-              <span>{signingInToSave ? 'Saving...' : 'Save Results with Google'}</span>
-            </button>
-          )}
-        </div>
-
-        <p className="text-sm sm:text-base text-stone-700 italic max-w-md mx-auto font-medium">
-          {user
-            ? 'This assessment is saved in My Journey and will auto-attach when you book a session.'
-            : 'Sign in once to save these results and track your consultations with Dee.'}
-        </p>
-
-        <div className="flex items-center justify-center space-x-6 text-sm sm:text-base text-stone-700 pt-2 font-medium">
-          <div className="flex items-center space-x-1.5">
-            <div className="w-2.5 h-2.5 bg-green-600 rounded-full"></div>
-            <span>Expert Dietitians</span>
-          </div>
-          <div className="flex items-center space-x-1">
-            <div className="w-2 h-2 bg-emerald-500 rounded-full"></div>
-            <span>Personalized Plans</span>
-          </div>
-          <div className="flex items-center space-x-1">
-            <div className="w-2 h-2 bg-green-600 rounded-full"></div>
-            <span>Ongoing Support</span>
-          </div>
-        </div>
+      <div>
+        <button
+          type="button"
+          onClick={onRetake}
+          className="text-xs font-semibold text-stone-500 hover:text-stone-800 transition-colors cursor-pointer bg-transparent border-none"
+        >
+          Adjust measurements &amp; recalculate
+        </button>
       </div>
     </div>
   </div>
 );
 
-// Main Component
 function KnowYourBody() {
-  const [step, setStep] = useState(0);
   const navigate = useNavigate();
   const { trigger } = useWebHaptics();
-  const { user, signInWithGoogle, saveAssessment } = useAuth();
-  const [autoSaveStatus, setAutoSaveStatus] = useState('idle');
-  const [signingInToSave, setSigningInToSave] = useState(false);
-  const [latestSnapshot, setLatestSnapshot] = useState(null);
-  const [formData, setFormData] = useState({
-    gender: '',
-    age: '',
-    height: '',
-    weight: '',
-    goal: '',
-    activityLevel: '',
-    sleepHours: '',
-    healthConditions: '',
-    dietaryRestrictions: ''
-  });
+  const { user, userProfile, signInWithGoogle, saveAssessment } = useAuth();
+
+  const [step, setStep] = useState(0);
   const [units, setUnits] = useState('metric');
+  const [email, setEmail] = useState(() => {
+    try {
+      return localStorage.getItem('knowyourbody_email') || '';
+    } catch {
+      return '';
+    }
+  });
+  const [emailError, setEmailError] = useState('');
+
+  const [formData, setFormData] = useState(() => {
+    const cached = getStoredTestResults();
+    return {
+      gender: cached?.gender || 'female',
+      age: snapToStep(cached?.age || RULER_RANGES.age.defaultValue, 1, RULER_RANGES.age.min, RULER_RANGES.age.max),
+      height: snapToStep(
+        cached?.height || RULER_RANGES.heightMetric.defaultValue,
+        1,
+        RULER_RANGES.heightMetric.min,
+        RULER_RANGES.heightMetric.max
+      ),
+      weight: snapToStep(
+        cached?.weight || RULER_RANGES.weightMetric.defaultValue,
+        0.5,
+        RULER_RANGES.weightMetric.min,
+        RULER_RANGES.weightMetric.max
+      ),
+      goal: cached?.goal || 'lose',
+      targetWeight: cached?.targetWeight || suggestTargetWeight(
+        cached?.weight || RULER_RANGES.weightMetric.defaultValue,
+        cached?.goal || 'lose',
+        'metric'
+      ),
+      activityLevel: cached?.activityLevel || 'light',
+      sleepHours: cached?.sleepHours || '6-7 hours',
+      dietaryRestrictions: cached?.dietaryRestrictions || 'None',
+      healthConditions: cached?.healthConditions || '',
+      dislikes: cached?.dislikes || ''
+    };
+  });
+
   const [results, setResults] = useState({
     bmi: 0,
     bmiCategory: '',
@@ -605,89 +728,199 @@ function KnowYourBody() {
     tdee: 0,
     macros: { protein: 0, carbs: 0, fats: 0 }
   });
+  const [syncStatus, setSyncStatus] = useState('idle');
+  const [signingInToSave, setSigningInToSave] = useState(false);
+  const [latestSnapshot, setLatestSnapshot] = useState(null);
+  const hydratedProfileRef = useRef(false);
 
-  // Compute BMI & calorie targets using shared clinical formula (auto-normalizes imperial -> metric)
-  const computeStepMetrics = () => {
-    const rawWeight = parseFloat(formData.weight);
-    const rawHeight = parseFloat(formData.height);
-    const weightKg = units === 'imperial' ? rawWeight * 0.453592 : rawWeight;
-    const heightCm = units === 'imperial' ? rawHeight * 2.54 : rawHeight;
-    return calculateBodyMetrics({
-      weightKg,
-      heightCm,
-      age: formData.age,
-      gender: formData.gender,
-      activityLevel: formData.activityLevel,
-      goal: formData.goal
-    }) || {
-      bmi: 0,
-      bmiCategory: '',
-      bmr: 0,
-      tdee: 0,
-      macros: { protein: 0, carbs: 0, fats: 0 }
-    };
+  // Sync defaults once from signed-in userProfile without clobbering slider edits
+  useEffect(() => {
+    if (user?.email) {
+      setEmail((prev) => prev || user.email.trim().toLowerCase());
+    }
+    if (userProfile && !hydratedProfileRef.current) {
+      hydratedProfileRef.current = true;
+      setFormData((prev) => ({
+        ...prev,
+        gender: userProfile.gender || prev.gender,
+        age: userProfile.age
+          ? snapToStep(userProfile.age, 1, RULER_RANGES.age.min, RULER_RANGES.age.max)
+          : prev.age,
+        height: userProfile.height
+          ? snapToStep(userProfile.height, 1, RULER_RANGES.heightMetric.min, RULER_RANGES.heightMetric.max)
+          : prev.height,
+        weight: userProfile.weight
+          ? snapToStep(userProfile.weight, 0.5, RULER_RANGES.weightMetric.min, RULER_RANGES.weightMetric.max)
+          : prev.weight,
+        goal: userProfile.goal || prev.goal,
+        activityLevel: userProfile.activityLevel || prev.activityLevel,
+        sleepHours: userProfile.sleepHours || prev.sleepHours,
+        dietaryRestrictions: userProfile.dietaryRestrictions || prev.dietaryRestrictions,
+        healthConditions: userProfile.healthConditions || prev.healthConditions,
+        dislikes: userProfile.dislikes || prev.dislikes
+      }));
+    }
+  }, [user?.email, userProfile]);
+
+  const handleToggleUnits = (nextUnits) => {
+    if (nextUnits === units) return;
+    setFormData((prev) => {
+      const nextHeight = convertHeight(prev.height, units, nextUnits);
+      const nextWeight = convertWeight(prev.weight, units, nextUnits);
+      const nextTarget =
+        prev.goal === 'maintain'
+          ? null
+          : prev.targetWeight
+          ? convertWeight(prev.targetWeight, units, nextUnits)
+          : suggestTargetWeight(nextWeight, prev.goal, nextUnits);
+
+      return {
+        ...prev,
+        height: nextHeight,
+        weight: nextWeight,
+        targetWeight: nextTarget
+      };
+    });
+    setUnits(nextUnits);
+    try {
+      trigger('selection');
+    } catch {
+      // Ignore haptics errors
+    }
   };
 
-  // Next Step Logic
-  const handleNext = () => {
-    trigger("success");
-    if (step === 1) {
-      const computed = computeStepMetrics();
-      setResults((prev) => ({
-        ...prev,
-        bmi: computed.bmi,
-        bmiCategory: computed.bmiCategory
-      }));
-    } else if (step === 2) {
-      const computed = computeStepMetrics();
-      setResults(computed);
-
-      const testSnapshot = buildKnowYourBodySnapshot(formData, units, Date.now());
-      if (testSnapshot) {
-        setLatestSnapshot(testSnapshot);
-
-        try {
-          localStorage.setItem('diet_test_results', JSON.stringify(testSnapshot));
-        } catch (e) {
-          console.warn('Could not cache test results:', e);
-        }
-
-        if (user) {
-          setAutoSaveStatus('saving');
-          saveAssessment(testSnapshot)
-            .then(() => {
-              setAutoSaveStatus('saved');
-            })
-            .catch((saveErr) => {
-              console.warn('Failed to auto-save assessment:', saveErr);
-              setAutoSaveStatus('error');
-            });
-        }
-
-        logEvent(analytics, 'generate_lead', {
-          goal: formData.goal,
-          bmi_category: computed.bmiCategory
-        });
-      }
-    }
-
-    setStep(prev => prev + 1);
-
-    // ✅ Scroll to top on step change
+  const scrollToTop = () => {
     setTimeout(() => {
       window.scrollTo({ top: 0, behavior: 'smooth' });
-    }, 100); // Delay slightly to ensure DOM has updated
+    }, 80);
+  };
+
+  const handleStartFromWelcome = async () => {
+    const activeEmail = (user?.email || email || '').trim().toLowerCase();
+    if (!activeEmail || !isValidEmail(activeEmail)) {
+      setEmailError('Please enter a valid email address to continue.');
+      try {
+        trigger('warning');
+      } catch {
+        // Ignore
+      }
+      return;
+    }
+
+    setEmail(activeEmail);
+    setEmailError('');
+
+    try {
+      localStorage.setItem('knowyourbody_email', activeEmail);
+    } catch {
+      // Ignore storage write errors
+    }
+
+    // Quietly subscribe new guests at Step 0 so drop-offs still join newsletter
+    if (!user) {
+      saveEmailToFirestore(activeEmail, { source: 'knowyourbody' }).catch((err) =>
+        console.warn('Step 0 email capture notice:', err)
+      );
+    }
+
+    trigger('success');
+    setStep(1);
+    scrollToTop();
+  };
+
+  const handleCompleteAssessment = () => {
+    trigger('success');
+
+    const weightKg = units === 'imperial' ? Number(formData.weight) * 0.453592 : Number(formData.weight);
+    const heightCm = units === 'imperial' ? Number(formData.height) * 2.54 : Number(formData.height);
+    const computed =
+      calculateBodyMetrics({
+        weightKg,
+        heightCm,
+        age: formData.age,
+        gender: formData.gender,
+        activityLevel: formData.activityLevel,
+        goal: formData.goal
+      }) || {
+        bmi: 0,
+        bmiCategory: '',
+        bmr: 0,
+        tdee: 0,
+        macros: { protein: 0, carbs: 0, fats: 0 }
+      };
+
+    setResults(computed);
+
+    const activeEmail = (user?.email || email || '').trim().toLowerCase();
+    const targetWeightKg =
+      formData.goal === 'maintain' || !formData.targetWeight
+        ? null
+        : units === 'imperial'
+        ? Math.round(Number(formData.targetWeight) * 0.453592 * 10) / 10
+        : Number(formData.targetWeight);
+
+    const testSnapshot = buildKnowYourBodySnapshot(
+      {
+        ...formData,
+        email: activeEmail,
+        targetWeight: targetWeightKg
+      },
+      units,
+      Date.now()
+    );
+
+    if (testSnapshot) {
+      setLatestSnapshot(testSnapshot);
+      try {
+        localStorage.setItem('diet_test_results', JSON.stringify(testSnapshot));
+        if (activeEmail) {
+          localStorage.setItem('knowyourbody_email', activeEmail);
+        }
+      } catch (e) {
+        console.warn('Could not cache test results:', e);
+      }
+
+      setSyncStatus('saving');
+      const tasks = [];
+
+      if (user) {
+        tasks.push(saveAssessment(testSnapshot));
+      }
+
+      if (activeEmail && functions) {
+        const recordCheckFn = httpsCallable(functions, 'recordKnowYourBodyCheck');
+        tasks.push(
+          recordCheckFn({
+            email: activeEmail,
+            snapshot: testSnapshot
+          })
+        );
+      }
+
+      Promise.allSettled(tasks).then((settled) => {
+        const anySucceeded = settled.some((s) => s.status === 'fulfilled');
+        setSyncStatus(anySucceeded ? 'saved' : 'error');
+      });
+
+      logEvent(analytics, 'generate_lead', {
+        goal: formData.goal,
+        bmi_category: computed.bmiCategory
+      });
+    }
+
+    setStep(3);
+    scrollToTop();
   };
 
   const handleSignInToSave = async () => {
-    trigger("success");
+    trigger('success');
     setSigningInToSave(true);
     try {
       const signedInUser = await signInWithGoogle();
       if (signedInUser && latestSnapshot) {
-        setAutoSaveStatus('saving');
+        setSyncStatus('saving');
         await saveAssessment(latestSnapshot, signedInUser);
-        setAutoSaveStatus('saved');
+        setSyncStatus('saved');
       }
     } catch (err) {
       if (err.code !== 'auth/popup-closed-by-user' && err.code !== 'auth/cancelled-popup-request') {
@@ -698,41 +931,83 @@ function KnowYourBody() {
     }
   };
 
+  const activeEmail = (user?.email || email || '').trim().toLowerCase();
+
   return (
-    <div className="min-h-screen bg-gradient-to-br from-green-50 via-white to-emerald-50 py-12">
-      <div className="container mx-auto px-6 lg:px-12">
-        <ProgressBar step={step} />
-        {step === 0 && <WelcomeStep onNext={handleNext} />}
-        {step === 1 && (
-          <BMIStep
-            formData={formData}
-            setFormData={setFormData}
-            units={units}
-            setUnits={setUnits}
-            onNext={handleNext}
-          />
-        )}
-        {step === 2 && (
-          <CalorieStep
-            formData={formData}
-            setFormData={setFormData}
-            onNext={handleNext}
-          />
-        )}
-        {step === 3 && (
-          <ResultsStep
-            results={results}
-            snapshot={latestSnapshot}
-            navigate={navigate}
-            trigger={trigger}
-            user={user}
-            autoSaveStatus={autoSaveStatus}
-            signingInToSave={signingInToSave}
-            onSignInToSave={handleSignInToSave}
-          />
-        )}
+    <>
+      <SEO
+        title="Know Your Body | BMI & Calorie Calculator | DietWithDee"
+        description="Slide to check your BMI, daily calorie needs, and personalized Ghanaian nutrition macro breakdown with Registered Dietitian Nana Ama Dwamena."
+        keywords="BMI calculator Ghana, daily calorie calculator, Ghanaian nutrition assessment, KnowYourBody DietWithDee"
+        url="https://dietwithdee.org/knowYourBody"
+      />
+
+      <div className="min-h-screen bg-[#FAF8F5] text-stone-900 font-montserrat pt-16 pb-20 px-4 sm:px-6 lg:px-8">
+        <div className="max-w-5xl mx-auto">
+          <ProgressBar step={step} />
+
+          {step === 0 && (
+            <WelcomeStep
+              user={user}
+              email={email}
+              setEmail={setEmail}
+              emailError={emailError}
+              setEmailError={setEmailError}
+              onNext={handleStartFromWelcome}
+            />
+          )}
+
+          {step === 1 && (
+            <BMIStep
+              formData={formData}
+              setFormData={setFormData}
+              units={units}
+              onToggleUnits={handleToggleUnits}
+              onBack={() => {
+                setStep(0);
+                scrollToTop();
+              }}
+              onNext={() => {
+                trigger('success');
+                setStep(2);
+                scrollToTop();
+              }}
+            />
+          )}
+
+          {step === 2 && (
+            <CalorieStep
+              formData={formData}
+              setFormData={setFormData}
+              units={units}
+              onBack={() => {
+                setStep(1);
+                scrollToTop();
+              }}
+              onNext={handleCompleteAssessment}
+            />
+          )}
+
+          {step === 3 && (
+            <ResultsStep
+              results={results}
+              snapshot={latestSnapshot}
+              emailUsed={activeEmail}
+              navigate={navigate}
+              trigger={trigger}
+              user={user}
+              syncStatus={syncStatus}
+              signingInToSave={signingInToSave}
+              onSignInToSave={handleSignInToSave}
+              onRetake={() => {
+                setStep(1);
+                scrollToTop();
+              }}
+            />
+          )}
+        </div>
       </div>
-    </div>
+    </>
   );
 }
 

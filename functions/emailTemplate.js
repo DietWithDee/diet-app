@@ -1026,4 +1026,122 @@ const createEventBroadcastTemplate = ({ title, date, location, description, imag
   `;
 };
 
-module.exports = { createEmailTemplate, createWelcomeTemplate, createSurveyVoucherTemplate, createEventBroadcastTemplate };
+const escapeEmailHtml = (value) => {
+  if (value === null || value === undefined) return '';
+  return String(value)
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#39;');
+};
+
+const GOAL_EMAIL_LABELS = {
+  lose: 'Lose Weight',
+  maintain: 'Maintain Weight',
+  gain: 'Gain Weight',
+  'Weight Loss': 'Lose Weight',
+  'Weight Maintenance': 'Maintain Weight',
+  'Muscle Gain': 'Gain Weight'
+};
+
+const createKnowYourBodyResultsEmail = ({ email, snapshot = {} }) => {
+  const safeBmi = snapshot.bmi ? escapeEmailHtml(snapshot.bmi) : '—';
+  const safeCategory = escapeEmailHtml(snapshot.bmiCategory || 'Recorded');
+  const safeCalories = snapshot.dailyCalories ? escapeEmailHtml(snapshot.dailyCalories) : '—';
+  const safeWeight = snapshot.weight ? `${escapeEmailHtml(snapshot.weight)} kg` : '—';
+  const safeHeight = snapshot.height ? `${escapeEmailHtml(snapshot.height)} cm` : '—';
+  const safeGoal = escapeEmailHtml(GOAL_EMAIL_LABELS[snapshot.goal] || snapshot.goal || 'General Wellness');
+  const macros = snapshot.macros || {};
+  const protein = macros.protein ? `${escapeEmailHtml(macros.protein)}g` : '—';
+  const carbs = macros.carbs ? `${escapeEmailHtml(macros.carbs)}g` : '—';
+  const fats = macros.fats ? `${escapeEmailHtml(macros.fats)}g` : '—';
+  const safeConditions = snapshot.healthConditions ? escapeEmailHtml(snapshot.healthConditions) : '';
+  const safeDiet = snapshot.dietaryRestrictions && snapshot.dietaryRestrictions !== 'None'
+    ? escapeEmailHtml(snapshot.dietaryRestrictions)
+    : '';
+  const unsubHref = `https://dietwithdee.org/unsubscribe?email=${encodeURIComponent(email || '')}`;
+
+  return `
+    <!DOCTYPE html>
+    <html lang="en" xmlns="http://www.w3.org/1999/xhtml">
+    <head>
+      <meta charset="UTF-8">
+      <meta name="viewport" content="width=device-width, initial-scale=1.0">
+      <title>Your KnowYourBody Nutrition Results | DietWithDee</title>
+    </head>
+    <body style="margin:0;padding:24px 10px;background-color:#FAF8F5;font-family:'Montserrat',Arial,sans-serif;color:#1c1917;line-height:1.65;">
+      <div style="max-width:600px;margin:0 auto;background:#ffffff;border-radius:20px;overflow:hidden;border:1px solid #e7e5e4;">
+        <div style="height:5px;background:linear-gradient(90deg,#F6841F 0%,#166534 100%);"></div>
+        <div style="padding:28px 24px 18px;text-align:center;border-bottom:1px solid #f5f5f4;">
+          <img src="https://dietwithdee.org/LOGO.png" alt="DietWithDee" width="96" style="display:block;margin:0 auto 10px;" />
+          <div style="font-family:Georgia,serif;font-size:24px;font-weight:700;color:#166534;">Your KnowYourBody Summary</div>
+          <div style="font-size:11px;font-weight:600;color:#78716c;text-transform:uppercase;letter-spacing:1.5px;margin-top:4px;">Clinical Nutrition · Nana Ama Dwamena, RD</div>
+        </div>
+
+        <div style="padding:28px 24px;">
+          <p style="font-size:14px;color:#44403c;margin:0 0 20px;">
+            Here is your personalized body &amp; calorie snapshot from DietWithDee. Save this for reference or bring it straight into a 1-on-1 session.
+          </p>
+
+          <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="margin-bottom:18px;border-collapse:separate;border-spacing:8px 0;">
+            <tr>
+              <td width="50%" style="background:#F4F7F4;border:1px solid #dcfce7;border-radius:14px;padding:16px;text-align:center;">
+                <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:1px;color:#166534;">Your BMI</div>
+                <div style="font-size:30px;font-weight:700;color:#14532d;margin:4px 0;">${safeBmi}</div>
+                <div style="display:inline-block;padding:4px 10px;border-radius:999px;background:#ffffff;border:1px solid #bbf7d0;font-size:12px;font-weight:700;color:#166534;">${safeCategory}</div>
+              </td>
+              <td width="50%" style="background:#fff7ed;border:1px solid #fed7aa;border-radius:14px;padding:16px;text-align:center;">
+                <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:1px;color:#c2410c;">Daily Target</div>
+                <div style="font-size:30px;font-weight:700;color:#9a3412;margin:4px 0;">${safeCalories}</div>
+                <div style="font-size:12px;font-weight:600;color:#78716c;">kcal / day (${safeGoal})</div>
+              </td>
+            </tr>
+          </table>
+
+          <div style="background:#fafaf9;border:1px solid #e7e5e4;border-radius:14px;padding:16px;margin-bottom:20px;">
+            <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:1px;color:#57534e;margin-bottom:10px;">
+              Recommended Daily Macros &amp; Inputs
+            </div>
+            <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="text-align:center;font-size:13px;">
+              <tr>
+                <td style="padding:6px;background:#ffffff;border:1px solid #e7e5e4;border-radius:10px;"><strong>${protein}</strong><br><span style="font-size:11px;color:#78716c;">Protein</span></td>
+                <td width="8"></td>
+                <td style="padding:6px;background:#ffffff;border:1px solid #e7e5e4;border-radius:10px;"><strong>${carbs}</strong><br><span style="font-size:11px;color:#78716c;">Carbs</span></td>
+                <td width="8"></td>
+                <td style="padding:6px;background:#ffffff;border:1px solid #e7e5e4;border-radius:10px;"><strong>${fats}</strong><br><span style="font-size:11px;color:#78716c;">Fats</span></td>
+              </tr>
+            </table>
+            <p style="font-size:12px;color:#57534e;margin:12px 0 0;">
+              <strong>Recorded:</strong> ${safeWeight} · ${safeHeight}${safeDiet ? ` · Diet: ${safeDiet}` : ''}${safeConditions ? ` · Notes: ${safeConditions}` : ''}
+            </p>
+          </div>
+
+          <p style="font-size:14px;color:#44403c;margin:0 0 20px;">
+            Want a practical Ghanaian meal plan built around your routine, preferences, and health goals? Your results automatically attach when you book.
+          </p>
+
+          <div style="text-align:center;margin:24px 0 12px;">
+            <a href="https://dietwithdee.org/contactUs" style="display:inline-block;padding:14px 28px;border-radius:999px;background-color:#F6841F;color:#ffffff;font-weight:700;font-size:14px;text-decoration:none;">
+              Book a 1-on-1 Consultation &rarr;
+            </a>
+          </div>
+          <div style="text-align:center;">
+            <a href="https://dietwithdee.org/my-journey" style="font-size:12px;font-weight:700;color:#166534;text-decoration:underline;">
+              Sign in to My Journey to track sessions &amp; history
+            </a>
+          </div>
+        </div>
+
+        <div style="background:#fafaf9;padding:22px 24px;text-align:center;border-top:1px solid #f5f5f4;font-size:12px;color:#78716c;">
+          <strong style="color:#1c1917;">DietWithDee</strong> · Accra, Ghana<br>
+          <span style="font-size:11px;">You received this because you completed the KnowYourBody assessment.<br>
+          <a href="${unsubHref}" style="color:#78716c;text-decoration:underline;">Unsubscribe</a></span>
+        </div>
+      </div>
+    </body>
+    </html>
+  `;
+};
+
+module.exports = { createEmailTemplate, createWelcomeTemplate, createSurveyVoucherTemplate, createEventBroadcastTemplate, createKnowYourBodyResultsEmail };

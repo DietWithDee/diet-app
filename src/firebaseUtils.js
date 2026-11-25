@@ -515,6 +515,26 @@ export const getUserLogs = async (uid) => {
   }
 };
 
+// Get KnowYourBody assessment logs across guests & signed-in users (Admin only)
+export const getKnowYourBodyLogs = async (maxEntries = 250) => {
+  try {
+    const q = query(
+      collection(db, "knowYourBodyLogs"),
+      orderBy("createdAt", "desc"),
+      limit(maxEntries)
+    );
+    const snapshot = await getDocs(q);
+    const logs = snapshot.docs.map(docSnap => ({
+      id: docSnap.id,
+      ...docSnap.data()
+    }));
+    return { success: true, data: logs };
+  } catch (error) {
+    console.error("Error fetching KnowYourBody logs:", error);
+    return { success: false, error: error.message };
+  }
+};
+
 // --- TAGS UTILS ---
 
 // Sync tags to global articleTags collection

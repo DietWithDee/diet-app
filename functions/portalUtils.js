@@ -97,10 +97,50 @@ const verifyBookingLinkEligibility = ({ bookingData, uid, cleanEmail, emailVerif
     return { ok: true };
 };
 
+const buildKnowYourBodyLogDocId = (cleanEmail, savedAt) => {
+    const emailSlug = String(cleanEmail || "guest")
+        .trim()
+        .toLowerCase()
+        .replace(/[^a-z0-9]/g, "_")
+        .slice(0, 64);
+    const ts = Number(savedAt);
+    const tsPart = Number.isFinite(ts) && ts > 0 ? Math.floor(ts) : Date.now();
+    return `${emailSlug}_${tsPart}`;
+};
+
+const sanitizePortalAssessment = (docSnap) => {
+    const data = typeof docSnap.data === "function" ? (docSnap.data() || {}) : (docSnap.data || {});
+    return {
+        id: docSnap.id,
+        bmi: data.bmi ?? null,
+        bmiCategory: data.bmiCategory || null,
+        bmr: data.bmr ?? null,
+        dailyCalories: data.dailyCalories ?? null,
+        macros: data.macros || null,
+        weight: data.weight ?? null,
+        height: data.height ?? null,
+        targetWeight: data.targetWeight ?? null,
+        age: data.age ?? null,
+        gender: data.gender || null,
+        goal: data.goal || null,
+        activityLevel: data.activityLevel || null,
+        sleepHours: data.sleepHours || null,
+        dietaryRestrictions: data.dietaryRestrictions || "None",
+        healthConditions: data.healthConditions || "",
+        dislikes: data.dislikes || "",
+        unitsUsed: data.unitsUsed || "metric",
+        clientSavedAt: data.clientSavedAt || null,
+        source: data.source || "knowyourbody",
+        createdAt: toIsoString(data.createdAtIso || data.createdAt)
+    };
+};
+
 module.exports = {
     toIsoString,
     sanitizePortalBooking,
     sanitizePortalInquiry,
+    sanitizePortalAssessment,
     mergeDocsById,
-    verifyBookingLinkEligibility
+    verifyBookingLinkEligibility,
+    buildKnowYourBodyLogDocId
 };

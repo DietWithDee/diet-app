@@ -7,9 +7,22 @@ const {
   toIsoString,
   sanitizePortalBooking,
   sanitizePortalInquiry,
+  sanitizePortalAssessment,
   mergeDocsById,
-  verifyBookingLinkEligibility
+  verifyBookingLinkEligibility,
+  buildKnowYourBodyLogDocId
 } = require('../functions/portalUtils.js');
+const { createKnowYourBodyResultsEmail } = require('../functions/emailTemplate.js');
+
+import {
+  RULER_RANGES,
+  snapToStep,
+  formatInchesToFeetInches,
+  convertHeight,
+  convertWeight,
+  suggestTargetWeight,
+  toggleDietaryChoice
+} from '../src/utils/knowYourBodyFlow.js';
 
 import {
   calculateBodyMetrics,
@@ -216,4 +229,81 @@ test('carePortal helpers guard URLs, format dates safely, and rank personalized 
   const weightLossRanked = rankArticlesForClient(sampleArticles, { goal: 'lose' }, 3);
   assert.equal(weightLossRanked[0].id, '5');
   assert.equal(weightLossRanked[0].relevanceReason, 'For Weight Loss');
+});
+
+test('knowYourBodyFlow rulers handle precision snapping, unit toggles, targets, and diet chips', () => {
+  // Precision step snapping without floating point drift
+  assert.equal(snapToStep(68.4999999, 0.5, 35, 180), 68.5);
+  assert.equal(snapToStep(10, 0.5, 35, 180), 35);
+  assert.equal(snapToStep(999, 0.5, 35, 180), 180);
+  assert.equal(snapToStep('abc', 1, 14, 85), 14);
+
+  // Feet & inches formatting
+  assert.equal(formatInchesToFeetInches(66), "5' 6\"");
+  assert.equal(formatInchesToFeetInches(72), "6' 0\"");
+  assert.equal(formatInchesToFeetInches(0), '—');
+
+  // Unit conversions clamp safely within ruler bounds
+  assert.equal(convertHeight(170, 'metric', 'imperial'), 67);
+  assert.equal(convertHeight(67, 'imperial', 'metric'), 170);
+  assert.equal(convertWeight(70, 'metric', 'imperial'), 154);
+  assert.equal(convertWeight(154, 'imperial', 'metric'), 70);
+  assert.equal(convertWeight(null, 'metric', 'imperial'), RULER_RANGES.weightImperial.defaultValue);
+
+  // Target weight suggestions stay within bounds
+  assert.equal(suggestTargetWeight(70, 'lose', 'metric'), 65);
+  assert.equal(suggestTargetWeight(36, 'lose', 'metric'), 35);
+  assert.equal(suggestTargetWeight(154, 'gain', 'imperial'), 165);
+
+  // Dietary chip toggling
+  let diet = toggleDietaryChoice('None', 'Vegan');
+  assert.equal(diet, 'Vegan');
+  diet = toggleDietaryChoice(diet, 'Dairy-free');
+  assert.equal(diet, 'Vegan, Dairy-free');
+  diet = toggleDietaryChoice(diet, 'Vegan');
+  assert.equal(diet, 'Dairy-free');
+  diet = toggleDietaryChoice(diet, 'Dairy-free');
+  assert.equal(diet, 'None');
+  assert.equal(toggleDietaryChoice('Vegan, Gluten-free', 'None'), 'None');
+});
+
+test('KnowYourBody log IDs, assessment sanitization, and summary email escaping are safe', () => {
+  const idA = buildKnowYourBodyLogDocId('Ama+Test@Gmail.COM', 1732560000123);
+  const idB = buildKnowYourBodyLogDocId('ama+test@gmail.com', 1732560000123);
+  assert.equal(idA, idB);
+  assert.equal(idA, 'ama_test_gmail_com_1732560000123');
+
+  const cleanAssm = sanitizePortalAssessment({
+    id: 'k_1',
+    exists: true,
+    data: () => ({
+      bmi: 24.2,
+      bmiCategory: 'Normal Weight',
+      dailyCalories: 1850,
+      goal: 'lose',
+      createdAtIso: '2026-11-25T12:00:00.000Z'
+    })
+  });
+  assert.equal(cleanAssm.bmi, 24.2);
+  assert.equal(cleanAssm.dailyCalories, 1850);
+  assert.equal(cleanAssm.createdAt, '2026-11-25T12:00:00.000Z');
+
+  // Verify HTML escaping against XSS in user-supplied health conditions & personalized unsubscribe URL
+  const emailHtml = createKnowYourBodyResultsEmail({
+    email: 'ama+1@gmail.com',
+    snapshot: {
+      bmi: 25.4,
+      bmiCategory: 'Overweight',
+      dailyCalories: 1920,
+      weight: 72,
+      height: 168,
+      goal: 'lose',
+      macros: { protein: 144, carbs: 192, fats: 64 },
+      healthConditions: '<script>alert("xss")</script> & Type 2'
+    }
+  });
+  assert.ok(!emailHtml.includes('<script>'));
+  assert.ok(emailHtml.includes('&lt;script&gt;alert(&quot;xss&quot;)&lt;/script&gt; &amp; Type 2'));
+  assert.ok(emailHtml.includes('https://dietwithdee.org/unsubscribe?email=ama%2B1%40gmail.com'));
+  assert.ok(emailHtml.includes('Book a 1-on-1 Consultation'));
 });

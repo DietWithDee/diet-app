@@ -35,7 +35,7 @@ import {
   AreaChart,
   Area
 } from 'recharts';
-import { getAllUsers, getUserLogs, deleteUserAccount } from '../../../firebaseUtils';
+import { getUserLogs, getKnowYourBodyLogs, deleteUserAccount } from '../../../firebaseUtils';
 import DeleteConfirmationModal from './DeleteConfirmationModal';
 
 const COLORS = ['#10b981', '#3b82f6', '#f59e0b', '#ef4444', '#8b5cf6', '#ec4899'];
@@ -49,6 +49,7 @@ const getBMI = (user) => {
 
 const UserJourneyPanel = React.memo(({ users, loading, showNotification, loadUsers, hasMore }) => {
 
+  const [activeSection, setActiveSection] = useState('users'); // 'users' | 'calculator'
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedUser, setSelectedUser] = useState(null);
   const [userLogs, setUserLogs] = useState([]);
@@ -56,6 +57,33 @@ const UserJourneyPanel = React.memo(({ users, loading, showNotification, loadUse
   const [filterGoal, setFilterGoal] = useState('all');
   const [isDeleting, setIsDeleting] = useState(false);
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
+
+  // KnowYourBody Logs (both guest-by-email leads & registered users)
+  const [kybLogs, setKybLogs] = useState([]);
+  const [kybLoading, setKybLoading] = useState(false);
+  const [kybSearch, setKybSearch] = useState('');
+  const [kybGoalFilter, setKybGoalFilter] = useState('all');
+
+  const fetchKybLogs = async () => {
+    setKybLoading(true);
+    try {
+      const result = await getKnowYourBodyLogs(250);
+      if (result.success) {
+        setKybLogs(result.data || []);
+      } else {
+        showNotification('error', 'Failed to load KnowYourBody logs.');
+      }
+    } catch (err) {
+      console.error('Error fetching KnowYourBody logs:', err);
+      showNotification('error', 'Failed to load KnowYourBody logs.');
+    } finally {
+      setKybLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchKybLogs();
+  }, []);
 
   const handleUserClick = async (user) => {
     setSelectedUser(user);
@@ -264,6 +292,64 @@ const UserJourneyPanel = React.memo(({ users, loading, showNotification, loadUse
     document.body.removeChild(link);
   };
 
+  const kybStats = useMemo(() => {
+    const uniqueEmails = new Set(kybLogs.map((l) => l.emailLower || l.email).filter(Boolean));
+    const guestChecks = kybLogs.filter((l) => !l.isRegisteredUser && !l.uid).length;
+    const specialCare = kybLogs.filter((l) =>
+      /diabet|pressure|sugar|bp|hypertens/i.test(l.healthConditions || '')
+    ).length;
+    return {
+      totalChecks: kybLogs.length,
+      uniqueEmails: uniqueEmails.size,
+      guestChecks,
+      specialCare
+    };
+  }, [kybLogs]);
+
+  const filteredKybLogs = useMemo(() => {
+    const term = kybSearch.trim().toLowerCase();
+    return kybLogs.filter((log) => {
+      const matchesSearch =
+        !term ||
+        (log.email || '').toLowerCase().includes(term) ||
+        (log.healthConditions || '').toLowerCase().includes(term) ||
+        (log.dietaryRestrictions || '').toLowerCase().includes(term);
+      const matchesGoal = kybGoalFilter === 'all' || log.goal === kybGoalFilter;
+      return matchesSearch && matchesGoal;
+    });
+  }, [kybLogs, kybSearch, kybGoalFilter]);
+
+  const exportKybCSV = () => {
+    if (!filteredKybLogs.length) return;
+    const headers = ['Email', 'Type', 'BMI', 'BMI Category', 'Weight (kg)', 'Height (cm)', 'Daily Calories', 'Goal', 'Health Conditions', 'Dietary', 'Summary Emailed', 'Date'];
+    const escapeCell = (v) => `"${String(v ?? '').replace(/"/g, '""')}"`;
+    const rows = filteredKybLogs.map((l) => [
+      l.email || 'N/A',
+      l.isRegisteredUser || l.uid ? 'Registered User' : 'Guest Lead',
+      l.bmi || 'N/A',
+      l.bmiCategory || 'N/A',
+      l.weight || 'N/A',
+      l.height || 'N/A',
+      l.dailyCalories || 'N/A',
+      l.goal || 'N/A',
+      l.healthConditions || 'None',
+      l.dietaryRestrictions || 'None',
+      l.resultsEmailSent ? 'Yes' : 'No',
+      l.createdAtIso ? new Date(l.createdAtIso).toLocaleString() : (l.createdAt?.toDate ? l.createdAt.toDate().toLocaleString() : 'N/A')
+    ].map(escapeCell));
+
+    const csvContent = [headers.map(escapeCell), ...rows].map((r) => r.join(',')).join('\n');
+    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+    const link = document.createElement('a');
+    const url = URL.createObjectURL(blob);
+    link.setAttribute('href', url);
+    link.setAttribute('download', `dietwithdee_knowyourbody_leads_${new Date().toISOString().split('T')[0]}.csv`);
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    URL.revokeObjectURL(url);
+  };
+
   if (loading) {
     return (
       <div className="flex flex-col items-center justify-center py-20">
@@ -416,6 +502,197 @@ const UserJourneyPanel = React.memo(({ users, loading, showNotification, loadUse
 
   return (
     <div className="space-y-6 animate-in fade-in duration-300">
+      {/* View Switcher: Registered Accounts vs KnowYourBody Leads */}
+      <div className="flex flex-wrap items-center gap-2 bg-white p-1.5 rounded-2xl border border-stone-200/90 shadow-2xs w-fit">
+        <button
+          type="button"
+          onClick={() => setActiveSection('users')}
+          className={`px-4 py-2 rounded-xl text-xs font-bold transition-all cursor-pointer ${
+            activeSection === 'users'
+              ? 'bg-emerald-600 text-white shadow-xs'
+              : 'text-stone-600 hover:text-stone-900 hover:bg-stone-50'
+          }`}
+        >
+          Registered Clients ({users.length})
+        </button>
+        <button
+          type="button"
+          onClick={() => setActiveSection('calculator')}
+          className={`px-4 py-2 rounded-xl text-xs font-bold transition-all cursor-pointer ${
+            activeSection === 'calculator'
+              ? 'bg-emerald-600 text-white shadow-xs'
+              : 'text-stone-600 hover:text-stone-900 hover:bg-stone-50'
+          }`}
+        >
+          KnowYourBody Leads ({kybLogs.length})
+        </button>
+      </div>
+
+      {activeSection === 'calculator' ? (
+        <div className="space-y-5">
+          {/* KnowYourBody KPI Cards */}
+          <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
+            <div className="bg-white rounded-2xl shadow-xs border border-stone-200/80 p-4 sm:p-5">
+              <p className="text-[11px] font-semibold uppercase tracking-wider text-stone-400">Total Checks</p>
+              <p className="text-2xl font-bold text-stone-900 mt-1">{kybStats.totalChecks}</p>
+              <p className="text-xs text-stone-500 mt-0.5">All completed KnowYourBody tests</p>
+            </div>
+            <div className="bg-white rounded-2xl shadow-xs border border-stone-200/80 p-4 sm:p-5">
+              <p className="text-[11px] font-semibold uppercase tracking-wider text-stone-400">Unique Emails</p>
+              <p className="text-2xl font-bold text-emerald-700 mt-1">{kybStats.uniqueEmails}</p>
+              <p className="text-xs text-stone-500 mt-0.5">Captured &amp; synced to Subscribers</p>
+            </div>
+            <div className="bg-white rounded-2xl shadow-xs border border-stone-200/80 p-4 sm:p-5">
+              <p className="text-[11px] font-semibold uppercase tracking-wider text-stone-400">Guest Lead Checks</p>
+              <p className="text-2xl font-bold text-[#e07312] mt-1">{kybStats.guestChecks}</p>
+              <p className="text-xs text-stone-500 mt-0.5">Run without Google login</p>
+            </div>
+            <div className="bg-white rounded-2xl shadow-xs border border-stone-200/80 p-4 sm:p-5">
+              <p className="text-[11px] font-semibold uppercase tracking-wider text-stone-400">Special Care Notes</p>
+              <p className="text-2xl font-bold text-rose-700 mt-1">{kybStats.specialCare}</p>
+              <p className="text-xs text-stone-500 mt-0.5">Diabetes / Blood Pressure mentions</p>
+            </div>
+          </div>
+
+          {/* Search, Goal Filters, Actions */}
+          <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3">
+            <div className="flex gap-1.5 overflow-x-auto pb-1 no-scrollbar">
+              {[
+                { key: 'all', label: `All (${kybLogs.length})` },
+                { key: 'lose', label: 'Weight Loss' },
+                { key: 'gain', label: 'Muscle Gain' },
+                { key: 'maintain', label: 'Maintenance' }
+              ].map((pill) => (
+                <button
+                  key={pill.key}
+                  type="button"
+                  onClick={() => setKybGoalFilter(pill.key)}
+                  className={`px-3 py-1 rounded-full text-xs font-semibold transition-all whitespace-nowrap cursor-pointer ${
+                    kybGoalFilter === pill.key
+                      ? 'bg-emerald-600 text-white shadow-xs'
+                      : 'bg-white text-stone-600 border border-stone-200 hover:border-emerald-300'
+                  }`}
+                >
+                  {pill.label}
+                </button>
+              ))}
+            </div>
+
+            <div className="flex items-center gap-2 w-full sm:w-auto">
+              <div className="relative flex-1 sm:w-64">
+                <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-stone-400" size={15} />
+                <input
+                  type="text"
+                  placeholder="Search email or condition..."
+                  value={kybSearch}
+                  onChange={(e) => setKybSearch(e.target.value)}
+                  className="w-full pl-9 pr-3 py-1.5 bg-white border border-stone-200 rounded-xl focus:ring-1 focus:ring-emerald-500 text-xs"
+                />
+              </div>
+              <button
+                type="button"
+                onClick={fetchKybLogs}
+                disabled={kybLoading}
+                className="p-1.5 sm:px-3 sm:py-1.5 bg-white border border-stone-200 text-stone-600 rounded-xl hover:bg-stone-50 text-xs font-semibold flex items-center gap-1.5 cursor-pointer"
+              >
+                <RotateCcw size={14} className={kybLoading ? 'animate-spin' : ''} />
+                <span className="hidden sm:inline">Refresh</span>
+              </button>
+              <button
+                type="button"
+                onClick={exportKybCSV}
+                className="p-1.5 sm:px-3 sm:py-1.5 bg-white border border-stone-200 text-stone-600 rounded-xl hover:bg-stone-50 text-xs font-semibold flex items-center gap-1.5 cursor-pointer"
+              >
+                <Download size={14} />
+                <span className="hidden sm:inline">Export</span>
+              </button>
+            </div>
+          </div>
+
+          {/* Calculator Leads Table */}
+          <div className="bg-white rounded-2xl shadow-xs border border-stone-200/80 overflow-hidden">
+            <div className="overflow-x-auto">
+              <table className="w-full text-left">
+                <thead className="bg-stone-50/80 text-stone-500 text-[11px] font-semibold uppercase tracking-wider border-b border-stone-200/60">
+                  <tr>
+                    <th className="px-4 py-3">Email</th>
+                    <th className="px-4 py-3">Measurements &amp; BMI</th>
+                    <th className="px-4 py-3">Calories</th>
+                    <th className="px-4 py-3">Goal &amp; Clinical Notes</th>
+                    <th className="px-4 py-3">Date</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-stone-100 text-xs">
+                  {kybLoading ? (
+                    <tr>
+                      <td colSpan="5" className="py-12 text-center text-stone-500">Loading KnowYourBody logs...</td>
+                    </tr>
+                  ) : filteredKybLogs.length === 0 ? (
+                    <tr>
+                      <td colSpan="5" className="py-12 text-center text-stone-400">No KnowYourBody logs recorded yet.</td>
+                    </tr>
+                  ) : (
+                    filteredKybLogs.map((log) => (
+                      <tr key={log.id} className="hover:bg-stone-50/60">
+                        <td className="px-4 py-3">
+                          <p className="font-semibold text-stone-900">{log.email}</p>
+                          <div className="flex flex-wrap items-center gap-1.5 mt-1">
+                            <span
+                              className={`px-1.5 py-0.5 rounded text-[10px] font-semibold border ${
+                                log.isRegisteredUser || log.uid
+                                  ? 'bg-emerald-50 text-emerald-700 border-emerald-200'
+                                  : 'bg-orange-50 text-[#c96209] border-orange-200'
+                              }`}
+                            >
+                              {log.isRegisteredUser || log.uid ? 'Google Account' : 'Guest Lead'}
+                            </span>
+                            {log.resultsEmailSent && (
+                              <span className="px-1.5 py-0.5 rounded text-[10px] font-medium bg-stone-100 text-stone-600">
+                                Emailed ✓
+                              </span>
+                            )}
+                          </div>
+                        </td>
+                        <td className="px-4 py-3">
+                          <p className="font-semibold text-stone-900">
+                            BMI {log.bmi} ({log.bmiCategory || '—'})
+                          </p>
+                          <p className="text-[11px] text-stone-500">
+                            {log.weight ? `${log.weight} kg` : '—'} · {log.height ? `${log.height} cm` : '—'}
+                          </p>
+                        </td>
+                        <td className="px-4 py-3 font-semibold text-stone-800">
+                          {log.dailyCalories ? `${log.dailyCalories} kcal` : '—'}
+                        </td>
+                        <td className="px-4 py-3 space-y-1">
+                          <span className="px-2 py-0.5 bg-emerald-50 text-emerald-700 rounded text-[10px] font-semibold capitalize border border-emerald-100 inline-block">
+                            {log.goal || 'General'}
+                          </span>
+                          {(log.healthConditions || (log.dietaryRestrictions && log.dietaryRestrictions !== 'None')) && (
+                            <p className="text-[11px] text-stone-600 max-w-xs truncate">
+                              {[log.dietaryRestrictions !== 'None' ? log.dietaryRestrictions : '', log.healthConditions]
+                                .filter(Boolean)
+                                .join(' · ')}
+                            </p>
+                          )}
+                        </td>
+                        <td className="px-4 py-3 text-stone-500 whitespace-nowrap">
+                          {log.createdAtIso
+                            ? new Date(log.createdAtIso).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' })
+                            : log.createdAt?.toDate
+                            ? log.createdAt.toDate().toLocaleDateString('en-GB', { day: 'numeric', month: 'short' })
+                            : 'Recent'}
+                        </td>
+                      </tr>
+                    ))
+                  )}
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      ) : (
+        <>
       {/* Top Cards */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
         <div className="bg-white rounded-2xl shadow-xs border border-stone-200/80 p-4 sm:p-5">
@@ -779,6 +1056,8 @@ const UserJourneyPanel = React.memo(({ users, loading, showNotification, loadUse
         itemName={selectedUser?.displayName || selectedUser?.email}
         isLoading={isDeleting}
       />
+        </>
+      )}
     </div>
 
   );

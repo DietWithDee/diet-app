@@ -21,9 +21,11 @@
 - `saveAssessment(snapshot)` writes an immutable metric record to `users/{uid}/assessments/{id}` and merges the latest health profile onto `users/{uid}`.
 - Automatic guest carry-over checks `localStorage.getItem('diet_test_results')` (via `shouldSyncGuestSnapshot` in `src/utils/bookingProfile.js`) to sync fresh un-synced guest results idempotently on login (`diet_test_results_synced_for`).
 
-### 2. KnowYourBody Auto-Save ([`src/Pages/KnowYourBody/KnowYourBody.jsx`](../src/Pages/KnowYourBody/KnowYourBody.jsx))
-- Uses shared `calculateBodyMetrics` and `buildKnowYourBodySnapshot` from `src/utils/bookingProfile.js` (normalizing `imperial` inputs into metric `kg` / `cm`).
-- Automatically persists snapshots for signed-in users on Step 2 → Results and provides a `"Save Results with Google"` CTA for guests.
+### 2. KnowYourBody Auto-Save, Haptic Sliders & Email Lead Funnel ([`src/Pages/KnowYourBody/KnowYourBody.jsx`](../src/Pages/KnowYourBody/KnowYourBody.jsx))
+- **Step 0 (`WelcomeStep`)**: Prompts first-time guests to enter their email to start (skipping cleanly when already signed in with Google) and immediately subscribes `emails/{cleanEmail}` (`source: 'knowyourbody'`) so drop-offs still join the Resend newsletter Audience. Pre-fills `ConsultationLedger` email automatically for checkout.
+- **Tactile Haptic Sliders (`src/Components/HapticRulerSlider.jsx` + `src/utils/knowYourBodyFlow.js`)**: Replaces manual number typing for Age, Height, Weight, and Target Weight with scrollable horizontal ruler scrubbers firing `web-haptics` tick feedback (`"selection"` per step, `"light"` on major marks) plus tap-to-type numeric override and live Metric (`cm`/`kg`) ↔ Imperial (`ft/in`/`lbs`) conversion.
+- **Auto-Save + Summary Email**: Completing Step 2 → Results calculates normalized metric metrics (`calculateBodyMetrics`, `buildKnowYourBodySnapshot`), saves to `users/{uid}/assessments` when authenticated, invokes `recordKnowYourBodyCheck` to log `knowYourBodyLogs/{logId}`, enriches `emails/{cleanEmail}` with goal/BMI CRM tags, and emails the user a personalized BMI/Calorie/Macro breakdown via `createKnowYourBodyResultsEmail` (`functions/emailTemplate.js`).
+- **Portal Continuity**: `getMyCarePortal` merges verified email-matched `knowYourBodyLogs` into `AssessmentsSection.jsx` when a former guest later signs in with Google.
 
 ### 3. Client Care Portal UI ([`src/Pages/MyJourney/`](../src/Pages/MyJourney/))
 - **`MyJourney.jsx`**:
@@ -41,6 +43,7 @@
 - **`linkBookingByReference` (`onCall`)**: Lets signed-in clients who checked out under a different email link a booking by matching Paystack reference + last 4 digits of booking phone (`phone` or `buyerPhone`).
 - **`deleteOwnAccount` & `adminDeleteUser`**: Clean up both `assessments` and legacy `logs` subcollections via `purgeUserFirestoreData`.
 
-### 5. Admin Tools Integration ([`BookingsPanel.jsx`](../src/Pages/Admin/components/BookingsPanel.jsx), [`UserJourneyPanel.jsx`](../src/Pages/Admin/components/UserJourneyPanel.jsx), [`firebaseUtils.js`](../src/firebaseUtils.js))
+### 5. Admin Tools Integration ([`BookingsPanel.jsx`](../src/Pages/Admin/components/BookingsPanel.jsx), [`UserJourneyPanel.jsx`](../src/Pages/Admin/components/UserJourneyPanel.jsx), [`SubscribersPanel.jsx`](../src/Pages/Admin/components/SubscribersPanel.jsx), [`firebaseUtils.js`](../src/firebaseUtils.js))
 - **`BookingsPanel.jsx`**: Adds **Client Portal Care Summary** (`clientCareNote` + validated `carePlanUrl`) in booking detail view, immediately visible on the client's `SessionCard`.
-- **`UserJourneyPanel.jsx` / `firebaseUtils.js`**: Reads `users/{uid}/assessments` merged with legacy `users/{uid}/logs` in **KnowYourBody Assessment History**.
+- **`UserJourneyPanel.jsx` / `firebaseUtils.js`**: Features both **Registered Clients** (with `users/{uid}/assessments` + legacy `logs` history) and a **KnowYourBody Leads** tab backed by `knowYourBodyLogs` (CSV export, goal filter, search, and account/emailed status).
+- **`SubscribersPanel.jsx`**: Surfaces **KnowYourBody Leads** count, source filter tabs, and inline BMI/goal/calorie/condition badges enriched on `emails/{email}`.

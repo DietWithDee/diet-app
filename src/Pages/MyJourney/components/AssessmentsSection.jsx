@@ -32,9 +32,9 @@ const formatDate = (iso) => {
   });
 };
 
-const AssessmentsSection = ({ onRunAssessment, onBookWithLatest }) => {
+const AssessmentsSection = ({ extraAssessments = [], onRunAssessment, onBookWithLatest }) => {
   const { user, userProfile } = useAuth();
-  const [assessments, setAssessments] = useState([]);
+  const [userAssessments, setUserAssessments] = useState([]);
   const [loading, setLoading] = useState(true);
   const [showHistory, setShowHistory] = useState(false);
 
@@ -57,7 +57,7 @@ const AssessmentsSection = ({ onRunAssessment, onBookWithLatest }) => {
           id: docSnap.id,
           ...docSnap.data()
         }));
-        setAssessments(rows);
+        setUserAssessments(rows);
         setLoading(false);
       },
       (err) => {
@@ -68,6 +68,26 @@ const AssessmentsSection = ({ onRunAssessment, onBookWithLatest }) => {
 
     return () => unsubscribe();
   }, [user]);
+
+  // Merge uid assessments with any email-matched KnowYourBody logs, deduplicating by clientSavedAt
+  const assessments = React.useMemo(() => {
+    const seenClientTimestamps = new Set();
+    const merged = [];
+
+    [...userAssessments, ...extraAssessments].forEach((entry) => {
+      if (!entry) return;
+      const dedupeKey = entry.clientSavedAt ? String(entry.clientSavedAt) : entry.id;
+      if (dedupeKey && seenClientTimestamps.has(dedupeKey)) return;
+      if (dedupeKey) seenClientTimestamps.add(dedupeKey);
+      merged.push(entry);
+    });
+
+    return merged.sort((a, b) => {
+      const tA = a.createdAt ? new Date(a.createdAt).getTime() : 0;
+      const tB = b.createdAt ? new Date(b.createdAt).getTime() : 0;
+      return tB - tA;
+    });
+  }, [userAssessments, extraAssessments]);
 
   const fallbackFromProfile = computeResultsFromProfile(userProfile);
   const latest = assessments[0] || (fallbackFromProfile

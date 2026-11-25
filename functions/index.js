@@ -5,14 +5,16 @@ const { setGlobalOptions } = require("firebase-functions/v2");
 const admin = require("firebase-admin");
 const { Resend } = require("resend");
 const { enqueueCampaign, processMailQueue, recordTransactionalSent } = require("./mailEngine");
-const { createEmailTemplate, createWelcomeTemplate, createSurveyVoucherTemplate, createEventBroadcastTemplate } = require("./emailTemplate");
+const { createEmailTemplate, createWelcomeTemplate, createSurveyVoucherTemplate, createEventBroadcastTemplate, createKnowYourBodyResultsEmail } = require("./emailTemplate");
 const { createAdminBookingEmail, createClientConfirmationEmail, createAdminInquiryEmail, createClientInquiryEmail } = require("./bookingEmailTemplates");
 const { createAdminTestimonialEmail } = require("./testimonialEmailTemplate");
 const {
     sanitizePortalBooking,
     sanitizePortalInquiry,
+    sanitizePortalAssessment,
     mergeDocsById,
-    verifyBookingLinkEligibility
+    verifyBookingLinkEligibility,
+    buildKnowYourBodyLogDocId
 } = require("./portalUtils");
 
 
@@ -385,9 +387,9 @@ exports.onNewSubscriber = onDocumentCreated(
             console.warn(`[onNewSubscriber] Error syncing contact ${email} to Resend:`, contactErr.message);
         }
 
-        // 2. Send Welcome Email (Transactional) if not originated from survey
-        if (data.source === "survey") {
-            console.log(`Subscriber ${email} originated from survey submission; voucher is dispatched by onNewSurveySubmission trigger. Skipping welcome email to prevent duplicate.`);
+        // 2. Send Welcome Email (Transactional) if not originated from survey or skipped when another summary email handles it
+        if (data.source === "survey" || data.skipWelcomeEmail === true) {
+            console.log(`Subscriber ${email} skipping generic welcome email (handled by dedicated flow email).`);
             return;
         }
 
@@ -1468,6 +1470,9 @@ exports.getMyCarePortal = onCall(async (request) => {
         const inquiryQueries = [
             firestoreDb.collection("inquiries").where("userId", "==", uid).get()
         ];
+        const assessmentLogQueries = [
+            firestoreDb.collection("knowYourBodyLogs").where("uid", "==", uid).get()
+        ];
 
         if (emailVerified && cleanEmail) {
             bookingQueries.push(
@@ -1477,6 +1482,9 @@ exports.getMyCarePortal = onCall(async (request) => {
             inquiryQueries.push(
                 firestoreDb.collection("inquiries").where("emailLower", "==", cleanEmail).get(),
                 firestoreDb.collection("inquiries").where("email", "==", cleanEmail).get()
+            );
+            assessmentLogQueries.push(
+                firestoreDb.collection("knowYourBodyLogs").where("emailLower", "==", cleanEmail).get()
             );
             if (rawEmail && rawEmail !== cleanEmail) {
                 bookingQueries.push(
@@ -1498,15 +1506,17 @@ exports.getMyCarePortal = onCall(async (request) => {
             bookingQueries.push(firestoreDb.collection("bookings").doc(ref.trim()).get());
         });
 
-        const [bookingSnaps, inquirySnaps] = await Promise.all([
+        const [bookingSnaps, inquirySnaps, assessmentLogSnaps] = await Promise.all([
             Promise.all(bookingQueries),
-            Promise.all(inquiryQueries)
+            Promise.all(inquiryQueries),
+            Promise.all(assessmentLogQueries)
         ]);
 
         return {
             success: true,
             bookings: mergeDocsById(bookingSnaps, sanitizePortalBooking),
-            inquiries: mergeDocsById(inquirySnaps, sanitizePortalInquiry)
+            inquiries: mergeDocsById(inquirySnaps, sanitizePortalInquiry),
+            emailAssessments: mergeDocsById(assessmentLogSnaps, sanitizePortalAssessment)
         };
     } catch (error) {
         console.error(`Error loading My Care Portal for ${uid}:`, error);
@@ -1588,3 +1598,136 @@ exports.linkBookingByReference = onCall(async (request) => {
         throw new HttpsError("internal", "Could not link booking right now. Please try again.");
     }
 });
+
+// 14. KnowYourBody Calculator: Persist assessment lead/log, enrich subscriber profile, and email summary via Resend
+exports.recordKnowYourBodyCheck = onCall(
+    { secrets: ["RESEND_API_KEY"] },
+    async (request) => {
+        const { email, snapshot } = request.data || {};
+        const cleanEmail = typeof email === "string" ? email.trim().toLowerCase() : "";
+
+        if (!cleanEmail || !/^\S+@\S+\.\S+$/.test(cleanEmail)) {
+            throw new HttpsError("invalid-argument", "Valid email address is required.");
+        }
+
+        const bmiVal = Number(snapshot?.bmi);
+        if (!snapshot || !Number.isFinite(bmiVal) || bmiVal <= 0) {
+            throw new HttpsError("invalid-argument", "Valid assessment snapshot is required.");
+        }
+
+        const firestoreDb = admin.firestore();
+        const uid = request.auth?.uid || null;
+        const nowIso = new Date().toISOString();
+        const logDocId = buildKnowYourBodyLogDocId(cleanEmail, snapshot.savedAt);
+        const logRef = firestoreDb.collection("knowYourBodyLogs").doc(logDocId);
+
+        const existingSnap = await logRef.get();
+        if (existingSnap.exists) {
+            return {
+                success: true,
+                alreadyRecorded: true,
+                resultsEmailSent: !!existingSnap.data()?.resultsEmailSent
+            };
+        }
+
+        const sanitizedLog = {
+            email: cleanEmail,
+            emailLower: cleanEmail,
+            uid,
+            isRegisteredUser: !!uid,
+            bmi: bmiVal,
+            bmiCategory: snapshot.bmiCategory || null,
+            bmr: snapshot.bmr ? Number(snapshot.bmr) : null,
+            dailyCalories: snapshot.dailyCalories ? Number(snapshot.dailyCalories) : null,
+            macros: snapshot.macros || null,
+            weight: snapshot.weight ? Number(snapshot.weight) : null,
+            height: snapshot.height ? Number(snapshot.height) : null,
+            targetWeight: snapshot.targetWeight ? Number(snapshot.targetWeight) : null,
+            age: snapshot.age ? parseInt(snapshot.age, 10) : null,
+            gender: snapshot.gender || null,
+            goal: snapshot.goal || null,
+            activityLevel: snapshot.activityLevel || null,
+            sleepHours: snapshot.sleepHours || null,
+            dietaryRestrictions: snapshot.dietaryRestrictions || "None",
+            healthConditions: snapshot.healthConditions || "",
+            dislikes: snapshot.dislikes || "",
+            unitsUsed: snapshot.unitsUsed || "metric",
+            clientSavedAt: snapshot.savedAt || null,
+            source: "knowyourbody",
+            resultsEmailSent: false,
+            createdAt: admin.firestore.FieldValue.serverTimestamp(),
+            createdAtIso: nowIso
+        };
+
+        await logRef.set(sanitizedLog);
+
+        // Enrich or subscribe email doc cleanly for SubscribersPanel & segmentation
+        try {
+            const emailRef = firestoreDb.collection("emails").doc(cleanEmail);
+            const emailDoc = await emailRef.get();
+            const metadataUpdate = {
+                hasKnowYourBodyCheck: true,
+                lastKnowYourBodyAt: nowIso,
+                lastGoal: sanitizedLog.goal,
+                lastBmi: sanitizedLog.bmi,
+                lastBmiCategory: sanitizedLog.bmiCategory,
+                lastDailyCalories: sanitizedLog.dailyCalories,
+                lastHealthConditions: sanitizedLog.healthConditions || null,
+                knowYourBodyCount: admin.firestore.FieldValue.increment(1),
+                sources: admin.firestore.FieldValue.arrayUnion("knowyourbody"),
+                updatedAt: admin.firestore.FieldValue.serverTimestamp()
+            };
+
+            if (emailDoc.exists) {
+                await emailRef.set(metadataUpdate, { merge: true });
+            } else {
+                await emailRef.set({
+                    email: cleanEmail,
+                    source: "knowyourbody",
+                    skipWelcomeEmail: true,
+                    createdAt: admin.firestore.Timestamp.now(),
+                    ...metadataUpdate
+                });
+            }
+        } catch (emailDocErr) {
+            console.warn(`Non-blocking error enriching emails/${cleanEmail}:`, emailDocErr.message);
+        }
+
+        // Send personalized KnowYourBody results email via Resend
+        const resendApiKey = process.env.RESEND_API_KEY;
+        if (!resendApiKey) {
+            console.warn("RESEND_API_KEY missing; recorded KnowYourBody check without emailing summary.");
+            return { success: true, logId: logDocId, resultsEmailSent: false };
+        }
+
+        try {
+            const resend = new Resend(resendApiKey);
+            const htmlContent = createKnowYourBodyResultsEmail({
+                email: cleanEmail,
+                snapshot: sanitizedLog
+            });
+
+            const { error: sendError } = await resend.emails.send({
+                from: "Nana Ama from Diet With Dee <hello@mail.dietwithdee.org>",
+                to: [cleanEmail],
+                subject: `Your KnowYourBody Results: ${sanitizedLog.dailyCalories || ""} kcal/day & BMI ${sanitizedLog.bmi}`.trim(),
+                html: htmlContent,
+                headers: {
+                    "List-Unsubscribe": `<https://dietwithdee.org/unsubscribe?email=${encodeURIComponent(cleanEmail)}>`
+                }
+            });
+
+            if (sendError) {
+                console.error(`Failed to send KnowYourBody summary email to ${cleanEmail}:`, sendError);
+                return { success: true, logId: logDocId, resultsEmailSent: false };
+            }
+
+            await logRef.update({ resultsEmailSent: true });
+            await recordTransactionalSent(firestoreDb, 1);
+            return { success: true, logId: logDocId, resultsEmailSent: true };
+        } catch (emailErr) {
+            console.error(`Error dispatching KnowYourBody summary email to ${cleanEmail}:`, emailErr);
+            return { success: true, logId: logDocId, resultsEmailSent: false };
+        }
+    }
+);
