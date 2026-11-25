@@ -8,6 +8,7 @@ import { getBookingSettings } from '../../firebaseBookingUtils';
 import { useAuth } from '../../AuthContext';
 import WhatsAppPopup from '../../Components/WhatsAppPopup';
 import ConsultationLedger from '../../Components/ConsultationLedger';
+import TestimonialsCarousel from '../../Components/TestimonialsCarousel';
 import {
   computeResultsFromProfile,
   getStoredTestResults,
@@ -241,6 +242,13 @@ const ContactUs = () => {
               </button>
             </div>
           </footer>
+
+          {/* 4. SWIPING CLIENT TESTIMONIALS (aligned cleanly inside Book a Session ledger container) */}
+          <TestimonialsCarousel
+            id="consultation-testimonials"
+            compact
+            className="pt-8 border-t border-stone-200/80"
+          />
         </div>
       </div>
 

@@ -1,14 +1,62 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { Bold, Italic, Type, Image, Phone, Plus, Sparkles, Lightbulb, Link as LinkIcon, Minus } from 'lucide-react';
+
+const PLATFORM_UPDATE_IMAGE_URL = 'https://dietwithdee.org/platform-update-phone.jpg';
+const PLATFORM_UPDATE_SUBJECT = 'A quick update from Dee — the site feels much smoother now 🌿';
+const PLATFORM_UPDATE_SECTIONS = [
+  {
+    id: 1,
+    type: 'heading',
+    value: 'We listened, and we tidied things up for you.'
+  },
+  {
+    id: 2,
+    type: 'paragraph',
+    value: "Hi there! A little while back, many of you shared honest feedback in our Community Survey about what felt confusing or stressful on DietWithDee — especially trying to book on your phone, typing body numbers into tiny boxes, and wondering what My Journey was actually for."
+  },
+  {
+    id: 3,
+    type: 'paragraph',
+    value: "We’ve been quietly working every day to fix those exact spots. Rather than adding more noise, we stripped things down so everything flows smoothly from start to finish:"
+  },
+  {
+    id: 4,
+    type: 'divider'
+  },
+  {
+    id: 5,
+    type: 'highlight',
+    value: "1. My Journey now tracks your real sessions with me — Sign in with Google (tap the person icon anytime) to check where your booked session stands, see confirmed times, read notes or guides I send after our call, and view your saved checks. No daily weigh-in chores."
+  },
+  {
+    id: 6,
+    type: 'paragraph',
+    value: "2. Know Your Body is way easier on your phone — Just drop your email at the start and slide smoothly across to set your age, height, and weight instead of fighting small number keypads. Your BMI and daily calorie breakdown goes straight to your inbox, and if you book right after, your details are already waiting for you."
+  },
+  {
+    id: 7,
+    type: 'paragraph',
+    value: "3. Booking & Client Stories feel clearer too — Whether you’re booking a standard session or OnTrack diabetes care, you review everything in one calm view and fill your form once. And if we’ve worked together before, you can now read client stories or add your own testimonial right inside My Journey or below the booking page."
+  },
+  {
+    id: 8,
+    type: 'tip',
+    value: "Try taking the quick 2-minute Know Your Body check or tap Book a Session to see how it feels — and just reply to this email if there’s anything else you’d like us to make easier."
+  },
+  {
+    id: 9,
+    type: 'button',
+    value: 'Try Know Your Body',
+    url: 'https://dietwithdee.org/knowYourBody'
+  }
+];
 
 const EmailTemplateBuilder = ({ emailTemplate, setEmailTemplate, showNotification }) => {
   const [view, setView] = useState('compose'); // 'compose' or 'preview'
-  const [contentSections, setContentSections] = useState([
-    { id: 1, type: 'heading', value: 'Fresh Nutrition Insights This Week' },
-    { id: 2, type: 'paragraph', value: 'Welcome to this week\'s edition of DietWithDee. Practical, sustainable tips for living well with Ghanaian foods you actually love.' }
-  ]);
-  const [nextId, setNextId] = useState(3);
-  const [headerImage, setHeaderImage] = useState('');
+  const [contentSections, setContentSections] = useState(PLATFORM_UPDATE_SECTIONS);
+  const [nextId, setNextId] = useState(10);
+  const [headerImage, setHeaderImage] = useState(PLATFORM_UPDATE_IMAGE_URL);
+  const hasInitializedRef = useRef(false);
 
   // Signature DietWithDee Brand Colors
   const brandColors = {
@@ -82,7 +130,7 @@ const EmailTemplateBuilder = ({ emailTemplate, setEmailTemplate, showNotificatio
     }).filter(Boolean).join('');
 
     const headerImageHtml = headerImg 
-      ? `<div style="padding: 0 24px 16px;"><img src="${headerImg}" alt="Header" style="width: 100%; height: auto; max-height: 280px; object-fit: cover; display: block; border-radius: 16px;" /></div>` 
+      ? `<div style="padding: 20px 24px 8px;"><img src="${headerImg}" alt="DietWithDee mobile experience" style="width: 100%; height: auto; max-height: 280px; object-fit: cover; display: block; border-radius: 16px;" /></div>` 
       : '';
 
     return `
@@ -189,6 +237,21 @@ const EmailTemplateBuilder = ({ emailTemplate, setEmailTemplate, showNotificatio
     }).join('\n');
   };
 
+  // Pre-populate htmlContent/textContent from the ready-to-send Platform Update draft on mount
+  useEffect(() => {
+    if (hasInitializedRef.current) return;
+    hasInitializedRef.current = true;
+    const defaultSubject = emailTemplate.subject || PLATFORM_UPDATE_SUBJECT;
+    if (!emailTemplate.htmlContent) {
+      setEmailTemplate({
+        ...emailTemplate,
+        subject: defaultSubject,
+        htmlContent: generateHTML(contentSections, defaultSubject, headerImage),
+        textContent: generatePlainText(contentSections)
+      });
+    }
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
+
   const handleSectionChange = (id, field, value) => {
     setContentSections(prev => prev.map(section => 
       section.id === id ? { ...section, [field]: value } : section
@@ -242,6 +305,12 @@ const EmailTemplateBuilder = ({ emailTemplate, setEmailTemplate, showNotificatio
     let subject = emailTemplate.subject;
     
     switch (templateType) {
+      case 'platform-update':
+        subject = PLATFORM_UPDATE_SUBJECT;
+        headerImg = PLATFORM_UPDATE_IMAGE_URL;
+        sections = PLATFORM_UPDATE_SECTIONS.map((s) => ({ ...s }));
+        break;
+
       case 'newsletter':
         subject = subject || 'Practical Nutrition Tips That Stick • DietWithDee';
         sections = [
@@ -354,6 +423,13 @@ const EmailTemplateBuilder = ({ emailTemplate, setEmailTemplate, showNotificatio
               📋 Start with a signature branded template:
             </p>
             <div className="flex flex-wrap gap-2.5">
+              <button
+                type="button"
+                onClick={() => loadTemplate('platform-update')}
+                className="px-4 py-1.5 bg-[#F6841F] text-white border border-[#F6841F] rounded-full text-xs hover:bg-[#e07312] transition-all font-semibold shadow-xs cursor-pointer"
+              >
+                📱 Site Update Draft (Ready)
+              </button>
               <button
                 type="button"
                 onClick={() => loadTemplate('newsletter')}

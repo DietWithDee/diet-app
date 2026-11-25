@@ -5,6 +5,8 @@ import { httpsCallable } from 'firebase/functions';
 import { functions } from '../../../firebaseConfig';
 import EmailTemplateBuilder from './EmailTemplateBuilder';
 
+const INITIAL_PLATFORM_UPDATE_SUBJECT = 'A quick update from Dee — the site feels much smoother now 🌿';
+
 const SubscribersPanel = ({ showNotification }) => {
   const [emails, setEmails] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -13,7 +15,7 @@ const SubscribersPanel = ({ showNotification }) => {
   const [searchTerm, setSearchTerm] = useState('');
   const [sourceFilter, setSourceFilter] = useState('all'); // 'all' | 'knowyourbody' | 'other'
   const [emailTemplate, setEmailTemplate] = useState({
-    subject: '',
+    subject: INITIAL_PLATFORM_UPDATE_SUBJECT,
     htmlContent: '',
     textContent: ''
   });

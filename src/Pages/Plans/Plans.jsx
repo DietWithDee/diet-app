@@ -1,11 +1,9 @@
-import React, { useState, useEffect, useCallback, useMemo } from "react";
+import React, { useState, useEffect, useMemo } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import Fuse from "fuse.js";
 import {
   Share2,
   Check,
-  ChevronLeft,
-  ChevronRight,
   CreditCard,
   Sparkles,
   Gift,
@@ -21,17 +19,12 @@ import SEO from "../../Components/SEO";
 import { logEvent } from "firebase/analytics";
 import { analytics } from "../../firebaseConfig";
 import PlanImg from "../../assets/Salad.webp"; // you can replace this with actual plan images
-import B2B from "../../assets/images/B2B.webp"; // example image for Back to Basics plan
-import Gain from "../../assets/images/Gain.webp"; // example image for Weight Gain plan
-import Weightloss from "../../assets/images/Weightloss.webp"; // example image for Weight Loss plan
-import Diabetes from "../../assets/images/Diabetes.webp"; // example image for Diabetes plan
-import Pressure from "../../assets/images/Pressure.webp"; // example image for Hypertension plan
 import ontrackImg from "../../assets/OntrackIMG.jpg";
 import appleIcon from "../../assets/apple.webp";
 import { useClientCount } from "../../utils/clientStats";
 import playstoreIcon from "../../assets/playstore.webp";
 import ScrollToTop from "../../utils/ScrollToTop";
-import { useTestimonials } from "../../hooks/useTestimonials";
+import TestimonialsCarousel from "../../Components/TestimonialsCarousel";
 import { plans } from "../../utils/plansData";
 import { useToast } from "../../Contexts/ToastContext";
 import PlanSearchBar from "./components/PlanSearchBar";
@@ -69,12 +62,7 @@ function Plans() {
   const clientCount = useClientCount();
   const navigate = useNavigate();
   const location = useLocation();
-  const { testimonials: firestoreTestimonials, fetchApprovedTestimonials } =
-    useTestimonials();
   const [shareToast, setShareToast] = useState(null);
-  const [currentTestimonial, setCurrentTestimonial] = useState(0);
-  const [isAutoPlaying, setIsAutoPlaying] = useState(true);
-  const [isHovered, setIsHovered] = useState(false);
   const [loading, setLoading] = useState(true);
   const { showToast } = useToast();
   const [searchQuery, setSearchQuery] = useState("");
@@ -212,113 +200,6 @@ function Plans() {
     setTimeout(() => {
       window.scrollTo({ top: 0, behavior: "smooth" });
     }, 100); // Delay slightly to ensure DOM has updated
-  };
-
-  // Default testimonials (fallback - corrected AI layout mixups)
-  const defaultTestimonials = [
-    {
-      name: "Michael Asare",
-      img: Gain,
-      content:
-        "Nana Ama's Weight Gain guide helped me go from 56kg to 78kg in just 5 months. Before that her 5 week follow up period psyched my mind for the task ahead. Her encouragement, step-by-step approach, and constant motivation made all the difference. I feel healthier, more confident, and energized than ever before. I couldn't have done it without her support.",
-      stars: 5,
-      profession: "Structural Engineer",
-      plan: "The Weight Gain",
-      location: "Accra, Ghana",
-    },
-    {
-      name: "Grace Blankson",
-      img: Pressure,
-      content:
-        "I've struggled with hypertension for well over 2 years. Thanks to Dee's Pressure No Dey Catch Me Plan, I now have a trusted source of meals that actually work for me. Her warm demeanor and constant willingness to listen made all the difference. I definitely recommend her to anyone managing hypertension.",
-      stars: 5,
-      profession: "Retail Trader",
-      plan: "Pressure No Dey Catch Me",
-      location: "Takoradi, Ghana",
-    },
-    {
-      name: "Kobby Breeze",
-      img: Diabetes,
-      content:
-        "When I was diagnosed with diabetes in October 2024, it felt like a death sentence. I was scared and overwhelmed. But with the guidance of my Doctor and my Dietician, Nana Ama Dwamena, I learned that with the right lifestyle changes, exercise and a proper diet, I could live a normal life. For six weeks, I committed to the plan, not just for myself, but for my daughter Nicole. Through the Blood Sugar Balancing plan, today, I feel healthier, stronger, and more hopeful than ever. Glory be to God!",
-      stars: 5,
-      profession: "Software Developer",
-      plan: "Blood Sugar Balance",
-      location: "Accra, Ghana",
-    },
-    {
-      name: "Lawrencia Kwakye",
-      img: B2B,
-      content:
-        "Before I started Diet with Dee's 5-Day Reset, my body felt totally out of sync and sluggish. Seriously, I was dragging myself through the day! But after just five days, it's like my body hit the reset button – pun totally intended. My system feels cleaner, and I'm pretty sure my skin is glowing. Dee, you've worked some kind of magic! This isn't just a diet; it's a total life upgrade.",
-      stars: 5,
-      profession: "High School Teacher",
-      plan: "Back to Basics",
-      location: "Accra, Ghana",
-    },
-    {
-      name: "Richard Oti",
-      img: Weightloss,
-      content:
-        "This was my very first encounter with a dietitian, and the objective of my visit was to lose weight. I must say, the results over the past few weeks have been amazing! She gave me a personalized meal plan with familiar foods that are protein-rich, low in carbs, and full of healthy fats. Since following it, my digestion has improved, my bloating has reduced, I wake up more energized, and I've been able to cut out late-night snacking and junk food. I feel healthier and more active than ever!",
-      stars: 5,
-      profession: "Senior Accountant",
-      plan: "Snatched & Nourished",
-      location: "Tema, Ghana",
-    },
-  ];
-
-  const liveFeatured = firestoreTestimonials
-    .filter((t) => t.isFeatured)
-    .map((t) => ({
-      ...t,
-      stars: t.rating,
-    }));
-
-  const testimonials =
-    liveFeatured.length >= 5
-      ? liveFeatured
-      : [...liveFeatured, ...defaultTestimonials].slice(0, 5);
-
-  const nextTestimonial = useCallback(() => {
-    setCurrentTestimonial((prev) => (prev + 1) % testimonials.length);
-  }, [testimonials.length]);
-
-  const prevTestimonial = useCallback(() => {
-    setCurrentTestimonial(
-      (prev) => (prev - 1 + testimonials.length) % testimonials.length,
-    );
-  }, [testimonials.length]);
-
-  // Fetch featured testimonials from Firestore
-  useEffect(() => {
-    fetchApprovedTestimonials();
-  }, [fetchApprovedTestimonials]);
-
-  useEffect(() => {
-    let interval;
-    if (isAutoPlaying && !isHovered && !loading && testimonials.length > 1) {
-      interval = setInterval(nextTestimonial, 7000); // Change testimonial every 7 seconds
-    }
-    return () => clearInterval(interval);
-  }, [isAutoPlaying, isHovered, loading, nextTestimonial, testimonials.length]);
-
-  // Star rating component
-  const StarRating = ({ rating }) => {
-    return (
-      <div className="flex gap-1 mb-3">
-        {[...Array(5)].map((_, i) => (
-          <svg
-            key={i}
-            className={`w-4 h-4 ${i < rating ? "text-yellow-400" : "text-gray-300"}`}
-            fill="currentColor"
-            viewBox="0 0 20 20"
-          >
-            <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
-          </svg>
-        ))}
-      </div>
-    );
   };
 
   useEffect(() => {
@@ -788,217 +669,22 @@ function Plans() {
           </button>
         </div>
 
-        {/* Improved Testimonials Section */}
-        <div id="success-stories" className="mt-12 mb-12">
-          <div className="text-center space-y-4 max-w-3xl mx-auto mb-12">
-            <h2 className="text-3xl sm:text-4xl lg:text-5xl font-serif-cormorant font-normal text-stone-900 tracking-tight">
-              Success Stories
-            </h2>
-            <p className="text-stone-700 text-base sm:text-lg font-normal max-w-xl mx-auto leading-relaxed">
-              Real people, real results. Swipe to see what our clients have to
-              say about their transformation journey.
-            </p>
-            <div className="w-16 h-0.5 bg-[#F6841F] mx-auto rounded-full"></div>
-          </div>
+        {/* Shared Swiping Testimonials Carousel */}
+        <TestimonialsCarousel id="success-stories" className="max-w-4xl mx-auto mt-16" />
 
-          <div className="relative max-w-6xl mx-auto px-4 sm:px-12">
-            {/* Carousel Container */}
-            <div
-              className="overflow-hidden py-10"
-              onMouseEnter={() => setIsHovered(true)}
-              onMouseLeave={() => setIsHovered(false)}
-            >
-              <motion.div
-                className={`flex ${testimonials.length > 1 ? "cursor-grab active:cursor-grabbing" : ""}`}
-                animate={{ x: `-${currentTestimonial * 100}%` }}
-                transition={{ duration: 0.8, ease: "easeInOut" }}
-                drag={testimonials.length > 1 ? "x" : false}
-                dragConstraints={{ left: 0, right: 0 }}
-                onDragStart={() => setIsAutoPlaying(false)}
-                onDragEnd={(e, { offset }) => {
-                  if (testimonials.length <= 1) return;
-                  const swipe = offset.x;
-                  if (swipe < -50) nextTestimonial();
-                  else if (swipe > 50) prevTestimonial();
-                }}
-              >
-                {testimonials.map((testimonial, index) => (
-                  <div key={index} className="min-w-full px-0">
-                    <div className="bg-white rounded-3xl shadow-xl hover:shadow-2xl transition-all duration-300 p-6 sm:p-8 relative border border-green-50 group max-w-4xl mx-auto">
-                      {/* Quote Icon */}
-                      <div className="absolute top-6 right-6 text-green-200 group-hover:text-green-300 transition-colors">
-                        <svg
-                          className="w-8 h-8"
-                          fill="currentColor"
-                          viewBox="0 0 24 24"
-                        >
-                          <path d="M14.017 21v-7.391c0-5.704 3.731-9.57 8.983-10.609l.995 2.151c-2.432.917-3.995 3.638-3.995 5.849h4v10h-9.983zm-14.017 0v-7.391c0-5.704 3.748-9.57 9-10.609l.996 2.151c-2.433.917-3.996 3.638-3.996 5.849h4v10h-10z" />
-                        </svg>
-                      </div>
-
-                      {/* Profile Section */}
-                      <div className="flex items-center gap-4 mb-6">
-                        <div className="relative">
-                          {testimonial.img ? (
-                            <img
-                              src={testimonial.img}
-                              alt={testimonial.name}
-                              className="h-16 w-16 object-cover rounded-full border-4 border-emerald-100 shadow-md"
-                            />
-                          ) : (
-                            <div className="h-16 w-16 rounded-full border-4 border-emerald-100 shadow-md bg-gradient-to-br from-green-400 to-emerald-500 flex items-center justify-center text-white font-black text-xl select-none">
-                              {(testimonial.name || "A")
-                                .charAt(0)
-                                .toUpperCase()}
-                            </div>
-                          )}
-                          <div className="absolute -bottom-1 -right-1 bg-green-500 rounded-full p-1">
-                            <svg
-                              className="w-3 h-3 text-white"
-                              fill="currentColor"
-                              viewBox="0 0 20 20"
-                            >
-                              <path
-                                fillRule="evenodd"
-                                d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z"
-                                clipRule="evenodd"
-                              />
-                            </svg>
-                          </div>
-                        </div>
-                        <div>
-                          <h4 className="font-bold text-gray-800 text-xl">
-                            {testimonial.name}
-                          </h4>
-                          <p className="text-green-600 text-base font-semibold">
-                            {testimonial.plan}
-                          </p>
-                          <p className="text-stone-600 text-sm font-medium">
-                            {testimonial.location}
-                          </p>
-                        </div>
-                      </div>
-
-                      <StarRating rating={testimonial.stars} />
-                      <p className="text-stone-800 text-base leading-relaxed mb-4 italic">
-                        "{testimonial.content}"
-                      </p>
-                      <div className="w-12 h-1 bg-gradient-to-r from-green-400 to-emerald-400 rounded-full"></div>
-                    </div>
-                  </div>
-                ))}
-              </motion.div>
-            </div>
-
-            {/* Testimonials Call to Actions */}
-            <div className="flex flex-col sm:flex-row items-center justify-center gap-4 max-w-2xl mx-auto mb-6 px-4">
-              <motion.button
-                whileHover={{ scale: 1.03 }}
-                whileTap={{ scale: 0.97 }}
-                onClick={() => {
-                  scrollUp();
-                  navigate("/submit-testimonial");
-                }}
-                className="group inline-flex items-center justify-center gap-3 bg-gradient-to-r from-green-700 via-emerald-600 to-green-600 text-white px-8 py-4 rounded-full font-bold shadow-md hover:shadow-xl transition-all duration-300 hover:-translate-y-0.5 w-full sm:w-auto text-center text-sm sm:text-base cursor-pointer"
-              >
-                <span>Share Your Success Story</span>
-                <svg
-                  className="w-5 h-5 group-hover:translate-x-1 transition-transform"
-                  fill="none"
-                  stroke="currentColor"
-                  viewBox="0 0 24 24"
-                  aria-hidden="true"
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth={2}
-                    d="M17 8l4 4m0 0l-4 4m4-4H3"
-                  />
-                </svg>
-              </motion.button>
-              <motion.button
-                whileHover={{ scale: 1.03 }}
-                whileTap={{ scale: 0.97 }}
-                onClick={() => {
-                  scrollUp();
-                  navigate("/success-stories");
-                }}
-                className="group inline-flex items-center justify-center gap-3 bg-green-50 text-green-700 px-8 py-4 rounded-full font-bold hover:bg-green-700 hover:text-white transition-all duration-300 shadow-md hover:-translate-y-0.5 w-full sm:w-auto text-center text-sm sm:text-base cursor-pointer"
-              >
-                <span>View Success Stories</span>
-                <svg
-                  className="w-5 h-5 group-hover:translate-x-1 transition-transform"
-                  fill="none"
-                  stroke="currentColor"
-                  viewBox="0 0 24 24"
-                  aria-hidden="true"
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth={2}
-                    d="M17 8l4 4m0 0l-4 4m4-4H3"
-                  />
-                </svg>
-              </motion.button>
-            </div>
-
-            {/* Navigation Arrows */}
-            {testimonials.length > 1 && (
-              <>
-                <button
-                  onClick={() => {
-                    setIsAutoPlaying(false);
-                    prevTestimonial();
-                  }}
-                  className="absolute left-1 sm:left-0 top-1/2 -translate-y-1/2 p-2 sm:p-3 bg-white shadow-md sm:shadow-lg rounded-full text-green-600 hover:bg-green-50 z-10 transition-all focus:outline-none"
-                >
-                  <ChevronLeft className="w-5 h-5 sm:w-6 sm:h-6" />
-                </button>
-                <button
-                  onClick={() => {
-                    setIsAutoPlaying(false);
-                    nextTestimonial();
-                  }}
-                  className="absolute right-1 sm:right-0 top-1/2 -translate-y-1/2 p-2 sm:p-3 bg-white shadow-md sm:shadow-lg rounded-full text-green-600 hover:bg-green-50 z-10 transition-all focus:outline-none"
-                >
-                  <ChevronRight className="w-5 h-5 sm:w-6 sm:h-6" />
-                </button>
-              </>
-            )}
-
-            {/* Pagination Dots */}
-            {testimonials.length > 1 && (
-              <div className="flex justify-center gap-2 mt-4">
-                {testimonials.map((_, idx) => (
-                  <button
-                    key={idx}
-                    onClick={() => {
-                      setIsAutoPlaying(false);
-                      setCurrentTestimonial(idx);
-                    }}
-                    className={`w-2.5 h-2.5 rounded-full transition-all duration-300 ${idx === currentTestimonial ? "bg-green-600 w-8" : "bg-gray-300 hover:bg-gray-400"}`}
-                  />
-                ))}
-              </div>
-            )}
-          </div>
-
-          {/* Call to Action */}
-          <div className="text-center mt-12">
-            <p className="text-gray-600 text-lg mb-6">
-              Ready to start your transformation?
-            </p>
-            <button
-              onClick={() => {
-                scrollUp();
-              }}
-              className="px-8 py-3 bg-gradient-to-r from-[#F6841F] to-[#F6841F] text-white font-bold rounded-full hover:shadow-lg transition-all hover:scale-105"
-            >
-              Choose Your Plan
-            </button>
-          </div>
+        {/* Call to Action */}
+        <div className="text-center mt-12 mb-12">
+          <p className="text-gray-600 text-lg mb-6">
+            Ready to start your transformation?
+          </p>
+          <button
+            onClick={() => {
+              scrollUp();
+            }}
+            className="px-8 py-3 bg-gradient-to-r from-[#F6841F] to-[#F6841F] text-white font-bold rounded-full hover:shadow-lg transition-all hover:scale-105"
+          >
+            Choose Your Plan
+          </button>
         </div>
       </div>
 
