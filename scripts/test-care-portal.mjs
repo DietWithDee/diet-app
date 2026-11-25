@@ -23,6 +23,10 @@ import {
   suggestTargetWeight,
   toggleDietaryChoice
 } from '../src/utils/knowYourBodyFlow.js';
+import {
+  formatPlanLabel,
+  matchesPlanFilter
+} from '../src/utils/testimonialHelpers.js';
 
 import {
   calculateBodyMetrics,
@@ -306,4 +310,19 @@ test('KnowYourBody log IDs, assessment sanitization, and summary email escaping 
   assert.ok(emailHtml.includes('&lt;script&gt;alert(&quot;xss&quot;)&lt;/script&gt; &amp; Type 2'));
   assert.ok(emailHtml.includes('https://dietwithdee.org/unsubscribe?email=ama%2B1%40gmail.com'));
   assert.ok(emailHtml.includes('Book a 1-on-1 Consultation'));
+});
+
+test('testimonialHelpers normalize plan labels and match legacy + slug filters cleanly', () => {
+  assert.equal(formatPlanLabel('consultation'), '1-on-1 Clinical Consultation');
+  assert.equal(formatPlanLabel('ontrack-care'), 'OnTrack Diabetes Consultation');
+  assert.equal(formatPlanLabel('blood-sugar-balance'), 'Blood Sugar Balance');
+  assert.equal(formatPlanLabel('weight-gain'), 'The Weight Gain');
+  assert.equal(formatPlanLabel('some-custom-program'), 'Some Custom Program');
+  assert.equal(formatPlanLabel(''), 'Client Consultation');
+
+  assert.equal(matchesPlanFilter({ plan: 'The Weight Gain', planId: 'weight-gain' }, 'weight-gain'), true);
+  assert.equal(matchesPlanFilter({ plan: 'The Weight Gain' }, 'weight-gain'), true);
+  assert.equal(matchesPlanFilter({ plan: 'blood-sugar-balance' }, 'blood-sugar-balance'), true);
+  assert.equal(matchesPlanFilter({ plan: 'consultation' }, 'ontrack-care'), false);
+  assert.equal(matchesPlanFilter({ plan: 'consultation' }, 'all'), true);
 });
