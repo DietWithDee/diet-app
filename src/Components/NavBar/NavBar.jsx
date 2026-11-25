@@ -6,7 +6,7 @@ import { motion } from 'framer-motion'
 import logo from "../../assets/LOGO.webp"
 import { useNavigate } from 'react-router-dom'
 import { useAuth } from '../../AuthContext'
-import InAppBrowserNotice, { InAppBrowserSpacer } from '../InAppBrowserNotice'
+
 
 // Playful bouncing icon that transitions between shopping cart and gift emoji (Commented out for reuse)
 /*
@@ -202,8 +202,8 @@ export default function NavBar() {
         </div>
       </div>
 
-      {/* In-app browser detection notice banner */}
-      <InAppBrowserNotice />
+
+
 
       {/* Mobile Backdrop */}
       {menuOpen && (
@@ -291,7 +291,7 @@ export default function NavBar() {
         </div>
       </div>
     </header>
-    <InAppBrowserSpacer />
+
   </>
   )
 }

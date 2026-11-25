@@ -74,10 +74,10 @@ const Footer = () => {
   useEffect(() => {
     startCollapseTimer();
 
-    // Enable scroll behavior after 10 seconds
+    // Enable scroll behavior shortly after mount so scrolling down clears cards cleanly
     const scrollEnableTimer = setTimeout(() => {
       setEnableScrollBehavior(true);
-    }, 10000);
+    }, 1000);
 
     const handleScroll = () => {
       const currentScrollY = window.scrollY;
@@ -296,29 +296,29 @@ const Footer = () => {
       </div>
 
       {/* Floating Chat Button */}
-      <div className={`fixed bottom-4 sm:bottom-6 right-4 sm:right-6 z-50 transition-all duration-500 ${isWhatsAppVisible ? 'translate-y-0 opacity-100' : 'translate-y-20 opacity-0 pointer-events-none'}`}>
+      <div className={`fixed bottom-3.5 sm:bottom-6 right-3.5 sm:right-6 z-40 transition-all duration-500 ${isWhatsAppVisible ? 'translate-y-0 opacity-100' : 'translate-y-20 opacity-0 pointer-events-none'}`}>
         <div
           onMouseEnter={handleMouseEnter}
           className="relative"
         >
           <button
+            type="button"
             onClick={handleWhatsAppClick}
+            aria-label="Talk to Dee on WhatsApp"
             className={`
-              bg-green-500 hover:bg-green-600 text-white rounded-full shadow-lg 
-              transition-all duration-500 ease-in-out transform hover:scale-105
+              bg-[#143A28] hover:bg-[#0e2a1d] text-white rounded-full shadow-xl border border-white/15
+              transition-all duration-500 ease-in-out transform hover:scale-105 cursor-pointer
               flex items-center gap-2 overflow-hidden relative z-10
-              ${isExpanded ? 'px-4 py-3' : 'p-3 w-12 h-12 justify-center'}
+              ${isExpanded ? 'px-3.5 py-2.5 sm:px-4 sm:py-3' : 'p-2.5 sm:p-3 w-11 h-11 sm:w-12 sm:h-12 justify-center'}
             `}
           >
             <MessageCircle
-              size={20}
-              className={`
-                flex-shrink-0 transition-all duration-300 z-10
-              `}
+              size={18}
+              className="flex-shrink-0 transition-all duration-300 z-10"
             />
             <span
               className={`
-                font-medium text-sm whitespace-nowrap transition-all duration-500
+                font-medium text-xs sm:text-sm whitespace-nowrap transition-all duration-500
                 ${isExpanded ? 'opacity-100 max-w-xs' : 'opacity-0 max-w-0'}
               `}
             >
