@@ -42,7 +42,7 @@ function PaymentSuccess() {
   const hasProcessedRef = useRef(false);
 
   // Pull saved data from localStorage safely
-  const formData = useMemo(() => {
+  const initialFormData = useMemo(() => {
     try {
       const raw = localStorage.getItem('consultationFormData');
       return raw ? JSON.parse(raw) : { name: '', email: '', phone: '', message: '', consultationType: 'initial' };
@@ -50,6 +50,8 @@ function PaymentSuccess() {
       return { name: '', email: '', phone: '', message: '', consultationType: 'initial' };
     }
   }, []);
+
+  const [formData, setFormData] = useState(initialFormData);
 
   const userResults = useMemo(() => {
     try {
@@ -98,30 +100,50 @@ function PaymentSuccess() {
         return;
       }
 
+      // Merge Paystack transaction metadata with localStorage (protects against cross-browser/in-app storage loss)
+      const paystackMeta = verifyResult.data.metadata || {};
+      const metaFormData = paystackMeta.formData || {};
+      const fallbackEmail = (metaFormData.email || initialFormData?.email || verifyResult.data.customerEmail || '').trim();
+      const mergedFormData = {
+        ...initialFormData,
+        ...metaFormData,
+        email: fallbackEmail,
+        name: (metaFormData.name || initialFormData?.name || (fallbackEmail ? fallbackEmail.split('@')[0] : '')).trim()
+      };
+      const mergedUserResults = {
+        ...userResults,
+        ...(paystackMeta.userResults || {})
+      };
+      setFormData(mergedFormData);
+
       // Step 2: Process Booking (Save to Firestore & Send Emails)
       setStatus('processing');
       const processBookingFn = httpsCallable(functions, 'processBooking');
 
       // Check if booking originated from OnTrack
-      const isOntrackBooking = !!(formData?.isOntrack || formData?.source === 'ontrack');
+      const isOntrackBooking = !!(
+        mergedFormData?.isOntrack ||
+        mergedFormData?.source === 'ontrack' ||
+        mergedFormData?.source === 'ontrack_diabetes' ||
+        paystackMeta?.isOntrack
+      );
 
       // Derive type from amount to be robust against extra charges/fees
-      console.log("This is the amount being charged", verifyResult.data);
       const actualAmount = verifyResult.data.amount / 100;
       let verifiedType = 'initial';
       if (actualAmount < 500) {
         verifiedType = 'followup';
-      } else if (actualAmount >= 500 && actualAmount < 700 && !isOntrackBooking && !formData?.isFathersDayBooking) {
+      } else if (actualAmount >= 500 && actualAmount < 700 && !isOntrackBooking && !mergedFormData?.isFathersDayBooking) {
         verifiedType = 'fathersday';
       }
       setVerifiedConsultationType(verifiedType);
 
       const payload = {
           formData: {
-            ...formData,
-            ...(isOntrackBooking ? { isOntrack: true, source: 'ontrack' } : {})
+            ...mergedFormData,
+            ...(isOntrackBooking ? { isOntrack: true, source: mergedFormData.source || 'ontrack' } : {})
           },
-          userResults,
+          userResults: mergedUserResults,
           reference,
           amount: actualAmount,
           consultationType: verifiedType
@@ -189,7 +211,7 @@ function PaymentSuccess() {
       setErrorMessage('A network error occurred while verifying your payment. Please try again.');
       showToast('Network error during payment verification. Please try again.', 'error');
     }
-  }, [location.search, formData, userResults, showToast]);
+  }, [location.search, initialFormData, userResults, showToast]);
 
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
@@ -308,7 +330,7 @@ function PaymentSuccess() {
   }
 
   // status === 'confirmed'
-  const isOntrack = !!(formData?.isOntrack || formData?.source === 'ontrack');
+  const isOntrack = !!(formData?.isOntrack || formData?.source === 'ontrack' || formData?.source === 'ontrack_diabetes');
   const isFathersDay = !isOntrack && (
                        !!formData.isFathersDayBooking || 
                        new URLSearchParams(location.search).get('campaign') === 'fathersday' ||

@@ -6,7 +6,7 @@ const admin = require("firebase-admin");
 const { Resend } = require("resend");
 const { enqueueCampaign, processMailQueue, recordTransactionalSent } = require("./mailEngine");
 const { createEmailTemplate, createWelcomeTemplate, createSurveyVoucherTemplate, createEventBroadcastTemplate } = require("./emailTemplate");
-const { createAdminBookingEmail, createClientConfirmationEmail } = require("./bookingEmailTemplates");
+const { createAdminBookingEmail, createClientConfirmationEmail, createAdminInquiryEmail, createClientInquiryEmail } = require("./bookingEmailTemplates");
 const { createAdminTestimonialEmail } = require("./testimonialEmailTemplate");
 
 
@@ -646,6 +646,147 @@ exports.onUserCreated = onDocumentCreated(
     }
 );
 
+// Allowed callback origins for Paystack redirect
+const resolveCallbackUrl = (origin) => {
+    const fallback = "https://dietwithdee.org/paymentSuccess";
+    if (!origin || typeof origin !== "string") return fallback;
+    try {
+        const parsed = new URL(origin);
+        const host = parsed.hostname.toLowerCase();
+        const isAllowedProd = parsed.protocol === "https:" && (host === "dietwithdee.org" || host === "www.dietwithdee.org");
+        const isAllowedLocal = (parsed.protocol === "http:" || parsed.protocol === "https:") && (host === "localhost" || host === "127.0.0.1");
+        if (isAllowedProd || isAllowedLocal) {
+            return `${parsed.origin}/paymentSuccess`;
+        }
+    } catch {
+        // Invalid origin string falls back to production callback
+    }
+    return fallback;
+};
+
+const CONSULTATION_TIER_PRICING = {
+    initial: { amountPesewas: 80000, consultationType: "initial", isOntrack: false },
+    followup: { amountPesewas: 40000, consultationType: "followup", isOntrack: false },
+    ontrack_initial: { amountPesewas: 60000, consultationType: "initial", isOntrack: true },
+    ontrack_followup: { amountPesewas: 30000, consultationType: "followup", isOntrack: true }
+};
+
+// 4.9. Initialize Paystack Checkout directly so clients don't fill a second form on Paystack
+exports.initializePaystackTransaction = onCall(
+    { secrets: ["PAYSTACK_SECRET_KEY"] },
+    async (request) => {
+        const { tier = "initial", formData = {}, userResults = {}, callbackOrigin } = request.data || {};
+        const tierConfig = CONSULTATION_TIER_PRICING[tier];
+        if (!tierConfig) {
+            throw new HttpsError("invalid-argument", "Invalid consultation tier specified.");
+        }
+
+        const cleanName = typeof formData.name === "string" ? formData.name.trim() : "";
+        const cleanEmail = typeof formData.email === "string" ? formData.email.trim().toLowerCase() : "";
+        const cleanPhone = typeof formData.phone === "string" ? formData.phone.trim() : "";
+
+        if (!cleanName || !cleanEmail || !/^\S+@\S+\.\S+$/.test(cleanEmail) || !cleanPhone) {
+            throw new HttpsError("invalid-argument", "Valid name, email, and phone number are required.");
+        }
+
+        const secretKey = process.env.PAYSTACK_SECRET_KEY;
+        if (!secretKey) {
+            throw new HttpsError("internal", "Paystack secret key is not configured.");
+        }
+
+        const compactResults = {
+            bmi: userResults?.bmi ?? null,
+            bmiCategory: userResults?.bmiCategory || null,
+            dailyCalories: userResults?.dailyCalories ?? null,
+            goal: userResults?.goal || null,
+            dietaryRestrictions: userResults?.dietaryRestrictions || null,
+            weight: userResults?.weight ?? null,
+            height: userResults?.height ?? null,
+            activityLevel: userResults?.activityLevel || null,
+            healthConditions: userResults?.healthConditions || null,
+            dislikes: userResults?.dislikes || null,
+            macros: userResults?.macros || null
+        };
+
+        const sanitizedFormData = {
+            name: cleanName,
+            email: cleanEmail,
+            phone: cleanPhone,
+            message: typeof formData.message === "string" ? formData.message.trim() : "",
+            scheduledDate: typeof formData.scheduledDate === "string" ? formData.scheduledDate : "",
+            scheduledTime: typeof formData.scheduledTime === "string" ? formData.scheduledTime : "",
+            consultationType: tierConfig.consultationType,
+            ...(tierConfig.isOntrack ? { isOntrack: true, source: "ontrack" } : { source: "contact_us" })
+        };
+
+        const callbackUrl = resolveCallbackUrl(callbackOrigin);
+
+        try {
+            const response = await fetch("https://api.paystack.co/transaction/initialize", {
+                method: "POST",
+                headers: {
+                    Authorization: `Bearer ${secretKey}`,
+                    "Content-Type": "application/json"
+                },
+                body: JSON.stringify({
+                    email: cleanEmail,
+                    amount: tierConfig.amountPesewas,
+                    currency: "GHS",
+                    callback_url: callbackUrl,
+                    metadata: {
+                        consultationType: tierConfig.consultationType,
+                        isOntrack: tierConfig.isOntrack,
+                        formData: sanitizedFormData,
+                        userResults: compactResults,
+                        custom_fields: [
+                            { display_name: "Client Name", variable_name: "client_name", value: cleanName },
+                            { display_name: "WhatsApp / Phone", variable_name: "client_phone", value: cleanPhone },
+                            { display_name: "Consultation Tier", variable_name: "consultation_tier", value: tier }
+                        ]
+                    }
+                })
+            });
+
+            if (!response.ok) {
+                const errText = await response.text().catch(() => "");
+                console.error(`Paystack initialize HTTP ${response.status}:`, errText);
+                throw new HttpsError("unavailable", "Unable to start Paystack checkout right now. Please try again.");
+            }
+
+            const data = await response.json();
+            if (!data.status || !data.data?.authorization_url || !data.data?.reference) {
+                console.error("Paystack initialize rejected:", data);
+                throw new HttpsError("internal", data.message || "Failed to initialize payment.");
+            }
+
+            const reference = data.data.reference;
+            try {
+                await db.collection("pendingBookings").doc(reference).set({
+                    reference,
+                    tier,
+                    expectedAmountPesewas: tierConfig.amountPesewas,
+                    formData: sanitizedFormData,
+                    userResults: compactResults,
+                    createdAt: admin.firestore.FieldValue.serverTimestamp()
+                });
+            } catch (pendingErr) {
+                console.warn(`Non-blocking warning saving pendingBookings/${reference}:`, pendingErr.message);
+            }
+
+            console.log(`Initialized Paystack checkout ${reference} for ${cleanEmail} (${tier})`);
+            return {
+                success: true,
+                authorizationUrl: data.data.authorization_url,
+                reference
+            };
+        } catch (error) {
+            if (error instanceof HttpsError) throw error;
+            console.error("Error initializing Paystack transaction:", error);
+            throw new HttpsError("unavailable", "Could not connect to Paystack. Please try again.");
+        }
+    }
+);
+
 // 5. Securely Verify Paystack Transaction
 exports.verifyPaystackTransaction = onCall(
     { secrets: ["PAYSTACK_SECRET_KEY"] },
@@ -704,7 +845,8 @@ exports.verifyPaystackTransaction = onCall(
                     amount: data.data.amount,
                     customerEmail: data.data.customer.email,
                     channel: data.data.channel,
-                    paidAt: data.data.paid_at
+                    paidAt: data.data.paid_at,
+                    metadata: data.data.metadata || null
                 };
             } else {
                 console.warn(`Transaction verification failed for ${reference}: ${data.message}`);
@@ -731,22 +873,10 @@ exports.verifyPaystackTransaction = onCall(
 exports.processBooking = onCall(
     { secrets: ["RESEND_API_KEY"] },
     async (request) => {
-        const { formData, userResults, reference, amount } = request.data;
+        const { formData: rawFormData = {}, userResults: rawUserResults = {}, reference, amount } = request.data || {};
 
-        if (!reference || !formData?.email) {
-            throw new HttpsError("invalid-argument", "Missing required booking data.");
-        }
-        
-        // Check if booking originated from OnTrack
-        const isOntrack = !!(formData?.isOntrack || formData?.source === 'ontrack');
-
-        // Derive actual type from amount as the source of truth
-        const actualAmount = Number(amount);
-        let actualType = 'initial';
-        if (actualAmount < 500) {
-            actualType = 'followup';
-        } else if (actualAmount >= 500 && actualAmount < 700 && !isOntrack && !formData?.isFathersDayBooking) {
-            actualType = 'fathersday';
+        if (!reference) {
+            throw new HttpsError("invalid-argument", "Missing transaction reference.");
         }
 
         const db = admin.firestore();
@@ -757,6 +887,42 @@ exports.processBooking = onCall(
         if (existingDoc.exists) {
             console.log(`Booking for reference ${reference} already processed.`);
             return { success: true, message: "Already processed", bookingId: reference };
+        }
+
+        // Recover server-saved pending booking data if client storage was cleared across browsers
+        let pendingSnapData = null;
+        try {
+            const pendingSnap = await db.collection("pendingBookings").doc(reference).get();
+            if (pendingSnap.exists) {
+                pendingSnapData = pendingSnap.data();
+            }
+        } catch (pendingReadErr) {
+            console.warn(`Non-blocking warning reading pendingBookings/${reference}:`, pendingReadErr.message);
+        }
+
+        const formData = {
+            ...(pendingSnapData?.formData || {}),
+            ...(rawFormData || {})
+        };
+        const userResults = {
+            ...(pendingSnapData?.userResults || {}),
+            ...(rawUserResults || {})
+        };
+
+        if (!formData?.email) {
+            throw new HttpsError("invalid-argument", "Missing required booking email.");
+        }
+        
+        // Check if booking originated from OnTrack
+        const isOntrack = !!(formData?.isOntrack || formData?.source === 'ontrack' || formData?.source === 'ontrack_diabetes');
+
+        // Derive actual type from amount as the source of truth
+        const actualAmount = Number(amount);
+        let actualType = 'initial';
+        if (actualAmount < 500) {
+            actualType = 'followup';
+        } else if (actualAmount >= 500 && actualAmount < 700 && !isOntrack && !formData?.isFathersDayBooking) {
+            actualType = 'fathersday';
         }
 
         // 1. Save to Firestore
@@ -857,20 +1023,25 @@ exports.processBooking = onCall(
         if (enrichedResults.bmi === 0) enrichedResults.bmi = null;
         if (enrichedResults.dailyCalories === 0) enrichedResults.dailyCalories = null;
 
+        const clientDisplayName = formData.name || (formData.email ? formData.email.split("@")[0] : "Client");
         const bookingData = {
             ...formData,
+            name: clientDisplayName,
             consultationType: actualType,
             amount: actualAmount,
             paystackReference: reference,
             status: 'pending',
             createdAt: admin.firestore.FieldValue.serverTimestamp(),
             userResults: enrichedResults,
-            ...(isOntrack ? { isOntrack: true, source: 'ontrack' } : {})
+            ...(isOntrack ? { isOntrack: true, source: formData?.source || 'ontrack' } : {})
         };
 
         try {
             await bookingRef.set(bookingData);
             console.log(`Booking saved to Firestore: ${reference}`);
+            if (pendingSnapData) {
+                await db.collection("pendingBookings").doc(reference).delete().catch(() => {});
+            }
         } catch (error) {
             console.error("Error saving booking:", error);
             throw new HttpsError("internal", "Failed to save booking. Please contact support.");
@@ -890,10 +1061,10 @@ exports.processBooking = onCall(
             const adminHtml = createAdminBookingEmail(bookingData);
             const isFathersDay = !isOntrack && (!!bookingData.isFathersDayBooking || actualType === 'fathersday');
             const adminSubject = isFathersDay
-                ? `New Father's Day Gift: ${bookingData.buyerName || formData.name} for ${bookingData.fatherName || 'N/A'}`
+                ? `New Father's Day Gift: ${bookingData.buyerName || clientDisplayName} for ${bookingData.fatherName || 'N/A'}`
                 : isOntrack
-                    ? `New OnTrack Booking: ${formData.name} (${actualType === 'followup' ? 'Follow-Up - ₵300' : 'Initial - ₵600'})`
-                    : `New Booking: ${formData.name} (${actualType === 'followup' ? 'Follow-Up' : 'Initial'})`;
+                    ? `New OnTrack Booking: ${clientDisplayName} (${actualType === 'followup' ? 'Follow-Up - ₵300' : 'Initial - ₵600'})`
+                    : `New Booking: ${clientDisplayName} (${actualType === 'followup' ? 'Follow-Up' : 'Initial'})`;
 
             await resend.emails.send({
                 from: 'Diet With Dee Bookings <bookings@mail.dietwithdee.org>',
@@ -903,7 +1074,7 @@ exports.processBooking = onCall(
             });
 
             // Email 2: To Client
-            const clientHtml = createClientConfirmationEmail(formData.name, actualType, bookingData);
+            const clientHtml = createClientConfirmationEmail(clientDisplayName, actualType, bookingData);
             const clientSubject = isFathersDay 
                 ? "Father's Day Gift Confirmed! 🎁" 
                 : isOntrack 
@@ -1183,6 +1354,76 @@ exports.sendBulkCustomEmails = onCall(
             console.error("Error in sendBulkCustomEmails:", error);
             if (error instanceof HttpsError) throw error;
             throw new HttpsError("internal", error.message || "Failed to send emails");
+        }
+    }
+);
+
+// 11. Public: Submit Tier 03 Custom & Specialist Care Inquiry (saves to Firestore + sends Resend emails)
+exports.submitBespokeInquiry = onCall(
+    { secrets: ["RESEND_API_KEY"] },
+    async (request) => {
+        const { name, email, phone, message, inquiryTopic } = request.data || {};
+        const cleanName = typeof name === "string" ? name.trim() : "";
+        const cleanEmail = typeof email === "string" ? email.trim().toLowerCase() : "";
+        const cleanPhone = typeof phone === "string" ? phone.trim() : "";
+        const cleanMessage = typeof message === "string" ? message.trim() : "";
+        const cleanTopic = typeof inquiryTopic === "string" && inquiryTopic.trim()
+            ? inquiryTopic.trim()
+            : "Custom & Specialist Care";
+
+        if (!cleanName || !cleanEmail || !/^\S+@\S+\.\S+$/.test(cleanEmail) || !cleanPhone || !cleanMessage) {
+            throw new HttpsError("invalid-argument", "Please provide your name, valid email, phone number, and care notes.");
+        }
+
+        const inquiryDoc = {
+            name: cleanName,
+            email: cleanEmail,
+            phone: cleanPhone,
+            message: cleanMessage,
+            inquiryTopic: cleanTopic,
+            status: "new",
+            source: "contact_us_tier_03",
+            createdAt: admin.firestore.FieldValue.serverTimestamp()
+        };
+
+        let savedId = null;
+        try {
+            const docRef = await db.collection("inquiries").add(inquiryDoc);
+            savedId = docRef.id;
+            console.log(`Bespoke inquiry saved: ${savedId} (${cleanEmail})`);
+        } catch (err) {
+            console.error("Error saving bespoke inquiry:", err);
+            throw new HttpsError("internal", "Could not save your inquiry. Please try again or reach us on WhatsApp.");
+        }
+
+        const resendApiKey = process.env.RESEND_API_KEY;
+        if (!resendApiKey) {
+            console.warn("RESEND_API_KEY missing; inquiry saved without email notification.");
+            return { success: true, inquiryId: savedId, warning: "Saved, email notifications unavailable." };
+        }
+
+        try {
+            const resend = new Resend(resendApiKey);
+            await resend.emails.send({
+                from: "Diet With Dee Inquiries <bookings@mail.dietwithdee.org>",
+                to: ["dietwdee@gmail.com"],
+                reply_to: cleanEmail,
+                subject: `New Bespoke Care Inquiry: ${cleanName} (${cleanTopic})`,
+                html: createAdminInquiryEmail(inquiryDoc)
+            });
+
+            await resend.emails.send({
+                from: "Diet With Dee <hello@mail.dietwithdee.org>",
+                to: [cleanEmail],
+                subject: "We received your Diet With Dee care inquiry",
+                html: createClientInquiryEmail(cleanName, cleanTopic)
+            });
+
+            await recordTransactionalSent(db, 2);
+            return { success: true, inquiryId: savedId };
+        } catch (emailErr) {
+            console.error("Error sending inquiry emails:", emailErr);
+            return { success: true, inquiryId: savedId, warning: "Saved, but email confirmation failed." };
         }
     }
 );

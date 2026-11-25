@@ -1,18 +1,86 @@
 import React, { useState, useEffect, useRef } from 'react';
 import SEO from '../../Components/SEO';
-import { ArrowLeft, User, Mail, Calculator, Target, Heart, Utensils, MessageCircle, Phone, CheckCircle, CreditCard, Lock, Shield, Calendar, Clock, Banknote, Gift } from 'lucide-react';
-import { useLocation, useNavigate } from 'react-router-dom';
+import {
+  User,
+  Mail,
+  Phone,
+  MessageCircle,
+  CheckCircle2,
+  ShieldCheck,
+  Clock,
+  X,
+  ChevronDown,
+  ArrowRight,
+  Loader2,
+  Sparkles,
+  Lock
+} from 'lucide-react';
+import { Link, useLocation } from 'react-router-dom';
+import { httpsCallable } from 'firebase/functions';
 import FullyBooked from '../FullyBooked/FullyBooked';
 import Offline from '../Offline/Offline';
 import { getBookingSettings } from '../../firebaseBookingUtils';
 import { isValidEmail } from '../../utils/validation';
 import { useAuth } from '../../AuthContext';
+import { useToast } from '../../Contexts/ToastContext';
 import WhatsAppPopup from '../../Components/WhatsAppPopup';
 import BookingCalendar from '../../Components/BookingCalendar';
-import { logEvent } from 'firebase/analytics';
-import { analytics } from '../../firebaseConfig';
-import { motion } from 'framer-motion';
-import fathersDayPromo from '../../assets/fathers_day_promo.png';
+import { functions, safeLogEvent } from '../../firebaseConfig';
+import { AnimatePresence, motion } from 'framer-motion';
+
+const PAYSTACK_SHOP_FALLBACK = {
+  initial: 'https://paystack.shop/pay/bookdee',
+  followup: 'https://paystack.shop/pay/follow-up'
+};
+
+const CARE_TIERS = {
+  initial: {
+    id: 'initial',
+    num: '01',
+    eyebrow: 'NEW CLIENTS',
+    title: 'Initial Consultation',
+    shortDesc: 'Full assessment & tailored Ghanaian meal plan',
+    priceDisplay: 'GH₵ 800',
+    originalPriceDisplay: 'GH₵ 1,000',
+    durationLabel: '45-min 1-on-1 · One-time',
+    inclusions: [
+      'Comprehensive clinical & dietary assessment',
+      'Personalized Ghanaian meal plan & portions',
+      'Food diary setup & written care summary'
+    ]
+  },
+  followup: {
+    id: 'followup',
+    num: '02',
+    eyebrow: 'RETURNING CLIENTS',
+    title: 'Follow-Up Session',
+    shortDesc: 'Progress check-in & meal plan adjustments',
+    priceDisplay: 'GH₵ 400',
+    originalPriceDisplay: null,
+    durationLabel: '25-min 1-on-1 · Returning clients',
+    inclusions: [
+      'Progress, weight & symptom review',
+      'Meal plan & portion adjustments',
+      '1-on-1 personalized nutrition counselling'
+    ]
+  },
+  custom: {
+    id: 'custom',
+    num: '03',
+    eyebrow: 'BESPOKE CARE',
+    title: 'Custom & Specialist Care',
+    shortDesc: 'Clinical conditions, families, or corporate',
+    priceDisplay: 'Custom',
+    durationLabel: 'Tailored scope & pricing'
+  }
+};
+
+const BESPOKE_TOPICS = [
+  'Clinical / Medical Nutrition',
+  'Family / Couples Plan',
+  'Corporate Wellness',
+  'Ongoing Care Bundle'
+];
 
 // Compute BMI/calories from a stored profile (reusable helper)
 const computeResultsFromProfile = (profile) => {
@@ -49,8 +117,8 @@ const computeResultsFromProfile = (profile) => {
     macros: {
       protein: Math.round((goalCalories * 0.3) / 4),
       carbs: Math.round((goalCalories * 0.4) / 4),
-      fats: Math.round((goalCalories * 0.3) / 9),
-    },
+      fats: Math.round((goalCalories * 0.3) / 9)
+    }
   };
 };
 
@@ -59,7 +127,7 @@ const getStoredTestResults = () => {
     const raw = localStorage.getItem('diet_test_results');
     if (!raw) return null;
     const data = JSON.parse(raw);
-    if (data && (!data.savedAt || (Date.now() - data.savedAt < 30 * 24 * 60 * 60 * 1000))) {
+    if (data && (!data.savedAt || Date.now() - data.savedAt < 30 * 24 * 60 * 60 * 1000)) {
       return data;
     }
     return null;
@@ -69,18 +137,30 @@ const getStoredTestResults = () => {
 };
 
 const ContactUs = () => {
-  const navigate = useNavigate();
+  const location = useLocation();
+  const { user, userProfile } = useAuth();
+  const { showToast } = useToast();
+
   const [isFullyBooked, setIsFullyBooked] = useState(false);
   const [isOffline, setIsOffline] = useState(false);
-  const [isBookingOpen, setIsBookingOpen] = useState(true);
   const [bookingSettings, setBookingSettings] = useState(null);
-
   const [showWhatsAppPopup, setShowWhatsAppPopup] = useState(false);
 
-  const { user, userProfile } = useAuth();
+  // Accordion state: null by default (State A: calm pre-pricing write-up & collapsed tiers)
+  const [expandedTier, setExpandedTier] = useState(() => {
+    const tierParam = new URLSearchParams(location.search).get('tier');
+    if (tierParam && ['initial', 'followup', 'custom'].includes(tierParam)) {
+      return tierParam;
+    }
+    return null;
+  });
+  const [hasRevealedPricing, setHasRevealedPricing] = useState(() => {
+    const tierParam = new URLSearchParams(location.search).get('tier');
+    return Boolean(tierParam && ['initial', 'followup', 'custom'].includes(tierParam));
+  });
+  const [showHealthDetails, setShowHealthDetails] = useState(false);
 
-  const formRef = useRef(null);
-
+  // Shared booking form state (preserved if user switches between Tier 01, 02, and 03)
   const [formData, setFormData] = useState({
     name: '',
     email: '',
@@ -89,26 +169,24 @@ const ContactUs = () => {
     scheduledDate: '',
     scheduledTime: ''
   });
+  const [fieldErrors, setFieldErrors] = useState({});
+  const [isSubmittingCheckout, setIsSubmittingCheckout] = useState(false);
 
-  const [selectedType, setSelectedType] = useState('initial');
-  const [paymentStep, setPaymentStep] = useState('form'); // 'form' or 'payment'
+  // Tier 03 Bespoke Care inquiry state
+  const [inquiryTopic, setInquiryTopic] = useState(BESPOKE_TOPICS[0]);
+  const [isSubmittingInquiry, setIsSubmittingInquiry] = useState(false);
+  const [inquirySubmitted, setInquirySubmitted] = useState(false);
 
-  const handleProceedToPayment = (type) => {
-    setSelectedType(type);
-    setPaymentStep('payment');
-  };
+  const tierRefs = useRef({});
+  const formStartRef = useRef(null);
 
-  const handleTypeSelect = (type) => {
-    setSelectedType(type);
-  };
-  // Use router state first, then Firestore profile, then cached test results, then empty defaults
-  const location = useLocation();
+  // Health profile snapshot (KnowYourBody / MyJourney / localStorage)
   const storedTestResults = getStoredTestResults();
   const profileComputed = computeResultsFromProfile(userProfile);
-  const userResults = location.state?.userResults
-    || profileComputed
-    || storedTestResults
-    || {
+  const userResults =
+    location.state?.userResults ||
+    profileComputed ||
+    storedTestResults || {
       bmi: null,
       bmiCategory: 'Pending Assessment',
       dailyCalories: null,
@@ -117,21 +195,27 @@ const ContactUs = () => {
       macros: { protein: 0, carbs: 0, fats: 0 }
     };
 
-  // Auto-fill form from Google account if logged in and form is empty
+  const hasCalculatedResults = !!(
+    location.state?.userResults ||
+    profileComputed ||
+    (storedTestResults?.bmi && storedTestResults.bmi !== 0)
+  );
+
+  // Auto-fill form from signed-in Google account if empty
   useEffect(() => {
-    if (user && !formData.name && !formData.email) {
-      setFormData(prev => ({
+    if (user) {
+      setFormData((prev) => ({
         ...prev,
-        name: user.displayName || '',
-        email: user.email || '',
-        phone: prev.phone || userProfile?.phone || '',
+        name: prev.name || user.displayName || '',
+        email: prev.email || user.email || '',
+        phone: prev.phone || userProfile?.phone || ''
       }));
     }
   }, [user, userProfile]);
 
-  // Reusable function to check booking availability
+  // Check booking availability & calendar setting
   const checkAvailability = async () => {
-    logEvent(analytics, 'add_shipping_info', {
+    safeLogEvent('add_shipping_info', {
       value: 800,
       currency: 'GHS'
     });
@@ -139,74 +223,193 @@ const ContactUs = () => {
     try {
       const result = await getBookingSettings();
       if (result.success) {
-        // Successfully reached Firebase — check if bookings are open
         setIsOffline(false);
         setBookingSettings(result.settings);
-        if (!result.settings.isOpen) {
-          setIsFullyBooked(true);
-        } else {
-          setIsFullyBooked(false);
-        }
+        setIsFullyBooked(!result.settings.isOpen);
       } else {
-        // Firebase returned an error (likely offline)
-        console.warn("Booking check failed:", result.error);
+        console.warn('Booking check failed:', result.error);
         setIsOffline(true);
       }
     } catch (error) {
-      console.error("Error checking booking status:", error);
+      console.error('Error checking booking status:', error);
       setIsOffline(true);
     }
   };
 
-  // Check booking status on mount
   useEffect(() => {
     checkAvailability();
   }, []);
 
+  const handleToggleTier = (tierId) => {
+    setFieldErrors({});
+    setExpandedTier((prev) => {
+      const next = prev === tierId ? null : tierId;
+      if (next) {
+        setHasRevealedPricing(true);
+        safeLogEvent('view_item', {
+          currency: 'GHS',
+          value: next === 'initial' ? 800 : next === 'followup' ? 400 : 0,
+          items: [{ item_id: next, item_name: CARE_TIERS[next].title }]
+        });
+        setTimeout(() => {
+          tierRefs.current[next]?.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+        }, 120);
+      }
+      return next;
+    });
+  };
+
   const handleInputChange = (e) => {
     const { name, value } = e.target;
-    setFormData(prev => ({
+    setFormData((prev) => ({
       ...prev,
       [name]: value
     }));
+    if (fieldErrors[name]) {
+      setFieldErrors((prev) => ({ ...prev, [name]: '' }));
+    }
   };
 
-  const handlePaymentRedirect = (type = 'initial') => {
-    // Sync state in case this was called from the top cards
-    setSelectedType(type);
-
-    // 1. Validate required fields
-    if (!formData.name || !formData.email || !formData.phone) {
-      alert('Please fill in all required fields (Name, Email and Phone Number) before proceeding to payment');
-      formRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
-      return;
+  const validateContactFields = ({ requireMessage = false, requireCalendar = false } = {}) => {
+    const errors = {};
+    if (!formData.name.trim()) errors.name = 'Please enter your full name.';
+    if (!formData.email.trim()) {
+      errors.email = 'Please enter your email address.';
+    } else if (!isValidEmail(formData.email.trim())) {
+      errors.email = 'Please enter a valid email address.';
     }
-
-    if (!isValidEmail(formData.email)) {
-      alert('Please enter a valid email address');
-      return;
+    if (!formData.phone.trim()) errors.phone = 'Please enter your WhatsApp or phone number.';
+    if (requireMessage && !formData.message.trim()) {
+      errors.message = 'Please add a short note about what you need help with.';
     }
-
-    // 2. Validate calendar slot selection IF dietitian has enabled the calendar feature
-    if (bookingSettings?.enableCalendarBooking) {
+    if (requireCalendar && bookingSettings?.enableCalendarBooking) {
       if (!formData.scheduledDate || !formData.scheduledTime) {
-        alert('Please select an available consultation date and time slot from the calendar.');
-        formRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
-        return;
+        errors.slot = 'Please pick an available consultation date and time slot above.';
       }
     }
+    setFieldErrors(errors);
+    if (Object.keys(errors).length > 0) {
+      const firstError = Object.values(errors)[0];
+      showToast(firstError, 'error');
+      formStartRef.current?.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+      return false;
+    }
+    return true;
+  };
 
-    // 3. Store form data and consultation type in localStorage
-    localStorage.setItem('consultationFormData', JSON.stringify({ ...formData, consultationType: type }));
-    localStorage.setItem('userResults', JSON.stringify(userResults));
+  const handleCheckout = async (tier) => {
+    if (isSubmittingCheckout) return;
+    if (!validateContactFields({ requireCalendar: true })) return;
 
-    // 4. Redirect to the correct Paystack link based on type
-    const paymentUrl = type === 'followup'
-      ? 'https://paystack.shop/pay/follow-up'
-      : 'https://paystack.shop/pay/bookdee';
-    
-    // Use the same tab for seamless redirection back to /paymentSuccess
-    window.location.href = paymentUrl;
+    const cleanFormData = {
+      name: formData.name.trim(),
+      email: formData.email.trim(),
+      phone: formData.phone.trim(),
+      message: formData.message.trim(),
+      scheduledDate: formData.scheduledDate || '',
+      scheduledTime: formData.scheduledTime || '',
+      consultationType: tier,
+      source: 'contact_us'
+    };
+
+    const amountGhs = tier === 'followup' ? 400 : 800;
+
+    safeLogEvent('begin_checkout', {
+      value: amountGhs,
+      currency: 'GHS',
+      items: [
+        {
+          item_id: tier,
+          item_name: CARE_TIERS[tier].title,
+          item_category: 'Clinical Nutrition Consultation',
+          price: amountGhs,
+          quantity: 1
+        }
+      ]
+    });
+
+    // Save local cache for PaymentSuccess UI & fallback
+    try {
+      localStorage.setItem('consultationFormData', JSON.stringify(cleanFormData));
+      localStorage.setItem('userResults', JSON.stringify(userResults));
+    } catch {
+      // Ignore storage quota issues; Paystack metadata carries the payload
+    }
+
+    setIsSubmittingCheckout(true);
+    try {
+      const initPaystackFn = httpsCallable(functions, 'initializePaystackTransaction');
+      const result = await initPaystackFn({
+        tier,
+        formData: cleanFormData,
+        userResults,
+        callbackOrigin: window.location.origin
+      });
+
+      if (result.data?.success && result.data?.authorizationUrl) {
+        window.location.href = result.data.authorizationUrl;
+        return;
+      }
+
+      throw new Error('Paystack checkout URL was not returned.');
+    } catch (err) {
+      const code = err?.code || '';
+      // If the new callable isn't deployed yet in the current Firebase environment, fall back to Paystack Shop links
+      if (code === 'functions/not-found' || code === 'functions/unimplemented') {
+        console.warn('initializePaystackTransaction unavailable, falling back to Paystack Shop link:', err);
+        window.location.href = PAYSTACK_SHOP_FALLBACK[tier] || PAYSTACK_SHOP_FALLBACK.initial;
+        return;
+      }
+
+      console.error('Checkout initialization failed:', err);
+      showToast(
+        err?.message || 'Unable to start Paystack checkout right now. Please try again.',
+        'error'
+      );
+      setIsSubmittingCheckout(false);
+    }
+  };
+
+  const handleInquirySubmit = async (e) => {
+    e.preventDefault();
+    if (isSubmittingInquiry) return;
+    if (!validateContactFields({ requireMessage: true })) return;
+
+    setIsSubmittingInquiry(true);
+    try {
+      const submitInquiryFn = httpsCallable(functions, 'submitBespokeInquiry');
+      const result = await submitInquiryFn({
+        name: formData.name.trim(),
+        email: formData.email.trim(),
+        phone: formData.phone.trim(),
+        message: formData.message.trim(),
+        inquiryTopic
+      });
+
+      if (result.data?.success) {
+        safeLogEvent('generate_lead', {
+          lead_source: 'contact_us_tier_03',
+          inquiry_topic: inquiryTopic
+        });
+        setInquirySubmitted(true);
+        showToast('Care inquiry sent! We will reach out within 24 hours.', 'success');
+        return;
+      }
+
+      throw new Error('Could not submit inquiry.');
+    } catch (err) {
+      const code = err?.code || '';
+      if (code === 'functions/not-found' || code === 'functions/unimplemented') {
+        const waText = `Hello Nana Ama, my name is ${formData.name.trim()} (${formData.email.trim()}). I'm inquiring about ${inquiryTopic}: ${formData.message.trim()}`;
+        window.open(`https://wa.me/233592330870?text=${encodeURIComponent(waText)}`, '_blank', 'noopener,noreferrer');
+        showToast('Opened WhatsApp so you can send your inquiry directly.', 'info');
+      } else {
+        console.error('Bespoke inquiry error:', err);
+        showToast(err?.message || 'Could not send inquiry. Please try WhatsApp below.', 'error');
+      }
+    } finally {
+      setIsSubmittingInquiry(false);
+    }
   };
 
   if (isOffline) {
@@ -217,465 +420,805 @@ const ContactUs = () => {
     return <FullyBooked />;
   }
 
-  const hasCalculatedResults = !!(location.state?.userResults || profileComputed || (storedTestResults?.bmi && storedTestResults.bmi !== 0));
+  const getCollapsedPillLabel = (tierId) => {
+    if (!hasRevealedPricing) return 'Review +';
+    if (tierId === 'initial') return 'GH₵ 800 +';
+    if (tierId === 'followup') return 'GH₵ 400 +';
+    return 'Contact +';
+  };
 
-  // Main booking form
   return (
     <>
       <SEO
-        title="Contact DietWithDee | Book a Consultation with Nana Ama Dwamena"
-        description="Book your personalized diet consultation with Nana Ama Dwamena, Ghana's leading dietitian. Get expert nutrition advice and start your wellness journey today."
+        title="Book a Consultation | DietWithDee Clinical Nutrition"
+        description="Book your private 1-on-1 clinical nutrition consultation with Registered Dietitian Nana Ama Dwamena. Tailored Ghanaian meal plans and secure Paystack checkout."
         keywords="Contact DietWithDee, Book Consultation, Ghana Dietitian, Nana Ama Dwamena, Nutrition Advice"
         image="https://dietwithdee.org/LOGO.webp"
         url="https://dietwithdee.org/contactUs"
       />
-      <div className="min-h-screen bg-gradient-to-br from-green-50 via-white to-emerald-50 py-20">
-        <div className="container mx-auto px-6 lg:px-12 max-w-7xl">
-          {/* Header */}
-          <div className="text-center space-y-6 mb-16">
-            <div className="space-y-4">
-              <div className="text-5xl animate-bounce">🌟</div>
-              <h1 className="text-3xl sm:text-5xl lg:text-6xl font-serif-cormorant font-normal text-stone-900 leading-[1.12] tracking-tight">
-                Ready to Start Your Nutrition Journey?
-              </h1>
-              {!hasCalculatedResults ? (
-                <p className="text-base sm:text-lg text-stone-700 font-normal max-w-2xl mx-auto leading-relaxed">
-                  Complete the <a href='/KnowYourBody' className='text-emerald-700 font-semibold underline hover:text-emerald-900 transition-colors'>KnowYourBody</a> Test in <a href='/my-journey' className='text-emerald-700 font-semibold underline hover:text-emerald-900 transition-colors'>My Journey</a> and fill in the information so we have your latest data for your consultation.
-                </p>
-              ) : (
-                <p className="text-base sm:text-lg text-stone-700 font-normal max-w-2xl mx-auto leading-relaxed">
-                  Based on your latest assessment, we've prepared a summary of your nutrition profile. Review your metrics below and book your consultation to get started!
-                </p>
+
+      <div className="min-h-screen bg-[#FAF8F5] text-stone-900 font-montserrat pt-24 sm:pt-28 pb-20 selection:bg-[#F6841F] selection:text-white">
+        <div className="max-w-3xl mx-auto px-4 sm:px-6 space-y-8 sm:space-y-10">
+          {/* ============================================================== */}
+          {/* 1. PRE-PRICING EDITORIAL WRITE-UP (STATE A HERO)               */}
+          {/* ============================================================== */}
+          <header className="space-y-4">
+            <p className="text-[11px] sm:text-xs font-bold uppercase tracking-[0.18em] text-emerald-800">
+              1-ON-1 CLINICAL NUTRITION
+            </p>
+
+            <h1 className="text-3xl sm:text-5xl font-serif-cormorant font-normal text-stone-900 leading-[1.08] tracking-tight">
+              Evidence-based care, built around your real life.
+            </h1>
+
+            <p className="text-sm sm:text-base text-stone-700 font-normal leading-relaxed max-w-2xl">
+              Every consultation is led directly by Registered Dietitian{' '}
+              <strong className="font-semibold text-stone-900">Nana Ama Dwamena</strong>. Rather than
+              generic templates, we review your health history, daily routine, and Ghanaian meals to
+              build a practical, sustainable plan.
+            </p>
+
+            {/* Quiet Trust Strip */}
+            <div className="pt-1 flex flex-wrap items-center gap-x-2.5 gap-y-1 text-xs font-medium text-stone-600">
+              <span>Licensed RD</span>
+              <span aria-hidden="true" className="text-stone-300">
+                ·
+              </span>
+              <span>Ghanaian Meals</span>
+              <span aria-hidden="true" className="text-stone-300">
+                ·
+              </span>
+              <span>MoMo &amp; Card via Paystack</span>
+            </div>
+          </header>
+
+          {/* ============================================================== */}
+          {/* 2. ATTACHED HEALTH PROFILE STRIP (Quiet, Zero Clutter)         */}
+          {/* ============================================================== */}
+          {hasCalculatedResults ? (
+            <section
+              aria-label="Attached Nutrition Profile"
+              className="bg-white border border-emerald-200/80 rounded-2xl shadow-2xs overflow-hidden"
+            >
+              <button
+                type="button"
+                onClick={() => setShowHealthDetails((prev) => !prev)}
+                aria-expanded={showHealthDetails}
+                className="w-full px-4 py-3 flex items-center justify-between gap-3 text-left bg-emerald-50/50 hover:bg-emerald-50/80 transition-colors cursor-pointer border-none"
+              >
+                <div className="flex items-center gap-2.5 min-w-0">
+                  <CheckCircle2 size={16} className="text-emerald-700 shrink-0" />
+                  <div className="text-xs sm:text-sm text-stone-800 truncate">
+                    <span className="font-semibold text-emerald-950">Assessment attached</span>
+                    <span className="text-stone-500 mx-1.5">·</span>
+                    <span className="text-stone-700">
+                      BMI {userResults.bmi}
+                      {userResults.dailyCalories ? ` · ${userResults.dailyCalories} kcal` : ''}
+                      {userResults.goal ? ` · ${userResults.goal}` : ''}
+                    </span>
+                  </div>
+                </div>
+                <span className="text-[11px] font-semibold text-emerald-800 flex items-center gap-1 shrink-0">
+                  <span>{showHealthDetails ? 'Hide' : 'Review'}</span>
+                  <ChevronDown
+                    size={14}
+                    className={`transition-transform duration-200 ${showHealthDetails ? 'rotate-180' : ''}`}
+                  />
+                </span>
+              </button>
+
+              {showHealthDetails && (
+                <div className="p-4 border-t border-emerald-100 grid grid-cols-1 sm:grid-cols-3 gap-3 text-xs bg-white">
+                  <div className="p-3 rounded-xl bg-stone-50 border border-stone-100">
+                    <span className="text-[10px] font-bold uppercase tracking-wider text-stone-400 block">
+                      BMI Status
+                    </span>
+                    <p className="text-sm font-bold text-stone-900 mt-0.5">
+                      {userResults.bmi} kg/m²
+                    </p>
+                    <p className="text-emerald-700 font-medium mt-0.5">{userResults.bmiCategory}</p>
+                  </div>
+                  <div className="p-3 rounded-xl bg-stone-50 border border-stone-100">
+                    <span className="text-[10px] font-bold uppercase tracking-wider text-stone-400 block">
+                      Daily Estimate
+                    </span>
+                    <p className="text-sm font-bold text-stone-900 mt-0.5">
+                      {userResults.dailyCalories ? `${userResults.dailyCalories} kcal` : 'Pending'}
+                    </p>
+                    {userResults.macros?.protein > 0 && (
+                      <p className="text-stone-600 mt-0.5">
+                        P {userResults.macros.protein}g · C {userResults.macros.carbs}g · F{' '}
+                        {userResults.macros.fats}g
+                      </p>
+                    )}
+                  </div>
+                  <div className="p-3 rounded-xl bg-stone-50 border border-stone-100">
+                    <span className="text-[10px] font-bold uppercase tracking-wider text-stone-400 block">
+                      Goal &amp; Preferences
+                    </span>
+                    <p className="text-sm font-bold text-stone-900 mt-0.5 truncate">
+                      {userResults.goal}
+                    </p>
+                    <p className="text-stone-600 mt-0.5 truncate">
+                      Diet: {userResults.dietaryRestrictions || 'None'}
+                    </p>
+                  </div>
+                </div>
+              )}
+            </section>
+          ) : (
+            <div className="text-xs text-stone-600 flex flex-wrap items-center gap-1.5 bg-white/70 border border-stone-200/80 rounded-xl px-4 py-2.5">
+              <span>Want Nana Ama to review your BMI &amp; calorie profile first?</span>
+              <Link
+                to="/knowYourBody"
+                className="font-semibold text-emerald-800 hover:text-emerald-950 underline underline-offset-2 inline-flex items-center gap-1"
+              >
+                <span>Take the 2-min KnowYourBody check</span>
+                <ArrowRight size={12} />
+              </Link>
+            </div>
+          )}
+
+          {/* ============================================================== */}
+          {/* 3. THE CLINICAL LEDGER (Editorial Tap-to-Reveal Accordion)      */}
+          {/* ============================================================== */}
+          <section aria-label="Consultation Care Tiers" className="space-y-3">
+            <div className="flex items-center justify-between px-0.5">
+              <p className="text-[11px] font-bold uppercase tracking-[0.16em] text-stone-500">
+                {expandedTier
+                  ? 'SELECT A CARE TIER'
+                  : 'TAP A CARE TIER TO REVIEW FEE & SCOPE'}
+              </p>
+              {expandedTier && (
+                <span className="text-[11px] text-stone-500 hidden sm:inline">
+                  Tap another tier anytime to switch
+                </span>
               )}
             </div>
-          </div>
 
-          <div className="flex flex-col space-y-16">
-            {/* Results Summary Section - Horizontal Row */}
-            {hasCalculatedResults && (
-              <div className="space-y-8">
-                <div className="flex items-center space-x-4">
-                  <h2 className="text-2xl font-serif-cormorant font-normal text-stone-900 whitespace-nowrap">Your Results Summary</h2>
-                  <div className="h-px bg-gradient-to-r from-green-200 to-transparent w-full"></div>
-                </div>
-                
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                  {/* BMI Card */}
-                  <div className="bg-white border border-gray-100 rounded-2xl p-5 hover:border-green-200 transition-all duration-300">
-                    <h3 className="text-xl font-bold text-[#002B49] mb-6">BMI Analysis</h3>
-                    <div className="space-y-6">
-                      <div>
-                        <div className="text-3xl font-bold text-[#4CAF50]">
-                          {userResults.bmi} <span className="text-lg text-gray-700 font-normal">kg/m²</span>
-                        </div>
-                      </div>
-                      <div className="space-y-1">
-                        <p className={`text-lg font-bold ${
-                          userResults.bmiCategory === 'Normal Weight' ? 'text-green-600' :
-                          userResults.bmiCategory === 'Underweight' ? 'text-blue-600' :
-                          userResults.bmiCategory === 'Overweight' ? 'text-yellow-600' :
-                          'text-red-600'
-                        }`}>
-                          {userResults.bmiCategory}
-                        </p>
-                        <p className="text-sm text-gray-700 font-medium">Weight Status</p>
-                      </div>
-                    </div>
-                  </div>
+            <div className="space-y-3">
+              {['initial', 'followup', 'custom'].map((tierId) => {
+                const tier = CARE_TIERS[tierId];
+                const isOpen = expandedTier === tierId;
+                const isPaidTier = tierId === 'initial' || tierId === 'followup';
 
-                  {/* Calorie Card */}
-                  <div className="bg-white border border-gray-100 rounded-2xl p-5 hover:border-green-200 transition-all duration-300">
-                    <h3 className="text-xl font-bold text-[#002B49] mb-6">Daily Calorie Estimate</h3>
-                    <div className="space-y-4">
-                      <div className="mb-4">
-                        <div className="text-3xl font-bold text-[#4CAF50]">
-                          {userResults.dailyCalories} <span className="text-lg text-gray-700 font-normal">calories</span>
-                        </div>
-                      </div>
-                      <div className="flex items-start space-x-6 pt-2">
-                         <div className="space-y-0.5">
-                            <p className="text-lg font-bold text-[#002B49]">{userResults.macros.protein}g</p>
-                            <p className="text-sm text-gray-700 font-medium">Protein</p>
-                         </div>
-                         <div className="w-px h-10 bg-gray-100 self-center"></div>
-                         <div className="space-y-0.5">
-                            <p className="text-lg font-bold text-[#002B49]">{userResults.macros.carbs}g</p>
-                            <p className="text-sm text-gray-700 font-medium">Carbs</p>
-                         </div>
-                         <div className="w-px h-10 bg-gray-100 self-center"></div>
-                         <div className="space-y-0.5">
-                            <p className="text-lg font-bold text-[#002B49]">{userResults.macros.fats}g</p>
-                            <p className="text-sm text-gray-700 font-medium">Fats</p>
-                         </div>
-                      </div>
-                    </div>
-                  </div>
-
-                  {/* Goals & Preferences */}
-                  <div className="bg-white border border-gray-100 rounded-2xl p-5 hover:border-green-200 transition-all duration-300">
-                    <h3 className="text-xl font-bold text-[#002B49] mb-6">Your Goals & Preferences</h3>
-                    <div className="space-y-4">
-                      <div className="flex items-center space-x-3">
-                        <Heart className="text-[#FF4D4D]" size={22} strokeWidth={2} />
-                        <div className="text-lg">
-                          <span className="font-bold text-[#002B49]">Goal:</span>
-                          <span className="ml-2 text-stone-800 font-medium">{userResults.goal}</span>
-                        </div>
-                      </div>
-                      <div className="flex items-center space-x-3">
-                        <Utensils className="text-[#4CAF50]" size={22} strokeWidth={2} />
-                        <div className="text-lg">
-                          <span className="font-bold text-[#002B49]">Diet:</span>
-                          <span className="ml-2 text-stone-800 font-medium">{userResults.dietaryRestrictions || 'No restrictions'}</span>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            )}
-
-            {/* Main Booking Section - Centered and Wider */}
-            <div className="max-w-4xl mx-auto w-full px-4 sm:px-0 space-y-6">
-
-              {/* Consultation Cards (Changed from lg:grid-cols-3 to md:grid-cols-2) */}
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-
-                {/* Initial Consultation Card */}
-                <div className="bg-gradient-to-br from-green-500 via-green-600 to-emerald-700 rounded-3xl p-7 text-white shadow-2xl shadow-green-500/30 border border-green-400/20 flex flex-col justify-between">
-                  <div className="flex-1">
-                    <div className="flex items-center gap-2 mb-1 flex-wrap">
-                      <span className="bg-white/20 text-white text-xs font-bold px-3 py-1 rounded-full tracking-wider uppercase">Most Popular</span>
-                      <span className="bg-amber-400 text-stone-900 text-xs font-bold px-3 py-1 rounded-full tracking-wider uppercase animate-pulse">Time Limited Offer</span>
-                    </div>
-                    <h2 className="text-xl font-bold mt-3 mb-1">Initial Consultation</h2>
-                    <p className="text-white/95 text-sm mb-4 font-medium">45 mins</p>
-                    <div className="flex items-baseline gap-3 mb-5">
-                      <p className="text-4xl font-extrabold text-white tracking-tight">₵800</p>
-                      <span className="text-xl text-white/70 line-through font-medium">₵1000</span>
-                    </div>
-                    <div className="space-y-2.5 text-sm mb-6 text-left">
-                      {['Full assessment of your health goals', 'Free Personalised diet plan', 'Food diary setup'].map((item, i) => (
-                        <div key={i} className="flex items-start gap-2.5">
-                          <CheckCircle size={16} className="text-white mt-0.5 shrink-0" />
-                          <span className="text-white font-medium">{item}</span>
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-                  <button
-                    onClick={() => handlePaymentRedirect('initial')}
-                    className="mt-4 w-full py-3.5 bg-white text-green-700 font-bold rounded-xl shadow hover:bg-green-50 transition-colors flex items-center justify-center gap-2 cursor-pointer border-none"
+                return (
+                  <div
+                    key={tierId}
+                    ref={(el) => {
+                      tierRefs.current[tierId] = el;
+                    }}
+                    className={`rounded-2xl border transition-all duration-200 overflow-hidden bg-white ${
+                      isOpen
+                        ? 'border-stone-900 shadow-md ring-1 ring-stone-900/5'
+                        : 'border-stone-200/90 shadow-2xs hover:border-stone-300'
+                    }`}
                   >
-                    <Banknote size={16} />
-                    Pay now — GH₵ 800
-                  </button>
-                </div>
-
-                {/* Follow-up Consultation Card */}
-                <div className="bg-white rounded-3xl p-7 shadow-xl border border-gray-100 flex flex-col justify-between">
-                  <div className="flex-1">
-                    <div className="flex items-center gap-2 mb-1">
-                      <span className="bg-emerald-100 text-emerald-800 text-xs font-bold px-3 py-1 rounded-full tracking-wider uppercase">Returning Clients</span>
-                    </div>
-                    <h2 className="text-xl font-bold text-stone-900 mt-3 mb-1">Follow Up Consultation</h2>
-                    <p className="text-stone-700 text-sm mb-4 font-medium">25 mins</p>
-                    <p className="text-4xl font-extrabold text-green-600 tracking-tight mb-5">₵400</p>
-                    <div className="space-y-2.5 text-sm mb-6 text-left">
-                      {['Progress review', 'Plan adjustments', 'Personalised counselling'].map((item, i) => (
-                        <div key={i} className="flex items-start gap-2.5">
-                          <CheckCircle size={16} className="text-green-600 mt-0.5 shrink-0" />
-                          <span className="text-stone-700 font-medium">{item}</span>
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-                  <button
-                    onClick={() => handlePaymentRedirect('followup')}
-                    className="mt-4 w-full py-3.5 bg-gradient-to-r from-green-500 to-emerald-600 text-white font-bold rounded-xl shadow hover:shadow-md transition-all flex items-center justify-center gap-2 border-none cursor-pointer"
-                  >
-                    <Banknote size={16} />
-                    Pay now — GH₵ 400
-                  </button>
-                </div>
-                {/* Interactive Booking Calendar (Displayed ONLY when dietitian turns calendar ON in Admin) */}
-                {bookingSettings?.enableCalendarBooking && (
-                  <div className="space-y-3">
-                    <BookingCalendar
-                      settings={bookingSettings}
-                      selectedDate={formData.scheduledDate}
-                      selectedTime={formData.scheduledTime}
-                      onSelectSlot={({ date, time }) => {
-                        setFormData(prev => ({
-                          ...prev,
-                          scheduledDate: date,
-                          scheduledTime: time
-                        }));
-                      }}
-                    />
-                  </div>
-                )}
-
-                {/* Default Consultation Hours Notice (Active when calendar slot selection is OFF) */}
-                {!bookingSettings?.enableCalendarBooking && (
-                  <div className="flex flex-col md:flex-row items-center justify-center gap-4 py-4 px-6 bg-blue-50 border border-blue-200 rounded-2xl text-blue-950 text-sm sm:text-base font-medium">
-                    <Clock size={20} className="text-blue-700 shrink-0 animate-pulse" />
-                    <p className="text-center md:text-left">
-                      <span className="font-bold underline decoration-blue-300 decoration-2 underline-offset-4">Consultation Hours:</span> Tuesday – Sunday, 10:00 AM – 3:00 PM. 
-                      <span className="hidden md:inline mx-2 text-blue-400">|</span>
-                      <span className="block md:inline mt-1 md:mt-0 text-blue-900 font-normal">Actual session times will be arranged personally after payment is confirmed.</span>
-                    </p>
-                  </div>
-                )}
-
-              {/* Form Card */}
-              <div ref={formRef} className="bg-white shadow-xl rounded-3xl overflow-hidden border border-gray-100">
-                <div>
-
-                  {/* Right Side: Form */}
-                  <div className="p-8 lg:p-10">
-                    <div className="mb-8">
-                      <h2 className="text-xl sm:text-2xl font-bold text-stone-900">Your Information</h2>
-                      <p className="text-base text-stone-700 mt-1 font-normal">Complete your details to book</p>
-                    </div>
-                    
-                    <div className="space-y-5">
-                      {/* Name */}
-                      <div className="space-y-1.5">
-                        <label className="block text-xs sm:text-sm font-bold text-stone-800 tracking-wider">Full Name *</label>
-                        <div className="relative group">
-                          <User className="absolute left-4 top-1/2 -translate-y-1/2 text-stone-600 group-focus-within:text-green-600 transition-colors" size={18} />
-                          <input
-                            type="text"
-                            name="name"
-                            value={formData.name}
-                            onChange={handleInputChange}
-                            required
-                            className="w-full pl-11 pr-4 py-3.5 bg-gray-50 border border-gray-200 rounded-xl focus:bg-white focus:border-green-500 focus:ring-4 focus:ring-green-500/5 transition-all outline-none text-base text-stone-800 placeholder:text-stone-500 font-medium"
-                            placeholder="John Doe"
-                          />
-                        </div>
-                      </div>
-
-                      <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
-                        {/* Email */}
-                        <div className="space-y-1.5">
-                          <label className="block text-xs sm:text-sm font-bold text-stone-800 tracking-wider">Email Address *</label>
-                          <div className="relative group">
-                            <Mail className="absolute left-4 top-1/2 -translate-y-1/2 text-stone-600 group-focus-within:text-green-600 transition-colors" size={18} />
-                            <input
-                              type="email"
-                              name="email"
-                              value={formData.email}
-                              onChange={handleInputChange}
-                              required
-                              className="w-full pl-11 pr-4 py-3.5 bg-gray-50 border border-gray-200 rounded-xl focus:bg-white focus:border-green-500 focus:ring-4 focus:ring-green-500/5 transition-all outline-none text-base text-stone-800 placeholder:text-stone-500 font-medium"
-                              placeholder="johndoe@gmail.com"
-                            />
-                          </div>
-                        </div>
-
-                        {/* Consultation Type Selector */}
-                        <div className="space-y-3 pt-2">
-                          <label className="block text-xs sm:text-sm font-bold text-stone-800 tracking-wider">Select Consultation Type *</label>
-                          <div className="grid grid-cols-2 gap-3">
-                            <button
-                              type="button"
-                              onClick={() => handleTypeSelect('initial')}
-                              className={`py-3 px-4 rounded-xl border-2 transition-all flex flex-col items-center justify-center gap-1 cursor-pointer ${
-                                selectedType === 'initial'
-                                  ? 'border-green-600 bg-green-50 text-green-800'
-                                  : 'border-gray-200 bg-gray-50 text-stone-700 hover:border-gray-300'
-                              }`}
-                            >
-                              <span className="font-bold text-sm sm:text-base text-center">Initial</span>
-                              <span className="text-xs font-semibold">₵800</span>
-                            </button>
-                            <button
-                              type="button"
-                              onClick={() => handleTypeSelect('followup')}
-                              className={`py-3 px-4 rounded-xl border-2 transition-all flex flex-col items-center justify-center gap-1 cursor-pointer ${
-                                selectedType === 'followup'
-                                  ? 'border-green-600 bg-green-50 text-green-800'
-                                  : 'border-gray-200 bg-gray-50 text-stone-700 hover:border-gray-300'
-                              }`}
-                            >
-                              <span className="font-bold text-sm sm:text-base text-center">Follow-up</span>
-                              <span className="text-xs font-semibold">₵400</span>
-                            </button>
-                          </div>
-                        </div>
-
-                        {/* Phone */}
-                        <div className="space-y-1.5">
-                          <label className="block text-xs sm:text-sm font-bold text-stone-800 tracking-wider">Phone Number *</label>
-                          <div className="relative group">
-                            <Phone className="absolute left-4 top-1/2 -translate-y-1/2 text-stone-600 group-focus-within:text-green-600 transition-colors" size={18} />
-                            <input
-                              type="tel"
-                              name="phone"
-                              value={formData.phone}
-                              onChange={handleInputChange}
-                              required
-                              className="w-full pl-11 pr-4 py-3.5 bg-gray-50 border border-gray-200 rounded-xl focus:bg-white focus:border-green-500 focus:ring-4 focus:ring-green-500/5 transition-all outline-none text-base text-stone-800 placeholder:text-stone-500 font-medium"
-                              placeholder="+233..."
-                            />
-                          </div>
-                        </div>
-                      </div>
-
-                      {/* Message */}
-                      <div className="space-y-1.5">
-                        <label className="block text-xs sm:text-sm font-bold text-stone-800 tracking-wider">Additional Info</label>
-                        <div className="relative group">
-                          <MessageCircle className="absolute left-4 top-4 text-stone-600 group-focus-within:text-green-600 transition-colors" size={18} />
-                          <textarea
-                            name="message"
-                            value={formData.message}
-                            onChange={handleInputChange}
-                            rows={3}
-                            className="w-full pl-11 pr-4 py-3.5 bg-gray-50 border border-gray-200 rounded-xl focus:bg-white focus:border-green-500 focus:ring-4 focus:ring-green-500/5 transition-all outline-none resize-none text-base text-stone-800 placeholder:text-stone-500 font-medium"
-                            placeholder="Any health concerns..."
-                          />
-                        </div>
-                      </div>
-
-                      {/* Selected Slot Confirmation Chip (When calendar booking is active) */}
-                      {bookingSettings?.enableCalendarBooking && (
-                        formData.scheduledDate && formData.scheduledTime ? (
-                          <div className="p-3 bg-emerald-50 border border-emerald-200 rounded-2xl flex items-center justify-between text-xs animate-in fade-in">
-                            <div className="flex items-center gap-2">
-                              <span className="w-2.5 h-2.5 rounded-full bg-emerald-500"></span>
-                              <span className="font-semibold text-emerald-950">
-                                Reserved: {formData.scheduledDate} at {formData.scheduledTime} (GMT)
-                              </span>
-                            </div>
-                            <span className="text-[11px] text-emerald-700 font-bold bg-white px-2 py-0.5 rounded-full border border-emerald-200">
-                              Slot Confirmed
-                            </span>
-                          </div>
-                        ) : (
-                          <div className="p-3 bg-amber-50 border border-amber-200 rounded-2xl flex items-center gap-2 text-xs text-amber-900">
-                            <Clock size={15} className="text-amber-600 shrink-0" />
-                            <span>Please select an available consultation date & time from the calendar above before paying.</span>
-                          </div>
-                        )
-                      )}
-
-                      {/* Pay Now Button */}
-                      <div className="pt-2">
-                        <button
-                          type="button"
-                          onClick={() => handlePaymentRedirect(selectedType)}
-                          className="w-full py-4 bg-gradient-to-r from-[#F6841F] to-[#F6841F] text-white font-black rounded-2xl shadow-lg hover:shadow-xl transform hover:-translate-y-1 transition-all duration-300 flex items-center justify-center gap-3 relative overflow-hidden group cursor-pointer border-none"
-                        >
-                          <div className="absolute inset-0 bg-white/10 translate-y-full group-hover:translate-y-0 transition-transform duration-300"></div>
-                          <Banknote size={22} className="relative z-10" />
-                          <span className="relative z-10 uppercase tracking-wider text-base sm:text-lg">
-                            Pay now — GH₵ {selectedType === 'followup' ? '400' : '800'}
+                    {/* Accordion Header Row */}
+                    <button
+                      type="button"
+                      onClick={() => handleToggleTier(tierId)}
+                      aria-expanded={isOpen}
+                      aria-controls={`tier-panel-${tierId}`}
+                      className="w-full px-5 py-4 sm:px-6 sm:py-5 flex items-center justify-between gap-4 text-left bg-transparent border-none cursor-pointer group"
+                    >
+                      <div className="min-w-0 space-y-1">
+                        <div className="flex items-center gap-2 flex-wrap">
+                          <span className="text-[10px] sm:text-[11px] font-bold uppercase tracking-[0.16em] text-emerald-800">
+                            {tier.num} · {tier.eyebrow}
                           </span>
-                        </button>
+                          {tierId === 'initial' && !isOpen && (
+                            <span className="text-[10px] font-semibold px-2 py-0.5 rounded-full bg-orange-50 text-[#e07312] border border-orange-200/70">
+                              Most Popular
+                            </span>
+                          )}
+                        </div>
+                        <h2 className="text-xl sm:text-2xl font-serif-cormorant font-medium text-stone-900 leading-tight">
+                          {tier.title}
+                        </h2>
+                        {!isOpen && (
+                          <p className="text-xs sm:text-sm text-stone-600 font-normal">
+                            {tier.shortDesc}
+                          </p>
+                        )}
                       </div>
 
-                      {/* Booking Note */}
-                      <div className="pt-2">
-                        <div className="flex items-center justify-center space-x-6 text-xs text-stone-600 font-semibold tracking-wide">
-                          <div className="flex items-center space-x-1.5">
-                            <Shield size={14} className="text-stone-600" />
-                            <span>Secured by Paystack</span>
-                          </div>
-                          <div className="flex items-center space-x-1.5">
-                            <CheckCircle size={14} className="text-stone-600" />
-                            <span>Instant Confirmation</span>
-                          </div>
-                        </div>
+                      <div className="shrink-0">
+                        {isOpen ? (
+                          <span className="inline-flex items-center gap-1 text-xs font-semibold text-stone-600 group-hover:text-stone-900 px-2.5 py-1.5 rounded-lg bg-stone-100">
+                            <span>Close</span>
+                            <X size={13} />
+                          </span>
+                        ) : (
+                          <span className="inline-flex items-center gap-1.5 text-xs font-semibold text-stone-800 bg-stone-50 group-hover:bg-stone-100 border border-stone-200 px-3.5 py-2 rounded-xl transition-colors whitespace-nowrap">
+                            <span>{getCollapsedPillLabel(tierId)}</span>
+                          </span>
+                        )}
                       </div>
-                    </div>
+                    </button>
+
+                    {/* Expanded Tier Body */}
+                    <AnimatePresence initial={false}>
+                      {isOpen && (
+                        <motion.div
+                          id={`tier-panel-${tierId}`}
+                          initial={{ opacity: 0, height: 0 }}
+                          animate={{ opacity: 1, height: 'auto' }}
+                          exit={{ opacity: 0, height: 0 }}
+                          transition={{ duration: 0.22, ease: 'easeOut' }}
+                          className="overflow-hidden"
+                        >
+                          <div className="px-5 pb-6 sm:px-6 sm:pb-7 pt-2 border-t border-stone-100 space-y-6">
+                            {isPaidTier ? (
+                              <>
+                                {/* Price + Duration Ledger Line */}
+                                <div className="flex flex-col sm:flex-row sm:items-baseline sm:justify-between gap-2 pt-2">
+                                  <div className="flex items-baseline gap-3">
+                                    <span className="text-3xl sm:text-4xl font-bold tracking-tight text-stone-900">
+                                      {tier.priceDisplay}
+                                    </span>
+                                    {tier.originalPriceDisplay && (
+                                      <span className="text-base text-stone-400 line-through font-medium">
+                                        {tier.originalPriceDisplay}
+                                      </span>
+                                    )}
+                                  </div>
+                                  <span className="text-xs sm:text-sm font-medium text-stone-600">
+                                    {tier.durationLabel}
+                                  </span>
+                                </div>
+
+                                {/* Scope / Inclusions */}
+                                <ul className="space-y-2.5 text-xs sm:text-sm text-stone-700 border-y border-stone-100 py-4">
+                                  {tier.inclusions.map((item) => (
+                                    <li key={item} className="flex items-start gap-2.5">
+                                      <span className="text-emerald-700 font-bold mt-0.5" aria-hidden="true">
+                                        —
+                                      </span>
+                                      <span>{item}</span>
+                                    </li>
+                                  ))}
+                                  <li className="flex items-start gap-2.5">
+                                    <span className="text-emerald-700 font-bold mt-0.5" aria-hidden="true">
+                                      —
+                                    </span>
+                                    <span>
+                                      {bookingSettings?.enableCalendarBooking
+                                        ? 'Choose your preferred consultation date & time below'
+                                        : 'Personal scheduling confirmed via WhatsApp within 24 hours of payment'}
+                                    </span>
+                                  </li>
+                                </ul>
+
+                                {/* Conditional Calendar Slot Picker OR Consultation Hours Notice */}
+                                {bookingSettings?.enableCalendarBooking ? (
+                                  <div className="space-y-2">
+                                    <BookingCalendar
+                                      settings={bookingSettings}
+                                      selectedDate={formData.scheduledDate}
+                                      selectedTime={formData.scheduledTime}
+                                      onSelectSlot={({ date, time }) => {
+                                        setFormData((prev) => ({
+                                          ...prev,
+                                          scheduledDate: date,
+                                          scheduledTime: time
+                                        }));
+                                        if (fieldErrors.slot) {
+                                          setFieldErrors((prev) => ({ ...prev, slot: '' }));
+                                        }
+                                      }}
+                                    />
+                                    {fieldErrors.slot && (
+                                      <p className="text-xs font-medium text-rose-600 px-1">
+                                        {fieldErrors.slot}
+                                      </p>
+                                    )}
+                                  </div>
+                                ) : (
+                                  <div className="flex items-start sm:items-center gap-2.5 py-3 px-4 bg-[#FAF8F5] border border-stone-200/80 rounded-xl text-xs text-stone-700">
+                                    <Clock size={15} className="text-[#F6841F] shrink-0 mt-0.5 sm:mt-0" />
+                                    <p className="leading-relaxed">
+                                      <strong className="font-semibold text-stone-900">
+                                        Consultation Hours:
+                                      </strong>{' '}
+                                      Tuesday – Sunday, 10:00 AM – 3:00 PM GMT. Exact session timing
+                                      is arranged personally after payment.
+                                    </p>
+                                  </div>
+                                )}
+
+                                {/* Inline Contact Form (Single-Step Booking) */}
+                                <div ref={formStartRef} className="space-y-4">
+                                  <div className="flex items-center justify-between">
+                                    <h3 className="text-xs font-bold uppercase tracking-[0.14em] text-stone-700">
+                                      Your Details
+                                    </h3>
+                                    <span className="text-[11px] text-stone-500">
+                                      Sent straight to Paystack — no re-typing
+                                    </span>
+                                  </div>
+
+                                  <div className="space-y-3.5">
+                                    <div>
+                                      <label
+                                        htmlFor={`name-${tierId}`}
+                                        className="block text-xs font-semibold text-stone-800 mb-1.5"
+                                      >
+                                        Full Name *
+                                      </label>
+                                      <div className="relative">
+                                        <User
+                                          size={16}
+                                          className="absolute left-3.5 top-1/2 -translate-y-1/2 text-stone-400"
+                                        />
+                                        <input
+                                          id={`name-${tierId}`}
+                                          type="text"
+                                          name="name"
+                                          value={formData.name}
+                                          onChange={handleInputChange}
+                                          placeholder="e.g. Akosua Mensah"
+                                          className={`w-full pl-10 pr-4 py-3 bg-[#FAF8F5] border rounded-xl text-sm text-stone-900 placeholder:text-stone-400 focus:bg-white focus:outline-none focus:ring-2 transition-all ${
+                                            fieldErrors.name
+                                              ? 'border-rose-400 focus:border-rose-500 focus:ring-rose-500/15'
+                                              : 'border-stone-200 focus:border-stone-800 focus:ring-stone-900/10'
+                                          }`}
+                                        />
+                                      </div>
+                                      {fieldErrors.name && (
+                                        <p className="text-xs text-rose-600 mt-1">{fieldErrors.name}</p>
+                                      )}
+                                    </div>
+
+                                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
+                                      <div>
+                                        <label
+                                          htmlFor={`email-${tierId}`}
+                                          className="block text-xs font-semibold text-stone-800 mb-1.5"
+                                        >
+                                          Email Address *
+                                        </label>
+                                        <div className="relative">
+                                          <Mail
+                                            size={16}
+                                            className="absolute left-3.5 top-1/2 -translate-y-1/2 text-stone-400"
+                                          />
+                                          <input
+                                            id={`email-${tierId}`}
+                                            type="email"
+                                            name="email"
+                                            value={formData.email}
+                                            onChange={handleInputChange}
+                                            placeholder="you@example.com"
+                                            className={`w-full pl-10 pr-4 py-3 bg-[#FAF8F5] border rounded-xl text-sm text-stone-900 placeholder:text-stone-400 focus:bg-white focus:outline-none focus:ring-2 transition-all ${
+                                              fieldErrors.email
+                                                ? 'border-rose-400 focus:border-rose-500 focus:ring-rose-500/15'
+                                                : 'border-stone-200 focus:border-stone-800 focus:ring-stone-900/10'
+                                            }`}
+                                          />
+                                        </div>
+                                        {fieldErrors.email && (
+                                          <p className="text-xs text-rose-600 mt-1">
+                                            {fieldErrors.email}
+                                          </p>
+                                        )}
+                                      </div>
+
+                                      <div>
+                                        <label
+                                          htmlFor={`phone-${tierId}`}
+                                          className="block text-xs font-semibold text-stone-800 mb-1.5"
+                                        >
+                                          WhatsApp / Phone *
+                                        </label>
+                                        <div className="relative">
+                                          <Phone
+                                            size={16}
+                                            className="absolute left-3.5 top-1/2 -translate-y-1/2 text-stone-400"
+                                          />
+                                          <input
+                                            id={`phone-${tierId}`}
+                                            type="tel"
+                                            name="phone"
+                                            value={formData.phone}
+                                            onChange={handleInputChange}
+                                            placeholder="+233 24 000 0000"
+                                            className={`w-full pl-10 pr-4 py-3 bg-[#FAF8F5] border rounded-xl text-sm text-stone-900 placeholder:text-stone-400 focus:bg-white focus:outline-none focus:ring-2 transition-all ${
+                                              fieldErrors.phone
+                                                ? 'border-rose-400 focus:border-rose-500 focus:ring-rose-500/15'
+                                                : 'border-stone-200 focus:border-stone-800 focus:ring-stone-900/10'
+                                            }`}
+                                          />
+                                        </div>
+                                        {fieldErrors.phone && (
+                                          <p className="text-xs text-rose-600 mt-1">
+                                            {fieldErrors.phone}
+                                          </p>
+                                        )}
+                                      </div>
+                                    </div>
+
+                                    <div>
+                                      <label
+                                        htmlFor={`message-${tierId}`}
+                                        className="block text-xs font-semibold text-stone-800 mb-1.5"
+                                      >
+                                        Health Goals or Notes{' '}
+                                        <span className="font-normal text-stone-500">(Optional)</span>
+                                      </label>
+                                      <div className="relative">
+                                        <MessageCircle
+                                          size={16}
+                                          className="absolute left-3.5 top-3.5 text-stone-400"
+                                        />
+                                        <textarea
+                                          id={`message-${tierId}`}
+                                          name="message"
+                                          value={formData.message}
+                                          onChange={handleInputChange}
+                                          rows={2}
+                                          placeholder="Any conditions, medications, or goals Nana Ama should know..."
+                                          className="w-full pl-10 pr-4 py-3 bg-[#FAF8F5] border border-stone-200 rounded-xl text-sm text-stone-900 placeholder:text-stone-400 focus:bg-white focus:border-stone-800 focus:outline-none focus:ring-2 focus:ring-stone-900/10 transition-all resize-none"
+                                        />
+                                      </div>
+                                    </div>
+                                  </div>
+
+                                  {bookingSettings?.enableCalendarBooking &&
+                                    formData.scheduledDate &&
+                                    formData.scheduledTime && (
+                                      <div className="px-3.5 py-2.5 bg-emerald-50 border border-emerald-200 rounded-xl flex items-center justify-between text-xs">
+                                        <span className="font-semibold text-emerald-950">
+                                          Selected Slot: {formData.scheduledDate} at{' '}
+                                          {formData.scheduledTime} (GMT)
+                                        </span>
+                                        <span className="text-[11px] font-bold text-emerald-700">
+                                          Ready
+                                        </span>
+                                      </div>
+                                    )}
+
+                                  {/* Primary Checkout CTA (Brand Orange #F6841F) */}
+                                  <div className="pt-1 space-y-2.5">
+                                    <button
+                                      type="button"
+                                      disabled={isSubmittingCheckout}
+                                      onClick={() => handleCheckout(tierId)}
+                                      className="w-full py-3.5 sm:py-4 px-5 bg-[#F6841F] hover:bg-[#e07312] active:scale-[0.99] text-white font-bold text-sm sm:text-base rounded-xl shadow-md hover:shadow-lg transition-all flex items-center justify-center gap-2 cursor-pointer border-none disabled:opacity-60 disabled:cursor-not-allowed"
+                                    >
+                                      {isSubmittingCheckout ? (
+                                        <>
+                                          <Loader2 size={18} className="animate-spin" />
+                                          <span>Preparing Paystack Checkout...</span>
+                                        </>
+                                      ) : (
+                                        <>
+                                          <Lock size={16} />
+                                          <span>Proceed to Checkout — {tier.priceDisplay}</span>
+                                        </>
+                                      )}
+                                    </button>
+
+                                    <div className="flex flex-wrap items-center justify-center gap-x-4 gap-y-1 text-[11px] text-stone-500 font-medium">
+                                      <span className="inline-flex items-center gap-1">
+                                        <ShieldCheck size={13} className="text-emerald-700" />
+                                        Secured by Paystack
+                                      </span>
+                                      <span>·</span>
+                                      <span>MTN MoMo, Telecel, AT &amp; Card</span>
+                                    </div>
+                                  </div>
+                                </div>
+                              </>
+                            ) : (
+                              /* ================================================== */
+                              /* TIER 03: CUSTOM & SPECIALIST CARE                  */
+                              /* ================================================== */
+                              <div className="pt-2 space-y-5">
+                                <p className="text-xs sm:text-sm text-stone-700 leading-relaxed">
+                                  Need ongoing clinical nutrition care, family/couples coaching, or
+                                  corporate wellness? Tell us what you need and our team will reply
+                                  with a recommended structure and fee.
+                                </p>
+
+                                {/* Dedicated OnTrack Diabetes Link */}
+                                <div className="p-3.5 rounded-xl bg-amber-50/70 border border-amber-200/80 flex flex-col sm:flex-row sm:items-center justify-between gap-2.5">
+                                  <div className="flex items-start gap-2.5 text-xs">
+                                    <Sparkles size={15} className="text-[#F6841F] shrink-0 mt-0.5" />
+                                    <div>
+                                      <p className="font-semibold text-stone-900">
+                                        Managing Type 2 diabetes or blood sugar?
+                                      </p>
+                                      <p className="text-stone-600">
+                                        Explore our specialized OnTrack Diabetes Care package (GH₵
+                                        600 initial).
+                                      </p>
+                                    </div>
+                                  </div>
+                                  <Link
+                                    to="/ontrack"
+                                    className="inline-flex items-center gap-1 text-xs font-bold text-[#e07312] hover:text-stone-900 whitespace-nowrap shrink-0"
+                                  >
+                                    <span>View OnTrack</span>
+                                    <ArrowRight size={13} />
+                                  </Link>
+                                </div>
+
+                                {inquirySubmitted ? (
+                                  <div className="p-5 rounded-2xl bg-emerald-50 border border-emerald-200 text-center space-y-3">
+                                    <CheckCircle2
+                                      size={32}
+                                      className="text-emerald-700 mx-auto"
+                                    />
+                                    <div className="space-y-1">
+                                      <h3 className="text-base font-bold text-stone-900">
+                                        Care Inquiry Received
+                                      </h3>
+                                      <p className="text-xs sm:text-sm text-stone-700 max-w-md mx-auto">
+                                        We sent a confirmation to{' '}
+                                        <strong className="font-semibold">{formData.email}</strong>.
+                                        Nana Ama&apos;s team will reach out via WhatsApp or email
+                                        within 24 hours.
+                                      </p>
+                                    </div>
+                                    <div className="pt-1 flex flex-wrap justify-center gap-2">
+                                      <button
+                                        type="button"
+                                        onClick={() => setInquirySubmitted(false)}
+                                        className="px-4 py-2 text-xs font-semibold bg-white border border-stone-200 rounded-xl text-stone-700 hover:bg-stone-50 cursor-pointer"
+                                      >
+                                        Send Another Note
+                                      </button>
+                                      <button
+                                        type="button"
+                                        onClick={() => setShowWhatsAppPopup(true)}
+                                        className="px-4 py-2 text-xs font-semibold bg-emerald-800 text-white rounded-xl hover:bg-emerald-900 cursor-pointer border-none"
+                                      >
+                                        Chat on WhatsApp Now
+                                      </button>
+                                    </div>
+                                  </div>
+                                ) : (
+                                  <form
+                                    ref={formStartRef}
+                                    onSubmit={handleInquirySubmit}
+                                    className="space-y-4"
+                                  >
+                                    <div>
+                                      <span className="block text-xs font-semibold text-stone-800 mb-2">
+                                        Focus Area
+                                      </span>
+                                      <div className="flex flex-wrap gap-2">
+                                        {BESPOKE_TOPICS.map((topic) => (
+                                          <button
+                                            key={topic}
+                                            type="button"
+                                            onClick={() => setInquiryTopic(topic)}
+                                            className={`px-3 py-1.5 rounded-full text-xs font-semibold border transition-colors cursor-pointer ${
+                                              inquiryTopic === topic
+                                                ? 'bg-stone-900 text-white border-stone-900'
+                                                : 'bg-[#FAF8F5] text-stone-700 border-stone-200 hover:border-stone-300'
+                                            }`}
+                                          >
+                                            {topic}
+                                          </button>
+                                        ))}
+                                      </div>
+                                    </div>
+
+                                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
+                                      <div>
+                                        <label
+                                          htmlFor="name-custom"
+                                          className="block text-xs font-semibold text-stone-800 mb-1.5"
+                                        >
+                                          Full Name *
+                                        </label>
+                                        <input
+                                          id="name-custom"
+                                          type="text"
+                                          name="name"
+                                          value={formData.name}
+                                          onChange={handleInputChange}
+                                          placeholder="Your name or organization"
+                                          className="w-full px-3.5 py-3 bg-[#FAF8F5] border border-stone-200 rounded-xl text-sm text-stone-900 placeholder:text-stone-400 focus:bg-white focus:border-stone-800 focus:outline-none"
+                                        />
+                                        {fieldErrors.name && (
+                                          <p className="text-xs text-rose-600 mt-1">
+                                            {fieldErrors.name}
+                                          </p>
+                                        )}
+                                      </div>
+
+                                      <div>
+                                        <label
+                                          htmlFor="phone-custom"
+                                          className="block text-xs font-semibold text-stone-800 mb-1.5"
+                                        >
+                                          WhatsApp / Phone *
+                                        </label>
+                                        <input
+                                          id="phone-custom"
+                                          type="tel"
+                                          name="phone"
+                                          value={formData.phone}
+                                          onChange={handleInputChange}
+                                          placeholder="+233 24 000 0000"
+                                          className="w-full px-3.5 py-3 bg-[#FAF8F5] border border-stone-200 rounded-xl text-sm text-stone-900 placeholder:text-stone-400 focus:bg-white focus:border-stone-800 focus:outline-none"
+                                        />
+                                        {fieldErrors.phone && (
+                                          <p className="text-xs text-rose-600 mt-1">
+                                            {fieldErrors.phone}
+                                          </p>
+                                        )}
+                                      </div>
+                                    </div>
+
+                                    <div>
+                                      <label
+                                        htmlFor="email-custom"
+                                        className="block text-xs font-semibold text-stone-800 mb-1.5"
+                                      >
+                                        Email Address *
+                                      </label>
+                                      <input
+                                        id="email-custom"
+                                        type="email"
+                                        name="email"
+                                        value={formData.email}
+                                        onChange={handleInputChange}
+                                        placeholder="you@example.com"
+                                        className="w-full px-3.5 py-3 bg-[#FAF8F5] border border-stone-200 rounded-xl text-sm text-stone-900 placeholder:text-stone-400 focus:bg-white focus:border-stone-800 focus:outline-none"
+                                      />
+                                      {fieldErrors.email && (
+                                        <p className="text-xs text-rose-600 mt-1">
+                                          {fieldErrors.email}
+                                        </p>
+                                      )}
+                                    </div>
+
+                                    <div>
+                                      <label
+                                        htmlFor="message-custom"
+                                        className="block text-xs font-semibold text-stone-800 mb-1.5"
+                                      >
+                                        How can we help? *
+                                      </label>
+                                      <textarea
+                                        id="message-custom"
+                                        name="message"
+                                        value={formData.message}
+                                        onChange={handleInputChange}
+                                        rows={3}
+                                        placeholder="Share your clinical goals, family size, or corporate event details..."
+                                        className="w-full px-3.5 py-3 bg-[#FAF8F5] border border-stone-200 rounded-xl text-sm text-stone-900 placeholder:text-stone-400 focus:bg-white focus:border-stone-800 focus:outline-none resize-none"
+                                      />
+                                      {fieldErrors.message && (
+                                        <p className="text-xs text-rose-600 mt-1">
+                                          {fieldErrors.message}
+                                        </p>
+                                      )}
+                                    </div>
+
+                                    <div className="flex flex-col sm:flex-row gap-2.5 pt-1">
+                                      <button
+                                        type="submit"
+                                        disabled={isSubmittingInquiry}
+                                        className="flex-1 py-3.5 px-5 bg-[#143A28] hover:bg-[#0e2a1d] text-white font-bold text-sm rounded-xl transition-colors flex items-center justify-center gap-2 cursor-pointer border-none disabled:opacity-60"
+                                      >
+                                        {isSubmittingInquiry ? (
+                                          <>
+                                            <Loader2 size={16} className="animate-spin" />
+                                            <span>Sending Inquiry...</span>
+                                          </>
+                                        ) : (
+                                          <span>Send Care Inquiry</span>
+                                        )}
+                                      </button>
+
+                                      <button
+                                        type="button"
+                                        onClick={() => setShowWhatsAppPopup(true)}
+                                        className="sm:w-auto py-3.5 px-4 bg-[#FAF8F5] hover:bg-stone-100 border border-stone-200 text-stone-800 font-semibold text-xs sm:text-sm rounded-xl transition-colors flex items-center justify-center gap-2 cursor-pointer"
+                                      >
+                                        <MessageCircle size={15} className="text-emerald-700" />
+                                        <span>WhatsApp Instead</span>
+                                      </button>
+                                    </div>
+                                  </form>
+                                )}
+                              </div>
+                            )}
+                          </div>
+                        </motion.div>
+                      )}
+                    </AnimatePresence>
                   </div>
+                );
+              })}
+            </div>
+          </section>
+
+          {/* ============================================================== */}
+          {/* 4. HOW BOOKING WORKS + QUIET DIRECT CONTACT FOOTER             */}
+          {/* ============================================================== */}
+          <footer className="space-y-6 pt-2">
+            <p className="text-xs sm:text-sm text-stone-600 leading-relaxed border-t border-stone-200/80 pt-5">
+              {!hasRevealedPricing ? (
+                <>
+                  <strong className="font-semibold text-stone-800">How booking works:</strong> Tap a
+                  tier, fill your contact details once, pay securely via Paystack (MTN MoMo,
+                  Telecel, AT, or Card), and receive instant email confirmation plus personal
+                  scheduling.
+                </>
+              ) : (
+                <>
+                  Not sure which tier fits? Tap{' '}
+                  <button
+                    type="button"
+                    onClick={() => handleToggleTier('custom')}
+                    className="font-semibold text-emerald-800 underline underline-offset-2 bg-transparent border-none p-0 cursor-pointer"
+                  >
+                    Tier 03
+                  </button>{' '}
+                  to send a quick note and we will guide you.
+                </>
+              )}
+            </p>
+
+            {/* Quiet Direct Contact Card */}
+            <div className="bg-white border border-stone-200/90 rounded-2xl p-5 sm:p-6 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+              <div className="space-y-1.5">
+                <h2 className="text-lg sm:text-xl font-serif-cormorant font-medium text-stone-900">
+                  Prefer to ask a quick question first?
+                </h2>
+                <div className="flex flex-wrap items-center gap-x-4 gap-y-1 text-xs sm:text-sm text-stone-600">
+                  <a
+                    href="mailto:dietwdee@gmail.com"
+                    className="inline-flex items-center gap-1.5 hover:text-stone-900 transition-colors"
+                  >
+                    <Mail size={14} className="text-emerald-700" />
+                    <span>dietwdee@gmail.com</span>
+                  </a>
+                  <a
+                    href="tel:+233592330870"
+                    className="inline-flex items-center gap-1.5 hover:text-stone-900 transition-colors"
+                  >
+                    <Phone size={14} className="text-emerald-700" />
+                    <span>(+233) 59 233 0870</span>
+                  </a>
                 </div>
               </div>
+
+              <button
+                type="button"
+                onClick={() => setShowWhatsAppPopup(true)}
+                className="w-full sm:w-auto px-5 py-2.5 bg-stone-900 hover:bg-stone-800 text-white text-xs sm:text-sm font-semibold rounded-xl transition-colors flex items-center justify-center gap-2 cursor-pointer border-none shrink-0"
+              >
+                <MessageCircle size={15} />
+                <span>Chat on WhatsApp</span>
+              </button>
             </div>
-          </div>
-          {/* Contact Methods */}
-          <div className="py-12 sm:py-16 bg-gradient-to-br from-green-50 to-emerald-50 rounded-3xl mx-4 sm:mx-0 mt-16">
-            <div className="container mx-auto px-6 sm:px-10">
-              <div className="flex flex-col lg:flex-row items-center justify-between gap-10 lg:gap-20">
-
-                {/* Left decorative blobs */}
-                <div className="flex-1 relative max-w-xs hidden lg:block">
-                  <div className="absolute -top-4 -right-4 w-64 h-64 bg-gradient-to-br from-green-200 to-emerald-200 rounded-full opacity-20 blur-3xl"></div>
-                  <div className="absolute -bottom-6 -left-6 w-56 h-56 bg-gradient-to-tr from-emerald-300 to-green-300 rounded-full opacity-15 blur-2xl"></div>
-                </div>
-
-                {/* Contact Content */}
-                <div className="flex-1 max-w-full lg:max-w-xl text-center lg:text-left">
-                  <div className="space-y-6 sm:space-y-8">
-                    {/* Header */}
-                    <div className="space-y-3 sm:space-y-4">
-                      <h3 className="text-3xl sm:text-4xl font-black text-transparent bg-clip-text bg-gradient-to-r from-green-700 via-emerald-600 to-green-600 leading-tight">
-                        Still have questions?
-                      </h3>
-                      <div className="w-16 sm:w-20 h-1.5 sm:h-2 bg-gradient-to-r from-green-500 to-emerald-500 rounded-full mx-auto lg:mx-0"></div>
-                    </div>
-
-                    <p className="text-base sm:text-lg text-stone-800 leading-relaxed font-normal">
-                      Have a question about your diet, nutrition goals, or general wellness?
-                    </p>
-
-                    {/* Contact Info */}
-                    <div className="space-y-4 sm:space-y-6">
-                      <div className="space-y-3">
-                        <h4 className="text-base sm:text-lg font-bold text-stone-900 tracking-wider">EMAIL</h4>
-                        <div className="flex items-center justify-center lg:justify-start gap-3">
-                          <svg className="w-4 h-4 sm:w-5 sm:h-5 text-green-700 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
-                            <path d="M2.003 5.884L10 9.882l7.997-3.998A2 2 0 0016 4H4a2 2 0 00-1.997 1.884z" />
-                            <path d="M18 8.118l-8 4-8-4V14a2 2 0 002 2h12a2 2 0 002-2V8.118z" />
-                          </svg>
-                          <span className="text-base text-stone-800 font-medium">dietwdee@gmail.com</span>
-                        </div>
-                      </div>
-
-                      <div className="space-y-3">
-                        <h4 className="text-base sm:text-lg font-bold text-stone-900 tracking-wider">PHONE</h4>
-                        <div className="flex items-center justify-center lg:justify-start gap-3">
-                          <svg className="w-4 h-4 sm:w-5 sm:h-5 text-green-700 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
-                            <path d="M2 3a1 1 0 011-1h2.153a1 1 0 01.986.836l.74 4.435a1 1 0 01-.54 1.06l-1.548.773a11.037 11.037 0 006.105 6.105l.774-1.548a1 1 0 011.059-.54l4.435.74a1 1 0 01.836.986V17a1 1 0 01-1 1h-2C7.82 18 2 12.18 2 5V3z" />
-                          </svg>
-                          <span className="text-base text-stone-800 font-medium">(+233) 59 233 0870</span>
-                        </div>
-                      </div>
-                    </div>
-
-                    {/* CTA */}
-                    <div className="pt-2 sm:pt-4">
-                      <button
-                        onClick={() => setShowWhatsAppPopup(true)}
-                        className="inline-block w-full sm:w-auto px-6 sm:px-8 py-3 sm:py-4 bg-orange-400 text-white font-bold rounded-full shadow-lg hover:shadow-xl transition-all duration-300 hover:bg-green-700 text-sm sm:text-base"
-                      >
-                        Get In Touch
-                      </button>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
+          </footer>
         </div>
       </div>
-    </div>
 
       {/* WhatsApp Popup */}
       <WhatsAppPopup
         isOpen={showWhatsAppPopup}
         onClose={() => setShowWhatsAppPopup(false)}
         onConfirm={() => {
-          logEvent(analytics, 'contact', { method: 'WhatsApp' });
-          window.open('https://wa.me/233592330870?text=Hello%2C%20I%E2%80%99d%20like%20to%20book%20a%20session%20with%20Diet%20with%20Dee', '_blank', 'noopener,noreferrer');
+          safeLogEvent('contact', { method: 'WhatsApp' });
+          window.open(
+            'https://wa.me/233592330870?text=Hello%2C%20I%E2%80%99d%20like%20to%20book%20a%20session%20with%20Diet%20with%20Dee',
+            '_blank',
+            'noopener,noreferrer'
+          );
           setShowWhatsAppPopup(false);
         }}
       />
     </>
   );
-}
+};
 
 export default ContactUs;

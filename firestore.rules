@@ -33,6 +33,10 @@ service cloud.firestore {
       allow read, write: if isAdmin();
     }
 
+    match /inquiries/{inquiryId} {
+      allow read, write: if isAdmin();
+    }
+
     match /settings/{settingId} {
       allow read: if true; // public can read settings (like booking status)
       allow write: if isAdmin(); // only admins can change settings

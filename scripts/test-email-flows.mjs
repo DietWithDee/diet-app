@@ -32,7 +32,9 @@ const {
 
 const { 
   createAdminBookingEmail, 
-  createClientConfirmationEmail 
+  createClientConfirmationEmail,
+  createAdminInquiryEmail,
+  createClientInquiryEmail
 } = require("../functions/bookingEmailTemplates.js");
 
 const { 
@@ -172,6 +174,26 @@ const flows = [
     from: "Diet With Dee Bookings <bookings@mail.dietwithdee.org>",
     subject: `New Booking: ${mockData.bookingAdmin.name} (Initial)`,
     generateHtml: () => createAdminBookingEmail(mockData.bookingAdmin)
+  },
+  {
+    id: "inquiry-admin-notification",
+    name: "Tier 03 Bespoke Care Inquiry — Admin Notification",
+    from: "Diet With Dee Inquiries <bookings@mail.dietwithdee.org>",
+    subject: "New Bespoke Care Inquiry: Ama Mensah (Clinical / Medical Nutrition)",
+    generateHtml: () => createAdminInquiryEmail({
+      name: "Ama Mensah",
+      email: "ama@example.com",
+      phone: "+233 24 555 0199",
+      inquiryTopic: "Clinical / Medical Nutrition",
+      message: "Looking for an integrated PCOS & blood pressure plan for 3 months."
+    })
+  },
+  {
+    id: "inquiry-client-confirmation",
+    name: "Tier 03 Bespoke Care Inquiry — Client Confirmation",
+    from: "Diet With Dee <hello@mail.dietwithdee.org>",
+    subject: "We received your Diet With Dee care inquiry",
+    generateHtml: () => createClientInquiryEmail("Ama Mensah", "Clinical / Medical Nutrition")
   },
   {
     id: "testimonial-admin-notification",

@@ -277,4 +277,142 @@ const createClientConfirmationEmail = (name, consultationType, bookingData) => {
   `;
 };
 
-module.exports = { createAdminBookingEmail, createClientConfirmationEmail };
+const escapeHtml = (value) => {
+  if (value === null || value === undefined) return '';
+  return String(value)
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#39;');
+};
+
+const buildWhatsAppLink = (rawPhone, messageText) => {
+  if (!rawPhone) return null;
+  let cleanPhone = String(rawPhone).replace(/[^0-9]/g, '');
+  if (cleanPhone.startsWith('0') && cleanPhone.length === 10) {
+    cleanPhone = '233' + cleanPhone.slice(1);
+  }
+  if (!cleanPhone) return null;
+  return `https://wa.me/${cleanPhone}?text=${encodeURIComponent(messageText)}`;
+};
+
+const createAdminInquiryEmail = (inquiryData) => {
+  const safeName = escapeHtml(inquiryData.name || 'Client');
+  const safeEmail = escapeHtml(inquiryData.email || '');
+  const safePhone = escapeHtml(inquiryData.phone || '');
+  const safeTopic = escapeHtml(inquiryData.inquiryTopic || 'Custom & Specialist Care');
+  const safeMessage = escapeHtml(inquiryData.message || 'No additional notes provided.');
+  const firstName = (inquiryData.name || 'there').split(' ')[0];
+  const whatsappUrl = buildWhatsAppLink(
+    inquiryData.phone,
+    `Hello ${firstName}, this is Nana Ama Dwamena (Dee) from Diet With Dee! Thank you for reaching out about Custom & Specialist Care.`
+  );
+  const adminUrl = `https://dietwithdee.org/admin/bookings?view=inquiries`;
+
+  return `
+    <!DOCTYPE html>
+    <html lang="en">
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>New Custom & Specialist Care Inquiry</title>
+        <style>
+            body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; line-height: 1.6; color: #1f2937; background-color: #faf8f5; padding: 20px; }
+            .container { max-width: 600px; margin: 0 auto; background-color: #ffffff; border-radius: 12px; border: 1px solid #e7e5e4; padding: 30px; box-shadow: 0 4px 6px rgba(0,0,0,0.04); }
+            .header { border-bottom: 2px solid #F6841F; padding-bottom: 15px; margin-bottom: 24px; }
+            .badge { display: inline-block; background-color: #fff7ed; color: #c2410c; border: 1px solid #fed7aa; font-size: 11px; font-weight: bold; padding: 3px 10px; border-radius: 9999px; text-transform: uppercase; margin-bottom: 8px; }
+            h1 { color: #1c1917; font-size: 22px; margin: 0; }
+            .section { margin-bottom: 22px; }
+            .section-title { font-size: 13px; font-weight: bold; color: #78716c; margin-bottom: 10px; border-bottom: 1px solid #e7e5e4; padding-bottom: 5px; text-transform: uppercase; letter-spacing: 0.05em; }
+            .data-row { display: flex; margin-bottom: 8px; }
+            .label { width: 140px; font-weight: 600; color: #78716c; flex-shrink: 0; }
+            .value { flex: 1; color: #1c1917; }
+            .note-box { background-color: #faf8f5; border: 1px solid #e7e5e4; border-left: 4px solid #14532d; border-radius: 6px; padding: 14px; color: #292524; white-space: pre-wrap; }
+            .action-bar { margin-top: 26px; padding-top: 18px; border-top: 1px solid #e7e5e4; text-align: center; }
+            .btn { display: inline-block; padding: 12px 20px; border-radius: 8px; font-weight: bold; text-decoration: none; font-size: 14px; }
+            .btn-primary { background-color: #14532d; color: #ffffff !important; }
+            .btn-whatsapp { background-color: #25D366; color: #ffffff !important; margin-left: 10px; }
+        </style>
+    </head>
+    <body>
+        <div class="container">
+            <div class="header">
+                <div class="badge">03 · Bespoke Care Inquiry</div>
+                <h1>New Custom & Specialist Care Request</h1>
+            </div>
+
+            <div class="section">
+                <div class="section-title">Client Contact Details</div>
+                <div class="data-row"><div class="label">Name:</div><div class="value"><strong>${safeName}</strong></div></div>
+                <div class="data-row"><div class="label">Email:</div><div class="value"><a href="mailto:${safeEmail}">${safeEmail}</a></div></div>
+                <div class="data-row"><div class="label">Phone / WhatsApp:</div><div class="value"><a href="tel:${safePhone}">${safePhone}</a></div></div>
+                <div class="data-row"><div class="label">Care Area:</div><div class="value">${safeTopic}</div></div>
+            </div>
+
+            <div class="section">
+                <div class="section-title">Inquiry Notes</div>
+                <div class="note-box">${safeMessage}</div>
+            </div>
+
+            <div class="action-bar">
+                <a href="${adminUrl}" class="btn btn-primary" target="_blank">View in Admin Panel →</a>
+                ${whatsappUrl ? `<a href="${whatsappUrl}" class="btn btn-whatsapp" target="_blank">Chat on WhatsApp 💬</a>` : ''}
+            </div>
+        </div>
+    </body>
+    </html>
+  `;
+};
+
+const createClientInquiryEmail = (name, inquiryTopic) => {
+  const safeFirstName = escapeHtml((name || 'there').split(' ')[0]);
+  const safeTopic = escapeHtml(inquiryTopic || 'Custom & Specialist Care');
+  return `
+    <!DOCTYPE html>
+    <html lang="en">
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>We Received Your Bespoke Care Inquiry</title>
+        <style>
+            body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; line-height: 1.6; color: #1f2937; background-color: #faf8f5; padding: 20px 0; margin: 0; }
+            .container { max-width: 600px; margin: 0 auto; background-color: #ffffff; border-radius: 16px; overflow: hidden; border: 1px solid #e7e5e4; box-shadow: 0 8px 24px rgba(0,0,0,0.04); }
+            img.logo { width: 130px; margin: 28px auto 16px; display: block; }
+            .content { padding: 16px 36px 36px; text-align: left; }
+            h1 { color: #14532d; font-size: 23px; text-align: center; margin-top: 0; }
+            p { margin-bottom: 16px; font-size: 15px; color: #374151; }
+            .highlight-box { background-color: #f0fdf4; border-left: 4px solid #15803d; padding: 14px 16px; margin: 20px 0; border-radius: 0 8px 8px 0; }
+            .footer { background-color: #fafaf9; padding: 18px; text-align: center; font-size: 13px; color: #78716c; border-top: 1px solid #e7e5e4; }
+        </style>
+    </head>
+    <body>
+        <div class="container">
+            <img src="https://dietwithdee.org/LOGO.png" alt="Diet With Dee" class="logo" />
+            <div class="content">
+                <h1>Care Inquiry Received</h1>
+                <p>Hi ${safeFirstName},</p>
+                <p>Thank you for reaching out to <strong>Diet With Dee</strong> regarding <strong>${safeTopic}</strong>.</p>
+                <div class="highlight-box">
+                    <p style="margin:0; font-weight:700; color:#14532d;">What happens next?</p>
+                    <p style="margin:6px 0 0 0; font-size:14px;">Registered Dietitian Nana Ama Dwamena and her team will review your note and reach out personally via WhatsApp or email within <strong>24 hours</strong> to recommend the right plan and fee.</p>
+                </div>
+                <p>Our consultation hours are <strong>Tuesday – Sunday, 10:00 AM – 3:00 PM (GMT)</strong>.</p>
+                <p>Warmly,<br><strong>Nana Ama Dwamena</strong><br>Registered Dietitian</p>
+            </div>
+            <div class="footer">
+                <p>&copy; ${new Date().getFullYear()} Diet With Dee. All rights reserved.</p>
+                <p>Accra, Ghana</p>
+            </div>
+        </div>
+    </body>
+    </html>
+  `;
+};
+
+module.exports = {
+  createAdminBookingEmail,
+  createClientConfirmationEmail,
+  createAdminInquiryEmail,
+  createClientInquiryEmail
+};

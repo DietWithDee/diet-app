@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useMemo, useRef } from 'react';
+import { useSearchParams } from 'react-router-dom';
 import { collection, query, orderBy, onSnapshot, doc, updateDoc } from 'firebase/firestore';
 import { db } from '../../../firebaseConfig';
 import { 
@@ -56,7 +57,20 @@ const DAYS_OF_WEEK = [
 ];
 
 const BookingsPanel = ({ showNotification, highlightRef = null }) => {
+  const [searchParams, setSearchParams] = useSearchParams();
+  const activeView = searchParams.get('view') === 'inquiries' ? 'inquiries' : 'bookings';
+  const setActiveView = (view) => {
+    const next = new URLSearchParams(searchParams);
+    if (view === 'inquiries') {
+      next.set('view', 'inquiries');
+    } else {
+      next.delete('view');
+    }
+    setSearchParams(next, { replace: true });
+  };
+
   const [bookings, setBookings] = useState([]);
+  const [inquiries, setInquiries] = useState([]);
   const [loading, setLoading] = useState(true);
   const [filter, setFilter] = useState('all'); // all, pending, contacted, completed
   const [isBookingOpen, setIsBookingOpen] = useState(false);
@@ -86,10 +100,10 @@ const BookingsPanel = ({ showNotification, highlightRef = null }) => {
     // Real-time listener on the bookings collection
     const q = query(collection(db, 'bookings'), orderBy('createdAt', 'desc'));
     
-    const unsubscribe = onSnapshot(q, (snapshot) => {
+    const unsubscribeBookings = onSnapshot(q, (snapshot) => {
       const bookingsData = [];
-      snapshot.forEach((doc) => {
-        bookingsData.push({ id: doc.id, ...doc.data() });
+      snapshot.forEach((docSnap) => {
+        bookingsData.push({ id: docSnap.id, ...docSnap.data() });
       });
       setBookings(bookingsData);
       setLoading(false);
@@ -99,7 +113,22 @@ const BookingsPanel = ({ showNotification, highlightRef = null }) => {
       setLoading(false);
     });
 
-    return () => unsubscribe();
+    // Real-time listener on Tier 03 Custom & Specialist Care inquiries
+    const qInquiries = query(collection(db, 'inquiries'), orderBy('createdAt', 'desc'));
+    const unsubscribeInquiries = onSnapshot(qInquiries, (snapshot) => {
+      const inquiriesData = [];
+      snapshot.forEach((docSnap) => {
+        inquiriesData.push({ id: docSnap.id, ...docSnap.data() });
+      });
+      setInquiries(inquiriesData);
+    }, (error) => {
+      console.warn("Inquiries listener:", error);
+    });
+
+    return () => {
+      unsubscribeBookings();
+      unsubscribeInquiries();
+    };
   }, [showNotification]);
 
   useEffect(() => {
@@ -311,6 +340,17 @@ const BookingsPanel = ({ showNotification, highlightRef = null }) => {
     } catch (error) {
       console.error("Error updating status:", error);
       showNotification('error', 'Failed to update booking status.');
+    }
+  };
+
+  const handleInquiryStatusChange = async (inquiryId, newStatus) => {
+    try {
+      const inquiryRef = doc(db, 'inquiries', inquiryId);
+      await updateDoc(inquiryRef, { status: newStatus });
+      showNotification('success', `Inquiry marked as ${newStatus}.`);
+    } catch (error) {
+      console.error("Error updating inquiry status:", error);
+      showNotification('error', 'Failed to update inquiry status.');
     }
   };
 
@@ -1390,39 +1430,143 @@ const BookingsPanel = ({ showNotification, highlightRef = null }) => {
 
       </div>
 
-      {/* Header bar above booking cards */}
-      <div className="flex items-center justify-between px-1 pt-1">
-        <div className="flex items-center gap-2">
-          <h3 className="text-xs font-bold uppercase tracking-wider text-stone-500">
-            Consultation Bookings ({filteredBookings.length})
-          </h3>
-          {selectedDateFilter && (
-            <span className="px-2 py-0.5 rounded-full text-[11px] font-semibold bg-emerald-100 text-emerald-800 border border-emerald-300">
-              📅 {selectedDateFilter}
-            </span>
-          )}
-          {filter !== 'all' && (
-            <span className="px-2 py-0.5 rounded-full text-[11px] font-semibold bg-stone-100 text-stone-700 border border-stone-200 uppercase">
-              {filter}
-            </span>
-          )}
-        </div>
-        {(selectedDateFilter || filter !== 'all') && (
+      {/* View Switcher: Paid Bookings vs Tier 03 Custom Inquiries */}
+      <div className="flex flex-wrap items-center justify-between gap-2 px-1 pt-1">
+        <div className="inline-flex bg-stone-100 p-1 rounded-xl border border-stone-200/80">
           <button
             type="button"
-            onClick={() => {
-              setSelectedDateFilter(null);
-              setFilter('all');
-            }}
-            className="text-xs font-semibold text-stone-500 hover:text-stone-800 underline"
+            onClick={() => setActiveView('bookings')}
+            className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all cursor-pointer ${
+              activeView === 'bookings'
+                ? 'bg-white text-stone-900 shadow-2xs'
+                : 'text-stone-600 hover:text-stone-900'
+            }`}
           >
-            Reset all filters
+            Paid Bookings ({filteredBookings.length})
           </button>
+          <button
+            type="button"
+            onClick={() => setActiveView('inquiries')}
+            className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all cursor-pointer flex items-center gap-1.5 ${
+              activeView === 'inquiries'
+                ? 'bg-white text-stone-900 shadow-2xs'
+                : 'text-stone-600 hover:text-stone-900'
+            }`}
+          >
+            <span>Custom Inquiries ({inquiries.length})</span>
+            {inquiries.some(i => i.status === 'new') && (
+              <span className="w-1.5 h-1.5 rounded-full bg-[#F6841F]"></span>
+            )}
+          </button>
+        </div>
+
+        {activeView === 'bookings' && (
+          <div className="flex items-center gap-2">
+            {selectedDateFilter && (
+              <span className="px-2 py-0.5 rounded-full text-[11px] font-semibold bg-emerald-100 text-emerald-800 border border-emerald-300">
+                📅 {selectedDateFilter}
+              </span>
+            )}
+            {filter !== 'all' && (
+              <span className="px-2 py-0.5 rounded-full text-[11px] font-semibold bg-stone-100 text-stone-700 border border-stone-200 uppercase">
+                {filter}
+              </span>
+            )}
+            {(selectedDateFilter || filter !== 'all') && (
+              <button
+                type="button"
+                onClick={() => {
+                  setSelectedDateFilter(null);
+                  setFilter('all');
+                }}
+                className="text-xs font-semibold text-stone-500 hover:text-stone-800 underline"
+              >
+                Reset all filters
+              </button>
+            )}
+          </div>
         )}
       </div>
 
-      {/* Minimal Booking Cards List */}
-      {filteredBookings.length === 0 ? (
+      {activeView === 'inquiries' ? (
+        inquiries.length === 0 ? (
+          <div className="bg-white rounded-2xl border border-stone-200 p-8 text-center shadow-xs">
+            <MessageCircle className="w-10 h-10 text-stone-300 mx-auto mb-2" />
+            <p className="text-xs font-semibold text-stone-700">No custom &amp; specialist care inquiries yet</p>
+          </div>
+        ) : (
+          <div className="space-y-2.5">
+            {inquiries.map((inq) => {
+              const waUrl = formatWhatsAppUrl(inq.phone, inq.name);
+              return (
+                <div
+                  key={inq.id}
+                  className="bg-white rounded-2xl p-4 border border-stone-200/90 shadow-2xs space-y-3"
+                >
+                  <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+                    <div className="min-w-0">
+                      <div className="flex items-center gap-2 flex-wrap">
+                        <p className="text-sm font-semibold text-stone-900">{inq.name}</p>
+                        <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-orange-50 text-[#e07312] border border-orange-200">
+                          {inq.inquiryTopic || 'Custom Care'}
+                        </span>
+                        <span className={`px-2 py-0.5 rounded-full text-[10px] font-semibold border ${
+                          inq.status === 'resolved'
+                            ? 'bg-emerald-50 text-emerald-700 border-emerald-200'
+                            : inq.status === 'contacted'
+                            ? 'bg-amber-50 text-amber-700 border-amber-200'
+                            : 'bg-rose-50 text-rose-700 border-rose-200'
+                        }`}>
+                          {inq.status === 'resolved' ? 'Resolved' : inq.status === 'contacted' ? 'Contacted' : 'New'}
+                        </span>
+                      </div>
+                      <div className="flex flex-wrap items-center gap-3 text-[11px] text-stone-500 mt-1">
+                        <a href={`mailto:${inq.email}`} className="hover:text-emerald-700 flex items-center gap-1">
+                          <Mail size={11} />
+                          <span>{inq.email}</span>
+                        </a>
+                        <a href={`tel:${inq.phone}`} className="hover:text-emerald-700 flex items-center gap-1">
+                          <Phone size={11} />
+                          <span>{inq.phone}</span>
+                        </a>
+                        <span>{formatDate(inq.createdAt)}</span>
+                      </div>
+                    </div>
+
+                    <div className="flex items-center gap-2 shrink-0">
+                      <select
+                        value={inq.status || 'new'}
+                        onChange={(e) => handleInquiryStatusChange(inq.id, e.target.value)}
+                        className="text-xs font-semibold bg-stone-50 border border-stone-200 rounded-lg px-2 py-1 text-stone-800 cursor-pointer"
+                      >
+                        <option value="new">New</option>
+                        <option value="contacted">Contacted</option>
+                        <option value="resolved">Resolved</option>
+                      </select>
+                      {waUrl && (
+                        <button
+                          type="button"
+                          onClick={() => window.open(waUrl, '_blank', 'noopener,noreferrer')}
+                          className="px-2.5 py-1 bg-emerald-50 hover:bg-emerald-100 text-emerald-700 rounded-lg text-xs font-medium flex items-center gap-1 cursor-pointer"
+                        >
+                          <MessageCircle size={13} />
+                          <span>WhatsApp</span>
+                        </button>
+                      )}
+                    </div>
+                  </div>
+
+                  <p className="text-xs text-stone-700 bg-stone-50 border border-stone-200/70 rounded-xl p-3 whitespace-pre-wrap">
+                    {inq.message}
+                  </p>
+                </div>
+              );
+            })}
+          </div>
+        )
+      ) : (
+        /* Minimal Booking Cards List */
+        filteredBookings.length === 0 ? (
         <div className="bg-white rounded-2xl border border-stone-200 p-8 text-center shadow-xs">
           <Calendar className="w-10 h-10 text-stone-300 mx-auto mb-2" />
           <p className="text-xs font-semibold text-stone-700">No {filter !== 'all' ? filter : ''} bookings</p>
@@ -1507,6 +1651,7 @@ const BookingsPanel = ({ showNotification, highlightRef = null }) => {
             );
           })}
         </div>
+      )
       )}
     </div>
   );
