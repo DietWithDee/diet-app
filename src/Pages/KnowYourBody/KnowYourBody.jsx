@@ -1,11 +1,14 @@
 import React, { useState } from 'react';
-import { ChevronRight, Calculator, Target, BookOpen, User, Activity, Moon, Heart, Utensils, Angry } from 'lucide-react';
+import { ChevronRight, Calculator, Target, BookOpen, User, Activity, Moon, Heart, Utensils, Angry, CheckCircle2, Loader2 } from 'lucide-react';
+import { FcGoogle } from 'react-icons/fc';
 import { useNavigate } from 'react-router-dom';
 import { BsQuestion } from 'react-icons/bs';
 import { useWebHaptics } from 'web-haptics/react';
 import { logEvent } from 'firebase/analytics';
 import { analytics } from '../../firebaseConfig';
 import { motion, AnimatePresence } from 'framer-motion';
+import { useAuth } from '../../AuthContext';
+import { calculateBodyMetrics, buildKnowYourBodySnapshot } from '../../utils/bookingProfile';
 
 // Progress Bar
 const ProgressBar = ({ step }) => {
@@ -399,12 +402,41 @@ const CalorieStep = ({ formData, setFormData, onNext }) => {
 };
 
 // Results Step
-const ResultsStep = ({ results, formData, navigate, trigger }) => (
+const ResultsStep = ({
+  results,
+  snapshot,
+  navigate,
+  trigger,
+  user,
+  autoSaveStatus,
+  signingInToSave,
+  onSignInToSave
+}) => (
   <div className="max-w-4xl mx-auto space-y-8">
     <div className="text-center space-y-4">
       <div className="text-6xl">📊</div>
       <h2 className="text-3xl font-bold text-green-900">Your Personalized Results</h2>
       <p className="text-stone-700 text-base sm:text-lg font-normal">Here's what we calculated based on your information</p>
+
+      {user && (
+        <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full text-xs sm:text-sm font-semibold border bg-white/90 shadow-xs">
+          {autoSaveStatus === 'saving' && (
+            <>
+              <Loader2 size={14} className="animate-spin text-emerald-600" />
+              <span className="text-stone-700">Saving test to your My Journey profile...</span>
+            </>
+          )}
+          {autoSaveStatus === 'saved' && (
+            <>
+              <CheckCircle2 size={15} className="text-emerald-600" />
+              <span className="text-emerald-800">Automatically saved to your My Journey profile</span>
+            </>
+          )}
+          {autoSaveStatus === 'error' && (
+            <span className="text-amber-700">Saved on this device (cloud sync skipped)</span>
+          )}
+        </div>
+      )}
     </div>
     <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
       {/* BMI Results */}
@@ -473,56 +505,57 @@ const ResultsStep = ({ results, formData, navigate, trigger }) => (
         <div className="flex flex-col sm:flex-row gap-4 w-full justify-center items-center">
           <button
             onClick={() => {
-              trigger("success")
-              const testSnapshot = {
-                bmi: results.bmi,
-                bmiCategory: results.bmiCategory,
-                dailyCalories: results.tdee,
-                goal: formData.goal,
-                targetWeight: formData.targetWeight,
-                dietaryRestrictions: formData.dietaryRestrictions,
-                macros: results.macros,
-                gender: formData.gender,
-                age: formData.age,
-                height: formData.height,
-                weight: formData.weight,
-                activityLevel: formData.activityLevel,
-                sleepHours: formData.sleepHours,
-                healthConditions: formData.healthConditions,
-                dislikes: formData.dislikes,
-                savedAt: Date.now()
-              };
-              try {
-                localStorage.setItem('diet_test_results', JSON.stringify(testSnapshot));
-              } catch (e) {
-                console.warn('Could not save test results to storage:', e);
+              trigger("success");
+              if (snapshot) {
+                try {
+                  localStorage.setItem('diet_test_results', JSON.stringify(snapshot));
+                } catch (e) {
+                  console.warn('Could not save test results to storage:', e);
+                }
               }
 
               navigate('/contactUs', {
                 state: {
-                  userResults: testSnapshot
+                  userResults: snapshot
                 }
-              })
+              });
             }}
             className="w-full sm:flex-1 max-w-sm px-6 py-3 sm:px-8 sm:py-4 bg-gradient-to-r from-orange-400 to-orange-400 text-white font-bold rounded-full shadow-lg hover:shadow-xl transform hover:-translate-y-1 transition-all duration-300 flex items-center justify-center space-x-2 text-base sm:text-lg cursor-pointer border-none"
           >
             <BookOpen size={21} />
             <span>Book a Consultation →</span>
           </button>
-          
-          <button
-            onClick={() => {
-              trigger("success")
-              navigate('/my-journey')
-            }}
-            className="w-full sm:flex-1 max-w-sm px-6 py-3 sm:px-8 sm:py-4 border-2 border-green-600 text-green-700 font-bold rounded-full hover:bg-green-50 transition-all duration-300 hover:shadow-md text-base sm:text-lg flex items-center justify-center space-x-2 cursor-pointer"
-          >
-            <span>Go to My Journey</span>
-          </button>
+
+          {user ? (
+            <button
+              onClick={() => {
+                trigger("success");
+                navigate('/my-journey');
+              }}
+              className="w-full sm:flex-1 max-w-sm px-6 py-3 sm:px-8 sm:py-4 border-2 border-green-600 text-green-700 font-bold rounded-full hover:bg-green-50 transition-all duration-300 hover:shadow-md text-base sm:text-lg flex items-center justify-center space-x-2 cursor-pointer"
+            >
+              <span>Go to My Journey</span>
+            </button>
+          ) : (
+            <button
+              onClick={onSignInToSave}
+              disabled={signingInToSave}
+              className="w-full sm:flex-1 max-w-sm px-6 py-3 sm:px-8 sm:py-4 border-2 border-green-600 bg-white text-green-700 font-bold rounded-full hover:bg-green-50 transition-all duration-300 hover:shadow-md text-base sm:text-lg flex items-center justify-center space-x-2 cursor-pointer disabled:opacity-60"
+            >
+              {signingInToSave ? (
+                <Loader2 size={18} className="animate-spin text-green-700" />
+              ) : (
+                <FcGoogle size={20} />
+              )}
+              <span>{signingInToSave ? 'Saving...' : 'Save Results with Google'}</span>
+            </button>
+          )}
         </div>
 
         <p className="text-sm sm:text-base text-stone-700 italic max-w-md mx-auto font-medium">
-          Save this information and track your progress automatically in your journey.
+          {user
+            ? 'This assessment is saved in My Journey and will auto-attach when you book a session.'
+            : 'Sign in once to save these results and track your consultations with Dee.'}
         </p>
 
         <div className="flex items-center justify-center space-x-6 text-sm sm:text-base text-stone-700 pt-2 font-medium">
@@ -549,6 +582,10 @@ function KnowYourBody() {
   const [step, setStep] = useState(0);
   const navigate = useNavigate();
   const { trigger } = useWebHaptics();
+  const { user, signInWithGoogle, saveAssessment } = useAuth();
+  const [autoSaveStatus, setAutoSaveStatus] = useState('idle');
+  const [signingInToSave, setSigningInToSave] = useState(false);
+  const [latestSnapshot, setLatestSnapshot] = useState(null);
   const [formData, setFormData] = useState({
     gender: '',
     age: '',
@@ -569,97 +606,69 @@ function KnowYourBody() {
     macros: { protein: 0, carbs: 0, fats: 0 }
   });
 
-  // Calculate BMI
-  const calculateBMI = () => {
-    let heightInM, weightKg;
-    if (units === 'metric') {
-      heightInM = parseFloat(formData.height) / 100;
-      weightKg = parseFloat(formData.weight);
-    } else {
-      heightInM = parseFloat(formData.height) * 0.0254;
-      weightKg = parseFloat(formData.weight) * 0.453592;
-    }
-    const bmi = weightKg / (heightInM * heightInM);
-    let category = '';
-    if (bmi < 18.5) category = 'Underweight';
-    else if (bmi < 25) category = 'Normal Weight';
-    else if (bmi < 30) category = 'Overweight';
-    else category = 'Obese';
-    return { bmi: Math.round(bmi * 10) / 10, bmiCategory: category };
-  };
-
-  // Calculate Calories
-  const calculateCalories = () => {
-    let weight, height;
-    if (units === 'metric') {
-      weight = parseFloat(formData.weight);
-      height = parseFloat(formData.height);
-    } else {
-      weight = parseFloat(formData.weight) * 0.453592;
-      height = parseFloat(formData.height) * 2.54;
-    }
-    const age = parseFloat(formData.age);
-    const genderFactor = formData.gender === 'male' ? 5 : -161;
-    const bmr = 10 * weight + 6.25 * height - 5 * age + genderFactor;
-    // Slightly stricter activity multipliers and smaller caloric adjustments
-    // to better reflect regional/dietary context and reduce overestimation.
-    const activityMultipliers = {
-      sedentary: 1.15,
-      light: 1.325,
-      moderate: 1.475,
-      active: 1.6
+  // Compute BMI & calorie targets using shared clinical formula (auto-normalizes imperial -> metric)
+  const computeStepMetrics = () => {
+    const rawWeight = parseFloat(formData.weight);
+    const rawHeight = parseFloat(formData.height);
+    const weightKg = units === 'imperial' ? rawWeight * 0.453592 : rawWeight;
+    const heightCm = units === 'imperial' ? rawHeight * 2.54 : rawHeight;
+    return calculateBodyMetrics({
+      weightKg,
+      heightCm,
+      age: formData.age,
+      gender: formData.gender,
+      activityLevel: formData.activityLevel,
+      goal: formData.goal
+    }) || {
+      bmi: 0,
+      bmiCategory: '',
+      bmr: 0,
+      tdee: 0,
+      macros: { protein: 0, carbs: 0, fats: 0 }
     };
-    const tdee = bmr * (activityMultipliers[formData.activityLevel] || 1.15);
-    let goalCalories = tdee;
-    const calorieDelta = 300; // use 300 kcal for cut/bulk instead of 500
-    if (formData.goal === 'lose') goalCalories = tdee - calorieDelta;
-    else if (formData.goal === 'gain') goalCalories = tdee + calorieDelta;
-    const macros = {
-      protein: Math.round((goalCalories * 0.3) / 4),
-      carbs: Math.round((goalCalories * 0.4) / 4),
-      fats: Math.round((goalCalories * 0.3) / 9)
-    };
-    return { bmr: Math.round(bmr), tdee: Math.round(goalCalories), macros };
   };
 
   // Next Step Logic
   const handleNext = () => {
-    trigger("success")
+    trigger("success");
     if (step === 1) {
-      const bmiResults = calculateBMI();
-      setResults(prev => ({ ...prev, ...bmiResults }));
+      const computed = computeStepMetrics();
+      setResults((prev) => ({
+        ...prev,
+        bmi: computed.bmi,
+        bmiCategory: computed.bmiCategory
+      }));
     } else if (step === 2) {
-      const calorieResults = calculateCalories();
-      setResults(prev => ({ ...prev, ...calorieResults }));
-      
-      try {
-        const testSnapshot = {
-          bmi: results.bmi,
-          bmiCategory: results.bmiCategory,
-          dailyCalories: calorieResults.tdee,
-          goal: formData.goal,
-          targetWeight: formData.targetWeight,
-          dietaryRestrictions: formData.dietaryRestrictions,
-          macros: calorieResults.macros,
-          gender: formData.gender,
-          age: formData.age,
-          height: formData.height,
-          weight: formData.weight,
-          activityLevel: formData.activityLevel,
-          sleepHours: formData.sleepHours,
-          healthConditions: formData.healthConditions,
-          dislikes: formData.dislikes,
-          savedAt: Date.now()
-        };
-        localStorage.setItem('diet_test_results', JSON.stringify(testSnapshot));
-      } catch (e) {
-        console.warn('Could not cache test results:', e);
-      }
+      const computed = computeStepMetrics();
+      setResults(computed);
 
-      logEvent(analytics, 'generate_lead', {
-        goal: formData.goal,
-        bmi_category: results.bmiCategory
-      });
+      const testSnapshot = buildKnowYourBodySnapshot(formData, units, Date.now());
+      if (testSnapshot) {
+        setLatestSnapshot(testSnapshot);
+
+        try {
+          localStorage.setItem('diet_test_results', JSON.stringify(testSnapshot));
+        } catch (e) {
+          console.warn('Could not cache test results:', e);
+        }
+
+        if (user) {
+          setAutoSaveStatus('saving');
+          saveAssessment(testSnapshot)
+            .then(() => {
+              setAutoSaveStatus('saved');
+            })
+            .catch((saveErr) => {
+              console.warn('Failed to auto-save assessment:', saveErr);
+              setAutoSaveStatus('error');
+            });
+        }
+
+        logEvent(analytics, 'generate_lead', {
+          goal: formData.goal,
+          bmi_category: computed.bmiCategory
+        });
+      }
     }
 
     setStep(prev => prev + 1);
@@ -670,6 +679,24 @@ function KnowYourBody() {
     }, 100); // Delay slightly to ensure DOM has updated
   };
 
+  const handleSignInToSave = async () => {
+    trigger("success");
+    setSigningInToSave(true);
+    try {
+      const signedInUser = await signInWithGoogle();
+      if (signedInUser && latestSnapshot) {
+        setAutoSaveStatus('saving');
+        await saveAssessment(latestSnapshot, signedInUser);
+        setAutoSaveStatus('saved');
+      }
+    } catch (err) {
+      if (err.code !== 'auth/popup-closed-by-user' && err.code !== 'auth/cancelled-popup-request') {
+        console.warn('Sign-in during KnowYourBody failed:', err);
+      }
+    } finally {
+      setSigningInToSave(false);
+    }
+  };
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-green-50 via-white to-emerald-50 py-12">
@@ -695,9 +722,13 @@ function KnowYourBody() {
         {step === 3 && (
           <ResultsStep
             results={results}
-            formData={formData}
+            snapshot={latestSnapshot}
             navigate={navigate}
             trigger={trigger}
+            user={user}
+            autoSaveStatus={autoSaveStatus}
+            signingInToSave={signingInToSave}
+            onSignInToSave={handleSignInToSave}
           />
         )}
       </div>

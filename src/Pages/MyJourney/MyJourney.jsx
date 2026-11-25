@@ -1,107 +1,114 @@
-import React, { useState } from 'react';
-import SEO from '../../Components/SEO';
+import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { FiTrendingUp, FiSettings, FiBookOpen, FiStar, FiAward, FiEdit2, FiLogOut, FiTrash2 } from 'react-icons/fi';
+import { httpsCallable } from 'firebase/functions';
 import { FcGoogle } from 'react-icons/fc';
-import { Calendar } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { useAuth } from '../../AuthContext';
-import OnboardingModal from '../../Components/OnboardingModal';
-import { useWebHaptics } from 'web-haptics/react';
-import { FaApple } from 'react-icons/fa';
-
-// Part 2 components
-import ProgressChart from './components/ProgressChart';
-import PlanRecommendation from './components/PlanRecommendation';
-import RecommendedReads from './components/RecommendedReads';
-import Achievements from './components/Achievements';
+import {
+  Calendar,
+  FileText,
+  ArrowRight,
+  LogOut,
+  Trash2,
+  RefreshCw,
+  Link2,
+  ShieldCheck,
+  Clock,
+  Activity,
+  CheckCircle2,
+  Loader2
+} from 'lucide-react';
+import SEO from '../../Components/SEO';
 import SafeImage from '../../Components/SafeImage';
 import MyJourneySkeleton from './components/Skeleton';
-import { logEvent } from 'firebase/analytics';
-import { analytics } from '../../firebaseConfig';
+import SessionCard from './components/SessionCard';
+import AssessmentsSection from './components/AssessmentsSection';
+import PortalArticlesSection from './components/PortalArticlesSection';
+import { useAuth } from '../../AuthContext';
+import { useWebHaptics } from 'web-haptics/react';
+import { functions, safeLogEvent } from '../../firebaseConfig';
 import { deleteOwnAccount } from '../../firebaseUtils';
+import {
+  computeResultsFromProfile,
+  getStoredTestResults,
+  DEFAULT_USER_RESULTS
+} from '../../utils/bookingProfile';
 
-
-
-const FloatingBackground = () => (
-  <div className="absolute inset-0 overflow-hidden pointer-events-none z-0" aria-hidden="true">
-    <div className="absolute top-1/4 -left-16 w-80 h-80 bg-green-300/30 rounded-full blur-[80px]" />
-    <div className="absolute top-1/2 -right-16 w-96 h-96 bg-emerald-300/30 rounded-full blur-[90px]" />
-    <div className="absolute bottom-1/4 left-1/3 w-72 h-72 bg-lime-200/25 rounded-full blur-[70px]" />
-  </div>
-);
-
+const formatInquiryDate = (iso) => {
+  if (!iso) return 'Recently';
+  const parsed = new Date(iso);
+  if (Number.isNaN(parsed.getTime())) return 'Recently';
+  return parsed.toLocaleDateString('en-GB', {
+    day: 'numeric',
+    month: 'short',
+    year: 'numeric'
+  });
+};
 
 function MyJourney() {
   const navigate = useNavigate();
-  const { user, userProfile, loading, signInWithGoogle, signOut, saveUserProfile } = useAuth();
-  const [showOnboarding, setShowOnboarding] = useState(false);
-  const [editMode, setEditMode] = useState(false);
-  const [signingIn, setSigningIn] = useState(false);
+  const { user, userProfile, loading, signInWithGoogle, signOut } = useAuth();
   const { trigger } = useWebHaptics();
+
+  const [signingIn, setSigningIn] = useState(false);
+  const [bookings, setBookings] = useState([]);
+  const [inquiries, setInquiries] = useState([]);
+  const [portalLoading, setPortalLoading] = useState(false);
+  const [portalError, setPortalError] = useState('');
+
+  // Link booking made with another email
+  const [showLinkForm, setShowLinkForm] = useState(false);
+  const [linkRef, setLinkRef] = useState('');
+  const [linkPhoneLast4, setLinkPhoneLast4] = useState('');
+  const [linkingBooking, setLinkingBooking] = useState(false);
+  const [linkFeedback, setLinkFeedback] = useState(null);
+
+  // Account actions
   const [showLogoutConfirm, setShowLogoutConfirm] = useState(false);
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
   const [deleting, setDeleting] = useState(false);
 
-  // Guest-only feature teasers
-  // Guest feature highlights
-  const featureHighlights = [
-    {
-      icon: <FiTrendingUp size={28} />,
-      title: 'Progress Tracking',
-      description: 'Log your data and watch your weight and BMI trends update in real-time.',
-    },
-    {
-      icon: <FiStar size={28} />,
-      title: 'Personalized Plans',
-      description: 'Get diet recommendations tailored specifically to your body and health goals.',
-    },
-    {
-      icon: <FiBookOpen size={28} />,
-      title: 'Curated Articles',
-      description: 'Access a personal feed of wellness tips and nutrition advice from professionals.',
-    },
-    {
-      icon: <FiAward size={28} />,
-      title: 'Milestones',
-      description: 'Earn digital rewards for your consistency and celebrate your success.',
-    },
-  ];
-
-  // Animation Variants
-  const staggerContainer = {
-    hidden: { opacity: 0 },
-    show: {
-      opacity: 1,
-      transition: {
-        staggerChildren: 0.15,
-        delayChildren: 0.1
+  const loadCarePortal = useCallback(async () => {
+    if (!user || !functions) return;
+    setPortalLoading(true);
+    setPortalError('');
+    try {
+      const getCarePortalFn = httpsCallable(functions, 'getMyCarePortal');
+      const result = await getCarePortalFn();
+      if (result.data?.success) {
+        setBookings(result.data.bookings || []);
+        setInquiries(result.data.inquiries || []);
       }
+    } catch (err) {
+      console.error('Failed to load consultation portal:', err);
+      setPortalError('Unable to load your consultations right now. Please tap refresh or try again shortly.');
+    } finally {
+      setPortalLoading(false);
     }
-  };
+  }, [user]);
 
-  const fadeUp = {
-    hidden: { opacity: 0, y: 30 },
-    show: {
-      opacity: 1,
-      y: 0,
-      transition: { type: "spring", stiffness: 50, damping: 15 }
+  useEffect(() => {
+    if (user) {
+      loadCarePortal();
+    } else {
+      setBookings([]);
+      setInquiries([]);
+      setPortalError('');
     }
-  };
+  }, [user, loadCarePortal]);
 
-  const handleGetStarted = async () => {
-    trigger("success");
+  const handleGoogleSignIn = async () => {
+    trigger('success');
     setSigningIn(true);
     try {
-      const userResult = await signInWithGoogle();
-      if (userResult) {
-        logEvent(analytics, 'login', { method: 'Google' });
+      const signedInUser = await signInWithGoogle();
+      if (signedInUser) {
+        safeLogEvent('login', { method: 'Google' });
       }
     } catch (err) {
       console.error('Sign-in failed:', err);
       if (err.code === 'auth/unauthorized-domain') {
         const domain = window.location.hostname;
-        alert(`Security Block: The domain "${domain}" is not authorized for sign-in yet.\n\nPlease add "${domain}" to your Firebase Console.`);
+        alert(`Security Block: The domain "${domain}" is not authorized for sign-in yet.`);
       } else if (err.code !== 'auth/popup-closed-by-user' && err.code !== 'auth/cancelled-popup-request') {
         alert(`Sign in unavailable: ${err.message || 'Please try again later.'}`);
       }
@@ -110,547 +117,515 @@ function MyJourney() {
     }
   };
 
-  const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
-
-  const handleOnboardingSave = async (formData) => {
-    try {
-      // Because saveUserProfile uses { merge: true }, we must proactively overwrite
-      // the onboardingSkipped field if they had previously bailed out.
-      await saveUserProfile({ ...formData, onboardingSkipped: false });
-      setShowOnboarding(false);
-      setEditMode(false);
-    } catch (err) {
-      console.error('Failed to save profile:', err);
+  const handleLinkBooking = async (e) => {
+    e.preventDefault();
+    if (!linkRef.trim() || linkPhoneLast4.replace(/\D/g, '').length < 4) {
+      setLinkFeedback({
+        type: 'error',
+        text: 'Enter your Paystack reference and the last 4 digits of your booking phone number.'
+      });
+      return;
     }
-  };
 
-  // Open edit mode (reopen onboarding with existing data)
-  const handleUpdateInfo = () => {
-    trigger("light");
-    setEditMode(true);
-    setShowOnboarding(true);
-  };
-
-  // Calculate BMI & calories from stored profile, then navigate to booking
-  const handleBookConsultation = () => {
-    trigger("success");
-    if (!userProfile) return;
-    const h = parseFloat(userProfile.height) / 100; // cm → m
-    const w = parseFloat(userProfile.weight);
-    const age = parseFloat(userProfile.age);
-    const bmi = Math.round((w / (h * h)) * 10) / 10;
-    let bmiCategory = '';
-    if (bmi < 18.5) bmiCategory = 'Underweight';
-    else if (bmi < 25) bmiCategory = 'Normal Weight';
-    else if (bmi < 30) bmiCategory = 'Overweight';
-    else bmiCategory = 'Obese';
-
-    const genderFactor = userProfile.gender === 'male' ? 5 : -161;
-    const bmr = 10 * w + 6.25 * parseFloat(userProfile.height) - 5 * age + genderFactor;
-    const activityMultipliers = { sedentary: 1.2, light: 1.375, moderate: 1.55, active: 1.725 };
-    const tdee = bmr * (activityMultipliers[userProfile.activityLevel] || 1.2);
-    let goalCalories = tdee;
-    if (userProfile.goal === 'lose') goalCalories = tdee - 500;
-    else if (userProfile.goal === 'gain') goalCalories = tdee + 500;
-    const macros = {
-      protein: Math.round((goalCalories * 0.3) / 4),
-      carbs: Math.round((goalCalories * 0.4) / 4),
-      fats: Math.round((goalCalories * 0.3) / 9),
-    };
-
-    logEvent(analytics, 'begin_checkout', {
-      item_name: 'Consultation Session',
-      value: 800,
-      currency: 'GHS'
-    });
-
-    navigate('/contactUs', {
-      state: {
-        userResults: {
-          bmi,
-          bmiCategory,
-          dailyCalories: Math.round(goalCalories),
-          goal: goalLabel(userProfile.goal),
-          dietaryRestrictions: userProfile.dietaryRestrictions,
-          macros,
-          activityLevel: userProfile.activityLevel,
-          sleepHours: userProfile.sleepHours,
-          healthConditions: userProfile.healthConditions,
-          dislikes: userProfile.dislikes,
-        },
-      },
-    });
-  };
-
-  // Check if user has an active deletion intent
-  const isPendingDeletion = localStorage.getItem('pendingDeletion') === 'true';
-
-  // Show onboarding if user is logged in, has no profile, isn't currently loading, and isn't trying to delete account.
-  const shouldShowOnboarding = user && !userProfile && !loading && !isPendingDeletion;
-
-  const handleCloseOnboarding = async () => {
+    setLinkingBooking(true);
+    setLinkFeedback(null);
     try {
-      if (!userProfile) {
-        await saveUserProfile({ onboardingSkipped: true });
+      const linkFn = httpsCallable(functions, 'linkBookingByReference');
+      const res = await linkFn({
+        reference: linkRef.trim(),
+        phoneLast4: linkPhoneLast4.trim()
+      });
+
+      if (res.data?.success && res.data.booking) {
+        setBookings((prev) => {
+          const exists = prev.some((b) => b.id === res.data.booking.id);
+          return exists ? prev : [res.data.booking, ...prev];
+        });
+        setLinkFeedback({
+          type: 'success',
+          text: 'Booking linked to your account.'
+        });
+        setLinkRef('');
+        setLinkPhoneLast4('');
+      } else {
+        setLinkFeedback({
+          type: 'error',
+          text: res.data?.message || 'Could not match that booking reference.'
+        });
       }
     } catch (err) {
-      console.error('Failed to save skip status:', err);
+      setLinkFeedback({
+        type: 'error',
+        text: err.message || 'Could not link booking right now.'
+      });
+    } finally {
+      setLinkingBooking(false);
     }
-    setShowOnboarding(false);
-    setEditMode(false);
   };
 
-  // Goal label mapper
-  const goalLabel = (g) => {
-    if (g === 'lose') return 'Lose Weight';
-    if (g === 'maintain') return 'Maintain Weight';
-    if (g === 'gain') return 'Gain Weight';
-    return g;
+  const bookingProfilePayload = useMemo(() => {
+    return computeResultsFromProfile(userProfile) || getStoredTestResults() || DEFAULT_USER_RESULTS;
+  }, [userProfile]);
+
+  const navigateToBooking = (targetPath = '/contactUs') => {
+    trigger('success');
+    navigate(targetPath, {
+      state: {
+        userResults: bookingProfilePayload
+      }
+    });
   };
 
-  const activityLabel = (a) => {
-    if (a === 'sedentary') return 'Sedentary';
-    if (a === 'light') return 'Light Exercise';
-    if (a === 'moderate') return 'Moderate';
-    if (a === 'active') return 'Very Active';
-    return a;
-  };
+  const activeBookings = useMemo(
+    () => bookings.filter((b) => b.status !== 'completed' && b.status !== 'cancelled'),
+    [bookings]
+  );
 
-  // Determine if this is a fully onboarded user by checking for essential fields
-  const hasFullProfile = user && userProfile && !userProfile.onboardingSkipped && userProfile.age && userProfile.height && userProfile.weight && userProfile.goal;
+  const pastBookings = useMemo(
+    () => bookings.filter((b) => b.status === 'completed' || b.status === 'cancelled'),
+    [bookings]
+  );
 
-  // Debugging logs requested by user
-  console.log('[MyJourney Debug] User state:', {
-    isLoggedIn: !!user,
-    uid: user?.uid,
-    hasProfileDoc: !!userProfile,
-    onboardingSkipped: userProfile?.onboardingSkipped,
-    isLoading: loading,
-    hasFullProfile
-  });
-
+  const firstName = user?.displayName?.split(' ')[0] || 'there';
 
   return (
     <>
       <SEO
-        title="My Journey | Personal Wellness Dashboard | DietWithDee"
-        description="Your personalized health and wellness dashboard. Track your diet progress, manage wellness goals, and access curated nutrition content tailored to your unique journey with DietWithDee."
-        keywords="Diet Journey, Wellness Dashboard, Nutrition Progress, Personalized Diet Plan, Health Tracker, DietWithDee Ghana"
+        title="My Journey | Client Care Portal | DietWithDee"
+        description="Track your 1-on-1 nutrition consultations with Nana Ama Dwamena, view scheduled dates and care summaries, and review your auto-saved KnowYourBody assessments."
+        keywords="DietWithDee Client Portal, Track Nutrition Session, My Journey Ghana, Nana Ama Dwamena Consultations"
         url="https://dietwithdee.org/my-journey"
         jsonLd={{
-          "@context": "https://schema.org",
-          "@type": "WebPage",
-          "name": "My Journey - Wellness Dashboard",
-          "description": "Personalized health tracking and wellness management dashboard by DietWithDee.",
-          "breadcrumb": {
-            "@type": "BreadcrumbList",
-            "itemListElement": [{
-              "@type": "ListItem",
-              "position": 1,
-              "name": "Home",
-              "item": "https://dietwithdee.org"
-            }, {
-              "@type": "ListItem",
-              "position": 2,
-              "name": "My Journey",
-              "item": "https://dietwithdee.org/my-journey"
-            }]
+          '@context': 'https://schema.org',
+          '@type': 'WebPage',
+          name: 'My Journey - Client Care Portal',
+          description: 'Track consultations with DietWithDee and view saved health assessments.',
+          breadcrumb: {
+            '@type': 'BreadcrumbList',
+            itemListElement: [
+              { '@type': 'ListItem', position: 1, name: 'Home', item: 'https://dietwithdee.org' },
+              { '@type': 'ListItem', position: 2, name: 'My Journey', item: 'https://dietwithdee.org/my-journey' }
+            ]
           }
         }}
       />
 
-      <div className="min-h-screen bg-gradient-to-br from-green-50 via-white to-emerald-50 w-full overflow-hidden">
+      <div className="min-h-screen bg-[#FAF8F5] text-stone-900 font-montserrat pt-[84px] sm:pt-28 pb-20">
         {loading && <MyJourneySkeleton />}
 
-        {/* Hero Section — only shown for guests */}
+        {/* ===== GUEST VIEW ===== */}
         {!user && !loading && (
-          <div className="relative">
-            <FloatingBackground />
-            <div className="relative w-full py-8 md:py-14 flex items-center justify-center overflow-hidden">
-              <div className="relative z-10 text-center px-4 w-full">
-                <motion.div
-                  variants={staggerContainer}
-                  initial="hidden"
-                  animate="show"
-                  className="max-w-4xl mx-auto flex flex-col items-center"
+          <div className="max-w-3xl mx-auto px-4 sm:px-6 space-y-10">
+            <div className="text-center space-y-3 pt-4">
+              <p className="text-[11px] font-bold uppercase tracking-[0.2em] text-emerald-800">
+                Client Care Portal
+              </p>
+              <h1 className="text-3xl sm:text-5xl font-serif-cormorant font-normal text-stone-900 tracking-tight">
+                Your sessions &amp; care history, in one place.
+              </h1>
+              <p className="text-sm sm:text-base text-stone-600 max-w-xl mx-auto leading-relaxed">
+                Follow your 1-on-1 consultations with Registered Dietitian Nana Ama Dwamena, view confirmed times and care notes, and keep every KnowYourBody assessment saved automatically.
+              </p>
+            </div>
+
+            {/* Google Sign-In Card */}
+            <div className="bg-white rounded-3xl p-6 sm:p-8 border border-stone-200/90 shadow-sm max-w-md mx-auto text-center space-y-5">
+              <div className="space-y-1.5">
+                <h2 className="text-xl font-serif-cormorant font-semibold text-stone-900">
+                  Sign in to My Journey
+                </h2>
+                <p className="text-xs sm:text-sm text-stone-600 leading-relaxed">
+                  Use the Google email you used when booking so your consultations load automatically.
+                </p>
+              </div>
+
+              <button
+                type="button"
+                onClick={handleGoogleSignIn}
+                disabled={signingIn || loading}
+                className="w-full py-3.5 px-5 rounded-2xl bg-[#F6841F] hover:bg-[#e07312] text-white font-bold text-sm sm:text-base shadow-sm transition-colors flex items-center justify-center gap-3 cursor-pointer border-none disabled:opacity-60"
+              >
+                {signingIn ? (
+                  <Loader2 size={18} className="animate-spin text-white" />
+                ) : (
+                  <FcGoogle size={22} className="bg-white rounded-full p-0.5 shrink-0" />
+                )}
+                <span>{signingIn ? 'Signing in...' : 'Continue with Google'}</span>
+              </button>
+
+              <div className="pt-1 flex flex-col sm:flex-row items-center justify-center gap-3 text-xs font-semibold text-stone-600">
+                <button
+                  type="button"
+                  onClick={() => navigate('/knowyourbody')}
+                  className="hover:text-emerald-800 transition-colors cursor-pointer bg-transparent border-none"
                 >
-                  <motion.h1
-                    variants={fadeUp}
-                    className="text-3xl sm:text-5xl lg:text-6xl font-serif-cormorant font-normal text-stone-900 tracking-tight leading-[1.12] mb-4 pt-16 md:pt-18"
-                  >
-                    My Journey 
-                  </motion.h1>
-                  <motion.div variants={fadeUp} className="w-16 h-0.5 bg-[#F6841F] rounded-full mx-auto mb-4 shadow-sm"></motion.div>
-                  <motion.p
-                    variants={fadeUp}
-                    className="text-base sm:text-lg text-stone-700 font-normal max-w-xl px-4 leading-relaxed"
-                  >
-                    Track your nutrition, improve your health.
-                  </motion.p>
-                </motion.div>
+                  Take KnowYourBody Test →
+                </button>
+                <span className="hidden sm:inline text-stone-300">·</span>
+                <button
+                  type="button"
+                  onClick={() => navigate('/contactUs')}
+                  className="hover:text-emerald-800 transition-colors cursor-pointer bg-transparent border-none"
+                >
+                  Book a Consultation →
+                </button>
               </div>
             </div>
 
-            <div className="container mx-auto px-6 lg:px-12 pt-0 pb-12 relative z-20">
-              <motion.div
-                initial="hidden"
-                animate="show"
-                variants={staggerContainer}
-                className="text-justify max-w-3xl mx-auto mb-6"
-              >
+            {/* Accurate 3-pillar Value Strip */}
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+              {[
+                {
+                  icon: <Calendar size={18} className="text-emerald-700" />,
+                  title: 'Track Session Status',
+                  desc: 'See when payment is confirmed, when your session date is locked in, and when follow-ups are due.'
+                },
+                {
+                  icon: <FileText size={18} className="text-[#e07312]" />,
+                  title: 'Care Notes & Guides',
+                  desc: 'Review consultation summaries, meal plan links, and what metrics you shared for each appointment.'
+                },
+                {
+                  icon: <Activity size={18} className="text-emerald-700" />,
+                  title: 'Auto-Saved Assessments',
+                  desc: 'Every KnowYourBody test you run while signed in saves automatically and attaches to new bookings.'
+                }
+              ].map((item, idx) => (
+                <div
+                  key={idx}
+                  className="bg-white/90 rounded-2xl p-5 border border-stone-200/80 space-y-2"
+                >
+                  <div className="w-9 h-9 rounded-xl bg-stone-100 flex items-center justify-center">
+                    {item.icon}
+                  </div>
+                  <h3 className="text-sm font-bold text-stone-900">{item.title}</h3>
+                  <p className="text-xs text-stone-600 leading-relaxed">{item.desc}</p>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
 
-                {/* Get Started / Sign-in CTA */}
-                <motion.div variants={fadeUp} className="bg-white/90 rounded-2xl p-6 border border-white/80 shadow-md max-w-md w-full mx-auto">
-                  <div className="text-center space-y-4">
-                    <div className="w-12 h-12 bg-gradient-to-br from-green-100 to-emerald-100 rounded-xl flex items-center justify-center mx-auto">
-                      <span className="text-xl">🌿</span>
-                    </div>
-                    <h3 className="text-lg sm:text-xl font-bold text-stone-900">Start Your Wellness Journey</h3>
-                    <p className="text-stone-700 text-sm sm:text-base leading-relaxed font-normal">
-                      Get started to save your progress, get personalized recommendations, and access our best features. We’ll log you in if you already have an account. Hit continue as guest to try it first, no signup required.  
+        {/* ===== AUTHENTICATED CLIENT CARE PORTAL ===== */}
+        {user && !loading && (
+          <div className="max-w-5xl mx-auto px-4 sm:px-6 space-y-10">
+            {/* Portal Header */}
+            <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-4 border-b border-stone-200/80 pb-6">
+              <div className="space-y-1.5">
+                <p className="text-[11px] font-bold uppercase tracking-[0.2em] text-emerald-800">
+                  Client Care Portal
+                </p>
+                <h1 className="text-3xl sm:text-4xl font-serif-cormorant font-normal text-stone-900 tracking-tight">
+                  Welcome back, {firstName}
+                </h1>
+                <p className="text-xs sm:text-sm text-stone-600">
+                  Signed in as <span className="font-semibold text-stone-800">{user.email}</span>
+                </p>
+              </div>
+
+              <div className="flex flex-wrap items-center gap-2.5">
+                <button
+                  type="button"
+                  onClick={loadCarePortal}
+                  disabled={portalLoading}
+                  className="px-3.5 py-2.5 rounded-xl bg-white hover:bg-stone-50 border border-stone-300 text-stone-700 text-xs font-semibold flex items-center gap-1.5 transition-colors cursor-pointer disabled:opacity-60"
+                >
+                  <RefreshCw size={13} className={portalLoading ? 'animate-spin' : ''} />
+                  <span>Refresh</span>
+                </button>
+                <button
+                  type="button"
+                  onClick={() => navigateToBooking('/contactUs')}
+                  className="px-4 py-2.5 rounded-xl bg-[#F6841F] hover:bg-[#e07312] text-white text-xs sm:text-sm font-bold flex items-center gap-1.5 transition-colors cursor-pointer border-none"
+                >
+                  <Calendar size={14} />
+                  <span>Book Consultation</span>
+                </button>
+              </div>
+            </div>
+
+            {/* SECTION 1: SESSIONS WITH DEE */}
+            <section className="space-y-4">
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+                <div>
+                  <h2 className="text-lg sm:text-xl font-serif-cormorant font-semibold text-stone-900">
+                    Your Sessions with Dee
+                  </h2>
+                  <p className="text-xs text-stone-500">
+                    Live consultation status, confirmed session dates, and follow-up actions.
+                  </p>
+                </div>
+
+                <button
+                  type="button"
+                  onClick={() => {
+                    setShowLinkForm((prev) => !prev);
+                    setLinkFeedback(null);
+                  }}
+                  className="self-start sm:self-auto text-xs font-semibold text-emerald-800 hover:text-emerald-950 flex items-center gap-1.5 bg-transparent border-none cursor-pointer"
+                >
+                  <Link2 size={13} />
+                  <span>Booked with another email?</span>
+                </button>
+              </div>
+
+              {/* Link Booking Helper */}
+              {showLinkForm && (
+                <form
+                  onSubmit={handleLinkBooking}
+                  className="bg-white rounded-2xl border border-stone-200 p-4 sm:p-5 space-y-3 shadow-2xs"
+                >
+                  <div className="space-y-1">
+                    <h3 className="text-xs font-bold uppercase tracking-wider text-stone-800">
+                      Link a Booking by Paystack Reference
+                    </h3>
+                    <p className="text-xs text-stone-600">
+                      If you checked out with a different email, enter your Paystack reference (from your receipt email) and the last 4 digits of your booking phone number.
                     </p>
-                    <motion.button
-                      whileTap={{ scale: 0.97 }}
-                      onClick={handleGetStarted}
-                      disabled={signingIn || loading}
-                      className="w-full py-4 bg-[#F6841F] text-white font-bold rounded-2xl shadow-lg hover:shadow-xl transition-all duration-300 hover:bg-orange-600 flex items-center justify-center gap-3 disabled:opacity-60 text-base cursor-pointer border-none"
-                    >
-                      {signingIn ? (
-                        <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
-                      ) : (
-                        <>
-                          <FcGoogle size={24} className="bg-white rounded-full p-0.5" />
-                          <span>Get Started with Google</span>
-                        </>
-                      )}
-                    </motion.button>
+                  </div>
+                  <div className="grid grid-cols-1 sm:grid-cols-3 gap-2.5">
+                    <input
+                      type="text"
+                      value={linkRef}
+                      onChange={(e) => setLinkRef(e.target.value)}
+                      placeholder="Paystack reference (e.g. T123...)"
+                      className="px-3.5 py-2.5 rounded-xl border border-stone-200 text-xs sm:text-sm text-stone-900 focus:outline-none focus:border-emerald-600"
+                    />
+                    <input
+                      type="text"
+                      inputMode="numeric"
+                      maxLength={4}
+                      value={linkPhoneLast4}
+                      onChange={(e) => setLinkPhoneLast4(e.target.value.replace(/\D/g, '').slice(0, 4))}
+                      placeholder="Last 4 digits of phone"
+                      className="px-3.5 py-2.5 rounded-xl border border-stone-200 text-xs sm:text-sm text-stone-900 focus:outline-none focus:border-emerald-600"
+                    />
                     <button
-                      onClick={() => {
-                        trigger("nudge");
-                        navigate('/knowyourbody')
-                      }}
-                      className="text-sm sm:text-base text-stone-600 hover:text-stone-900 font-semibold transition-colors cursor-pointer"
+                      type="submit"
+                      disabled={linkingBooking}
+                      className="px-4 py-2.5 rounded-xl bg-[#1F4E36] hover:bg-[#173c29] text-white text-xs sm:text-sm font-bold flex items-center justify-center gap-1.5 cursor-pointer border-none disabled:opacity-60"
                     >
-                      Continue as guest →
+                      {linkingBooking ? <Loader2 size={14} className="animate-spin" /> : <CheckCircle2 size={14} />}
+                      <span>{linkingBooking ? 'Checking...' : 'Link Session'}</span>
                     </button>
                   </div>
-                </motion.div>
-              </motion.div>
-
-              {/* Feature teasers */}
-              <div className="max-w-4xl mx-auto">
-                <motion.h3
-                  initial={{ opacity: 0, y: 15 }}
-                  whileInView={{ opacity: 1, y: 0 }}
-                  viewport={{ once: true }}
-                  className="text-center text-xl lg:text-2xl font-serif-cormorant font-normal text-stone-900 mb-6"
-                >
-                  What You Get 🧭
-                </motion.h3>
-
-                <motion.div
-                  variants={staggerContainer}
-                  initial="hidden"
-                  whileInView="show"
-                  viewport={{ once: true, margin: "-50px" }}
-                  className="grid grid-cols-1 sm:grid-cols-2 gap-4"
-                >
-                  {featureHighlights.map((feature, idx) => (
-                    <motion.div
-                      variants={fadeUp}
-                      key={idx}
-                      whileHover={{ y: -3, scale: 1.01 }}
-                      className="group bg-white/60 backdrop-blur-sm rounded-2xl p-5 shadow-sm border border-white transition-all duration-300"
+                  {linkFeedback && (
+                    <p
+                      className={`text-xs font-medium ${
+                        linkFeedback.type === 'success' ? 'text-emerald-700' : 'text-rose-600'
+                      }`}
                     >
-                      <div className="flex items-start gap-4">
-                        <div className="flex-shrink-0 w-10 h-10 rounded-lg bg-gradient-to-br from-green-100 to-emerald-100 flex items-center justify-center text-green-700 group-hover:from-green-600 group-hover:to-emerald-600 group-hover:text-white transition-all duration-300">
-                          {React.cloneElement(feature.icon, { size: 22 })}
-                        </div>
-                        <div>
-                          <h4 className="text-base sm:text-lg font-bold text-stone-900 mb-0.5">
-                            {feature.title}
-                          </h4>
-                          <p className="text-stone-700 text-xs sm:text-sm leading-relaxed font-medium">
-                            {feature.description}
-                          </p>
-                        </div>
-                      </div>
-                    </motion.div>
-                  ))}
-                </motion.div>
-              </div>
+                      {linkFeedback.text}
+                    </p>
+                  )}
+                </form>
+              )}
 
-              {/* CTA */}
-              <motion.div
-                initial={{ opacity: 0, y: 20 }}
-                whileInView={{ opacity: 1, y: 0 }}
-                viewport={{ once: true, margin: "-50px" }}
-                className="text-center mt-12"
-              >
-                <p className="text-stone-700 mb-4 font-medium text-base">
-                  Or explore our plans and check out the blog for inspiration.
-                </p>
-                <div className="flex flex-col sm:flex-row gap-3 justify-center">
-                  <motion.button
-                    whileTap={{ scale: 0.95 }}
-                    onClick={() => {
-                      trigger("success");
-                      navigate('/plans')
-                    }}
-                    className="px-6 py-3 bg-gradient-to-r from-[#F6841F] to-[#F6841F] text-white font-bold rounded-full shadow-md transition-all duration-300 hover:from-orange-600 hover:to-orange-400 text-sm"
-                  >
-                    Explore Plans
-                  </motion.button>
-                  <motion.button
-                    whileTap={{ scale: 0.95 }}
-                    onClick={() => {
-                      trigger("success");
-                      navigate('/blog')
-                    }}
-                    className="px-6 py-3 border border-green-600 text-green-700 font-bold rounded-full hover:bg-green-50 transition-all duration-300 hover:shadow-sm text-sm"
-                  >
-                    Read the Blog
-                  </motion.button>
-                </div>
-              </motion.div>
-            </div>
-          </div>
-        )}
-
-        {user && (
-          <div className="container mx-auto px-6 lg:px-12 pt-4 pb-12 relative z-20">
-            <motion.div
-              initial={{ opacity: 0, y: -10 }}
-              animate={{ opacity: 1, y: 0 }}
-              className="max-w-5xl mx-auto mb-8"
-            >
-              <p className="text-green-600 font-bold uppercase tracking-widest text-xs mb-1">Your Dashboard</p>
-              <h1 className="text-3xl md:text-4xl font-black text-green-700 tracking-tight">My Journey</h1>
-              <div className="w-16 h-1 bg-gradient-to-r from-green-500 to-emerald-500 rounded-full mt-2 shadow-sm"></div>
-            </motion.div>
-
-            {/* ===== LOGGED-IN: Full Dashboard Sections ===== */}
-            {hasFullProfile && !loading && (
-              <>
-                <h3 className="text-xs sm:text-sm font-bold text-stone-700 uppercase tracking-wider mb-2 px-1 max-w-5xl mx-auto">
-                  📈 Progress Tracker
-                </h3>
-                <div className="max-w-5xl mx-auto">
-                  <ProgressChart />
-                </div>
-
-                {/* Consultation Call to Action */}
-                <motion.div
-                  initial={{ opacity: 0, y: 10 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  className="max-w-2xl mx-auto text-center mt-6 mb-4"
-                >
-                  <p className="text-stone-700 font-medium leading-relaxed text-base">
-                    Submit your latest BMI and Calorie data for a comprehensive consultation session with our experts.
-                  </p>
-                </motion.div>
-
-                {/* Book a Consultation — right below progress chart */}
-                <motion.div
-                  initial={{ opacity: 0, y: 20 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ delay: 0.05 }}
-                  className="max-w-3xl mx-auto mb-10 flex justify-center"
-                >
-                  <motion.button
-                    whileTap={{ scale: 0.97 }}
-                    onClick={handleBookConsultation}
-                    className="px-6 py-3 bg-gradient-to-r from-[#F6841F] to-orange-500 text-white font-bold rounded-full shadow-lg hover:shadow-xl transition-all flex items-center justify-center gap-2 text-base cursor-pointer border-none"
-                  >
-                    <Calendar size={18} /> Book a Consultation
-                  </motion.button>
-                </motion.div>
-
-                <PlanRecommendation />
-                <RecommendedReads />
-                <Achievements />
-
-                {/* ===== ACCOUNT SETTINGS (wellness profile + actions) ===== */}
-                <h3 className="text-xs sm:text-sm font-bold text-stone-700 uppercase tracking-wider mb-2 px-1 max-w-3xl mx-auto">
-                  ⚙️ Account Settings
-                </h3>
-                <motion.div
-                  initial={{ opacity: 0, y: 20 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  className="max-w-3xl mx-auto mb-10"
-                >
-                  <div className="bg-white rounded-3xl shadow-xl border border-green-100 overflow-hidden">
-                    {/* Profile header */}
-                    <div className="bg-gradient-to-r from-green-600 to-emerald-600 px-6 py-4 flex items-center gap-4">
-                      {user.photoURL ? (
-                        <SafeImage
-                          src={user.photoURL}
-                          alt={user.displayName}
-                          className="w-12 h-12 rounded-full border-2 border-white shadow-md object-cover"
-                          wrapperClassName="w-12 h-12"
-                        />
-                      ) : (
-                        <div className="w-12 h-12 rounded-full bg-white/20 flex items-center justify-center text-white text-lg font-bold">
-                          {user.displayName?.[0] || '?'}
-                        </div>
-                      )}
-                      <div className="flex-1">
-                        <h2 className="text-white text-lg font-bold">{user.displayName}</h2>
-                        <p className="text-green-100 text-sm font-medium">{user.email}</p>
-                      </div>
-                    </div>
-
-                    {/* Wellness profile grid */}
-                    <div className="px-6 py-5">
-                      <h3 className="text-xs sm:text-sm font-bold text-stone-700 uppercase tracking-wider mb-3">Your Wellness Profile</h3>
-                      <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
-                        {[
-                          { label: 'Gender', value: userProfile.gender, capitalize: true },
-                          { label: 'Age', value: `${userProfile.age} yrs` },
-                          { label: 'Height', value: `${userProfile.height} cm` },
-                          { label: 'Weight', value: `${userProfile.weight} kg` },
-                          { label: 'Goal', value: goalLabel(userProfile.goal) },
-                          { label: 'Activity', value: activityLabel(userProfile.activityLevel) },
-                          { label: 'Sleep', value: userProfile.sleepHours },
-                          { label: 'Diet', value: userProfile.dietaryRestrictions },
-                        ].map((item, i) => (
-                          <div key={i} className="bg-gradient-to-br from-green-50 to-emerald-50 rounded-xl p-3 border border-emerald-100/50">
-                            <div className="text-xs text-stone-600 font-semibold mb-0.5">{item.label}</div>
-                            <div className={`text-sm sm:text-base font-bold text-stone-900 ${item.capitalize ? 'capitalize' : ''}`}>
-                              {item.value || '—'}
-                            </div>
-                          </div>
-                        ))}
-                      </div>
-
-                      {(userProfile.healthConditions || userProfile.dislikes) && (
-                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mt-3">
-                          {userProfile.healthConditions && (
-                            <div className="bg-gradient-to-br from-green-50 to-emerald-50 rounded-xl p-3 border border-emerald-100/50">
-                              <div className="text-xs text-stone-600 font-semibold mb-0.5">Health Conditions</div>
-                              <div className="text-sm sm:text-base font-bold text-stone-900">{userProfile.healthConditions}</div>
-                            </div>
-                          )}
-                          {userProfile.dislikes && (
-                            <div className="bg-gradient-to-br from-green-50 to-emerald-50 rounded-xl p-3 border border-emerald-100/50">
-                              <div className="text-xs text-stone-600 font-semibold mb-0.5">Allergies / Dislikes</div>
-                              <div className="text-sm sm:text-base font-bold text-stone-900">{userProfile.dislikes}</div>
-                            </div>
-                          )}
-                        </div>
-                      )}
-                    </div>
-
-                    {/* Action buttons */}
-                    <div className="px-6 py-4 bg-gray-50 border-t border-gray-100 flex flex-col gap-2">
-                      <motion.button
-                        whileHover={{ scale: 1.02 }}
-                        whileTap={{ scale: 0.98 }}
-                        onClick={handleUpdateInfo}
-                        className="w-full px-4 py-2.5 bg-white border border-green-600 text-green-700 font-bold rounded-full hover:bg-green-50 transition-all flex items-center justify-center gap-2 text-sm cursor-pointer"
-                      >
-                        <FiEdit2 size={14} /> Update My Info
-                      </motion.button>
-                      <div className="flex gap-2">
-                        <motion.button
-                          whileHover={{ scale: 1.02 }}
-                          whileTap={{ scale: 0.98 }}
-                          onClick={() => {
-                            trigger("light");
-                            setShowLogoutConfirm(true);
-                          }}
-                          className="flex-1 px-4 py-2.5 bg-white border border-gray-300 text-stone-700 font-bold rounded-full hover:border-gray-400 transition-all flex items-center justify-center gap-2 text-sm cursor-pointer"
-                        >
-                          <FiLogOut size={14} /> Sign Out
-                        </motion.button>
-                        <motion.button
-                          whileHover={{ scale: 1.02 }}
-                          whileTap={{ scale: 0.98 }}
-                          onClick={() => {
-                            trigger("error");
-                            setShowDeleteConfirm(true);
-                          }}
-                          className="flex-1 px-4 py-2.5 bg-white border border-red-200 text-red-600 font-bold rounded-full hover:border-red-300 hover:bg-red-50 transition-all flex items-center justify-center gap-2 text-sm cursor-pointer"
-                        >
-                          <FiTrash2 size={14} /> Delete Account
-                        </motion.button>
-                      </div>
-                    </div>
-                  </div>
-                </motion.div>
-              </>
-            )}
-
-            {/* ===== LOGGED-IN: INCOMPLETE PROFILE FALLBACK ===== */}
-            {user && !hasFullProfile && !loading && (
-              <motion.div
-                initial="hidden"
-                animate="show"
-                variants={staggerContainer}
-                className="text-center max-w-xl mx-auto mt-6 mb-12 bg-white rounded-3xl shadow-xl p-8 border border-green-100"
-              >
-                <div className="w-16 h-16 bg-orange-100 rounded-full flex items-center justify-center mx-auto mb-4 text-3xl">
-                  🚀
-                </div>
-                <h2 className="text-2xl font-bold text-green-900 mb-3">{isPendingDeletion ? "Account Deletion Pending" : "You're almost there!"}</h2>
-                <p className="text-stone-700 text-base sm:text-lg mb-6 font-normal leading-relaxed">
-                  {isPendingDeletion
-                    ? "You need to confirm your recent login to safely delete your account. Click 'Complete Deletion' below when ready."
-                    : "Your account is created, but we need a few more details to set up your personalized Dashboard and track your journey."}
-                </p>
-                {isPendingDeletion ? (
-                  <motion.button
-                    whileTap={{ scale: 0.95 }}
-                    onClick={() => {
-                      trigger("error");
-                      setShowDeleteConfirm(true);
-                    }}
-                    className="px-6 py-3 bg-red-500 text-white font-bold text-base rounded-full shadow-lg hover:bg-red-600 transition-all flex items-center gap-2 mx-auto"
-                  >
-                    <FiTrash2 size={18} /> Complete Deletion
-                  </motion.button>
-                ) : (
-                  <motion.button
-                    whileTap={{ scale: 0.95 }}
-                    onClick={() => {
-                      trigger("nudge");
-                      setShowOnboarding(true);
-                    }}
-                    className="px-6 py-3 bg-gradient-to-r from-[#F6841F] to-orange-500 text-white font-bold text-base rounded-full shadow-lg hover:shadow-xl transition-all"
-                  >
-                    Complete My Profile
-                  </motion.button>
-                )}
-
-                <div className="mt-6 pt-4 border-t border-gray-100 flex justify-center">
+              {portalError && (
+                <div className="rounded-2xl bg-rose-50 border border-rose-200 p-4 text-xs sm:text-sm text-rose-800 flex items-center justify-between gap-3">
+                  <span>{portalError}</span>
                   <button
-                    onClick={() => {
-                      trigger("light");
-                      setShowLogoutConfirm(true);
-                    }}
-                    className="text-gray-400 hover:text-gray-600 font-medium text-xs flex items-center gap-2 transition-colors"
+                    type="button"
+                    onClick={loadCarePortal}
+                    className="px-3 py-1.5 rounded-lg bg-white border border-rose-200 font-semibold text-xs text-rose-700 cursor-pointer"
                   >
-                    <FiLogOut size={14} /> Sign out for now
+                    Retry
                   </button>
                 </div>
-              </motion.div>
-            )}
+              )}
+
+              {portalLoading && bookings.length === 0 ? (
+                <div className="bg-white rounded-2xl border border-stone-200/80 p-6 animate-pulse space-y-4">
+                  <div className="h-5 w-48 bg-stone-200 rounded" />
+                  <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                    <div className="h-16 bg-stone-100 rounded-xl" />
+                    <div className="h-16 bg-stone-100 rounded-xl" />
+                    <div className="h-16 bg-stone-100 rounded-xl" />
+                  </div>
+                </div>
+              ) : bookings.length === 0 ? (
+                <div className="bg-white rounded-2xl border border-stone-200/90 p-6 sm:p-8 text-center space-y-4 shadow-2xs">
+                  <div className="w-11 h-11 rounded-2xl bg-emerald-50 border border-emerald-100 text-emerald-700 flex items-center justify-center mx-auto">
+                    <Calendar size={20} />
+                  </div>
+                  <div className="space-y-1 max-w-md mx-auto">
+                    <h3 className="text-lg sm:text-xl font-serif-cormorant font-semibold text-stone-900">
+                      No sessions found under {user.email}
+                    </h3>
+                    <p className="text-xs sm:text-sm text-stone-600 leading-relaxed">
+                      When you book a 1-on-1 session using this email (or link an existing booking with your reference above), it will appear here with live scheduling updates.
+                    </p>
+                  </div>
+                  <div className="flex flex-col sm:flex-row justify-center gap-2.5 pt-1">
+                    <button
+                      type="button"
+                      onClick={() => navigateToBooking('/contactUs')}
+                      className="px-5 py-2.5 rounded-xl bg-[#F6841F] hover:bg-[#e07312] text-white text-xs sm:text-sm font-bold inline-flex items-center justify-center gap-2 transition-colors cursor-pointer border-none"
+                    >
+                      <span>Book Initial Consultation</span>
+                      <ArrowRight size={15} />
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => navigateToBooking('/ontrack')}
+                      className="px-5 py-2.5 rounded-xl bg-white hover:bg-stone-50 border border-stone-300 text-stone-800 text-xs sm:text-sm font-semibold transition-colors cursor-pointer"
+                    >
+                      Diabetes / OnTrack Care
+                    </button>
+                  </div>
+                </div>
+              ) : (
+                <div className="space-y-4">
+                  {/* Active / Upcoming Sessions first */}
+                  {activeBookings.map((booking, idx) => (
+                    <SessionCard
+                      key={booking.id}
+                      booking={booking}
+                      isFeatured={idx === 0}
+                      onBookFollowUp={(path) => navigateToBooking(path)}
+                      onUpdateAssessment={() => navigate('/knowyourbody')}
+                    />
+                  ))}
+
+                  {/* Completed / Past Sessions */}
+                  {pastBookings.length > 0 && (
+                    <div className="space-y-3 pt-2">
+                      {activeBookings.length > 0 && (
+                        <p className="text-xs font-bold uppercase tracking-wider text-stone-500">
+                          Past Sessions ({pastBookings.length})
+                        </p>
+                      )}
+                      {pastBookings.map((booking, idx) => (
+                        <SessionCard
+                          key={booking.id}
+                          booking={booking}
+                          isFeatured={activeBookings.length === 0 && idx === 0}
+                          onBookFollowUp={(path) => navigateToBooking(path)}
+                          onUpdateAssessment={() => navigate('/knowyourbody')}
+                        />
+                      ))}
+                    </div>
+                  )}
+                </div>
+              )}
+
+              {/* Tier 03 Custom & Specialist Care Inquiries */}
+              {inquiries.length > 0 && (
+                <div className="space-y-2.5 pt-2">
+                  <p className="text-xs font-bold uppercase tracking-wider text-stone-500">
+                    Custom Care Inquiries ({inquiries.length})
+                  </p>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                    {inquiries.map((inq) => (
+                      <div
+                        key={inq.id}
+                        className="bg-white rounded-2xl border border-stone-200/90 p-4 space-y-2 shadow-2xs"
+                      >
+                        <div className="flex items-center justify-between gap-2">
+                          <span className="text-xs font-bold text-stone-900">
+                            {inq.inquiryTopic || 'Custom & Specialist Care'}
+                          </span>
+                          <span
+                            className={`px-2 py-0.5 rounded-full text-[10px] font-bold border capitalize ${
+                              inq.status === 'resolved'
+                                ? 'bg-emerald-50 text-emerald-700 border-emerald-200'
+                                : inq.status === 'contacted'
+                                ? 'bg-amber-50 text-amber-700 border-amber-200'
+                                : 'bg-stone-100 text-stone-700 border-stone-200'
+                            }`}
+                          >
+                            {inq.status || 'new'}
+                          </span>
+                        </div>
+                        <p className="text-xs text-stone-600 line-clamp-3 leading-relaxed">
+                          {inq.message}
+                        </p>
+                        <div className="flex items-center gap-1.5 text-[11px] text-stone-400">
+                          <Clock size={11} />
+                          <span>Submitted {formatInquiryDate(inq.createdAt)}</span>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+            </section>
+
+            {/* SECTION 2: AUTO-SAVED KNOWYOURBODY ASSESSMENTS */}
+            <section className="space-y-4">
+              <div>
+                <h2 className="text-lg sm:text-xl font-serif-cormorant font-semibold text-stone-900">
+                  Saved Health Assessments
+                </h2>
+                <p className="text-xs text-stone-500">
+                  Every KnowYourBody check you complete while signed in saves here automatically.
+                </p>
+              </div>
+              <AssessmentsSection
+                onRunAssessment={() => navigate('/knowyourbody')}
+                onBookWithLatest={() => navigateToBooking('/contactUs')}
+              />
+            </section>
+
+            {/* SECTION 3: CURATED NUTRITION ARTICLES */}
+            <section>
+              <PortalArticlesSection userProfile={userProfile} bookings={bookings} />
+            </section>
+
+            {/* SECTION 4: ACCOUNT & PRIVACY */}
+            <section className="bg-white rounded-2xl border border-stone-200/90 p-5 sm:p-6 shadow-2xs flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+              <div className="flex items-center gap-3.5 min-w-0">
+                {user.photoURL ? (
+                  <SafeImage
+                    src={user.photoURL}
+                    alt={user.displayName}
+                    className="w-11 h-11 rounded-full border border-stone-200 object-cover shrink-0"
+                    wrapperClassName="w-11 h-11 shrink-0"
+                  />
+                ) : (
+                  <div className="w-11 h-11 rounded-full bg-emerald-100 text-emerald-800 flex items-center justify-center font-bold shrink-0">
+                    {firstName.charAt(0).toUpperCase()}
+                  </div>
+                )}
+                <div className="min-w-0">
+                  <div className="flex items-center gap-2">
+                    <p className="text-sm font-bold text-stone-900 truncate">
+                      {user.displayName || 'Client Account'}
+                    </p>
+                    <ShieldCheck size={14} className="text-emerald-600 shrink-0" />
+                  </div>
+                  <p className="text-xs text-stone-500 truncate">{user.email}</p>
+                </div>
+              </div>
+
+              <div className="flex items-center gap-2.5 shrink-0">
+                <button
+                  type="button"
+                  onClick={() => {
+                    trigger('light');
+                    setShowLogoutConfirm(true);
+                  }}
+                  className="px-4 py-2 rounded-xl border border-stone-300 bg-white hover:bg-stone-50 text-stone-700 text-xs font-semibold flex items-center gap-1.5 transition-colors cursor-pointer"
+                >
+                  <LogOut size={13} />
+                  <span>Sign Out</span>
+                </button>
+                <button
+                  type="button"
+                  onClick={() => {
+                    trigger('error');
+                    setShowDeleteConfirm(true);
+                  }}
+                  className="px-4 py-2 rounded-xl border border-rose-200 bg-white hover:bg-rose-50 text-rose-600 text-xs font-semibold flex items-center gap-1.5 transition-colors cursor-pointer"
+                >
+                  <Trash2 size={13} />
+                  <span>Delete Account</span>
+                </button>
+              </div>
+            </section>
           </div>
         )}
-
       </div>
-
-      {/* Onboarding Modal */}
-      <AnimatePresence>
-        {(showOnboarding || shouldShowOnboarding) && user && (
-          <OnboardingModal
-            userName={user.displayName}
-            onSave={handleOnboardingSave}
-            onClose={handleCloseOnboarding}
-            initialData={editMode ? userProfile : null}
-          />
-        )}
-      </AnimatePresence>
 
       {/* Sign-out Confirmation */}
       <AnimatePresence>
@@ -663,34 +638,45 @@ function MyJourney() {
             onClick={() => setShowLogoutConfirm(false)}
           >
             <motion.div
-              initial={{ scale: 0.9, opacity: 0 }}
+              initial={{ scale: 0.94, opacity: 0 }}
               animate={{ scale: 1, opacity: 1 }}
-              exit={{ scale: 0.9, opacity: 0 }}
+              exit={{ scale: 0.94, opacity: 0 }}
               className="bg-white rounded-2xl shadow-2xl p-6 max-w-sm w-full text-center"
               onClick={(e) => e.stopPropagation()}
             >
-              <div className="w-12 h-12 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4">
-                <FiLogOut size={22} className="text-gray-500" />
+              <div className="w-11 h-11 bg-stone-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                <LogOut size={20} className="text-stone-600" />
               </div>
-              <h3 className="text-lg font-bold text-gray-800 mb-2">Sign Out?</h3>
-              <p className="text-gray-500 text-sm mb-6">Your data is saved and you can sign back in anytime.</p>
-              <div className="flex gap-3">
-                <button onClick={() => {
-                  trigger("nudge");
-                  setShowLogoutConfirm(false)
-                }} className="flex-1 py-2.5 bg-gray-100 text-gray-700 font-semibold rounded-full hover:bg-gray-200 transition-colors">Cancel</button>
-                <button onClick={() => {
-                  trigger("success");
-                  setShowLogoutConfirm(false);
-                  signOut();
-                }} className="flex-1 py-2.5 bg-red-500 text-white font-semibold rounded-full hover:bg-red-600 transition-colors">Sign Out</button>
+              <h3 className="text-lg font-bold text-stone-900 mb-1.5">Sign Out?</h3>
+              <p className="text-stone-600 text-xs sm:text-sm mb-6">
+                Your sessions and saved assessments stay safely linked to your Google account.
+              </p>
+              <div className="flex gap-2.5">
+                <button
+                  type="button"
+                  onClick={() => setShowLogoutConfirm(false)}
+                  className="flex-1 py-2.5 bg-stone-100 text-stone-700 font-semibold rounded-xl hover:bg-stone-200 text-xs sm:text-sm cursor-pointer border-none"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="button"
+                  onClick={() => {
+                    trigger('success');
+                    setShowLogoutConfirm(false);
+                    signOut();
+                  }}
+                  className="flex-1 py-2.5 bg-rose-600 text-white font-semibold rounded-xl hover:bg-rose-700 text-xs sm:text-sm cursor-pointer border-none"
+                >
+                  Sign Out
+                </button>
               </div>
             </motion.div>
           </motion.div>
         )}
       </AnimatePresence>
 
-      {/* Delete Confirmation */}
+      {/* Delete Account Confirmation */}
       <AnimatePresence>
         {showDeleteConfirm && (
           <motion.div
@@ -701,23 +687,29 @@ function MyJourney() {
             onClick={() => setShowDeleteConfirm(false)}
           >
             <motion.div
-              initial={{ scale: 0.9, opacity: 0 }}
+              initial={{ scale: 0.94, opacity: 0 }}
               animate={{ scale: 1, opacity: 1 }}
-              exit={{ scale: 0.9, opacity: 0 }}
+              exit={{ scale: 0.94, opacity: 0 }}
               className="bg-white rounded-2xl shadow-2xl p-6 max-w-sm w-full text-center"
               onClick={(e) => e.stopPropagation()}
             >
-              <div className="w-12 h-12 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-4">
-                <FiTrash2 size={22} className="text-red-500" />
+              <div className="w-11 h-11 bg-rose-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                <Trash2 size={20} className="text-rose-600" />
               </div>
-              <h3 className="text-lg font-bold text-gray-800 mb-2">Delete Account?</h3>
-              <p className="text-gray-500 text-sm mb-6">This will permanently delete your profile, all log history, and achievements. This cannot be undone.</p>
-              <div className="flex gap-3">
-                <button onClick={() => {
-                  trigger("nudge");
-                  setShowDeleteConfirm(false)
-                }} className="flex-1 py-2.5 bg-gray-100 text-gray-700 font-semibold rounded-full hover:bg-gray-200 transition-colors">Cancel</button>
+              <h3 className="text-lg font-bold text-stone-900 mb-1.5">Delete Account?</h3>
+              <p className="text-stone-600 text-xs sm:text-sm mb-6">
+                This permanently deletes your profile and saved KnowYourBody assessments. Paid booking receipts remain archived for clinical records.
+              </p>
+              <div className="flex gap-2.5">
                 <button
+                  type="button"
+                  onClick={() => setShowDeleteConfirm(false)}
+                  className="flex-1 py-2.5 bg-stone-100 text-stone-700 font-semibold rounded-xl hover:bg-stone-200 text-xs sm:text-sm cursor-pointer border-none"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="button"
                   onClick={async () => {
                     setDeleting(true);
                     try {
@@ -737,13 +729,17 @@ function MyJourney() {
                     setShowDeleteConfirm(false);
                   }}
                   disabled={deleting}
-                  className="flex-1 py-2.5 bg-red-500 text-white font-semibold rounded-full hover:bg-red-600 transition-colors disabled:opacity-60 flex items-center justify-center gap-2"
+                  className="flex-1 py-2.5 bg-rose-600 text-white font-semibold rounded-xl hover:bg-rose-700 text-xs sm:text-sm cursor-pointer border-none disabled:opacity-60 flex items-center justify-center gap-2"
                 >
                   {deleting ? (
-                    <><div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div> Deleting...</>
-                  ) : 'Delete Forever'}
+                    <>
+                      <Loader2 size={14} className="animate-spin" />
+                      <span>Deleting...</span>
+                    </>
+                  ) : (
+                    'Delete Forever'
+                  )}
                 </button>
-
               </div>
             </motion.div>
           </motion.div>

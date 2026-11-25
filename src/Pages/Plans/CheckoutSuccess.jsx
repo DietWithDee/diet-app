@@ -186,11 +186,11 @@ export default function CheckoutSuccess() {
                     </button>
                     <button
                       type="button"
-                      onClick={() => navigate("/my-journey")}
+                      onClick={() => navigate("/contactUs")}
                       className="w-full py-3 text-sm text-gray-500 font-semibold hover:text-gray-700 transition-colors cursor-pointer flex items-center justify-center gap-1.5"
                     >
                       <Sparkles size={14} className="text-emerald-500" />
-                      Explore My Journey Portal
+                      Want 1-on-1 Guidance? Book a Consultation
                       <ArrowRight size={14} className="text-gray-400" />
                     </button>
                   </>

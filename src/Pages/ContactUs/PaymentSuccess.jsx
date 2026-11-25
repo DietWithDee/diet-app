@@ -634,9 +634,9 @@ function PaymentSuccess() {
 
             <div className="pt-4 border-t border-gray-100 flex flex-col items-center">
                <div className="max-w-md bg-green-50 rounded-2xl p-6 mb-8 border border-green-100 shadow-sm">
-                 <h3 className="font-bold text-green-800 mb-2">💡 Pro Tip for Your Journey</h3>
+                 <h3 className="font-bold text-green-800 mb-2">Track Your Session in My Journey</h3>
                  <p className="text-gray-700 text-sm leading-relaxed">
-                   While waiting for our session, we highly recommend <strong>creating an account</strong> in our <strong>My Journey</strong> portal. It makes it much easier to track your progress, save your assessment results, and access personalised nutrition content tailored just for you!
+                   Sign in to <strong>My Journey</strong> with <span className="font-semibold">{formData?.email || 'your booking email'}</span> anytime to check your session schedule, view Dee&apos;s care notes after your call, and book future follow-ups in one tap.
                  </p>
                </div>
                
@@ -645,7 +645,7 @@ function PaymentSuccess() {
                    onClick={() => navigate('/my-journey')}
                    className="px-10 py-4 bg-orange-500 text-white font-bold rounded-xl shadow-lg hover:bg-orange-700 hover:shadow-xl transform hover:-translate-y-0.5 transition-all duration-300"
                  >
-                   Go to My Journey
+                   Track Session in My Journey
                  </button>
                  <button
                    onClick={() => navigate('/')}

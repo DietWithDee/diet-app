@@ -35,7 +35,8 @@ The application is built as a **Progressive Web App (PWA)** with offline capabil
 - **🤝 OnTrack App Partnership** - Integrated companion diabetes tracker flow for the *Blood Sugar Balance* guide with interactive download modal (Android Google Play & iOS preview)
 - **🧾 Minimalist Checkout Flow** - Receipt-style post-checkout screen with Paystack payment verification and instant download instructions
 - **🔍 Smart Search** - Instant prefix and fuzzy search with clean separation for other available plans
-- **💪 Body Analysis** - "Know Your Body" assessment tool with personalized recommendations
+- **💪 Body Analysis & Auto-Save** - "Know Your Body" assessment tool that calculates BMI/calories in metric or imperial units and auto-saves snapshots for signed-in users
+- **🩺 My Journey Client Portal** - Google-authenticated care portal (`/my-journey`) where clients track consultation statuses and scheduled times with Dee, view post-session care notes, inspect saved KnowYourBody history, and browse tailored nutrition guides
 - **📚 Blog & Resources** - SEO-optimized blog articles with rich content
 - **📞 Contact & Support** - Email contact system with automated responses
 - **📱 Progressive Web App** - Installable app with offline support and service worker
@@ -44,7 +45,7 @@ The application is built as a **Progressive Web App (PWA)** with offline capabil
 - **👨‍💼 Admin Dashboard** - Manage bookings, plans, and content
 - **📧 Email Notifications** - Automated email templates and communications
 - **🔐 Authentication** - Firebase-based user authentication
-- **📊 Booking Management** - View, confirm, and manage client bookings
+- **📊 Booking & Client Care Management** - Confirm appointments, assign calendar slots, and publish post-session care summaries and resource links to clients' My Journey portals
 
 ### Technical Features
 - **⚡ Fast Performance** - Built with Vite for instant HMR and optimized builds

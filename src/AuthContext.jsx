@@ -1,11 +1,17 @@
-import React, { createContext, useContext, useState, useEffect } from 'react';
-import { GoogleAuthProvider, signInWithPopup, signInWithRedirect, getRedirectResult, onAuthStateChanged, signOut as firebaseSignOut, signInWithCredential, setPersistence, browserLocalPersistence } from 'firebase/auth';
-import { doc, getDoc, getDocs, setDoc, addDoc, collection, onSnapshot, updateDoc, query, where, Timestamp } from 'firebase/firestore';
+import React, { createContext, useContext, useState, useEffect, useCallback, useRef } from 'react';
+import {
+  GoogleAuthProvider,
+  signInWithPopup,
+  signInWithRedirect,
+  getRedirectResult,
+  onAuthStateChanged,
+  signOut as firebaseSignOut,
+  setPersistence,
+  browserLocalPersistence
+} from 'firebase/auth';
+import { doc, setDoc, addDoc, collection, onSnapshot } from 'firebase/firestore';
 import { auth, db } from './firebaseConfig';
-import { BADGE_DEFINITIONS } from './constants/badges';
-import { AnimatePresence, motion } from 'framer-motion';
-import { FiAward, FiX, FiShare2 } from 'react-icons/fi';
-import AchievementShareCard from './Components/AchievementShareCard';
+import { shouldSyncGuestSnapshot } from './utils/bookingProfile';
 
 const AuthContext = createContext(null);
 
@@ -15,6 +21,11 @@ const ADMIN_EMAILS = [
   'godwinokro2020@gmail.com'
 ];
 
+const parseOptionalNumber = (val, isInt = false) => {
+  if (val === null || val === undefined || val === '') return null;
+  const parsed = isInt ? parseInt(val, 10) : parseFloat(val);
+  return Number.isFinite(parsed) ? parsed : null;
+};
 
 export const useAuth = () => {
   const ctx = useContext(AuthContext);
@@ -26,30 +37,28 @@ export const AuthProvider = ({ children }) => {
   const [user, setUser] = useState(null);
   const [userProfile, setUserProfile] = useState(null);
   const [loading, setLoading] = useState(true);
-  const [notification, setNotification] = useState(null);
-  const [sharingBadge, setSharingBadge] = useState(null);
-
   const [isAdmin, setIsAdmin] = useState(false);
+
+  const syncingGuestRef = useRef(false);
 
   // Listen for auth state changes
   useEffect(() => {
-    // Explicitly set persistence for PWA sessions
-    setPersistence(auth, browserLocalPersistence).catch(err => console.error('Auth persistence error:', err));
+    setPersistence(auth, browserLocalPersistence).catch((err) =>
+      console.error('Auth persistence error:', err)
+    );
 
     let unsubscribeProfile = null;
-    
+
     const unsubscribeAuth = onAuthStateChanged(auth, async (firebaseUser) => {
       setLoading(true);
       setUser(firebaseUser);
-      
-      // Clear existing listener if any
+
       if (unsubscribeProfile) {
         unsubscribeProfile();
         unsubscribeProfile = null;
       }
 
       if (firebaseUser) {
-        // Fetch custom claims to check admin status
         try {
           const idTokenResult = await firebaseUser.getIdTokenResult();
           const hasAdminClaim = !!idTokenResult.claims.admin;
@@ -60,15 +69,18 @@ export const AuthProvider = ({ children }) => {
           setIsAdmin(ADMIN_EMAILS.includes(firebaseUser.email));
         }
 
-        // Real-time profile listener
         if (db) {
-          unsubscribeProfile = onSnapshot(doc(db, 'users', firebaseUser.uid), (doc) => {
-            setUserProfile(doc.exists() ? doc.data() : null);
-            setLoading(false);
-          }, (err) => {
-            console.error('Profile listener error:', err);
-            setLoading(false);
-          });
+          unsubscribeProfile = onSnapshot(
+            doc(db, 'users', firebaseUser.uid),
+            (docSnap) => {
+              setUserProfile(docSnap.exists() ? docSnap.data() : null);
+              setLoading(false);
+            },
+            (err) => {
+              console.error('Profile listener error:', err);
+              setLoading(false);
+            }
+          );
         } else {
           setLoading(false);
         }
@@ -84,7 +96,6 @@ export const AuthProvider = ({ children }) => {
       if (unsubscribeProfile) unsubscribeProfile();
     };
   }, []);
-
 
   // Handle redirect result (for mobile/PWA sign-in fallback)
   useEffect(() => {
@@ -115,7 +126,6 @@ export const AuthProvider = ({ children }) => {
     const provider = new GoogleAuthProvider();
     auth.useDeviceLanguage();
 
-    // Remember returning users — skip the "type your email" step
     const lastEmail = localStorage.getItem('lastSignInEmail');
     const customParams = {};
     if (lastEmail) {
@@ -125,12 +135,7 @@ export const AuthProvider = ({ children }) => {
     provider.setCustomParameters(customParams);
 
     try {
-      // Primary: signInWithPopup works natively and reliably across Web and PWAs
-      // (Desktop PWA, iOS PWA, Android PWA) via postMessage with opener window.
-      // signInWithRedirect fails on PWAs due to third-party partitioned storage
-      // between dietwithdee.org and firebaseapp.com authDomain.
       const result = await signInWithPopup(auth, provider);
-      // Save email for next time
       if (result.user?.email) {
         localStorage.setItem('lastSignInEmail', result.user.email);
       }
@@ -138,15 +143,13 @@ export const AuthProvider = ({ children }) => {
     } catch (err) {
       console.error('Google popup sign-in error:', err);
 
-      // If user deliberately closed or cancelled the popup, do not force a redirect
       if (
-        err.code === 'auth/popup-closed-by-user' || 
+        err.code === 'auth/popup-closed-by-user' ||
         err.code === 'auth/cancelled-popup-request'
       ) {
         return null;
       }
 
-      // If popup is strictly blocked by the browser, fallback to redirect
       if (err.code === 'auth/popup-blocked') {
         if (typeof window !== 'undefined') {
           localStorage.setItem('authRedirect', window.location.pathname + window.location.search);
@@ -170,191 +173,159 @@ export const AuthProvider = ({ children }) => {
     }
   };
 
-  // Check if user has hit the daily limit of 4 logs
-  const checkDailyLogLimit = async (uid) => {
-    if (!db) return true;
-    try {
-      // Get the start and end of the current day
-      const startOfDay = new Date();
-      startOfDay.setHours(0, 0, 0, 0);
+  // Save/update user profile snapshot on users/{uid}
+  const saveUserProfile = useCallback(async (profileData, targetUser = null) => {
+    const activeUser = targetUser || user;
+    if (!activeUser || !db) return null;
 
-      const endOfDay = new Date();
-      endOfDay.setHours(23, 59, 59, 999);
-
-      // Convert to strings if stored as ISO strings, or use Timestamp if stored as Timestamps
-      // We are comparing ISO strings based on how loggedAt is saved below
-      const logsRef = collection(db, 'users', uid, 'logs');
-      const q = query(
-        logsRef,
-        where('loggedAt', '>=', startOfDay.toISOString()),
-        where('loggedAt', '<=', endOfDay.toISOString())
-      );
-
-      const snapshot = await getDocs(q);
-      const todaysLogCount = snapshot.size;
-
-      if (todaysLogCount >= 4) {
-        return false; // Limit reached
-      }
-      return true; // OK to log
-    } catch (err) {
-      console.error('Error checking daily log limit:', err);
-      return false; // Fail closed to prevent bypassing limit on errors
-    }
-  };
-
-  // Save user profile to Firestore + append a log entry for historical tracking
-  const saveUserProfile = async (profileData, isManualLog = false) => {
-    if (!user || !db) return;
     const timestamp = new Date().toISOString();
-    
-    // Sanitize numeric inputs (ensure they are numbers or null)
     const sanitizedData = { ...profileData };
-    if (sanitizedData.weight) sanitizedData.weight = parseFloat(sanitizedData.weight);
-    if (sanitizedData.height) sanitizedData.height = parseFloat(sanitizedData.height);
-    if (sanitizedData.age) sanitizedData.age = parseInt(sanitizedData.age, 10);
+
+    if ('weight' in sanitizedData) sanitizedData.weight = parseOptionalNumber(sanitizedData.weight);
+    if ('height' in sanitizedData) sanitizedData.height = parseOptionalNumber(sanitizedData.height);
+    if ('targetWeight' in sanitizedData) sanitizedData.targetWeight = parseOptionalNumber(sanitizedData.targetWeight);
+    if ('age' in sanitizedData) sanitizedData.age = parseOptionalNumber(sanitizedData.age, true);
+    if ('bmi' in sanitizedData) sanitizedData.bmi = parseOptionalNumber(sanitizedData.bmi);
+    if ('bmr' in sanitizedData) sanitizedData.bmr = parseOptionalNumber(sanitizedData.bmr);
+    if ('dailyCalories' in sanitizedData) sanitizedData.dailyCalories = parseOptionalNumber(sanitizedData.dailyCalories, true);
 
     const data = {
       ...sanitizedData,
-      email: user.email,
-      displayName: user.displayName,
-      photoURL: user.photoURL,
-      updatedAt: timestamp,
+      email: activeUser.email ? activeUser.email.trim().toLowerCase() : '',
+      displayName: activeUser.displayName || '',
+      photoURL: activeUser.photoURL || '',
+      updatedAt: timestamp
     };
 
-    try {
-      // Save / update the main profile document
-      await setDoc(doc(db, 'users', user.uid), data, { merge: true });
-
-      // LOG POLLUTION FIX: 
-      // Only append a log entry if weight or height changed, or if explicitly requested (isManualLog)
-      const weightChanged = sanitizedData.weight && sanitizedData.weight !== userProfile?.weight;
-      const heightChanged = sanitizedData.height && sanitizedData.height !== userProfile?.height;
-      const goalChanged = sanitizedData.goal && sanitizedData.goal !== userProfile?.goal;
-
-      // Ensure we only check the limit if we are actually going to log something
-      if (isManualLog || weightChanged || heightChanged || goalChanged) {
-        const canLog = await checkDailyLogLimit(user.uid);
-        
-        if (!canLog) {
-          throw new Error('DAILY_LOG_LIMIT_REACHED');
-        }
-
-        await addDoc(collection(db, 'users', user.uid, 'logs'), {
-          weight: sanitizedData.weight || userProfile?.weight || null,
-          height: sanitizedData.height || userProfile?.height || null,
-          goal: sanitizedData.goal || userProfile?.goal || null,
-          loggedAt: profileData.loggedAt || timestamp, // Support historical backfilling
-        });
-      }
-
-      // Profile state updates via onSnapshot automatically, 
-      // but we return the sanitized data for immediate UI feedback if needed
-      
-      // CHECK FOR NEW ACHIEVEMENTS
-      try {
-        const logsRef = collection(db, 'users', user.uid, 'logs');
-        const logsSnap = await getDocs(logsRef);
-        const logCount = logsSnap.size;
-        
-        const earnedIds = BADGE_DEFINITIONS
-          .filter(b => b.check(data, logCount))
-          .map(b => b.id);
-          
-        const previouslySeen = userProfile?.seenAchievements || [];
-        const newlyEarned = earnedIds.filter(id => !previouslySeen.includes(id));
-        
-        if (newlyEarned.length > 0) {
-          const latestBadge = BADGE_DEFINITIONS.find(b => b.id === newlyEarned[0]);
-          setNotification({
-            type: 'achievement',
-            title: 'Achievement Unlocked!',
-            message: latestBadge.title,
-            emoji: latestBadge.emoji,
-            badgeId: latestBadge.id
-          });
-          
-          // Mark as seen in Firestore
-          await updateDoc(doc(db, 'users', user.uid), {
-            seenAchievements: [...previouslySeen, ...newlyEarned]
-          });
-        }
-      } catch (achErr) {
-        console.error('Achievement check failed:', achErr);
-      }
-
-      return data;
-    } catch (err) {
-      console.error('Error saving profile:', err);
-      throw err;
+    if (!userProfile?.createdAt && !sanitizedData.createdAt) {
+      data.createdAt = timestamp;
     }
-  };
+
+    await setDoc(doc(db, 'users', activeUser.uid), data, { merge: true });
+    return data;
+  }, [user, userProfile]);
+
+  // Save a completed KnowYourBody assessment to users/{uid}/assessments AND update users/{uid}
+  const saveAssessment = useCallback(async (snapshot, targetUser = null) => {
+    const activeUser = targetUser || user;
+    if (!activeUser || !db || !snapshot) return null;
+
+    const timestamp = new Date().toISOString();
+    const savedAtKey = snapshot.savedAt || timestamp;
+
+    if (snapshot.savedAt && typeof window !== 'undefined') {
+      const syncKey = `${activeUser.uid}:${snapshot.savedAt}`;
+      try {
+        if (localStorage.getItem('diet_test_results_synced_for') === syncKey) {
+          return null;
+        }
+        localStorage.setItem('diet_test_results_synced_for', syncKey);
+      } catch {
+        // Ignore storage errors
+      }
+    }
+
+    const assessmentRecord = {
+      bmi: parseOptionalNumber(snapshot.bmi),
+      bmiCategory: snapshot.bmiCategory || null,
+      bmr: parseOptionalNumber(snapshot.bmr, true),
+      dailyCalories: parseOptionalNumber(snapshot.dailyCalories, true),
+      macros: snapshot.macros || null,
+      weight: parseOptionalNumber(snapshot.weight),
+      height: parseOptionalNumber(snapshot.height),
+      targetWeight: parseOptionalNumber(snapshot.targetWeight),
+      age: parseOptionalNumber(snapshot.age, true),
+      gender: snapshot.gender || null,
+      goal: snapshot.goal || null,
+      activityLevel: snapshot.activityLevel || null,
+      sleepHours: snapshot.sleepHours || null,
+      dietaryRestrictions: snapshot.dietaryRestrictions || 'None',
+      healthConditions: snapshot.healthConditions || '',
+      dislikes: snapshot.dislikes || '',
+      unitsUsed: snapshot.unitsUsed || 'metric',
+      source: snapshot.source || 'knowyourbody',
+      clientSavedAt: savedAtKey,
+      createdAt: timestamp
+    };
+
+    const profileUpdate = {
+      weight: assessmentRecord.weight,
+      height: assessmentRecord.height,
+      bmi: assessmentRecord.bmi,
+      bmiCategory: assessmentRecord.bmiCategory,
+      bmr: assessmentRecord.bmr,
+      dailyCalories: assessmentRecord.dailyCalories,
+      macros: assessmentRecord.macros,
+      targetWeight: assessmentRecord.targetWeight,
+      age: assessmentRecord.age,
+      gender: assessmentRecord.gender,
+      goal: assessmentRecord.goal,
+      activityLevel: assessmentRecord.activityLevel,
+      sleepHours: assessmentRecord.sleepHours,
+      dietaryRestrictions: assessmentRecord.dietaryRestrictions,
+      healthConditions: assessmentRecord.healthConditions,
+      dislikes: assessmentRecord.dislikes,
+      latestAssessmentAt: timestamp,
+      onboardingSkipped: false
+    };
+
+    await Promise.all([
+      saveUserProfile(profileUpdate, activeUser),
+      addDoc(collection(db, 'users', activeUser.uid, 'assessments'), assessmentRecord)
+    ]);
+
+    return assessmentRecord;
+  }, [user, saveUserProfile]);
+
+  // Automatically sync a recent guest KnowYourBody snapshot once when the user signs in
+  useEffect(() => {
+    if (!user || !db || syncingGuestRef.current) return;
+
+    try {
+      const raw = localStorage.getItem('diet_test_results');
+      if (!raw) return;
+      const parsed = JSON.parse(raw);
+      if (!parsed?.bmi || !parsed?.savedAt) return;
+
+      const syncKey = `${user.uid}:${parsed.savedAt}`;
+      const syncedForKey = localStorage.getItem('diet_test_results_synced_for');
+
+      if (!shouldSyncGuestSnapshot(parsed, user.uid, syncedForKey)) return;
+
+      syncingGuestRef.current = true;
+      localStorage.setItem('diet_test_results_synced_for', syncKey);
+
+      saveAssessment({ ...parsed, source: 'knowyourbody_guest_sync' }, user)
+        .catch((err) => {
+          console.warn('Could not sync guest KnowYourBody assessment:', err);
+          try {
+            localStorage.removeItem('diet_test_results_synced_for');
+          } catch {
+            // Ignore cleanup failure
+          }
+        })
+        .finally(() => {
+          syncingGuestRef.current = false;
+        });
+    } catch {
+      // Ignore malformed localStorage cache
+    }
+  }, [user, saveAssessment]);
 
   return (
-    <AuthContext.Provider value={{
-      user,
-      userProfile,
-      loading,
-      isAdmin,
-      signInWithGoogle,
-      signOut: signOutUser,
-      saveUserProfile,
-      setNotification,
-    }}>
+    <AuthContext.Provider
+      value={{
+        user,
+        userProfile,
+        loading,
+        isAdmin,
+        signInWithGoogle,
+        signOut: signOutUser,
+        saveUserProfile,
+        saveAssessment
+      }}
+    >
       {children}
-      
-      {/* Global Achievement Notification */}
-      <AnimatePresence>
-        {notification && (
-          <motion.div
-            initial={{ opacity: 0, y: 50, scale: 0.9 }}
-            animate={{ opacity: 1, y: 0, scale: 1 }}
-            exit={{ opacity: 0, scale: 0.9 }}
-            className="fixed bottom-8 left-1/2 -translate-x-1/2 z-[10000] w-[90%] max-w-sm"
-          >
-            <div className="bg-white rounded-3xl shadow-2xl p-5 border-2 border-green-500 flex items-center gap-5 relative">
-               <div className="w-20 h-20 bg-gradient-to-br from-green-500 to-emerald-600 rounded-2xl flex items-center justify-center text-4xl shadow-lg flex-shrink-0">
-                 {notification.emoji}
-               </div>
-               
-               <div className="flex-1 min-w-0">
-                 <h4 className="text-green-600 font-black text-sm uppercase tracking-wider mb-1">
-                   {notification.title}
-                 </h4>
-                 <p className="text-gray-800 font-bold text-lg truncate">
-                   {notification.message}
-                 </p>
-                 <button
-                   onClick={() => {
-                     const badge = BADGE_DEFINITIONS.find(b => b.id === notification.badgeId);
-                     setSharingBadge(badge);
-                   }}
-                   className="mt-1 flex items-center gap-1.5 text-[10px] font-black uppercase tracking-widest text-[#F6841F] hover:text-orange-600 transition-colors"
-                 >
-                   <FiShare2 size={12} /> Share Progress
-                 </button>
-               </div>
-               
-               <button 
-                 onClick={() => setNotification(null)}
-                 className="p-1 hover:bg-gray-100 rounded-full transition-colors text-gray-400"
-               >
-                 <FiX size={20} />
-               </button>
-            </div>
-          </motion.div>
-        )}
-      </AnimatePresence>
-
-      {/* Invisible Share Card Generator */}
-      {sharingBadge && (
-        <AchievementShareCard
-          badge={sharingBadge}
-          userName={user?.displayName?.split(' ')[0] || 'there'}
-          date={new Date().toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' })}
-          onComplete={() => setSharingBadge(null)}
-        />
-      )}
     </AuthContext.Provider>
   );
 };

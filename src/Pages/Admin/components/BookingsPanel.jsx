@@ -96,6 +96,12 @@ const BookingsPanel = ({ showNotification, highlightRef = null }) => {
   const [slotEditTime, setSlotEditTime] = useState('');
   const [isSavingSlot, setIsSavingSlot] = useState(false);
 
+  // Client Care Summary / Resource Link State (synced to Client Care Portal)
+  const [careNoteDraft, setCareNoteDraft] = useState('');
+  const [carePlanUrlDraft, setCarePlanUrlDraft] = useState('');
+  const [isSavingCareNote, setIsSavingCareNote] = useState(false);
+  const lastLoadedCareIdRef = useRef(null);
+
   useEffect(() => {
     // Real-time listener on the bookings collection
     const q = query(collection(db, 'bookings'), orderBy('createdAt', 'desc'));
@@ -304,6 +310,40 @@ const BookingsPanel = ({ showNotification, highlightRef = null }) => {
       if (fresh) setSelectedBooking(fresh);
     }
   }, [bookings]);
+
+  // Sync Client Care Portal note drafts only when switching selected booking
+  useEffect(() => {
+    const nextId = selectedBooking?.id || null;
+    if (nextId === lastLoadedCareIdRef.current) return;
+    lastLoadedCareIdRef.current = nextId;
+    setCareNoteDraft(selectedBooking?.clientCareNote || '');
+    setCarePlanUrlDraft(selectedBooking?.carePlanUrl || '');
+  }, [selectedBooking]);
+
+  const handleSaveCareDeliverable = async () => {
+    if (!selectedBooking) return;
+    const trimmedUrl = carePlanUrlDraft.trim();
+    if (trimmedUrl && !/^https?:\/\//i.test(trimmedUrl)) {
+      showNotification('error', 'Resource link must start with https:// or http://');
+      return;
+    }
+
+    setIsSavingCareNote(true);
+    try {
+      const bookingRef = doc(db, 'bookings', selectedBooking.id);
+      await updateDoc(bookingRef, {
+        clientCareNote: careNoteDraft.trim() || null,
+        carePlanUrl: trimmedUrl || null,
+        careNoteUpdatedAt: new Date().toISOString()
+      });
+      showNotification('success', 'Care note & resource saved to client My Journey portal.');
+    } catch (err) {
+      console.error('Error saving client care note:', err);
+      showNotification('error', 'Failed to save care summary.');
+    } finally {
+      setIsSavingCareNote(false);
+    }
+  };
 
   const handleToggleClick = () => {
     if (isBookingOpen) {
@@ -715,6 +755,54 @@ const BookingsPanel = ({ showNotification, highlightRef = null }) => {
             <div>
               <span className="text-[10px] font-medium text-stone-400 uppercase">Payment Status</span>
               <p className="font-semibold text-stone-800 mt-0.5">Verified & Paid ✅</p>
+            </div>
+          </div>
+        </div>
+
+        {/* Client Care Portal Note & Resource Link */}
+        <div className="bg-white rounded-2xl p-5 border border-stone-200 shadow-xs space-y-3">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-1">
+            <h4 className="text-xs font-semibold text-stone-800 uppercase tracking-wider flex items-center gap-1.5">
+              <FileText size={14} className="text-emerald-600" />
+              <span>Client Portal Care Summary (Visible in My Journey)</span>
+            </h4>
+            {selectedBooking.careNoteUpdatedAt && (
+              <span className="text-[10px] text-stone-400 font-medium">
+                Updated {formatDate(selectedBooking.careNoteUpdatedAt)}
+              </span>
+            )}
+          </div>
+
+          <div className="space-y-2.5">
+            <div>
+              <label className="block text-[11px] font-semibold text-stone-600 mb-1">
+                Post-Session Summary / Next Steps
+              </label>
+              <textarea
+                rows={3}
+                value={careNoteDraft}
+                onChange={(e) => setCareNoteDraft(e.target.value)}
+                placeholder="Share tailored meal focus, portion targets, or follow-up guidance for this client..."
+                className="w-full rounded-xl border border-stone-200 bg-stone-50/70 px-3 py-2 text-xs text-stone-800 focus:outline-none focus:ring-1 focus:ring-emerald-500 focus:bg-white"
+              />
+            </div>
+
+            <div className="flex flex-col sm:flex-row gap-2.5">
+              <input
+                type="url"
+                value={carePlanUrlDraft}
+                onChange={(e) => setCarePlanUrlDraft(e.target.value)}
+                placeholder="Optional Meal Plan / Resource URL (https://...)"
+                className="flex-1 rounded-xl border border-stone-200 bg-stone-50/70 px-3 py-2 text-xs text-stone-800 focus:outline-none focus:ring-1 focus:ring-emerald-500 focus:bg-white"
+              />
+              <button
+                type="button"
+                onClick={handleSaveCareDeliverable}
+                disabled={isSavingCareNote}
+                className="px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-semibold rounded-xl transition-colors disabled:opacity-50 cursor-pointer shrink-0"
+              >
+                {isSavingCareNote ? 'Saving...' : 'Save to Client Portal'}
+              </button>
             </div>
           </div>
         </div>

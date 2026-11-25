@@ -359,15 +359,15 @@ const UserJourneyPanel = React.memo(({ users, loading, showNotification, loadUse
               </div>
             </div>
 
-            {/* Log History */}
+            {/* Assessment History */}
             <div className="md:col-span-2 space-y-4">
-              <h3 className="font-semibold text-stone-800 text-xs uppercase tracking-wider border-b border-stone-100 pb-2">Weight Log History</h3>
+              <h3 className="font-semibold text-stone-800 text-xs uppercase tracking-wider border-b border-stone-100 pb-2">KnowYourBody Assessment History</h3>
               {loadingLogs ? (
                 <div className="flex justify-center py-10">
                   <Loader className="animate-spin text-emerald-600" size={24} />
                 </div>
               ) : userLogs.length === 0 ? (
-                <p className="text-center py-8 text-stone-400 text-xs">No log history found.</p>
+                <p className="text-center py-8 text-stone-400 text-xs">No saved assessment history found.</p>
               ) : (
                 <div className="overflow-x-auto border border-stone-100 rounded-xl">
                   <table className="w-full text-left">
@@ -376,27 +376,33 @@ const UserJourneyPanel = React.memo(({ users, loading, showNotification, loadUse
                         <th className="px-3.5 py-2.5">Date</th>
                         <th className="px-3.5 py-2.5">Weight (kg)</th>
                         <th className="px-3.5 py-2.5">BMI</th>
+                        <th className="px-3.5 py-2.5">Calories</th>
                         <th className="px-3.5 py-2.5">Goal</th>
                       </tr>
                     </thead>
                     <tbody className="divide-y divide-stone-100 text-xs">
-                      {userLogs.map(log => (
-                        <tr key={log.id} className="hover:bg-stone-50/50 transition-colors">
-                          <td className="px-3.5 py-2.5 text-stone-600">
-                            {new Date(log.loggedAt || log.createdAt).toLocaleDateString()}
-                          </td>
-                          <td className="px-3.5 py-2.5 font-semibold text-stone-800">{log.weight}</td>
-                          <td className="px-3.5 py-2.5 text-stone-600">
-                            {log.weight && selectedUser.height ? 
-                              (log.weight / Math.pow(selectedUser.height/100, 2)).toFixed(1) : 'N/A'}
-                          </td>
-                          <td className="px-3.5 py-2.5">
-                            <span className="px-2 py-0.5 bg-emerald-50 text-emerald-700 rounded text-[10px] font-semibold capitalize border border-emerald-100">
-                              {log.goal || 'N/A'}
-                            </span>
-                          </td>
-                        </tr>
-                      ))}
+                      {userLogs.map(log => {
+                        const computedBmi = log.bmi || (log.weight && (log.height || selectedUser.height)
+                          ? (log.weight / Math.pow((log.height || selectedUser.height) / 100, 2)).toFixed(1)
+                          : 'N/A');
+                        return (
+                          <tr key={log.id} className="hover:bg-stone-50/50 transition-colors">
+                            <td className="px-3.5 py-2.5 text-stone-600">
+                              {new Date(log.createdAt || log.loggedAt).toLocaleDateString()}
+                            </td>
+                            <td className="px-3.5 py-2.5 font-semibold text-stone-800">{log.weight || 'N/A'}</td>
+                            <td className="px-3.5 py-2.5 text-stone-600">{computedBmi}</td>
+                            <td className="px-3.5 py-2.5 text-stone-600">
+                              {log.dailyCalories ? `${log.dailyCalories} kcal` : '—'}
+                            </td>
+                            <td className="px-3.5 py-2.5">
+                              <span className="px-2 py-0.5 bg-emerald-50 text-emerald-700 rounded text-[10px] font-semibold capitalize border border-emerald-100">
+                                {log.goal || 'N/A'}
+                              </span>
+                            </td>
+                          </tr>
+                        );
+                      })}
                     </tbody>
                   </table>
                 </div>

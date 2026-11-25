@@ -8,6 +8,12 @@ const { enqueueCampaign, processMailQueue, recordTransactionalSent } = require("
 const { createEmailTemplate, createWelcomeTemplate, createSurveyVoucherTemplate, createEventBroadcastTemplate } = require("./emailTemplate");
 const { createAdminBookingEmail, createClientConfirmationEmail, createAdminInquiryEmail, createClientInquiryEmail } = require("./bookingEmailTemplates");
 const { createAdminTestimonialEmail } = require("./testimonialEmailTemplate");
+const {
+    sanitizePortalBooking,
+    sanitizePortalInquiry,
+    mergeDocsById,
+    verifyBookingLinkEligibility
+} = require("./portalUtils");
 
 
 admin.initializeApp();
@@ -767,6 +773,7 @@ exports.initializePaystackTransaction = onCall(
                     expectedAmountPesewas: tierConfig.amountPesewas,
                     formData: sanitizedFormData,
                     userResults: compactResults,
+                    uid: request.auth?.uid || null,
                     createdAt: admin.firestore.FieldValue.serverTimestamp()
                 });
             } catch (pendingErr) {
@@ -949,23 +956,38 @@ exports.processBooking = onCall(
                     let latestGoal = profileData.goal || null;
                     let latestBmi = profileData.bmi || null;
 
-                    // Query latest log entry for up-to-date weight
+                    // Query latest saved assessment (or legacy log) for up-to-date metrics
                     try {
-                        const logsSnap = await db.collection("users")
+                        const assessmentsSnap = await db.collection("users")
                             .doc(uid)
-                            .collection("logs")
-                            .orderBy("loggedAt", "desc")
+                            .collection("assessments")
+                            .orderBy("createdAt", "desc")
                             .limit(1)
                             .get();
 
-                        if (!logsSnap.empty) {
-                            const latestLog = logsSnap.docs[0].data();
-                            if (latestLog.weight) latestWeight = latestLog.weight;
-                            if (latestLog.height) latestHeight = latestLog.height;
-                            if (latestLog.goal) latestGoal = latestLog.goal;
+                        if (!assessmentsSnap.empty) {
+                            const latestAssessment = assessmentsSnap.docs[0].data();
+                            if (latestAssessment.weight) latestWeight = latestAssessment.weight;
+                            if (latestAssessment.height) latestHeight = latestAssessment.height;
+                            if (latestAssessment.goal) latestGoal = latestAssessment.goal;
+                            if (latestAssessment.bmi) latestBmi = latestAssessment.bmi;
+                        } else {
+                            const logsSnap = await db.collection("users")
+                                .doc(uid)
+                                .collection("logs")
+                                .orderBy("loggedAt", "desc")
+                                .limit(1)
+                                .get();
+
+                            if (!logsSnap.empty) {
+                                const latestLog = logsSnap.docs[0].data();
+                                if (latestLog.weight) latestWeight = latestLog.weight;
+                                if (latestLog.height) latestHeight = latestLog.height;
+                                if (latestLog.goal) latestGoal = latestLog.goal;
+                            }
                         }
-                    } catch (logErr) {
-                        console.warn("Could not query user logs for enrichment:", logErr);
+                    } catch (historyErr) {
+                        console.warn("Could not query user assessment/log history for enrichment:", historyErr);
                     }
 
                     // Compute BMI if missing or zero
@@ -1024,8 +1046,12 @@ exports.processBooking = onCall(
         if (enrichedResults.dailyCalories === 0) enrichedResults.dailyCalories = null;
 
         const clientDisplayName = formData.name || (formData.email ? formData.email.split("@")[0] : "Client");
+        const resolvedUid = request.auth?.uid || pendingSnapData?.uid || enrichedResults?.userId || null;
         const bookingData = {
             ...formData,
+            email: cleanEmail || formData.email,
+            emailLower: cleanEmail || null,
+            ...(resolvedUid ? { userId: resolvedUid } : {}),
             name: clientDisplayName,
             consultationType: actualType,
             amount: actualAmount,
@@ -1099,6 +1125,38 @@ exports.processBooking = onCall(
     }
 );
 
+const deleteSubcollectionDocs = async (firestoreDb, uid, subcollectionName) => {
+    const snap = await firestoreDb.collection("users").doc(uid).collection(subcollectionName).get();
+    if (snap.empty) return 0;
+    const docs = snap.docs;
+    for (let i = 0; i < docs.length; i += 400) {
+        const batch = firestoreDb.batch();
+        docs.slice(i, i + 400).forEach((docSnap) => batch.delete(docSnap.ref));
+        await batch.commit();
+    }
+    return docs.length;
+};
+
+const purgeUserFirestoreData = async (firestoreDb, uid, email) => {
+    const deletedAssessments = await deleteSubcollectionDocs(firestoreDb, uid, "assessments");
+    if (deletedAssessments > 0) {
+        console.log(`Deleted ${deletedAssessments} assessments for user ${uid}.`);
+    }
+
+    const deletedLogs = await deleteSubcollectionDocs(firestoreDb, uid, "logs");
+    if (deletedLogs > 0) {
+        console.log(`Deleted ${deletedLogs} legacy logs for user ${uid}.`);
+    }
+
+    await firestoreDb.collection("users").doc(uid).delete();
+    console.log(`Deleted Firestore document for user ${uid}.`);
+
+    if (email) {
+        await firestoreDb.collection("emails").doc(email.toLowerCase()).delete();
+        console.log(`Deleted email ${email} from emails collection.`);
+    }
+};
+
 // 7. Admin: Delete User Account and Data
 exports.adminDeleteUser = onCall(async (request) => {
     // 1. Check authorization
@@ -1128,30 +1186,10 @@ exports.adminDeleteUser = onCall(async (request) => {
             }
         }
 
-        const db = admin.firestore();
+        // 2. Delete assessments, legacy logs, user profile, and newsletter record
+        await purgeUserFirestoreData(admin.firestore(), uid, email);
 
-        // 2. Delete user's logs subcollection
-        const logsSnapshot = await db.collection("users").doc(uid).collection("logs").get();
-        if (!logsSnapshot.empty) {
-            const batch = db.batch();
-            logsSnapshot.forEach(doc => batch.delete(doc.ref));
-            await batch.commit();
-            console.log(`Deleted ${logsSnapshot.size} logs for user ${uid}.`);
-        }
-
-        // 3. Delete user document from Firestore
-        await db.collection("users").doc(uid).delete();
-        console.log(`Deleted Firestore document for user ${uid}.`);
-
-        // 4. Delete from emails collection if email is provided
-        if (email) {
-            await db.collection("emails").doc(email.toLowerCase()).delete();
-            console.log(`Deleted email ${email} from emails collection.`);
-        }
-
-        // 5. Delete bookings? 
-        // We'll leave bookings as historical financial records for now, 
-        // but they could be deleted here if needed by querying by email.
+        // 3. Leave bookings as historical financial records
 
         return { success: true, message: `User ${uid} and associated data deleted successfully.` };
     } catch (error) {
@@ -1173,29 +1211,10 @@ exports.deleteOwnAccount = onCall(async (request) => {
     console.log(`User ${uid} (${email || 'no email'}) is deleting their own account.`);
 
     try {
-        const db = admin.firestore();
+        // 1. Delete assessments, legacy logs, user profile, and email record
+        await purgeUserFirestoreData(admin.firestore(), uid, email);
 
-        // 1. Delete user's logs subcollection
-        const logsSnapshot = await db.collection("users").doc(uid).collection("logs").get();
-        if (!logsSnapshot.empty) {
-            const batch = db.batch();
-            logsSnapshot.forEach(doc => batch.delete(doc.ref));
-            await batch.commit();
-            console.log(`Deleted ${logsSnapshot.size} logs for user ${uid}.`);
-        }
-
-        // 2. Delete user document from Firestore
-        await db.collection("users").doc(uid).delete();
-        console.log(`Deleted Firestore document for user ${uid}.`);
-
-        // 3. Delete from emails collection if email is available
-        if (email) {
-            await db.collection("emails").doc(email.toLowerCase()).delete();
-            console.log(`Deleted email ${email} from emails collection.`);
-        }
-
-        // 4. Finally, delete from Firebase Auth
-        // The Admin SDK can delete users without requiring a recent login session.
+        // 2. Delete from Firebase Auth
         await admin.auth().deleteUser(uid);
         console.log(`Successfully deleted user ${uid} from Auth.`);
 
@@ -1378,6 +1397,8 @@ exports.submitBespokeInquiry = onCall(
         const inquiryDoc = {
             name: cleanName,
             email: cleanEmail,
+            emailLower: cleanEmail,
+            ...(request.auth?.uid ? { userId: request.auth.uid } : {}),
             phone: cleanPhone,
             message: cleanMessage,
             inquiryTopic: cleanTopic,
@@ -1427,3 +1448,143 @@ exports.submitBespokeInquiry = onCall(
         }
     }
 );
+
+// 12. Authenticated Client Care Portal: Fetch matched consultations & custom care inquiries
+exports.getMyCarePortal = onCall(async (request) => {
+    if (!request.auth) {
+        throw new HttpsError("unauthenticated", "Please sign in to view your sessions.");
+    }
+
+    const uid = request.auth.uid;
+    const rawEmail = typeof request.auth.token.email === "string" ? request.auth.token.email.trim() : "";
+    const cleanEmail = rawEmail.toLowerCase();
+    const emailVerified = !!request.auth.token.email_verified;
+
+    try {
+        const firestoreDb = admin.firestore();
+        const bookingQueries = [
+            firestoreDb.collection("bookings").where("userId", "==", uid).get()
+        ];
+        const inquiryQueries = [
+            firestoreDb.collection("inquiries").where("userId", "==", uid).get()
+        ];
+
+        if (emailVerified && cleanEmail) {
+            bookingQueries.push(
+                firestoreDb.collection("bookings").where("emailLower", "==", cleanEmail).get(),
+                firestoreDb.collection("bookings").where("email", "==", cleanEmail).get()
+            );
+            inquiryQueries.push(
+                firestoreDb.collection("inquiries").where("emailLower", "==", cleanEmail).get(),
+                firestoreDb.collection("inquiries").where("email", "==", cleanEmail).get()
+            );
+            if (rawEmail && rawEmail !== cleanEmail) {
+                bookingQueries.push(
+                    firestoreDb.collection("bookings").where("email", "==", rawEmail).get()
+                );
+                inquiryQueries.push(
+                    firestoreDb.collection("inquiries").where("email", "==", rawEmail).get()
+                );
+            }
+        }
+
+        // Also fetch any bookings explicitly linked by Paystack reference on users/{uid}
+        const userDoc = await firestoreDb.collection("users").doc(uid).get();
+        const linkedRefs = Array.isArray(userDoc.data()?.linkedBookingRefs)
+            ? userDoc.data().linkedBookingRefs.filter((r) => typeof r === "string" && r.trim())
+            : [];
+
+        linkedRefs.forEach((ref) => {
+            bookingQueries.push(firestoreDb.collection("bookings").doc(ref.trim()).get());
+        });
+
+        const [bookingSnaps, inquirySnaps] = await Promise.all([
+            Promise.all(bookingQueries),
+            Promise.all(inquiryQueries)
+        ]);
+
+        return {
+            success: true,
+            bookings: mergeDocsById(bookingSnaps, sanitizePortalBooking),
+            inquiries: mergeDocsById(inquirySnaps, sanitizePortalInquiry)
+        };
+    } catch (error) {
+        console.error(`Error loading My Care Portal for ${uid}:`, error);
+        throw new HttpsError("internal", "Unable to load your consultation history right now.");
+    }
+});
+
+// 13. Authenticated Client Care Portal: Link a paid booking made with another email using Reference + Phone last 4
+exports.linkBookingByReference = onCall(async (request) => {
+    if (!request.auth) {
+        throw new HttpsError("unauthenticated", "Please sign in first.");
+    }
+
+    const uid = request.auth.uid;
+    const rawEmail = typeof request.auth.token.email === "string" ? request.auth.token.email.trim() : "";
+    const cleanEmail = rawEmail.toLowerCase();
+    const emailVerified = !!request.auth.token.email_verified;
+
+    const cleanRef = typeof request.data?.reference === "string" ? request.data.reference.trim() : "";
+    const cleanPhoneLast4 = typeof request.data?.phoneLast4 === "string"
+        ? request.data.phoneLast4.replace(/\D/g, "").slice(-4)
+        : "";
+
+    if (!cleanRef || cleanPhoneLast4.length !== 4) {
+        throw new HttpsError(
+            "invalid-argument",
+            "Enter both your Paystack reference and the last 4 digits of the phone number used when booking."
+        );
+    }
+
+    try {
+        const firestoreDb = admin.firestore();
+        let bookingDoc = await firestoreDb.collection("bookings").doc(cleanRef).get();
+        if (!bookingDoc.exists) {
+            const fallbackQuery = await firestoreDb
+                .collection("bookings")
+                .where("paystackReference", "==", cleanRef)
+                .limit(1)
+                .get();
+            if (!fallbackQuery.empty) {
+                bookingDoc = fallbackQuery.docs[0];
+            }
+        }
+
+        if (!bookingDoc.exists) {
+            return { success: false, message: "No confirmed booking matches that reference code." };
+        }
+
+        const data = bookingDoc.data() || {};
+        const linkCheck = verifyBookingLinkEligibility({
+            bookingData: data,
+            uid,
+            cleanEmail,
+            emailVerified,
+            phoneLast4: cleanPhoneLast4
+        });
+
+        if (!linkCheck.ok) {
+            return { success: false, message: linkCheck.message };
+        }
+
+        await bookingDoc.ref.update({
+            userId: uid,
+            updatedAt: new Date().toISOString()
+        });
+
+        await firestoreDb.collection("users").doc(uid).set({
+            ...(cleanEmail ? { email: cleanEmail } : {}),
+            linkedBookingRefs: admin.firestore.FieldValue.arrayUnion(bookingDoc.id),
+            updatedAt: new Date().toISOString()
+        }, { merge: true });
+
+        return {
+            success: true,
+            booking: sanitizePortalBooking(bookingDoc)
+        };
+    } catch (error) {
+        console.error(`Error linking booking ${cleanRef} for ${uid}:`, error);
+        throw new HttpsError("internal", "Could not link booking right now. Please try again.");
+    }
+});

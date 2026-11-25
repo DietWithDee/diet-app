@@ -482,21 +482,35 @@ export const getAllUsersPaged = async (pageSize = 50, lastVisibleDoc = null) => 
 };
 
 
-// Get a specific user's logs
+// Get a specific user's saved KnowYourBody assessments (plus legacy log fallback)
 export const getUserLogs = async (uid) => {
   try {
-    const q = query(
-      collection(db, "users", uid, "logs"), 
-      orderBy("loggedAt", "desc")
-    );
-    const snapshot = await getDocs(q);
-    const logs = snapshot.docs.map(doc => ({
-      id: doc.id,
-      ...doc.data()
+    const [assessmentsSnap, legacyLogsSnap] = await Promise.all([
+      getDocs(query(collection(db, "users", uid, "assessments"), orderBy("createdAt", "desc"))),
+      getDocs(query(collection(db, "users", uid, "logs"), orderBy("loggedAt", "desc")))
+    ]);
+
+    const assessmentRows = assessmentsSnap.docs.map(docSnap => ({
+      id: docSnap.id,
+      entryType: 'assessment',
+      ...docSnap.data()
     }));
-    return { success: true, data: logs };
+
+    const legacyRows = legacyLogsSnap.docs.map(docSnap => ({
+      id: docSnap.id,
+      entryType: 'legacy_log',
+      ...docSnap.data()
+    }));
+
+    const combined = [...assessmentRows, ...legacyRows].sort((a, b) => {
+      const tA = new Date(a.createdAt || a.loggedAt || 0).getTime();
+      const tB = new Date(b.createdAt || b.loggedAt || 0).getTime();
+      return tB - tA;
+    });
+
+    return { success: true, data: combined };
   } catch (error) {
-    console.error(`Error fetching logs for user ${uid}:`, error);
+    console.error(`Error fetching assessment history for user ${uid}:`, error);
     return { success: false, error: error.message };
   }
 };

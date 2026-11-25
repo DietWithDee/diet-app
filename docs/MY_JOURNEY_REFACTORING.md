@@ -1,199 +1,46 @@
-# My Journey — Full Refactoring Plan
+# My Journey — Client Care Portal Architecture (v2)
 
-> Master document for one-shotting the remaining My Journey build-out, admin dashboard refactoring, and admin analytics integration.
-
----
-
-## Part 1: What's Been Done ✅
-
-### Authentication & Onboarding
-- [x] Firebase Auth with Google Provider (`firebaseConfig.js` → exports `auth`)
-- [x] `AuthContext.jsx` — global auth state, Google sign-in/out, Firestore profile CRUD
-- [x] `MainLayout.jsx` wrapped in `<AuthProvider>`
-- [x] `OnboardingModal.jsx` — 3-step flow (Welcome → Form → Confirm), supports edit mode via `initialData` prop
-- [x] Firestore data structure: `users/{uid}` (profile) + `users/{uid}/logs/{id}` (timestamped entries for charting)
-
-### My Journey Page
-- [x] Hero section with background image
-- [x] "Get Started with Google" button (orange) — triggers sign-in + onboarding
-- [x] "Continue as Guest" button  — navigates to `/knowyourbody`
-- [x] Profile card (photo, name, email, all health data grid)
-- [x] "Book a Consultation" button — computes BMI/calories → navigates to `/contactUs` with `userResults`
-- [x] "Update My Info" button — reopens onboarding modal pre-filled, logs update for charting
-- [x] Coming Soon badge, Under Development notice, feature teasers, bottom CTAs
-
-### Booking Integration
-- [x] `ContactUs.jsx` falls back to Firestore profile if no router state passed
-- [x] Auto-fills name/email from Google account
-- [x] `Home.jsx` "Start Your Journey" → `/my-journey`
-
-### Firestore Rules
-- [x] Generated rules with admin whitelist (`nanaamadwamena4@gmail.com`, `princetetteh963@gmail.com`, `godwinokro2020@gmail.com`)
-- [x] Covers `users`, `users/{uid}/logs`, `articles`, `newsletterEmails`, `config`
+> Updated to reflect the v2 redesign: My Journey transitioned from a standalone weight-logging/gamification tracker to a focused **Client Care & Assessment Portal** (`/my-journey`).
 
 ---
 
-## Part 2: What's Left for My Journey 🚧
+## Core Design Principles
 
-> Future page layout order (for logged-in users):
-> 1. **BMI / Weight Progress Chart** (first thing the user sees)
-> 2. **Plan Recommendations** a simple highlighted Link that recommends our weightloss/ weight gain plan depending on the BMI.
-> 3. **Recommended Reads** (curated blog articles)
-> 4. **Achievements & Badges**
-> 5. **Account Settings**
-
-### 2.1 BMI / Weight Progress Chart
-- [ ] Read all docs from `users/{uid}/logs` ordered by `loggedAt`
-- [ ] Use a charting library (e.g., Recharts or Chart.js) to render a line chart: **weight over time**, **BMI over time**
-- [ ] Display latest BMI, BMI category, and daily calorie estimate as headline stats
-- [ ] "Log New Data" button → opens `OnboardingModal` in edit mode (already supported) → appends a new log entry
-- [ ] Filter controls: last 7 days, 30 days, 3 months, all time
-
-### 2.2 Plan Recommendations
-- [ ] Based on the user's goal (`lose`/`maintain`/`gain`), dietary restrictions, and activity level
-- [ ] Link to existing `/plans` page with a personalized callout
-- [ ] Optional: surface a "Your recommended plan" card based on profile data
-
-### 2.3 Recommended Reads (basic implementation for now)
-- [ ] Query `articles` collection from Firestore
-- [ ] Filter or tag articles by relevance to user's goal / dietary restrictions
-- [ ] Show 3 article cards with thumbnails, linking to `/blog/{id}`
-- [ ] "See all articles" link to `/blog`
-
-### 2.4 Achievements & Badges
-- [ ] Define milestone criteria: 7-day streak, first log, 10 logs, goal reached, etc.
-- [ ] Store achievements in `users/{uid}/achievements` subcollection or as a field on the profile doc
-- [ ] Display earned badges as a horizontal scrollable row
-- [ ] Animated unlock effect when a new badge is earned
-
-### 2.5 Account Settings
-- [ ] Edit display name, profile photo (or use Google photo)
-- [ ] Manage notification preferences (future: push notifications)
-- [ ] Delete account / data (GDPR-friendly)
-- [ ] Sign-out button (already exists on profile card, move to settings section too)
+1. **Zero Gamification or Daily Weigh-In Friction**: Removed badges/achievements, daily log caps, manual weight-log charts, and blocking onboarding modals.
+2. **Session Tracking with Nana Ama Dwamena (Dee)**: Authenticated clients can see their consultation lifecycle (**Payment Confirmed → Session Time Assigned → Completed**), WhatsApp Dee directly with booking reference context, review post-session care notes/resource links added in Admin, and re-book Follow-Up sessions in one tap.
+3. **Auto-Saved KnowYourBody Assessments**: Every completed `KnowYourBody` check (`metric` or `imperial`, normalized to `kg` / `cm`) automatically saves to `users/{uid}/assessments` when signed in—and recent guest assessments carry over once automatically upon Google sign-in.
+4. **Curated Nutrition Guides**: Surfaces top published blog articles ranked by the client's saved goal, health conditions, and consultation track (e.g., OnTrack Diabetes care vs. Weight Loss).
+5. **Unchanged Navigation Entry**: Accessed via the person icon in `NavBar.jsx` and post-booking CTAs (`PaymentSuccess.jsx`, `KnowYourBody.jsx`, `Footer.jsx`, `About.jsx`, `FullyBooked.jsx`).
 
 ---
 
-## Part 3: Admin Dashboard Refactoring 🏗️
+## Architecture & File Map
 
-### Current Problem
-`admin.jsx` is **1,195 lines** with 5 components + utilities all in one file:
+### 1. Client Auth & Assessment Storage ([`src/AuthContext.jsx`](../src/AuthContext.jsx))
+- Wraps `MainLayout.jsx` with `user`, `userProfile`, `loading`, `isAdmin`, `signInWithGoogle`, `signOut`, `saveUserProfile`, and `saveAssessment`.
+- `saveAssessment(snapshot)` writes an immutable metric record to `users/{uid}/assessments/{id}` and merges the latest health profile onto `users/{uid}`.
+- Automatic guest carry-over checks `localStorage.getItem('diet_test_results')` (via `shouldSyncGuestSnapshot` in `src/utils/bookingProfile.js`) to sync fresh un-synced guest results idempotently on login (`diet_test_results_synced_for`).
 
-| Component | Lines | Description |
-|---|---|---|
-| `RichTextEditor` | ~500 | contentEditable editor with sanitization, toolbar, paste handling |
-| `Notification` | ~25 | Toast notification UI |
-| `ProgressBar` | ~10 | Upload progress bar |
-| `AdminLogin` | ~100 | Hardcoded email/password login form |
-| `ArticlesManager` | ~320 | CRUD for blog articles with image upload |
-| `AdminDashboard` | ~200 | Main dashboard shell (tabs, booking toggle, subscriber count) |
-| `AdminApp` | ~30 | Root component, auth gate |
+### 2. KnowYourBody Auto-Save ([`src/Pages/KnowYourBody/KnowYourBody.jsx`](../src/Pages/KnowYourBody/KnowYourBody.jsx))
+- Uses shared `calculateBodyMetrics` and `buildKnowYourBodySnapshot` from `src/utils/bookingProfile.js` (normalizing `imperial` inputs into metric `kg` / `cm`).
+- Automatically persists snapshots for signed-in users on Step 2 → Results and provides a `"Save Results with Google"` CTA for guests.
 
-### Proposed File Structure
+### 3. Client Care Portal UI ([`src/Pages/MyJourney/`](../src/Pages/MyJourney/))
+- **`MyJourney.jsx`**:
+  - **Guest View**: Google Sign-In CTA (`"Use the Google email you used when booking"`), plus links to `/knowyourbody` and `/contactUs`.
+  - **Your Sessions with Dee**: Loads matched paid consultations (`bookings`) and Tier 03 Custom & Specialist Care inquiries (`inquiries`) via `getMyCarePortal`, plus inline `"Booked with another email?"` Paystack reference + phone last-4 linking (`linkBookingByReference`).
+  - **Saved Health Assessments** (`components/AssessmentsSection.jsx`): Real-time `users/{uid}/assessments` snapshot + expandable history table (falling back gracefully to `users/{uid}` profile metrics for legacy accounts).
+  - **Recommended Nutrition Guides** (`components/PortalArticlesSection.jsx`): Ranks up to 3 published guides via `rankArticlesForClient` (`src/utils/carePortal.js`).
+  - **Account & Privacy**: Sign out and full account deletion (`deleteOwnAccount`).
+- **`components/SessionCard.jsx`**: Expandable session ledger with 3-step stepper, care summary/resource links, clinical snapshot badges, pre-filled WhatsApp outreach, and one-tap Follow-Up routing (`?tier=followup` on `/contactUs` or `/ontrack`).
 
-```
-src/Pages/Admin/
-├── AdminApp.jsx              (root: auth gate, ~30 lines)
-├── AdminLogin.jsx            (login form, ~100 lines)
-├── AdminDashboard.jsx        (dashboard shell + tabs, ~200 lines)
-├── components/
-│   ├── RichTextEditor.jsx    (extract as-is, ~500 lines)
-│   ├── ArticlesManager.jsx   (article CRUD, ~320 lines)
-│   ├── Notification.jsx      (toast component, ~25 lines)
-│   ├── ProgressBar.jsx       (progress bar, ~10 lines)
-│   └── UserJourneyPanel.jsx  (NEW: My Journey analytics, see Part 4)
-└── utils/
-    └── adminConstants.js     (admin email, password, shared config)
-```
+### 4. Backend Functions & Rules ([`functions/index.js`](../functions/index.js), [`functions/portalUtils.js`](../functions/portalUtils.js), [`firestore.rules`](../firestore.rules))
+- **`firestore.rules`**: Owners and admins can read/write/delete `users/{uid}/assessments/{assessmentId}`. Raw `bookings` and `inquiries` collections remain `isAdmin()`-only.
+- **`processBooking` & `submitBespokeInquiry`**: Persist normalized `emailLower` and `userId` (`request.auth?.uid` or `pendingBookings/{ref}.uid`), and enrich bookings from `users/{uid}/assessments` (falling back to legacy `users/{uid}/logs`).
+- **`getMyCarePortal` (`onCall`)**: Queries bookings and inquiries matching the verified user's UID, normalized email, or `users/{uid}.linkedBookingRefs`, returning sanitized client-safe fields.
+- **`linkBookingByReference` (`onCall`)**: Lets signed-in clients who checked out under a different email link a booking by matching Paystack reference + last 4 digits of booking phone (`phone` or `buyerPhone`).
+- **`deleteOwnAccount` & `adminDeleteUser`**: Clean up both `assessments` and legacy `logs` subcollections via `purgeUserFirestoreData`.
 
-### Refactoring Steps
-1. **Extract `RichTextEditor`** → `components/RichTextEditor.jsx` (pure, no admin dependencies)
-2. **Extract `Notification` + `ProgressBar`** → `components/Notification.jsx`, `components/ProgressBar.jsx`
-3. **Extract `ArticlesManager`** → `components/ArticlesManager.jsx` (imports RichTextEditor)
-4. **Extract `AdminLogin`** → `AdminLogin.jsx`
-5. **Keep `AdminDashboard`** in `AdminDashboard.jsx` — imports all sub-components
-6. **Keep `AdminApp`** in `AdminApp.jsx` — auth gate wrapper
-7. **Move constants** (`ADMIN_EMAIL`, `ADMIN_PASSWORD`) to `utils/adminConstants.js`
-8. **Migrate admin auth to Firebase Auth** (use the same Google sign-in + admin whitelist from Firestore rules instead of hardcoded credentials)
-
-> **IMPORTANT — Admin auth migration**: Replace hardcoded `admin@dietwithdee.org / admin123` with Firebase Google Auth. The admin whitelist is already defined in the Firestore security rules. The `AdminLogin` component should use `signInWithGoogle()` from `AuthContext` and check if the email is in the admin list. Add an `isAdmin` flag to `AuthContext`.
-
----
-
-## Part 4: Admin Analytics for My Journey 📊
-
-### New Component: `UserJourneyPanel.jsx`
-
-A new tab in the admin dashboard that gives admins full visibility into My Journey user activity.
-
-### 4.1 User Overview Table
-- [ ] Fetch all docs from `users` collection
-- [ ] Sortable table: Name, Email, Sign-up Date, Goal, Last Active, # of Log Entries, # of Achievements
-- [ ] Click a row → expand to view full profile + log history + achievements
-- [ ] Search / filter by name, email, goal, date range
-
-### 4.2 Aggregate Stats (Dashboard Cards)
-- [ ] **Total registered users** (count of `users` docs)
-- [ ] **Active users (last 7 days)** (users with a log entry in last 7 days)
-- [ ] **Goal distribution** (pie/donut chart: Lose vs Maintain vs Gain)
-- [ ] **Average BMI** across all users
-- [ ] **Total Achievements Unlocked** (aggregate count across all users)
-- [ ] **New sign-ups this week/month** (based on `updatedAt` or a `createdAt` field)
-
-### 4.3 User Detail View
-- [ ] Full profile data (same fields as onboarding)
-- [ ] Weight/BMI trend chart (same as user sees, but admin can view any user)
-- [ ] Log history table: date, weight, height, goal at time of log
-- [ ] **Unlocked Achievements list** (with count and names of badges)
-- [ ] Admin notes field (optional: admins can add private notes about a user)
-
-### 4.4 Export & Actions
-- [ ] Export user list as CSV
-- [ ] Export individual user's log history as CSV
-- [ ] Admin can reset a user's profile (delete their `users/{uid}` doc)
-
-### 4.5 Firestore Queries Required
-```javascript
-// All users (paginated)
-getDocs(query(collection(db, 'users'), orderBy('updatedAt', 'desc'), limit(50)))
-
-// Single user's logs
-getDocs(query(collection(db, 'users', uid, 'logs'), orderBy('loggedAt', 'desc')))
-
-// Goal distribution (client-side aggregate from users query)
-// Active users (client-side filter: users with logs in last 7 days)
-```
-
-### 4.6 Firestore Rules Already Handle This
-Admins (whitelisted emails) already have full read/write access to `users` and `users/{uid}/logs` collections per the rules we published.
-
----
-
-## Part 5: Implementation Order 📋
-
-> Recommended sequence for one-shotting the remaining work.
-
-### Phase 1: Admin Refactoring (do first — reduces risk of merge conflicts)
-1. Extract all components from `admin.jsx` into separate files
-2. Migrate admin login from hardcoded credentials to Firebase Google Auth + admin whitelist
-3. Verify admin panel still works identically
-
-### Phase 2: Admin Analytics Panel
-4. Create `UserJourneyPanel.jsx` with user table + aggregate stats
-5. Add it as a new tab in `AdminDashboard`
-6. Add user detail view with log history chart
-7. Add CSV export functionality
-
-### Phase 3: My Journey Full Build
-8. Add BMI/Weight chart to My Journey (Recharts or Chart.js)
-9. Add Recommended Reads section (filtered articles)
-10. Add Plan Recommendations section
-11. Add Achievements system
-12. Add Account Settings section
-
-### Phase 4: Polish
-13. Add `createdAt` field to user profiles (for "new sign-ups" analytics)
-14. Loading skeletons for all async content
-15. Error boundaries and fallback UI
-16. Mobile responsiveness audit
-17. Performance: lazy-load chart library and admin panel
+### 5. Admin Tools Integration ([`BookingsPanel.jsx`](../src/Pages/Admin/components/BookingsPanel.jsx), [`UserJourneyPanel.jsx`](../src/Pages/Admin/components/UserJourneyPanel.jsx), [`firebaseUtils.js`](../src/firebaseUtils.js))
+- **`BookingsPanel.jsx`**: Adds **Client Portal Care Summary** (`clientCareNote` + validated `carePlanUrl`) in booking detail view, immediately visible on the client's `SessionCard`.
+- **`UserJourneyPanel.jsx` / `firebaseUtils.js`**: Reads `users/{uid}/assessments` merged with legacy `users/{uid}/logs` in **KnowYourBody Assessment History**.
