@@ -32,7 +32,8 @@
   - **Guest View**: Google Sign-In CTA (`"Use the Google email you used when booking"`), plus links to `/knowyourbody` and `/contactUs`.
   - **Your Sessions with Dee**: Loads matched paid consultations (`bookings`) and Tier 03 Custom & Specialist Care inquiries (`inquiries`) via `getMyCarePortal`, plus inline `"Booked with another email?"` Paystack reference + phone last-4 linking (`linkBookingByReference`).
   - **Saved Health Assessments** (`components/AssessmentsSection.jsx`): Real-time `users/{uid}/assessments` snapshot + expandable history table (falling back gracefully to `users/{uid}` profile metrics for legacy accounts).
-  - **Recommended Nutrition Guides** (`components/PortalArticlesSection.jsx`): Ranks up to 3 published guides via `rankArticlesForClient` (`src/utils/carePortal.js`).
+  - **Recommended Nutrition Guides** (`components/PortalArticlesSection.jsx`): Compact 2-column horizontal cards matching `Blog.jsx`'s *More Articles* layout, ranking up to 4 published guides via `rankArticlesForClient` (`src/utils/carePortal.js`).
+  - **Client Testimonial Section**: Direct CTA to `/submit-testimonial` (pre-filling name, email, and consultation track) plus link to `/success-stories`, paired with a one-click `Copy Review Link` button in `TestimonialAdmin.jsx`.
   - **Account & Privacy**: Sign out and full account deletion (`deleteOwnAccount`).
 - **`components/SessionCard.jsx`**: Expandable session ledger with 3-step stepper, care summary/resource links, clinical snapshot badges, pre-filled WhatsApp outreach, and one-tap Follow-Up routing (`?tier=followup` on `/contactUs` or `/ontrack`).
 

@@ -15,7 +15,9 @@ import {
   Clock,
   Activity,
   CheckCircle2,
-  Loader2
+  Loader2,
+  MessageSquarePlus,
+  Star
 } from 'lucide-react';
 import SEO from '../../Components/SEO';
 import SafeImage from '../../Components/SafeImage';
@@ -576,7 +578,57 @@ function MyJourney() {
               <PortalArticlesSection userProfile={userProfile} bookings={bookings} />
             </section>
 
-            {/* SECTION 4: ACCOUNT & PRIVACY */}
+            {/* SECTION 4: CLIENT TESTIMONIAL / REVIEW */}
+            <section className="bg-white rounded-2xl border border-stone-200/90 p-5 sm:p-6 shadow-2xs flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+              <div className="space-y-1.5 max-w-xl">
+                <div className="flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-[#c96209]">
+                  <Star size={14} className="text-[#F6841F] fill-[#F6841F]" />
+                  <span>Share Your Experience</span>
+                </div>
+                <h2 className="text-lg sm:text-xl font-serif-cormorant font-semibold text-stone-900">
+                  Leave a Client Testimonial
+                </h2>
+                <p className="text-xs sm:text-sm text-stone-600 leading-relaxed">
+                  Worked with Nana Ama Dwamena or tried a meal guide? Share how your consultations or KnowYourBody check helped — your story encourages others across Ghana.
+                </p>
+              </div>
+
+              <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2.5 shrink-0">
+                <button
+                  type="button"
+                  onClick={() => {
+                    const hasOntrack = bookings.some((b) => b.isOntrack);
+                    const hasConsult = bookings.length > 0;
+                    navigate('/submit-testimonial', {
+                      state: {
+                        prefill: {
+                          name: user?.displayName || '',
+                          email: user?.email || '',
+                          plan: hasOntrack
+                            ? 'ontrack-care'
+                            : hasConsult
+                            ? 'consultation'
+                            : 'consultation'
+                        }
+                      }
+                    });
+                  }}
+                  className="px-4 py-2.5 rounded-xl bg-[#F6841F] hover:bg-[#e07312] text-white text-xs sm:text-sm font-bold flex items-center justify-center gap-1.5 transition-colors cursor-pointer border-none"
+                >
+                  <MessageSquarePlus size={15} />
+                  <span>Add Your Testimonial</span>
+                </button>
+                <button
+                  type="button"
+                  onClick={() => navigate('/success-stories')}
+                  className="px-4 py-2.5 rounded-xl border border-stone-300 bg-white hover:bg-stone-50 text-stone-700 text-xs font-semibold transition-colors cursor-pointer"
+                >
+                  Read Stories
+                </button>
+              </div>
+            </section>
+
+            {/* SECTION 5: ACCOUNT & PRIVACY */}
             <section className="bg-white rounded-2xl border border-stone-200/90 p-5 sm:p-6 shadow-2xs flex flex-col sm:flex-row sm:items-center justify-between gap-4">
               <div className="flex items-center gap-3.5 min-w-0">
                 {user.photoURL ? (

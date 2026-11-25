@@ -1,28 +1,44 @@
-import React, { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import React, { useState, useEffect } from 'react';
+import { useNavigate, useLocation } from 'react-router-dom';
 import { Loader2, CheckCircle, AlertCircle } from 'lucide-react';
 import SEO from '../../Components/SEO';
 import { useTestimonials } from '../../hooks/useTestimonials';
+import { useAuth } from '../../AuthContext';
 import ScrollToTop from "../../utils/ScrollToTop";
 
 function SubmitTestimonial() {
   const navigate = useNavigate();
+  const location = useLocation();
+  const { user } = useAuth();
   const { submitTestimonial } = useTestimonials();
-  
+  const prefill = location.state?.prefill || {};
+
   const [formData, setFormData] = useState({
-    name: '',
-    email: '',
+    name: prefill.name || '',
+    email: prefill.email || '',
     location: '',
     profession: '',
-    plan: 'snatched-nourished',
+    plan: prefill.plan || 'consultation',
     rating: 5,
     content: '',
   });
+
+  useEffect(() => {
+    if (user) {
+      setFormData((prev) => ({
+        ...prev,
+        name: prev.name || user.displayName || '',
+        email: prev.email || user.email || '',
+      }));
+    }
+  }, [user]);
 
   const [loading, setLoading] = useState(false);
   const [submitStatus, setSubmitStatus] = useState(null);
 
   const plans = [
+    { id: 'consultation', label: '1-on-1 Clinical Consultation' },
+    { id: 'ontrack-care', label: 'OnTrack Diabetes Consultation' },
     { id: 'back-to-basics', label: 'Back to Basics' },
     { id: 'snatched-nourished', label: 'Snatched & Nourished' },
     { id: 'blood-sugar-balance', label: 'Blood Sugar Balance' },

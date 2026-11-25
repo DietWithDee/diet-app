@@ -1,9 +1,11 @@
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '../../../AuthContext';
 import { useTestimonials } from '../../../hooks/useTestimonials';
-import { CheckCircle, XCircle, Trash2, Star, Loader2 } from 'lucide-react';
+import { CheckCircle, XCircle, Trash2, Star, Loader2, Copy, Check, ExternalLink } from 'lucide-react';
 import SubmissionReviewModal from './SubmissionReviewModal';
 import DeleteConfirmationModal from './DeleteConfirmationModal';
+
+const SUBMIT_TESTIMONIAL_URL = 'https://dietwithdee.org/submit-testimonial';
 
 function TestimonialAdmin() {
   const { user } = useAuth();
@@ -12,6 +14,29 @@ function TestimonialAdmin() {
   const [filter, setFilter] = useState('pending');
   const [selectedForReview, setSelectedForReview] = useState(null);
   const [actionLoading, setActionLoading] = useState({});
+  const [copiedLink, setCopiedLink] = useState(false);
+
+  const handleCopyReviewLink = async () => {
+    try {
+      await navigator.clipboard.writeText(SUBMIT_TESTIMONIAL_URL);
+      setCopiedLink(true);
+      setTimeout(() => setCopiedLink(false), 2500);
+    } catch {
+      const textarea = document.createElement('textarea');
+      textarea.value = SUBMIT_TESTIMONIAL_URL;
+      textarea.style.position = 'fixed';
+      textarea.style.opacity = '0';
+      document.body.appendChild(textarea);
+      textarea.select();
+      try {
+        document.execCommand('copy');
+        setCopiedLink(true);
+        setTimeout(() => setCopiedLink(false), 2500);
+      } finally {
+        document.body.removeChild(textarea);
+      }
+    }
+  };
 
   // Delete Confirmation Modal states
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
@@ -82,10 +107,37 @@ function TestimonialAdmin() {
 
   return (
     <div className='space-y-6'>
-      {/* Header */}
-      <div className='bg-white p-6 rounded-lg shadow'>
-        <h2 className='text-2xl font-bold text-gray-800 mb-2'>Testimonial Management</h2>
-        <p className='text-gray-600'>Review and approve customer testimonials</p>
+      {/* Header + One-Click Share Link */}
+      <div className='bg-white p-6 rounded-lg shadow flex flex-col sm:flex-row sm:items-center justify-between gap-4'>
+        <div>
+          <h2 className='text-2xl font-bold text-gray-800 mb-1'>Testimonial Management</h2>
+          <p className='text-gray-600 text-sm'>Review, approve, and share the public review form with clients</p>
+        </div>
+
+        <div className='flex items-center gap-2 shrink-0'>
+          <button
+            type='button'
+            onClick={handleCopyReviewLink}
+            className={`px-4 py-2.5 rounded-xl text-xs sm:text-sm font-bold flex items-center gap-2 transition-all cursor-pointer border ${
+              copiedLink
+                ? 'bg-emerald-600 text-white border-emerald-600 shadow-xs'
+                : 'bg-orange-50 text-[#c96209] border-orange-200 hover:bg-[#F6841F] hover:text-white hover:border-[#F6841F]'
+            }`}
+          >
+            {copiedLink ? <Check size={16} /> : <Copy size={16} />}
+            <span>{copiedLink ? 'Review Link Copied!' : 'Copy Review Link'}</span>
+          </button>
+
+          <a
+            href={SUBMIT_TESTIMONIAL_URL}
+            target='_blank'
+            rel='noopener noreferrer'
+            title='Open public testimonial submission form'
+            className='p-2.5 rounded-xl border border-stone-200 bg-white hover:bg-stone-50 text-stone-600 hover:text-stone-900 transition-colors'
+          >
+            <ExternalLink size={16} />
+          </a>
+        </div>
       </div>
 
       {/* Filter Tabs */}

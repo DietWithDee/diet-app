@@ -1,8 +1,8 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { Link } from 'react-router-dom';
-import { BookOpen, ArrowRight } from 'lucide-react';
+import { BookOpen, ArrowRight, Heart } from 'lucide-react';
 import { getArticlesPaged } from '../../../firebaseUtils';
-import { rankArticlesForClient, stripHtmlSnippet } from '../../../utils/carePortal';
+import { rankArticlesForClient, stripHtmlSnippet, formatDisplayDate } from '../../../utils/carePortal';
 import SafeImage from '../../../Components/SafeImage';
 
 const PortalArticlesSection = ({ userProfile = null, bookings = [] }) => {
@@ -37,19 +37,28 @@ const PortalArticlesSection = ({ userProfile = null, bookings = [] }) => {
       healthConditions: userProfile?.healthConditions || '',
       dietaryRestrictions: userProfile?.dietaryRestrictions || ''
     };
-    return rankArticlesForClient(articles, context, 3);
+    return rankArticlesForClient(articles, context, 4);
   }, [articles, userProfile, bookings]);
 
   if (loading) {
     return (
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-        {[0, 1, 2].map((i) => (
-          <div key={i} className="bg-white rounded-2xl border border-stone-200/80 p-4 space-y-3 animate-pulse">
-            <div className="w-full h-36 bg-stone-200 rounded-xl" />
-            <div className="h-3 w-24 bg-stone-200 rounded" />
-            <div className="h-4 w-4/5 bg-stone-200 rounded" />
-          </div>
-        ))}
+      <div className="space-y-4">
+        <div className="h-5 w-48 bg-stone-200 rounded animate-pulse" />
+        <div className="grid sm:grid-cols-2 gap-4 lg:gap-6">
+          {[0, 1, 2, 3].map((item) => (
+            <div
+              key={item}
+              className="bg-white rounded-xl shadow-xs p-4 lg:p-5 border border-stone-200/70 flex gap-3 lg:gap-4 items-center animate-pulse"
+            >
+              <div className="w-16 h-16 lg:w-20 lg:h-20 bg-stone-200 rounded-lg flex-shrink-0" />
+              <div className="flex-1 space-y-2 py-1">
+                <div className="h-3.5 bg-stone-200 rounded w-3/4" />
+                <div className="h-3 bg-stone-200 rounded w-full" />
+                <div className="h-3 bg-stone-200 rounded w-1/3" />
+              </div>
+            </div>
+          ))}
+        </div>
       </div>
     );
   }
@@ -64,7 +73,7 @@ const PortalArticlesSection = ({ userProfile = null, bookings = [] }) => {
             Recommended Nutrition Guides
           </h2>
           <p className="text-xs text-stone-500">
-            Evidence-based Ghanaian nutrition reads curated from your profile and care focus.
+            Tailored reads matched to your profile and care focus.
           </p>
         </div>
 
@@ -77,49 +86,59 @@ const PortalArticlesSection = ({ userProfile = null, bookings = [] }) => {
         </Link>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+      {/* Matches exact proportions of Blog.jsx "More Articles" cards */}
+      <div className="grid sm:grid-cols-2 gap-4 lg:gap-6">
         {curated.map((article) => {
-          const snippet = stripHtmlSnippet(article.content || '', 110);
+          const snippet = stripHtmlSnippet(article.content || '', 80);
           return (
             <Link
               key={article.id}
               to={`/blog/${article.slug || article.id}`}
-              className="group bg-white rounded-2xl border border-stone-200/90 overflow-hidden shadow-2xs hover:shadow-sm hover:border-emerald-200 transition-all flex flex-col"
+              className="bg-white rounded-xl shadow-xs hover:shadow-md transition-all p-4 lg:p-5 group border border-stone-200/80 block"
             >
-              {article.coverImage ? (
-                <div className="aspect-[16/10] w-full overflow-hidden bg-stone-100">
-                  <SafeImage
-                    src={article.coverImage}
-                    alt={article.title}
-                    className="w-full h-full object-cover group-hover:scale-[1.03] transition-transform duration-300"
-                    wrapperClassName="w-full h-full"
-                  />
-                </div>
-              ) : (
-                <div className="aspect-[16/10] w-full bg-emerald-50 flex items-center justify-center text-emerald-700">
-                  <BookOpen size={24} />
-                </div>
-              )}
-
-              <div className="p-4 flex-1 flex flex-col justify-between gap-3">
-                <div className="space-y-1.5">
-                  <span className="inline-block px-2 py-0.5 rounded-full text-[10px] font-bold bg-emerald-50 text-emerald-800 border border-emerald-200/70">
-                    {article.relevanceReason}
-                  </span>
-                  <h3 className="text-sm sm:text-base font-bold text-stone-900 group-hover:text-emerald-900 line-clamp-2 leading-snug">
-                    {article.title}
-                  </h3>
-                  {snippet && (
-                    <p className="text-xs text-stone-600 line-clamp-2 leading-relaxed">
-                      {snippet}
-                    </p>
+              <div className="flex gap-3 lg:gap-4">
+                <div className="w-16 h-16 lg:w-20 lg:h-20 bg-gradient-to-br from-emerald-50 to-green-100 rounded-lg flex items-center justify-center overflow-hidden flex-shrink-0">
+                  {article.coverImage ? (
+                    <SafeImage
+                      src={article.coverImage}
+                      alt={article.title}
+                      className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                      wrapperClassName="w-full h-full"
+                    />
+                  ) : (
+                    <BookOpen size={20} className="text-emerald-700 opacity-80" />
                   )}
                 </div>
 
-                <span className="text-xs font-bold text-[#e07312] inline-flex items-center gap-1">
-                  <span>Read Guide</span>
-                  <ArrowRight size={12} className="group-hover:translate-x-0.5 transition-transform" />
-                </span>
+                <div className="flex-1 min-w-0">
+                  <div className="flex items-center gap-2 mb-1">
+                    <span className="px-2 py-0.5 rounded-full text-[10px] font-semibold bg-emerald-50 text-emerald-800 border border-emerald-200/70">
+                      {article.relevanceReason}
+                    </span>
+                  </div>
+                  <h3 className="font-semibold text-emerald-900 group-hover:text-emerald-700 transition-colors mb-1 text-sm lg:text-base line-clamp-2 leading-snug">
+                    {article.title}
+                  </h3>
+                  {snippet && (
+                    <p className="text-xs lg:text-sm text-stone-600 mb-2 line-clamp-2 leading-snug">
+                      {snippet}
+                    </p>
+                  )}
+                  <div className="flex items-center justify-between text-xs text-stone-500">
+                    <span>{formatDisplayDate(article.createdAt?.toDate ? article.createdAt.toDate() : article.createdAt) || 'Guide'}</span>
+                    <div className="flex items-center gap-3">
+                      {typeof article.likesCount === 'number' && article.likesCount > 0 && (
+                        <span className="inline-flex items-center gap-1">
+                          <Heart size={12} className="text-rose-500" />
+                          <span>{article.likesCount}</span>
+                        </span>
+                      )}
+                      <span className="font-semibold text-[#e07312] inline-flex items-center gap-0.5">
+                        Read <ArrowRight size={11} />
+                      </span>
+                    </div>
+                  </div>
+                </div>
               </div>
             </Link>
           );
