@@ -21,6 +21,13 @@ const {
 admin.initializeApp();
 const db = admin.firestore();
 
+// Enforce global scaling & CPU caps before any exported function so Cloud Run stays well within regional CPU quotas
+setGlobalOptions({
+  maxInstances: 1,
+  cpu: 0.5,
+  concurrency: 1
+});
+
 // Resend Audience ID (General audience)
 const RESEND_AUDIENCE_ID = process.env.RESEND_AUDIENCE_ID || "2e22a159-d193-46a0-8e66-f35b62b1d8bb";
 
@@ -57,9 +64,6 @@ exports.setAdminStatus = onCall(async (request) => {
     throw new HttpsError("internal", error.message);
   }
 });
-
-// Set global options to max instances to avoid cold start issues if desired
-setGlobalOptions({ maxInstances: 4 });
 
 // 1. Scheduled Function to Publish Articles
 exports.publishScheduledArticles = onSchedule("every 10 minutes", async (event) => {

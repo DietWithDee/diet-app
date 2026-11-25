@@ -72,22 +72,22 @@ jobs:
         run: |
           firebase deploy --only firestore:rules --force --token "${{ secrets.FIREBASE_TOKEN }}"
 
-          BATCHES=$(node -e "const keys = Object.keys(require('./functions/index.js')); for (let i = 0; i < keys.length; i += 4) console.log(keys.slice(i, i + 4).map((k) => 'functions:' + k).join(','));")
-          echo "Deploying Firebase Functions in batches of 4 to stay within Cloud Run / Cloud Build concurrency quotas:"
+          BATCHES=$(node -e "const keys = Object.keys(require('./functions/index.js')); for (let i = 0; i < keys.length; i += 2) console.log(keys.slice(i, i + 2).map((k) => 'functions:' + k).join(','));")
+          echo "Deploying Firebase Functions in batches of 2 to stay within Cloud Run regional CPU quotas:"
           echo "$BATCHES"
 
           FIRST=true
           while IFS= read -r TARGETS; do
             [ -z "$TARGETS" ] && continue
             if [ "$FIRST" = false ]; then
-              sleep 15
+              sleep 20
             fi
             FIRST=false
 
             echo "Deploying batch: $TARGETS"
             if ! firebase deploy --only "$TARGETS" --force --token "${{ secrets.FIREBASE_TOKEN }}"; then
-              echo "Deploy batch hit transient error ($TARGETS); waiting 60s before retry..."
-              sleep 60
+              echo "Deploy batch hit transient quota error ($TARGETS); waiting 90s before retry..."
+              sleep 90
               firebase deploy --only "$TARGETS" --force --token "${{ secrets.FIREBASE_TOKEN }}"
             fi
           done <<< "$BATCHES"
