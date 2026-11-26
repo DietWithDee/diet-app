@@ -75,17 +75,6 @@ const WelcomeStep = ({ user, email, setEmail, emailError, setEmailError, onNext 
       </p>
     </div>
 
-    <div className="flex flex-wrap justify-center gap-4 text-xs sm:text-sm font-semibold text-emerald-900">
-      <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-white border border-stone-200">
-        <Calculator size={15} className="text-emerald-700" /> BMI &amp; Body Metrics
-      </span>
-      <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-white border border-stone-200">
-        <Target size={15} className="text-[#e07312]" /> Daily Calories &amp; Macros
-      </span>
-      <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-white border border-stone-200">
-        <BookOpen size={15} className="text-emerald-700" /> Dietitian Summary
-      </span>
-    </div>
 
     <form
       onSubmit={(e) => {
